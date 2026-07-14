@@ -355,6 +355,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         drmConfigs = null,
         playerOptions = const <String, dynamic>{},
         streamingProperty = null,
+        playerEngine = PlayerEngine.auto,
         super(
           VideoPlayerValue(
             duration: DurationRange(Duration.zero, Duration.zero),
@@ -379,6 +380,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     this.drmConfigs,
     this.playerOptions,
     this.streamingProperty,
+    this.playerEngine = PlayerEngine.auto,
   })  : dataSourceType = DataSourceType.network,
         package = null,
         super(
@@ -403,6 +405,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         drmConfigs = null,
         playerOptions = const <String, dynamic>{},
         streamingProperty = null,
+        playerEngine = PlayerEngine.auto,
         super(
           VideoPlayerValue(
             duration: DurationRange(Duration.zero, Duration.zero),
@@ -429,6 +432,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         drmConfigs = null,
         playerOptions = const <String, dynamic>{},
         streamingProperty = null,
+        playerEngine = PlayerEngine.auto,
         super(
           VideoPlayerValue(
             duration: DurationRange(Duration.zero, Duration.zero),
@@ -456,6 +460,14 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// The available streaming properties depend on the streaming protocol or engine.
   /// Only for [VideoPlayerController.network].
   final Map<StreamingPropertyType, String>? streamingProperty;
+
+  /// Selects which native playback engine drives the source.
+  ///
+  /// [PlayerEngine.auto] (the default) keeps the historical URI-based selection.
+  /// Use [PlayerEngine.adaptiveStreaming] or [PlayerEngine.general] to force an
+  /// engine when a source fails on the auto-selected one. Only for
+  /// [VideoPlayerController.network].
+  final PlayerEngine playerEngine;
 
   /// **Android only**. Will override the platform's generic file format
   /// detection with whatever is set here.
@@ -563,6 +575,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           drmConfigs: drmConfigs,
           playerOptions: playerOptions,
           streamingProperty: streamingProperty,
+          playerEngine: playerEngine,
         );
       case DataSourceType.file:
         dataSourceDescription = DataSource(
