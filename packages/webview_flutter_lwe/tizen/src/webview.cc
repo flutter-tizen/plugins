@@ -37,8 +37,12 @@ extern "C" size_t LWE_EXPORT createWebViewInstance(
 
 class NavigationRequestResult : public FlMethodResult {
  public:
-  NavigationRequestResult(std::string url, WebView* webview)
-      : url_(url), webview_(webview) {}
+  // Dart resolves "navigationRequest" asynchronously, so this result may
+  // complete after the WebView has been disposed. |alive| (the WebView's
+  // is_alive_ flag) is checked before dereferencing |webview_|.
+  NavigationRequestResult(std::string url, WebView* webview,
+                          std::shared_ptr<bool> alive)
+      : url_(url), webview_(webview), alive_(std::move(alive)) {}
 
   void SuccessInternal(const flutter::EncodableValue* should_load) override {
     if (std::holds_alternative<bool>(*should_load)) {
@@ -60,6 +64,9 @@ class NavigationRequestResult : public FlMethodResult {
 
  private:
   void LoadUrl() {
+    if (!*alive_) {
+      return;
+    }
     if (webview_ && webview_->GetWebViewInstance()) {
       webview_->GetWebViewInstance()->LoadURL(url_);
     }
@@ -67,6 +74,7 @@ class NavigationRequestResult : public FlMethodResult {
 
   std::string url_;
   WebView* webview_;
+  std::shared_ptr<bool> alive_;
 };
 
 template <typename T>
@@ -125,7 +133,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
 
   InitWebView();
 
-  dispatcher_ = std::make_unique<MessageDispatcher>();
+  dispatcher_ = std::make_shared<MessageDispatcher>();
 
   webview_channel_ = std::make_unique<FlMethodChannel>(
       GetPluginRegistrar()->messenger(), GetWebViewChannelName(),
@@ -153,9 +161,16 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
         flutter::EncodableMap args = {
             {flutter::EncodableValue("url"), flutter::EncodableValue(url)}};
 
-        dispatcher_->dispatchTaskOnMainThread([this, args]() {
+        dispatcher_->dispatchTaskOnMainThread([this, args,
+                                               alive = is_alive_]() {
+          if (!*alive) return;
           navigation_delegate_channel_->InvokeMethod(
               "onPageStarted", std::make_unique<flutter::EncodableValue>(args));
+          // The lightweight web engine has no dedicated URL-change
+          // callback, so report a URL change whenever a navigation
+          // starts.
+          navigation_delegate_channel_->InvokeMethod(
+              "onUrlChange", std::make_unique<flutter::EncodableValue>(args));
         });
       });
   webview_instance_->RegisterOnPageLoadedHandler(
@@ -163,18 +178,22 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
         flutter::EncodableMap args = {
             {flutter::EncodableValue("url"), flutter::EncodableValue(url)}};
 
-        dispatcher_->dispatchTaskOnMainThread([this, args]() {
-          navigation_delegate_channel_->InvokeMethod(
-              "onPageFinished",
-              std::make_unique<flutter::EncodableValue>(args));
-        });
+        dispatcher_->dispatchTaskOnMainThread(
+            [this, args, alive = is_alive_]() {
+              if (!*alive) return;
+              navigation_delegate_channel_->InvokeMethod(
+                  "onPageFinished",
+                  std::make_unique<flutter::EncodableValue>(args));
+            });
       });
   webview_instance_->RegisterOnProgressChangedHandler(
       [this](LWE::WebContainer* container, int progress) {
         flutter::EncodableMap args = {{flutter::EncodableValue("progress"),
                                        flutter::EncodableValue(progress)}};
 
-        dispatcher_->dispatchTaskOnMainThread([this, args]() {
+        dispatcher_->dispatchTaskOnMainThread([this, args,
+                                               alive = is_alive_]() {
+          if (!*alive) return;
           navigation_delegate_channel_->InvokeMethod(
               "onProgress", std::make_unique<flutter::EncodableValue>(args));
         });
@@ -189,11 +208,13 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
             {flutter::EncodableValue("failingUrl"),
              flutter::EncodableValue(error.GetUrl())},
         };
-        dispatcher_->dispatchTaskOnMainThread([this, args]() {
-          navigation_delegate_channel_->InvokeMethod(
-              "onWebResourceError",
-              std::make_unique<flutter::EncodableValue>(args));
-        });
+        dispatcher_->dispatchTaskOnMainThread(
+            [this, args, alive = is_alive_]() {
+              if (!*alive) return;
+              navigation_delegate_channel_->InvokeMethod(
+                  "onWebResourceError",
+                  std::make_unique<flutter::EncodableValue>(args));
+            });
       });
   webview_instance_->RegisterShouldOverrideUrlLoadingHandler(
       [this](LWE::WebContainer* view, const std::string& url) -> bool {
@@ -206,13 +227,16 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
              flutter::EncodableValue(true)},
         };
 
-        dispatcher_->dispatchTaskOnMainThread([this, args, url]() {
-          auto result = std::make_unique<NavigationRequestResult>(url, this);
-          navigation_delegate_channel_->InvokeMethod(
-              "navigationRequest",
-              std::make_unique<flutter::EncodableValue>(args),
-              std::move(result));
-        });
+        dispatcher_->dispatchTaskOnMainThread(
+            [this, args, url, alive = is_alive_]() {
+              if (!*alive) return;
+              auto result =
+                  std::make_unique<NavigationRequestResult>(url, this, alive);
+              navigation_delegate_channel_->InvokeMethod(
+                  "navigationRequest",
+                  std::make_unique<flutter::EncodableValue>(args),
+                  std::move(result));
+            });
         return true;
       });
 }
@@ -231,7 +255,8 @@ void WebView::RegisterJavaScriptChannelName(const std::string& name) {
         {flutter::EncodableValue("message"), flutter::EncodableValue(message)},
     };
 
-    dispatcher_->dispatchTaskOnMainThread([this, args]() {
+    dispatcher_->dispatchTaskOnMainThread([this, args, alive = is_alive_]() {
+      if (!*alive) return;
       webview_channel_->InvokeMethod(
           "javaScriptChannelMessage",
           std::make_unique<flutter::EncodableValue>(args));
@@ -257,12 +282,39 @@ std::string WebView::GetNavigationDelegateChannelName() {
 }
 
 void WebView::Dispose() {
-  texture_registrar_->UnregisterTexture(GetTextureId(), nullptr);
+  // Set this first so that dispatcher_ callbacks already queued on the main
+  // loop bail out instead of touching a destroyed WebView.
+  *is_alive_ = false;
 
+  // Stop the web engine first so its renderer thread stops writing into the
+  // shared TBM surfaces before anything is torn down.
   if (webview_instance_) {
     webview_instance_->Destroy();
     webview_instance_ = nullptr;
   }
+
+  // Detach the buffers under the lock so that the raster thread stops handing
+  // out buffers that are about to be released.
+  std::shared_ptr<BufferPool> pool;
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    is_disposing_ = true;
+    working_surface_ = nullptr;
+    candidate_surface_ = nullptr;
+    rendered_surface_ = nullptr;
+    pool = std::move(tbm_pool_);
+  }
+
+  // The callback runs on the render thread only after the raster thread is
+  // done with the TBM surfaces, so the pool is destroyed in a main-thread
+  // task. dispatcher_ is captured as a shared_ptr copy because the WebView
+  // may already be destroyed by the time the callback fires.
+  texture_registrar_->UnregisterTexture(
+      GetTextureId(), [pool, dispatcher = dispatcher_]() {
+        dispatcher->dispatchTaskOnMainThread([pool]() {
+          // The pool destructor frees all TBM surfaces.
+        });
+      });
 }
 
 void WebView::Resize(double width, double height) {
@@ -802,6 +854,9 @@ void WebView::HandleCookieMethodCall(const FlMethodCall& method_call,
 FlutterDesktopGpuSurfaceDescriptor* WebView::ObtainGpuSurface(size_t width,
                                                               size_t height) {
   std::lock_guard<std::mutex> lock(mutex_);
+  if (is_disposing_ || !tbm_pool_) {
+    return nullptr;
+  }
   if (!candidate_surface_) {
     if (rendered_surface_) {
       return rendered_surface_->GpuSurface();

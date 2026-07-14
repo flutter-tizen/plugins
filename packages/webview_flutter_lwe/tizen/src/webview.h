@@ -80,7 +80,16 @@ class WebView : public PlatformView {
   BufferUnit* rendered_surface_ = nullptr;
   bool is_mouse_lbutton_down_ = false;
   bool has_navigation_delegate_ = false;
-  std::unique_ptr<MessageDispatcher> dispatcher_;
+  bool is_disposing_ = false;
+  // Set to false at the start of Dispose(). Every dispatcher_ callback that
+  // captures `this` also captures a copy of this shared_ptr, so a callback
+  // still queued on the main-loop when the WebView is disposed can check it
+  // and bail out instead of dereferencing an already-destroyed WebView.
+  std::shared_ptr<bool> is_alive_ = std::make_shared<bool>(true);
+  // Shared (not unique) so a pending dispose callback can keep the
+  // dispatcher alive by holding its own reference after the WebView that
+  // created it has been destroyed.
+  std::shared_ptr<MessageDispatcher> dispatcher_;
   std::unique_ptr<FlMethodChannel> webview_channel_;
   std::unique_ptr<FlMethodChannel> navigation_delegate_channel_;
   std::unique_ptr<flutter::TextureVariant> texture_variant_;
