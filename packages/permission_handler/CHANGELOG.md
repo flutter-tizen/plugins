@@ -1,3 +1,7 @@
+## NEXT
+
+* Add 8 integration test cases.
+
 ## 1.4.4
 
 * Remove Ecore API.
