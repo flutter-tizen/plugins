@@ -12,11 +12,11 @@ class PolygonController {
     required util.GPolygon polygon,
     bool consumeTapEvents = false,
     ui.VoidCallback? onTap,
-    WebViewController? controller,
+    required GoogleMapsJsBridge bridge,
   })  : _polygon = polygon,
         _consumeTapEvents = consumeTapEvents,
         tapEvent = onTap {
-    _addPolygonEvent(controller);
+    _addPolygonEvent(bridge);
   }
 
   util.GPolygon? _polygon;
@@ -25,10 +25,10 @@ class PolygonController {
   /// Polygon component's tap event.
   ui.VoidCallback? tapEvent;
 
-  Future<void> _addPolygonEvent(WebViewController? controller) async {
+  Future<void> _addPolygonEvent(GoogleMapsJsBridge bridge) async {
     final String command =
         "$_polygon.addListener('click', (event) => PolygonClick.postMessage(JSON.stringify(${_polygon?.id})));";
-    await controller!.runJavaScript(command);
+    await bridge.runJavaScript(command);
   }
 
   /// Returns `true` if this Controller will use its own `onTap` handler to consume events.

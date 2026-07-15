@@ -8,8 +8,11 @@ part of '../google_maps_flutter_tizen.dart';
 /// This class manages a set of [PolygonController]s associated to a [GoogleMapController].
 class PolygonsController extends GeometryController {
   /// Initializes the cache. The [StreamController] comes from the [GoogleMapController], and is shared with other controllers.
-  PolygonsController({required StreamController<MapEvent<Object?>> stream})
-      : _streamController = stream,
+  PolygonsController({
+    required StreamController<MapEvent<Object?>> stream,
+    required GoogleMapsJsBridge bridge,
+  })  : _streamController = stream,
+        _bridge = bridge,
         _polygonIdToController = <PolygonId, PolygonController>{},
         _idToPolygonId = <int, PolygonId>{};
 
@@ -19,6 +22,8 @@ class PolygonsController extends GeometryController {
 
   // The stream over which polygons broadcast events
   final StreamController<MapEvent<Object?>> _streamController;
+
+  final GoogleMapsJsBridge _bridge;
 
   /// Adds a set of [Polygon] objects to the cache.
   ///
@@ -35,14 +40,14 @@ class PolygonsController extends GeometryController {
     final util.GPolygonOptions populationOptions = _polygonOptionsFromPolygon(
       polygon,
     );
-    final util.GPolygon gPolygon = util.GPolygon(populationOptions);
+    final util.GPolygon gPolygon = util.GPolygon(_bridge, populationOptions);
     final PolygonController controller = PolygonController(
       polygon: gPolygon,
       consumeTapEvents: polygon.consumeTapEvents,
       onTap: () {
         _onPolygonTap(polygon.polygonId);
       },
-      controller: util.webController,
+      bridge: _bridge,
     );
     _idToPolygonId[gPolygon.id] = polygon.polygonId;
     _polygonIdToController[polygon.polygonId] = controller;

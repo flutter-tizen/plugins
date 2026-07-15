@@ -17,7 +17,7 @@ class MarkerController {
     LatLngCallback? onDragEnd,
     ui.VoidCallback? onTap,
     ClusterManagerId? clusterManagerId,
-    WebViewController? controller,
+    GoogleMapsJsBridge? bridge,
   })  : _marker = marker,
         _infoWindow = infoWindow,
         _consumeTapEvents = consumeTapEvents,
@@ -26,8 +26,8 @@ class MarkerController {
         dragStartEvent = onDragStart,
         dragEvent = onDrag,
         dragEndEvent = onDragEnd {
-    if (controller != null) {
-      _addMarkerEvent(controller);
+    if (bridge != null) {
+      _addMarkerEvent(bridge);
     }
   }
 
@@ -49,13 +49,13 @@ class MarkerController {
   /// Marker component's drag end event.
   LatLngCallback? dragEndEvent;
 
-  Future<void> _addMarkerEvent(WebViewController? controller) async {
+  Future<void> _addMarkerEvent(GoogleMapsJsBridge bridge) async {
     final String command = '''
         $marker.addListener("click", (event) => MarkerClick.postMessage(JSON.stringify(${marker?.id})));
         $marker.addListener("dragstart", (event) => MarkerDragStart.postMessage(JSON.stringify({id:${marker?.id}, event:event})));
         $marker.addListener("drag", (event) => MarkerDrag.postMessage(JSON.stringify({id:${marker?.id}, event:event})));
         $marker.addListener("dragend", (event) => MarkerDragEnd.postMessage(JSON.stringify({id:${marker?.id}, event:event})));''';
-    await controller!.runJavaScript(command);
+    await bridge.runJavaScript(command);
   }
 
   /// Returns `true` if this Controller will use its own `onTap` handler to consume events.

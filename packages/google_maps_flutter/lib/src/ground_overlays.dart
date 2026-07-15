@@ -12,7 +12,9 @@ class GroundOverlaysController extends GeometryController {
   /// [GoogleMapController], and is shared with other controllers.
   GroundOverlaysController({
     required StreamController<MapEvent<Object?>> stream,
+    required GoogleMapsJsBridge bridge,
   })  : _streamController = stream,
+        _bridge = bridge,
         _groundOverlayIdToController =
             <GroundOverlayId, GroundOverlayController>{},
         _idToGroundOverlayId = <int, GroundOverlayId>{};
@@ -24,6 +26,8 @@ class GroundOverlaysController extends GeometryController {
 
   // The stream over which ground overlays broadcast events.
   final StreamController<MapEvent<Object?>> _streamController;
+
+  final GoogleMapsJsBridge _bridge;
 
   /// Adds a set of [GroundOverlay] objects to the cache.
   ///
@@ -45,6 +49,7 @@ class GroundOverlaysController extends GeometryController {
     }
 
     final util.GGroundOverlay gGroundOverlay = util.GGroundOverlay(
+      _bridge,
       populationOptions,
     );
     final GroundOverlayController controller = GroundOverlayController(
@@ -52,7 +57,7 @@ class GroundOverlaysController extends GeometryController {
       onTap: () {
         _onGroundOverlayTap(groundOverlay.groundOverlayId);
       },
-      controller: util.webController,
+      bridge: _bridge,
     );
     _idToGroundOverlayId[gGroundOverlay.id] = groundOverlay.groundOverlayId;
     _groundOverlayIdToController[groundOverlay.groundOverlayId] = controller;

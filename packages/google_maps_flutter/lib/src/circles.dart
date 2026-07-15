@@ -8,8 +8,11 @@ part of '../google_maps_flutter_tizen.dart';
 /// This class manages all the [CircleController]s associated to a [GoogleMapController].
 class CirclesController extends GeometryController {
   /// Initialize the cache. The [StreamController] comes from the [GoogleMapController], and is shared with other controllers.
-  CirclesController({required StreamController<MapEvent<Object?>> stream})
-      : _streamController = stream,
+  CirclesController({
+    required StreamController<MapEvent<Object?>> stream,
+    required GoogleMapsJsBridge bridge,
+  })  : _streamController = stream,
+        _bridge = bridge,
         _circleIdToController = <CircleId, CircleController>{},
         _idToCircleId = <int, CircleId>{};
 
@@ -19,6 +22,8 @@ class CirclesController extends GeometryController {
 
   // The stream over which circles broadcast their events
   final StreamController<MapEvent<Object?>> _streamController;
+
+  final GoogleMapsJsBridge _bridge;
 
   /// Adds a set of [Circle] objects to the cache.
   ///
@@ -35,14 +40,14 @@ class CirclesController extends GeometryController {
     final util.GCircleOptions populationOptions = _circleOptionsFromCircle(
       circle,
     );
-    final util.GCircle gCircle = util.GCircle(populationOptions);
+    final util.GCircle gCircle = util.GCircle(_bridge, populationOptions);
     final CircleController controller = CircleController(
       circle: gCircle,
       consumeTapEvents: circle.consumeTapEvents,
       onTap: () {
         _onCircleTap(circle.circleId);
       },
-      controller: util.webController,
+      bridge: _bridge,
     );
     _idToCircleId[gCircle.id] = circle.circleId;
     _circleIdToController[circle.circleId] = controller;

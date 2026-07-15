@@ -12,11 +12,11 @@ class CircleController {
     required util.GCircle circle,
     bool consumeTapEvents = false,
     ui.VoidCallback? onTap,
-    WebViewController? controller,
+    required GoogleMapsJsBridge bridge,
   })  : _circle = circle,
         _consumeTapEvents = consumeTapEvents,
         tapEvent = onTap {
-    _addCircleEvent(controller);
+    _addCircleEvent(bridge);
   }
 
   util.GCircle? _circle;
@@ -25,10 +25,10 @@ class CircleController {
   /// Circle component's tap event.
   ui.VoidCallback? tapEvent;
 
-  Future<void> _addCircleEvent(WebViewController? controller) async {
+  Future<void> _addCircleEvent(GoogleMapsJsBridge bridge) async {
     final String command =
         "$_circle.addListener('click', (event) => CircleClick.postMessage(JSON.stringify(${_circle?.id})));";
-    await controller!.runJavaScript(command);
+    await bridge.runJavaScript(command);
   }
 
   /// Returns `true` if this Controller will use its own `onTap` handler to consume events.
