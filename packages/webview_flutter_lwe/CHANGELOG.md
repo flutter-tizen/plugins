@@ -1,3 +1,7 @@
+## 0.5.1
+
+* Update the README.md.
+
 ## 0.5.0
 
 * Implement `onUrlChange` for the navigation delegate.
