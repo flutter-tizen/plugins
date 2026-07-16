@@ -12,14 +12,26 @@ import '../video_player_platform_interface.dart';
 import 'messages.g.dart';
 import 'tracks.dart';
 
-/// An implementation of [VideoPlayerPlatform] that uses the
-/// Pigeon-generated [VideoPlayerVideoholeApi].
+/// An implementation of [VideoPlayerPlatform] that uses FFI for initialization
+/// and Platform Channel (Pigeon) for other methods (gradual migration).
 class VideoPlayerTizen extends VideoPlayerPlatform {
   final VideoPlayerVideoholeApi _api = VideoPlayerVideoholeApi();
 
   @override
-  Future<void> init() {
-    return _api.initialize();
+  Future<void> init() async {
+    // Use FFI for initialization (gradual migration from Platform Channel)
+    try {
+      final result = await ffiInitialize();
+      if (result != 0) {
+        throw Exception('FFI initialize failed with code: $result');
+      }
+      print('********FFI initialize succeeded**********');
+    } catch (e) {
+      print(
+          '***********FFI initialize failed, falling back to Platform Channel: $e**********');
+      // Fallback to Platform Channel if FFI fails
+      return _api.initialize();
+    }
   }
 
   @override
@@ -29,26 +41,59 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<int?> create(DataSource dataSource) async {
-    final CreateMessage message = CreateMessage();
+    // Use FFI for create (gradual migration from Platform Channel)
+    try {
+      int playerId;
 
-    switch (dataSource.sourceType) {
-      case DataSourceType.asset:
-        message.asset = dataSource.asset;
-        message.packageName = dataSource.package;
-      case DataSourceType.network:
-        message.uri = dataSource.uri;
-        message.formatHint = _videoFormatStringMap[dataSource.formatHint];
-        message.httpHeaders = dataSource.httpHeaders;
-        message.drmConfigs = dataSource.drmConfigs?.toMap();
-        message.playerOptions = dataSource.playerOptions;
-      case DataSourceType.file:
-        message.uri = dataSource.uri;
-      case DataSourceType.contentUri:
-        message.uri = dataSource.uri;
+      switch (dataSource.sourceType) {
+        case DataSourceType.asset:
+          playerId = await ffiCreate(
+            asset: dataSource.asset,
+            packageName: dataSource.package,
+          );
+        case DataSourceType.network:
+          playerId = await ffiCreate(
+            uri: dataSource.uri,
+            formatHint: _videoFormatStringMap[dataSource.formatHint],
+            httpHeaders: dataSource.httpHeaders,
+            drmConfigs: dataSource.drmConfigs?.toMap(),
+            playerOptions: dataSource.playerOptions,
+          );
+        case DataSourceType.file:
+        case DataSourceType.contentUri:
+          playerId = await ffiCreate(uri: dataSource.uri);
+      }
+
+      if (playerId < 0) {
+        throw Exception('FFI create failed with code: $playerId');
+      }
+      print(
+          '*************FFI create succeeded with player_id: $playerId*******');
+      return playerId;
+    } catch (e) {
+      print(
+          '*************FFI create failed, falling back to Platform Channel: $e****');
+      // Fallback to Platform Channel if FFI fails
+      final CreateMessage message = CreateMessage();
+
+      switch (dataSource.sourceType) {
+        case DataSourceType.asset:
+          message.asset = dataSource.asset;
+          message.packageName = dataSource.package;
+        case DataSourceType.network:
+          message.uri = dataSource.uri;
+          message.formatHint = _videoFormatStringMap[dataSource.formatHint];
+          message.httpHeaders = dataSource.httpHeaders;
+          message.drmConfigs = dataSource.drmConfigs?.toMap();
+          message.playerOptions = dataSource.playerOptions;
+        case DataSourceType.file:
+        case DataSourceType.contentUri:
+          message.uri = dataSource.uri;
+      }
+
+      final PlayerMessage response = await _api.create(message);
+      return response.playerId;
     }
-
-    final PlayerMessage response = await _api.create(message);
-    return response.playerId;
   }
 
   @override

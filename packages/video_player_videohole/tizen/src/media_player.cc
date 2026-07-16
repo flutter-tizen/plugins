@@ -102,15 +102,30 @@ int64_t MediaPlayer::Create(const std::string &uri,
     }
   }
 
-  int64_t drm_type =
-      flutter_common::GetValue(create_message.drm_configs(), "drmType", 0);
-  std::string license_server_url = flutter_common::GetValue(
-      create_message.drm_configs(), "licenseServerUrl", std::string());
-  if (drm_type != 0) {
-    if (!SetDrm(uri, drm_type, license_server_url)) {
-      LOG_ERROR("[MediaPlayer] Failed to set drm.");
-      return -1;
+  auto drm_configs_ptr = create_message.drm_configs();
+  if (drm_configs_ptr != nullptr) {
+    LOG_INFO("[MediaPlayer] drm_configs is present.");
+
+    // Must use 0LL (int64_t literal) instead of 0 (int literal) for proper type
+    // matching
+    int64_t drm_type =
+        flutter_common::GetValue<int64_t>(drm_configs_ptr, "drmType", 0LL);
+    std::string license_server_url = flutter_common::GetValue<std::string>(
+        drm_configs_ptr, "licenseServerUrl", std::string());
+
+    LOG_INFO("[MediaPlayer] drm_type=%lld, license_server_url=%s",
+             static_cast<long long>(drm_type), license_server_url.c_str());
+
+    if (drm_type != 0) {
+      if (!SetDrm(uri, drm_type, license_server_url)) {
+        LOG_ERROR("[MediaPlayer] Failed to set drm.");
+        return -1;
+      }
+    } else {
+      LOG_INFO("[MediaPlayer] drm_type is 0, skipping SetDrm.");
     }
+  } else {
+    LOG_INFO("[MediaPlayer] drm_configs is NOT present (null).");
   }
 
   if (!SetDisplay()) {
@@ -592,6 +607,7 @@ bool MediaPlayer::SetTrackSelection(int32_t track_id, std::string track_type) {
 bool MediaPlayer::SetDrm(const std::string &uri, int drm_type,
                          const std::string &license_server_url) {
   drm_manager_ = std::make_unique<DrmManager>();
+
   if (!drm_manager_->CreateDrmSession(drm_type, false)) {
     LOG_ERROR("[MediaPlayer] Failed to create drm session.");
     return false;
@@ -622,7 +638,7 @@ bool MediaPlayer::SetDrm(const std::string &uri, int drm_type,
   ret = media_player_proxy_->player_set_drm_init_data_cb(
       player_, OnDrmUpdatePsshData, this);
   if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_set_drm_init_complete_cb failed : %s.",
+    LOG_ERROR("[MediaPlayer] player_set_drm_init_data_cb failed : %s.",
               get_error_message(ret));
     return false;
   }
@@ -630,15 +646,17 @@ bool MediaPlayer::SetDrm(const std::string &uri, int drm_type,
   if (license_server_url.empty()) {
     bool success = drm_manager_->SetChallenge(uri, binary_messenger_);
     if (!success) {
-      LOG_ERROR("[MediaPlayer] Failed to set challenge.");
+      LOG_ERROR("[MediaPlayer] Failed to set challenge via licenseCallback.");
       return false;
     }
   } else {
     if (!drm_manager_->SetChallenge(uri, license_server_url)) {
-      LOG_ERROR("[MediaPlayer] Failed to set challenge.");
+      LOG_ERROR("[MediaPlayer] Failed to set challenge via licenseServerUrl.");
       return false;
     }
   }
+
+  LOG_INFO("[MediaPlayer] SetDrm completed successfully.");
   return true;
 }
 

@@ -447,4 +447,26 @@ class VideoPlayerVideoholeApi {
   VideoPlayerVideoholeApi() = default;
 };
 }  // namespace video_player_videohole_tizen
+
+// FFI exports for gradual migration
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// FFI initialization
+int ffi_initialize();
+
+// FFI create - returns player_id or -1 on error
+// Parameters: uri, asset, package_name, format_hint, http_headers_json,
+//             drm_configs_json, player_options_json (all const char*)
+// Returns: int64_t player_id (negative value indicates error)
+int64_t ffi_create(const char* uri, const char* asset, const char* package_name,
+                   const char* format_hint, const char* http_headers_json,
+                   const char* drm_configs_json,
+                   const char* player_options_json);
+
+#ifdef __cplusplus
+}  // extern "C"
+#endif
+
 #endif  // PIGEON_MESSAGES_H_
