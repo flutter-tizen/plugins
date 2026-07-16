@@ -103,25 +103,30 @@ void main() {
 
       final dc1Open = Completer<void>();
       final dc2Open = Completer<void>();
-      dc1.onDataChannelState = (s) {
-        if (s == RTCDataChannelState.RTCDataChannelOpen &&
-            !dc1Open.isCompleted) {
-          dc1Open.complete();
-        }
-      };
-      dc2.onDataChannelState = (s) {
-        if (s == RTCDataChannelState.RTCDataChannelOpen &&
-            !dc2Open.isCompleted) {
-          dc2Open.complete();
-        }
-      };
+      if (dc1.state == RTCDataChannelState.RTCDataChannelOpen) {
+        dc1Open.complete();
+      } else {
+        dc1.onDataChannelState = (s) {
+          if (s == RTCDataChannelState.RTCDataChannelOpen &&
+              !dc1Open.isCompleted) {
+            dc1Open.complete();
+          }
+        };
+      }
+      if (dc2.state == RTCDataChannelState.RTCDataChannelOpen) {
+        dc2Open.complete();
+      } else {
+        dc2.onDataChannelState = (s) {
+          if (s == RTCDataChannelState.RTCDataChannelOpen &&
+              !dc2Open.isCompleted) {
+            dc2Open.complete();
+          }
+        };
+      }
 
-      // Channels may already be open if state change fired before callback set.
       await Future.wait([
-        dc1Open.future.timeout(const Duration(seconds: 10),
-            onTimeout: () {}),
-        dc2Open.future.timeout(const Duration(seconds: 10),
-            onTimeout: () {}),
+        dc1Open.future.timeout(const Duration(seconds: 10)),
+        dc2Open.future.timeout(const Duration(seconds: 10)),
       ]);
 
       final dc2Received = Completer<String>();
@@ -150,7 +155,8 @@ void main() {
       await pc2.close();
     }, timeout: const Timeout(Duration(seconds: 60)));
 
-    testWidgets('loopback binary message exchange', (WidgetTester tester) async {
+    testWidgets('loopback binary message exchange',
+        (WidgetTester tester) async {
       final pc1 = await createPeerConnection(_kConfig);
       final pc2 = await createPeerConnection(_kConfig);
 
@@ -171,24 +177,30 @@ void main() {
 
       final dc1Open = Completer<void>();
       final dc2Open = Completer<void>();
-      dc1.onDataChannelState = (s) {
-        if (s == RTCDataChannelState.RTCDataChannelOpen &&
-            !dc1Open.isCompleted) {
-          dc1Open.complete();
-        }
-      };
-      dc2.onDataChannelState = (s) {
-        if (s == RTCDataChannelState.RTCDataChannelOpen &&
-            !dc2Open.isCompleted) {
-          dc2Open.complete();
-        }
-      };
+      if (dc1.state == RTCDataChannelState.RTCDataChannelOpen) {
+        dc1Open.complete();
+      } else {
+        dc1.onDataChannelState = (s) {
+          if (s == RTCDataChannelState.RTCDataChannelOpen &&
+              !dc1Open.isCompleted) {
+            dc1Open.complete();
+          }
+        };
+      }
+      if (dc2.state == RTCDataChannelState.RTCDataChannelOpen) {
+        dc2Open.complete();
+      } else {
+        dc2.onDataChannelState = (s) {
+          if (s == RTCDataChannelState.RTCDataChannelOpen &&
+              !dc2Open.isCompleted) {
+            dc2Open.complete();
+          }
+        };
+      }
 
       await Future.wait([
-        dc1Open.future.timeout(const Duration(seconds: 10),
-            onTimeout: () {}),
-        dc2Open.future.timeout(const Duration(seconds: 10),
-            onTimeout: () {}),
+        dc1Open.future.timeout(const Duration(seconds: 10)),
+        dc2Open.future.timeout(const Duration(seconds: 10)),
       ]);
 
       final payload = Uint8List.fromList([1, 2, 3, 4, 5]);
