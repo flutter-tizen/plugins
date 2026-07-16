@@ -5,6 +5,7 @@
 #include "tizen_core_wl_window_proxy.h"
 
 #include <dlfcn.h>
+#include <tizen_error.h>
 
 #include "log.h"
 
@@ -42,7 +43,11 @@ void TizenCoreWlWindowProxy::GetGeometry(void *window, int *x, int *y,
     LOG_ERROR("tizen-core-wl handle not valid");
     return;
   }
-  get_geometry_(window, x, y, width, height);
+  int ret = get_geometry_(window, x, y, width, height);
+  if (ret != TIZEN_ERROR_NONE) {
+    LOG_ERROR("tizen_core_wl_window_get_geometry failed: %s",
+              get_error_message(ret));
+  }
 }
 
 void TizenCoreWlWindowProxy::Activate(void *window) {
@@ -50,7 +55,11 @@ void TizenCoreWlWindowProxy::Activate(void *window) {
     LOG_ERROR("tizen-core-wl handle not valid");
     return;
   }
-  activate_(window);
+  int ret = activate_(window);
+  if (ret != TIZEN_ERROR_NONE) {
+    LOG_ERROR("tizen_core_wl_window_activate failed: %s",
+              get_error_message(ret));
+  }
 }
 
 void TizenCoreWlWindowProxy::Lower(void *window) {
@@ -58,5 +67,8 @@ void TizenCoreWlWindowProxy::Lower(void *window) {
     LOG_ERROR("tizen-core-wl handle not valid");
     return;
   }
-  lower_(window);
+  int ret = lower_(window);
+  if (ret != TIZEN_ERROR_NONE) {
+    LOG_ERROR("tizen_core_wl_window_lower failed: %s", get_error_message(ret));
+  }
 }
