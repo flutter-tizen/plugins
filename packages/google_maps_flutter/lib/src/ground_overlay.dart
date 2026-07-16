@@ -25,9 +25,12 @@ class GroundOverlayController {
   ui.VoidCallback? tapEvent;
 
   Future<void> _addGroundOverlayEvent(GoogleMapsJsBridge bridge) async {
-    final String command =
-        "$_groundOverlay.addListener('click', (event) => GroundOverlayClick.postMessage(JSON.stringify(${_groundOverlay?.id})));";
-    await bridge.runJavaScript(command);
+    await bridge.addListener(
+      JsRef(_groundOverlay.toString()),
+      'click',
+      'GroundOverlayClick',
+      'JSON.stringify(${_groundOverlay?.id})',
+    );
   }
 
   /// Updates the options of the wrapped [GGroundOverlay] object.

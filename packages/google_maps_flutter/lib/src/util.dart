@@ -206,7 +206,7 @@ class GInfoWindow {
     await _bridge.setProperty(
       JsRef(toString()),
       'pixelOffset',
-      size?.toValue(),
+      size != null ? JsExpression(size.toValue()) : null,
     );
   }
 }
@@ -287,7 +287,8 @@ class GMarker {
   }
 
   Future<void> _setMap(Object? /*GMap?|StreetViewPanorama?*/ map) async {
-    await _bridge.callMethod(JsRef(toString()), 'setMap', <Object?>[map]);
+    final Object? mapArg = map is String ? JsExpression(map) : map;
+    await _bridge.callMethod(JsRef(toString()), 'setMap', <Object?>[mapArg]);
   }
 
   Future<void> _setOptions(GMarkerOptions? options) async {
@@ -320,7 +321,9 @@ class GMarker {
 
   Future<void> _setPosition(LatLng? position) async {
     await _bridge.callMethod(JsRef(toString()), 'setPosition', <Object?>[
-      'new google.maps.LatLng(${position!.latitude},${position.longitude})',
+      JsExpression(
+        'new google.maps.LatLng(${position!.latitude},${position.longitude})',
+      ),
     ]);
   }
 
@@ -379,7 +382,8 @@ class GPolyline {
   }
 
   Future<void> _setMap(Object? /*GMap?|StreetViewPanorama?*/ map) async {
-    await _bridge.callMethod(JsRef(toString()), 'setMap', <Object?>[map]);
+    final Object? mapArg = map is String ? JsExpression(map) : map;
+    await _bridge.callMethod(JsRef(toString()), 'setMap', <Object?>[mapArg]);
   }
 
   Future<void> _setOptions(GPolylineOptions? options) async {
@@ -477,7 +481,8 @@ class GPolygon {
   }
 
   Future<void> _setMap(Object? /*GMap?|StreetViewPanorama?*/ map) async {
-    await _bridge.callMethod(JsRef(toString()), 'setMap', <Object?>[map]);
+    final Object? mapArg = map is String ? JsExpression(map) : map;
+    await _bridge.callMethod(JsRef(toString()), 'setMap', <Object?>[mapArg]);
   }
 
   Future<void> _setOptions(GPolygonOptions? options) async {
@@ -592,7 +597,8 @@ class GCircle {
   }
 
   Future<void> _setMap(Object? /*GMap?|StreetViewPanorama?*/ map) async {
-    await _bridge.callMethod(JsRef(toString()), 'setMap', <Object?>[map]);
+    final Object? mapArg = map is String ? JsExpression(map) : map;
+    await _bridge.callMethod(JsRef(toString()), 'setMap', <Object?>[mapArg]);
   }
 
   Future<void> _setOptions(GCircleOptions? options) async {
@@ -821,7 +827,8 @@ class GGroundOverlay {
   }
 
   Future<void> _setMap(Object? map) async {
-    await _bridge.callMethod(JsRef(toString()), 'setMap', <Object?>[map]);
+    final Object? mapArg = map is String ? JsExpression(map) : map;
+    await _bridge.callMethod(JsRef(toString()), 'setMap', <Object?>[mapArg]);
   }
 
   Future<void> _setOpacity(num? opacity) async {

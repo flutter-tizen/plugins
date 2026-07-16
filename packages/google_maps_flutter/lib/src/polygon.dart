@@ -26,9 +26,12 @@ class PolygonController {
   ui.VoidCallback? tapEvent;
 
   Future<void> _addPolygonEvent(GoogleMapsJsBridge bridge) async {
-    final String command =
-        "$_polygon.addListener('click', (event) => PolygonClick.postMessage(JSON.stringify(${_polygon?.id})));";
-    await bridge.runJavaScript(command);
+    await bridge.addListener(
+      JsRef(_polygon.toString()),
+      'click',
+      'PolygonClick',
+      'JSON.stringify(${_polygon?.id})',
+    );
   }
 
   /// Returns `true` if this Controller will use its own `onTap` handler to consume events.

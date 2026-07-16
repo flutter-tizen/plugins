@@ -26,9 +26,12 @@ class PolylineController {
   ui.VoidCallback? tapEvent;
 
   Future<void> _addPolylineEvent(GoogleMapsJsBridge bridge) async {
-    final String command =
-        "$_polyline.addListener('click', (event) => PolylineClick.postMessage(JSON.stringify(${_polyline?.id})));";
-    await bridge.runJavaScript(command);
+    await bridge.addListener(
+      JsRef(_polyline.toString()),
+      'click',
+      'PolylineClick',
+      'JSON.stringify(${_polyline?.id})',
+    );
   }
 
   /// Returns `true` if this Controller will use its own `onTap` handler to consume events.

@@ -4,6 +4,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:webview_flutter/webview_flutter.dart';
@@ -28,9 +29,22 @@ class JsRef {
   String toString() => name;
 }
 
+/// A piece of raw JavaScript code to be evaluated literally rather than
+/// encoded as a string literal.
+class JsExpression {
+  /// Creates a [JsExpression] wrapping the raw [code].
+  const JsExpression(this.code);
+
+  /// The raw JavaScript code.
+  final String code;
+
+  @override
+  String toString() => code;
+}
+
 /// Base class for events dispatched from the Google Maps JavaScript runtime
 /// back into Dart through a [GoogleMapsJsBridge].
-abstract class MapsJsEvent {
+sealed class MapsJsEvent {
   /// Const constructor for subclasses.
   const MapsJsEvent();
 }
@@ -360,6 +374,22 @@ class WebViewGoogleMapsJsBridge implements GoogleMapsJsBridge {
     return JsRef(varName);
   }
 
+  /// Serializes [arg] for interpolation into a JavaScript snippet.
+  ///
+  /// [JsRef]s and [JsExpression]s are emitted as raw JS code via their
+  /// [toString], so they refer to JS-side variables/expressions. Plain
+  /// [String]s are JSON-encoded so they are safely quoted and escaped as JS
+  /// string literals rather than being mistaken for raw code.
+  String _serializeArg(Object? arg) {
+    if (arg is JsRef || arg is JsExpression) {
+      return arg.toString();
+    }
+    if (arg is String) {
+      return jsonEncode(arg);
+    }
+    return arg.toString();
+  }
+
   @override
   Future<void> setProperty(
     JsRef ref,
@@ -367,7 +397,7 @@ class WebViewGoogleMapsJsBridge implements GoogleMapsJsBridge {
     Object? value,
   ) async {
     await controller.runJavaScript(
-      "JSON.stringify($ref['$property'] = $value)",
+      "JSON.stringify($ref['$property'] = ${_serializeArg(value)})",
     );
   }
 
@@ -382,8 +412,9 @@ class WebViewGoogleMapsJsBridge implements GoogleMapsJsBridge {
     String method,
     List<Object?> args,
   ) async {
+    final String serializedArgs = '[${args.map(_serializeArg).join(', ')}]';
     await controller.runJavaScript(
-      'JSON.stringify($ref.$method.apply($ref, $args))',
+      'JSON.stringify($ref.$method.apply($ref, $serializedArgs))',
     );
   }
 
@@ -393,8 +424,9 @@ class WebViewGoogleMapsJsBridge implements GoogleMapsJsBridge {
     String method,
     List<Object?> args,
   ) async {
+    final String serializedArgs = '[${args.map(_serializeArg).join(', ')}]';
     return controller.runJavaScriptReturningResult(
-      '$ref.$method.apply($ref, $args)',
+      '$ref.$method.apply($ref, $serializedArgs)',
     );
   }
 

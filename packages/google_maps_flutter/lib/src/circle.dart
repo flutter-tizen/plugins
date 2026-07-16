@@ -26,9 +26,12 @@ class CircleController {
   ui.VoidCallback? tapEvent;
 
   Future<void> _addCircleEvent(GoogleMapsJsBridge bridge) async {
-    final String command =
-        "$_circle.addListener('click', (event) => CircleClick.postMessage(JSON.stringify(${_circle?.id})));";
-    await bridge.runJavaScript(command);
+    await bridge.addListener(
+      JsRef(_circle.toString()),
+      'click',
+      'CircleClick',
+      'JSON.stringify(${_circle?.id})',
+    );
   }
 
   /// Returns `true` if this Controller will use its own `onTap` handler to consume events.
