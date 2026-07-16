@@ -157,8 +157,8 @@ class Parcel {
 
   static final Finalizer<rpc_port_parcel_h> _finalizer =
       Finalizer<rpc_port_parcel_h>((rpc_port_parcel_h handle) {
-    tizen.rpc_port_parcel_destroy(handle);
-  });
+        tizen.rpc_port_parcel_destroy(handle);
+      });
 
   /// Gets a byte array backed by the raw data of this parcel.
   Uint8List asRaw() {
@@ -502,6 +502,7 @@ class Parcel {
 
   /// Sets the reader position of this parcel.
   set reader(int value) {
+    RangeError.checkNotNegative(value, 'value');
     final int ret = _rpcPortParcelSetReader(_handle, value);
     if (ret != 0) {
       throw PlatformException(
@@ -528,6 +529,7 @@ class Parcel {
 
   /// Sets the data size of this parcel.
   set dataSize(int value) {
+    RangeError.checkNotNegative(value, 'value');
     final int ret = _rpcPortParcelSetDataSize(_handle, value);
     if (ret != 0) {
       throw PlatformException(
@@ -539,6 +541,7 @@ class Parcel {
 
   /// Reserves the capacity of this parcel.
   void reserve(int size) {
+    RangeError.checkNotNegative(size, 'size');
     final int ret = _rpcPortParcelReserve(_handle, size);
     if (ret != 0) {
       throw PlatformException(
@@ -551,27 +554,35 @@ class Parcel {
 
 final DynamicLibrary _libRpcPort = DynamicLibrary.open('librpc-port.so.1');
 
-final int Function(Pointer<Void>, Pointer<Uint32>) _rpcPortParcelGetReader =
+final int Function(rpc_port_parcel_h, Pointer<Uint32>)
+_rpcPortParcelGetReader = _libRpcPort
+    .lookup<NativeFunction<Int32 Function(rpc_port_parcel_h, Pointer<Uint32>)>>(
+      'rpc_port_parcel_get_reader',
+    )
+    .asFunction();
+
+final int Function(rpc_port_parcel_h, int) _rpcPortParcelSetReader = _libRpcPort
+    .lookup<NativeFunction<Int32 Function(rpc_port_parcel_h, Uint32)>>(
+      'rpc_port_parcel_set_reader',
+    )
+    .asFunction();
+
+final int Function(rpc_port_parcel_h, Pointer<Uint32>)
+_rpcPortParcelGetDataSize = _libRpcPort
+    .lookup<NativeFunction<Int32 Function(rpc_port_parcel_h, Pointer<Uint32>)>>(
+      'rpc_port_parcel_get_data_size',
+    )
+    .asFunction();
+
+final int Function(rpc_port_parcel_h, int) _rpcPortParcelSetDataSize =
     _libRpcPort
-        .lookup<NativeFunction<Int32 Function(Pointer<Void>, Pointer<Uint32>)>>('rpc_port_parcel_get_reader')
+        .lookup<NativeFunction<Int32 Function(rpc_port_parcel_h, Uint32)>>(
+          'rpc_port_parcel_set_data_size',
+        )
         .asFunction();
 
-final int Function(Pointer<Void>, int) _rpcPortParcelSetReader =
-    _libRpcPort
-        .lookup<NativeFunction<Int32 Function(Pointer<Void>, Uint32)>>('rpc_port_parcel_set_reader')
-        .asFunction();
-
-final int Function(Pointer<Void>, Pointer<Uint32>) _rpcPortParcelGetDataSize =
-    _libRpcPort
-        .lookup<NativeFunction<Int32 Function(Pointer<Void>, Pointer<Uint32>)>>('rpc_port_parcel_get_data_size')
-        .asFunction();
-
-final int Function(Pointer<Void>, int) _rpcPortParcelSetDataSize =
-    _libRpcPort
-        .lookup<NativeFunction<Int32 Function(Pointer<Void>, Uint32)>>('rpc_port_parcel_set_data_size')
-        .asFunction();
-
-final int Function(Pointer<Void>, int) _rpcPortParcelReserve =
-    _libRpcPort
-        .lookup<NativeFunction<Int32 Function(Pointer<Void>, Uint32)>>('rpc_port_parcel_reserve')
-        .asFunction();
+final int Function(rpc_port_parcel_h, int) _rpcPortParcelReserve = _libRpcPort
+    .lookup<NativeFunction<Int32 Function(rpc_port_parcel_h, Uint32)>>(
+      'rpc_port_parcel_reserve',
+    )
+    .asFunction();
