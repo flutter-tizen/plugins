@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:ffi' as ffi;
 import 'package:ffi/ffi.dart' show calloc;
 import 'dart:typed_data' show Float64List, Int32List, Int64List, Uint8List;
-import 'dart:convert' show utf8, jsonEncode;
+import 'dart:convert' show utf8, jsonEncode, jsonDecode;
 
 import 'package:flutter/foundation.dart'
     show ReadBuffer, WriteBuffer, debugPrint;
@@ -947,25 +947,63 @@ class VideoPlayerVideoholeApi {
 typedef _FFIInitializeNative = ffi.Int32 Function();
 typedef _FFIInitializeDart = int Function();
 
-// FFI type definitions with JSON parameters for complex data
-typedef _FFICreateNative = ffi.Int64 Function(
-  ffi.Pointer<ffi.Char>, // uri
-  ffi.Pointer<ffi.Char>, // asset
-  ffi.Pointer<ffi.Char>, // package_name
-  ffi.Pointer<ffi.Char>, // format_hint
-  ffi.Pointer<ffi.Char>, // http_headers_json
-  ffi.Pointer<ffi.Char>, // drm_configs_json
-  ffi.Pointer<ffi.Char>, // player_options_json
-);
-typedef _FFICreateDart = int Function(
-  ffi.Pointer<ffi.Char>,
-  ffi.Pointer<ffi.Char>,
-  ffi.Pointer<ffi.Char>,
-  ffi.Pointer<ffi.Char>,
-  ffi.Pointer<ffi.Char>,
-  ffi.Pointer<ffi.Char>,
-  ffi.Pointer<ffi.Char>,
-);
+// FFI type definitions - create takes a single JSON string for all parameters
+// JSON format: {"uri":"...","asset":"...","packageName":"...","formatHint":"...",
+//               "httpHeaders":{...},"drmConfigs":{...},"playerOptions":{...}}
+typedef _FFICreateNative = ffi.Int64 Function(ffi.Pointer<ffi.Char>);
+typedef _FFICreateDart = int Function(ffi.Pointer<ffi.Char>);
+
+// FFI type definitions for additional methods
+typedef _FFIDisposeNative = ffi.Int32 Function(ffi.Int64);
+typedef _FFIDisposeDart = int Function(int);
+
+typedef _FFIPlayNative = ffi.Int32 Function(ffi.Int64);
+typedef _FFIPlayDart = int Function(int);
+
+typedef _FFIPauseNative = ffi.Int32 Function(ffi.Int64);
+typedef _FFIPauseDart = int Function(int);
+
+typedef _FFISeekToNative = ffi.Int32 Function(ffi.Int64, ffi.Int64);
+typedef _FFISeekToDart = int Function(int, int);
+
+typedef _FFIGetPositionNative = ffi.Int64 Function(ffi.Int64);
+typedef _FFIGetPositionDart = int Function(int);
+
+typedef _FFIGetDurationNative = ffi.Pointer<ffi.Char> Function(ffi.Int64);
+typedef _FFIGetDurationDart = ffi.Pointer<ffi.Char> Function(int);
+
+typedef _FFISetVolumeNative = ffi.Int32 Function(ffi.Int64, ffi.Double);
+typedef _FFISetVolumeDart = int Function(int, double);
+
+typedef _FFISetPlaybackSpeedNative = ffi.Int32 Function(ffi.Int64, ffi.Double);
+typedef _FFISetPlaybackSpeedDart = int Function(int, double);
+
+typedef _FFISetLoopingNative = ffi.Int32 Function(ffi.Int64, ffi.Bool);
+typedef _FFISetLoopingDart = int Function(int, bool);
+
+typedef _FFIGetTrackInfoNative = ffi.Pointer<ffi.Char> Function(
+    ffi.Int64, ffi.Pointer<ffi.Char>);
+typedef _FFIGetTrackInfoDart = ffi.Pointer<ffi.Char> Function(
+    int, ffi.Pointer<ffi.Char>);
+
+typedef _FFISetTrackSelectionNative = ffi.Int32 Function(
+    ffi.Int64, ffi.Int64, ffi.Pointer<ffi.Char>);
+typedef _FFISetTrackSelectionDart = int Function(
+    int, int, ffi.Pointer<ffi.Char>);
+
+typedef _FFISetDisplayGeometryNative = ffi.Int32 Function(
+    ffi.Int64, ffi.Int32, ffi.Int32, ffi.Int32, ffi.Int32);
+typedef _FFISetDisplayGeometryDart = int Function(int, int, int, int, int);
+
+typedef _FFISetDisplayRotateNative = ffi.Int32 Function(ffi.Int64, ffi.Int32);
+typedef _FFISetDisplayRotateDart = int Function(int, int);
+
+typedef _FFISuspendNative = ffi.Int32 Function(ffi.Int64);
+typedef _FFISuspendDart = int Function(int);
+
+typedef _FFIRestoreNative = ffi.Int32 Function(
+    ffi.Int64, ffi.Pointer<ffi.Char>, ffi.Int64);
+typedef _FFIRestoreDart = int Function(int, ffi.Pointer<ffi.Char>, int);
 
 // Helper functions for FFI string conversion
 ffi.Pointer<ffi.Char> _toPointer(String? str) {
@@ -990,14 +1028,24 @@ class VideoPlayerFFIBindings {
   ffi.DynamicLibrary? _lib;
 
   late int Function() _ffiInitialize;
-  late int Function(
-      ffi.Pointer<ffi.Char>,
-      ffi.Pointer<ffi.Char>,
-      ffi.Pointer<ffi.Char>,
-      ffi.Pointer<ffi.Char>,
-      ffi.Pointer<ffi.Char>,
-      ffi.Pointer<ffi.Char>,
-      ffi.Pointer<ffi.Char>) _ffiCreate;
+  late int Function(ffi.Pointer<ffi.Char>) _ffiCreate;
+
+  late int Function(int) _ffiDispose;
+  late int Function(int) _ffiPlay;
+  late int Function(int) _ffiPause;
+  late int Function(int, int) _ffiSeekTo;
+  late int Function(int) _ffiGetPosition;
+  late ffi.Pointer<ffi.Char> Function(int) _ffiGetDuration;
+  late int Function(int, double) _ffiSetVolume;
+  late int Function(int, double) _ffiSetPlaybackSpeed;
+  late int Function(int, bool) _ffiSetLooping;
+  late ffi.Pointer<ffi.Char> Function(int, ffi.Pointer<ffi.Char>)
+      _ffiGetTrackInfo;
+  late int Function(int, int, ffi.Pointer<ffi.Char>) _ffiSetTrackSelection;
+  late int Function(int, int, int, int, int) _ffiSetDisplayGeometry;
+  late int Function(int, int) _ffiSetDisplayRotate;
+  late int Function(int) _ffiSuspend;
+  late int Function(int, ffi.Pointer<ffi.Char>, int) _ffiRestore;
 
   static VideoPlayerFFIBindings get instance {
     _instance ??= VideoPlayerFFIBindings._();
@@ -1023,6 +1071,71 @@ class VideoPlayerFFIBindings {
           .lookup<ffi.NativeFunction<_FFICreateNative>>('ffi_create')
           .asFunction<_FFICreateDart>();
 
+      _ffiDispose = _lib!
+          .lookup<ffi.NativeFunction<_FFIDisposeNative>>('ffi_dispose')
+          .asFunction<_FFIDisposeDart>();
+
+      _ffiPlay = _lib!
+          .lookup<ffi.NativeFunction<_FFIPlayNative>>('ffi_play')
+          .asFunction<_FFIPlayDart>();
+
+      _ffiPause = _lib!
+          .lookup<ffi.NativeFunction<_FFIPauseNative>>('ffi_pause')
+          .asFunction<_FFIPauseDart>();
+
+      _ffiSeekTo = _lib!
+          .lookup<ffi.NativeFunction<_FFISeekToNative>>('ffi_seek_to')
+          .asFunction<_FFISeekToDart>();
+
+      _ffiGetPosition = _lib!
+          .lookup<ffi.NativeFunction<_FFIGetPositionNative>>('ffi_get_position')
+          .asFunction<_FFIGetPositionDart>();
+
+      _ffiGetDuration = _lib!
+          .lookup<ffi.NativeFunction<_FFIGetDurationNative>>('ffi_get_duration')
+          .asFunction<_FFIGetDurationDart>();
+
+      _ffiSetVolume = _lib!
+          .lookup<ffi.NativeFunction<_FFISetVolumeNative>>('ffi_set_volume')
+          .asFunction<_FFISetVolumeDart>();
+
+      _ffiSetPlaybackSpeed = _lib!
+          .lookup<ffi.NativeFunction<_FFISetPlaybackSpeedNative>>(
+              'ffi_set_playback_speed')
+          .asFunction<_FFISetPlaybackSpeedDart>();
+
+      _ffiSetLooping = _lib!
+          .lookup<ffi.NativeFunction<_FFISetLoopingNative>>('ffi_set_looping')
+          .asFunction<_FFISetLoopingDart>();
+
+      _ffiGetTrackInfo = _lib!
+          .lookup<ffi.NativeFunction<_FFIGetTrackInfoNative>>(
+              'ffi_get_track_info')
+          .asFunction<_FFIGetTrackInfoDart>();
+
+      _ffiSetTrackSelection = _lib!
+          .lookup<ffi.NativeFunction<_FFISetTrackSelectionNative>>(
+              'ffi_set_track_selection')
+          .asFunction<_FFISetTrackSelectionDart>();
+
+      _ffiSetDisplayGeometry = _lib!
+          .lookup<ffi.NativeFunction<_FFISetDisplayGeometryNative>>(
+              'ffi_set_display_geometry')
+          .asFunction<_FFISetDisplayGeometryDart>();
+
+      _ffiSetDisplayRotate = _lib!
+          .lookup<ffi.NativeFunction<_FFISetDisplayRotateNative>>(
+              'ffi_set_display_rotate')
+          .asFunction<_FFISetDisplayRotateDart>();
+
+      _ffiSuspend = _lib!
+          .lookup<ffi.NativeFunction<_FFISuspendNative>>('ffi_suspend')
+          .asFunction<_FFISuspendDart>();
+
+      _ffiRestore = _lib!
+          .lookup<ffi.NativeFunction<_FFIRestoreNative>>('ffi_restore')
+          .asFunction<_FFIRestoreDart>();
+
       debugPrint('FFI bindings loaded successfully');
     } catch (e) {
       debugPrint('Failed to load FFI bindings: $e');
@@ -1040,7 +1153,9 @@ class VideoPlayerFFIBindings {
     return _ffiInitialize();
   }
 
-  /// FFI create function with JSON parameters for complex data
+  /// FFI create function - takes a single JSON string for all parameters
+  /// JSON format: {"uri":"...","asset":"...","packageName":"...","formatHint":"...",
+  ///               "httpHeaders":{...},"drmConfigs":{...},"playerOptions":{...}}
   int ffiCreate({
     String? uri,
     String? asset,
@@ -1054,45 +1169,114 @@ class VideoPlayerFFIBindings {
       throw StateError('FFI bindings not loaded. Call load() first.');
     }
 
-    // Convert Maps to JSON strings
-    String? httpHeadersJson =
-        httpHeaders != null ? jsonEncode(httpHeaders) : null;
-    String? drmConfigsJson = drmConfigs != null ? jsonEncode(drmConfigs) : null;
-    String? playerOptionsJson =
-        playerOptions != null ? jsonEncode(playerOptions) : null;
+    // Build JSON string from individual parameters (same as restore pattern)
+    final Map<String, dynamic> jsonMap = <String, dynamic>{};
+    if (uri != null && uri.isNotEmpty) jsonMap['uri'] = uri;
+    if (asset != null && asset.isNotEmpty) jsonMap['asset'] = asset;
+    if (packageName != null && packageName.isNotEmpty)
+      jsonMap['packageName'] = packageName;
+    if (formatHint != null && formatHint.isNotEmpty)
+      jsonMap['formatHint'] = formatHint;
+    if (httpHeaders != null && httpHeaders.isNotEmpty)
+      jsonMap['httpHeaders'] = httpHeaders;
+    if (drmConfigs != null && drmConfigs.isNotEmpty)
+      jsonMap['drmConfigs'] = drmConfigs;
+    if (playerOptions != null && playerOptions.isNotEmpty)
+      jsonMap['playerOptions'] = playerOptions;
 
-    final uriPtr = _toPointer(uri);
-    final assetPtr = _toPointer(asset);
-    final packagePtr = _toPointer(packageName);
-    final formatHintPtr = _toPointer(formatHint);
-    final httpHeadersPtr = _toPointer(httpHeadersJson);
-    final drmConfigsPtr = _toPointer(drmConfigsJson);
-    final playerOptionsPtr = _toPointer(playerOptionsJson);
+    final String jsonString = jsonEncode(jsonMap);
+    final jsonPtr = _toPointer(jsonString);
 
     try {
-      return _ffiCreate(
-        uriPtr,
-        assetPtr,
-        packagePtr,
-        formatHintPtr,
-        httpHeadersPtr,
-        drmConfigsPtr,
-        playerOptionsPtr,
-      );
+      return _ffiCreate(jsonPtr);
     } finally {
-      _freePointer(uriPtr);
-      _freePointer(assetPtr);
-      _freePointer(packagePtr);
-      _freePointer(formatHintPtr);
-      _freePointer(httpHeadersPtr);
-      _freePointer(drmConfigsPtr);
-      _freePointer(playerOptionsPtr);
+      _freePointer(jsonPtr);
     }
   }
 }
 
-// Top-level FFI functions for easy access
-Future<int> ffiInitialize() async {
+// FFI API for video_player_tizen - mirrors VideoPlayerVideoholeApi structure
+// Note: All methods are synchronous for better performance
+class VideoPlayerFFIApi {
+  int initialize() {
+    return ffiInitialize();
+  }
+
+  int create({
+    String? uri,
+    String? asset,
+    String? packageName,
+    String? formatHint,
+    Map<Object?, Object?>? httpHeaders,
+    Map<Object?, Object?>? drmConfigs,
+    Map<Object?, Object?>? playerOptions,
+  }) {
+    return ffiCreate(
+      uri: uri,
+      asset: asset,
+      packageName: packageName,
+      formatHint: formatHint,
+      httpHeaders: httpHeaders,
+      drmConfigs: drmConfigs,
+      playerOptions: playerOptions,
+    );
+  }
+
+  int dispose(int playerId) {
+    return ffiDispose(playerId);
+  }
+
+  int play(int playerId) {
+    return ffiPlay(playerId);
+  }
+
+  int pause(int playerId) {
+    return ffiPause(playerId);
+  }
+
+  int seekTo(int playerId, int positionMs) {
+    return ffiSeekTo(playerId, positionMs);
+  }
+
+  int getPosition(int playerId) {
+    return ffiGetPosition(playerId);
+  }
+
+  DurationMessage duration(int playerId) {
+    return ffiGetDuration(playerId);
+  }
+
+  int setVolume(int playerId, double volume) {
+    return ffiSetVolume(playerId, volume);
+  }
+
+  int setPlaybackSpeed(int playerId, double speed) {
+    return ffiSetPlaybackSpeed(playerId, speed);
+  }
+
+  int setLooping(int playerId, bool isLooping) {
+    return ffiSetLooping(playerId, isLooping);
+  }
+
+  int setDisplayGeometry(int playerId, int x, int y, int width, int height) {
+    return ffiSetDisplayGeometry(playerId, x, y, width, height);
+  }
+
+  int setDisplayRotate(int playerId, int rotation) {
+    return ffiSetDisplayRotate(playerId, rotation);
+  }
+
+  int suspend(int playerId) {
+    return ffiSuspend(playerId);
+  }
+
+  int restore(int playerId, String? createMessageJson, int resumeTime) {
+    return ffiRestore(playerId, createMessageJson, resumeTime);
+  }
+}
+
+// Top-level FFI functions for easy access (synchronous)
+int ffiInitialize() {
   final bindings = VideoPlayerFFIBindings.instance;
   if (!bindings.isLoaded) {
     bindings.load();
@@ -1101,7 +1285,7 @@ Future<int> ffiInitialize() async {
 }
 
 /// FFI create function - returns player_id or -1 on error
-Future<int> ffiCreate({
+int ffiCreate({
   String? uri,
   String? asset,
   String? packageName,
@@ -1109,7 +1293,7 @@ Future<int> ffiCreate({
   Map<Object?, Object?>? httpHeaders,
   Map<Object?, Object?>? drmConfigs,
   Map<Object?, Object?>? playerOptions,
-}) async {
+}) {
   final bindings = VideoPlayerFFIBindings.instance;
   if (!bindings.isLoaded) {
     bindings.load();
@@ -1123,4 +1307,169 @@ Future<int> ffiCreate({
     drmConfigs: drmConfigs,
     playerOptions: playerOptions,
   );
+}
+
+/// FFI dispose function - releases player resources
+/// Returns: 0 on success, -1 on error
+int ffiDispose(int playerId) {
+  final bindings = VideoPlayerFFIBindings.instance;
+  if (!bindings.isLoaded) {
+    bindings.load();
+  }
+  return bindings._ffiDispose(playerId);
+}
+
+/// FFI play function - starts or resumes playback
+/// Returns: 0 on success, -1 on error
+int ffiPlay(int playerId) {
+  final bindings = VideoPlayerFFIBindings.instance;
+  if (!bindings.isLoaded) {
+    bindings.load();
+  }
+  return bindings._ffiPlay(playerId);
+}
+
+/// FFI pause function - pauses playback
+/// Returns: 0 on success, -1 on error
+int ffiPause(int playerId) {
+  final bindings = VideoPlayerFFIBindings.instance;
+  if (!bindings.isLoaded) {
+    bindings.load();
+  }
+  return bindings._ffiPause(playerId);
+}
+
+/// FFI seek_to function - seeks to a specific position (in milliseconds)
+/// Returns: 0 on success, -1 on error
+int ffiSeekTo(int playerId, int positionMs) {
+  final bindings = VideoPlayerFFIBindings.instance;
+  if (!bindings.isLoaded) {
+    bindings.load();
+  }
+  return bindings._ffiSeekTo(playerId, positionMs);
+}
+
+/// FFI get_position function - gets current playback position in milliseconds
+/// Returns: position in milliseconds (>= 0) on success, -1 on error
+int ffiGetPosition(int playerId) {
+  final bindings = VideoPlayerFFIBindings.instance;
+  if (!bindings.isLoaded) {
+    bindings.load();
+  }
+  return bindings._ffiGetPosition(playerId);
+}
+
+/// FFI get_duration function - gets video duration range in milliseconds
+/// Returns: DurationMessage with durationRange on success
+/// For live streams, start may be non-zero
+/// Note: The C++ function returns a strdup-allocated string that we must free
+DurationMessage ffiGetDuration(int playerId) {
+  final bindings = VideoPlayerFFIBindings.instance;
+  if (!bindings.isLoaded) {
+    bindings.load();
+  }
+  final ptr = bindings._ffiGetDuration(playerId);
+  if (ptr == ffi.nullptr) {
+    throw Exception('FFI getDuration failed - returned null pointer');
+  }
+  try {
+    // Convert C string to Dart string by finding null terminator
+    final bytes = ptr.cast<ffi.Uint8>();
+    int length = 0;
+    while (bytes[length] != 0) {
+      length++;
+    }
+    final jsonString = utf8.decode(bytes.asTypedList(length));
+    if (jsonString == '-1') {
+      throw Exception('FFI getDuration failed');
+    }
+    final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
+    return DurationMessage(
+      playerId: playerId,
+      durationRange: [
+        jsonMap['start'] as int,
+        jsonMap['end'] as int,
+      ],
+    );
+  } finally {
+    // Free the strdup-allocated memory to prevent memory leak
+    calloc.free(ptr);
+  }
+}
+
+/// FFI set_volume function - sets playback volume (0.0 to 1.0)
+/// Returns: 0 on success, -1 on error
+int ffiSetVolume(int playerId, double volume) {
+  final bindings = VideoPlayerFFIBindings.instance;
+  if (!bindings.isLoaded) {
+    bindings.load();
+  }
+  return bindings._ffiSetVolume(playerId, volume);
+}
+
+/// FFI set_playback_speed function - sets playback speed
+/// Returns: 0 on success, -1 on error
+int ffiSetPlaybackSpeed(int playerId, double speed) {
+  final bindings = VideoPlayerFFIBindings.instance;
+  if (!bindings.isLoaded) {
+    bindings.load();
+  }
+  return bindings._ffiSetPlaybackSpeed(playerId, speed);
+}
+
+/// FFI set_looping function - enables or disables looping
+/// Returns: 0 on success, -1 on error
+int ffiSetLooping(int playerId, bool isLooping) {
+  final bindings = VideoPlayerFFIBindings.instance;
+  if (!bindings.isLoaded) {
+    bindings.load();
+  }
+  return bindings._ffiSetLooping(playerId, isLooping);
+}
+
+/// FFI set_display_geometry function - sets the display geometry (ROI)
+/// Returns: 0 on success, -1 on error
+int ffiSetDisplayGeometry(int playerId, int x, int y, int width, int height) {
+  final bindings = VideoPlayerFFIBindings.instance;
+  if (!bindings.isLoaded) {
+    bindings.load();
+  }
+  return bindings._ffiSetDisplayGeometry(playerId, x, y, width, height);
+}
+
+/// FFI set_display_rotate function - sets display rotation
+/// Returns: 0 on success, -1 on error
+int ffiSetDisplayRotate(int playerId, int rotation) {
+  final bindings = VideoPlayerFFIBindings.instance;
+  if (!bindings.isLoaded) {
+    bindings.load();
+  }
+  return bindings._ffiSetDisplayRotate(playerId, rotation);
+}
+
+/// FFI suspend function - suspends the player
+/// Returns: 0 on success, -1 on error
+int ffiSuspend(int playerId) {
+  final bindings = VideoPlayerFFIBindings.instance;
+  if (!bindings.isLoaded) {
+    bindings.load();
+  }
+  return bindings._ffiSuspend(playerId);
+}
+
+/// FFI restore function - restores a suspended player
+/// Returns: 0 on success, -1 on error
+/// createMessageJson: JSON string of CreateMessage or null/empty for using saved state from Suspend
+int ffiRestore(int playerId, String? createMessageJson, int resumeTime) {
+  final bindings = VideoPlayerFFIBindings.instance;
+  if (!bindings.isLoaded) {
+    bindings.load();
+  }
+  // Pass JSON string to C++ for parsing
+  final createMessagePtr = _toPointer(createMessageJson);
+  try {
+    return bindings._ffiRestore(playerId, createMessagePtr, resumeTime);
+  } finally {
+    _freePointer(createMessagePtr);
+  }
 }

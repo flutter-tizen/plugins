@@ -4,7 +4,9 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
@@ -12,47 +14,62 @@ import '../video_player_platform_interface.dart';
 import 'messages.g.dart';
 import 'tracks.dart';
 
-/// An implementation of [VideoPlayerPlatform] that uses FFI for initialization
-/// and Platform Channel (Pigeon) for other methods (gradual migration).
+/// An implementation of [VideoPlayerPlatform] that uses FFI for all methods.
 class VideoPlayerTizen extends VideoPlayerPlatform {
   final VideoPlayerVideoholeApi _api = VideoPlayerVideoholeApi();
+  final VideoPlayerFFIApi _ffiApi = VideoPlayerFFIApi();
 
   @override
   Future<void> init() async {
-    // Use FFI for initialization (gradual migration from Platform Channel)
+    // Use FFI for initialization (synchronous call)
     try {
-      final result = await ffiInitialize();
+      final int result = _ffiApi.initialize();
       if (result != 0) {
         throw Exception('FFI initialize failed with code: $result');
       }
-      print('********FFI initialize succeeded**********');
     } catch (e) {
-      print(
-          '***********FFI initialize failed, falling back to Platform Channel: $e**********');
+      debugPrint('FFI initialize failed, falling back to Platform Channel: $e');
       // Fallback to Platform Channel if FFI fails
       return _api.initialize();
     }
   }
 
   @override
-  Future<void> dispose(int playerId) {
-    return _api.dispose(PlayerMessage(playerId: playerId));
+  Future<void> dispose(int playerId) async {
+    // Use FFI for dispose (synchronous call)
+    try {
+      final int result = _ffiApi.dispose(playerId);
+      // Don't throw on error - just log and return
+      // The player may already be disposed or in an invalid state
+      if (result != 0) {
+        return;
+      }
+    } catch (e) {
+      debugPrint('FFI dispose failed, falling back to Platform Channel: $e');
+      // Fallback to Platform Channel if FFI fails
+      // But don't throw - just silently return to avoid crash
+      try {
+        return _api.dispose(PlayerMessage(playerId: playerId));
+      } catch (fallbackError) {
+        // Silently ignore - player is likely already disposed
+      }
+    }
   }
 
   @override
   Future<int?> create(DataSource dataSource) async {
-    // Use FFI for create (gradual migration from Platform Channel)
+    // Use FFI for create (synchronous call)
     try {
       int playerId;
 
       switch (dataSource.sourceType) {
         case DataSourceType.asset:
-          playerId = await ffiCreate(
+          playerId = _ffiApi.create(
             asset: dataSource.asset,
             packageName: dataSource.package,
           );
         case DataSourceType.network:
-          playerId = await ffiCreate(
+          playerId = _ffiApi.create(
             uri: dataSource.uri,
             formatHint: _videoFormatStringMap[dataSource.formatHint],
             httpHeaders: dataSource.httpHeaders,
@@ -61,18 +78,15 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
           );
         case DataSourceType.file:
         case DataSourceType.contentUri:
-          playerId = await ffiCreate(uri: dataSource.uri);
+          playerId = _ffiApi.create(uri: dataSource.uri);
       }
 
       if (playerId < 0) {
         throw Exception('FFI create failed with code: $playerId');
       }
-      print(
-          '*************FFI create succeeded with player_id: $playerId*******');
       return playerId;
     } catch (e) {
-      print(
-          '*************FFI create failed, falling back to Platform Channel: $e****');
+      debugPrint('FFI create failed, falling back to Platform Channel: $e');
       // Fallback to Platform Channel if FFI fails
       final CreateMessage message = CreateMessage();
 
@@ -97,51 +111,107 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   }
 
   @override
-  Future<void> setLooping(int playerId, bool looping) {
-    return _api.setLooping(
-      LoopingMessage(playerId: playerId, isLooping: looping),
-    );
+  Future<void> setLooping(int playerId, bool looping) async {
+    // Use FFI for setLooping (synchronous call)
+    try {
+      final int result = _ffiApi.setLooping(playerId, looping);
+      if (result != 0) {
+        throw Exception('FFI setLooping failed with code: $result');
+      }
+    } catch (e) {
+      debugPrint('FFI setLooping failed, falling back to Platform Channel: $e');
+      return _api.setLooping(
+        LoopingMessage(playerId: playerId, isLooping: looping),
+      );
+    }
   }
 
   @override
-  Future<void> play(int playerId) {
-    return _api.play(PlayerMessage(playerId: playerId));
+  Future<void> play(int playerId) async {
+    // Use FFI for play (synchronous call)
+    try {
+      final int result = _ffiApi.play(playerId);
+      if (result != 0) {
+        throw Exception('FFI play failed with code: $result');
+      }
+    } catch (e) {
+      debugPrint('FFI play failed, falling back to Platform Channel: $e');
+      return _api.play(PlayerMessage(playerId: playerId));
+    }
   }
 
   @override
   Future<bool> setActivate(int playerId) {
+    // Note: FFI version not implemented yet, use Platform Channel
     return _api.setActivate(PlayerMessage(playerId: playerId));
   }
 
   @override
   Future<bool> setDeactivate(int playerId) {
+    // Note: FFI version not implemented yet, use Platform Channel
     return _api.setDeactivate(PlayerMessage(playerId: playerId));
   }
 
   @override
-  Future<void> pause(int playerId) {
-    return _api.pause(PlayerMessage(playerId: playerId));
+  Future<void> pause(int playerId) async {
+    // Use FFI for pause (synchronous call)
+    try {
+      final int result = _ffiApi.pause(playerId);
+      if (result != 0) {
+        throw Exception('FFI pause failed with code: $result');
+      }
+    } catch (e) {
+      debugPrint('FFI pause failed, falling back to Platform Channel: $e');
+      return _api.pause(PlayerMessage(playerId: playerId));
+    }
   }
 
   @override
-  Future<void> setVolume(int playerId, double volume) {
-    return _api.setVolume(VolumeMessage(playerId: playerId, volume: volume));
+  Future<void> setVolume(int playerId, double volume) async {
+    // Use FFI for setVolume (synchronous call)
+    try {
+      final int result = _ffiApi.setVolume(playerId, volume);
+      if (result != 0) {
+        throw Exception('FFI setVolume failed with code: $result');
+      }
+    } catch (e) {
+      debugPrint('FFI setVolume failed, falling back to Platform Channel: $e');
+      return _api.setVolume(VolumeMessage(playerId: playerId, volume: volume));
+    }
   }
 
   @override
-  Future<void> setPlaybackSpeed(int playerId, double speed) {
+  Future<void> setPlaybackSpeed(int playerId, double speed) async {
+    // Use FFI for setPlaybackSpeed (synchronous call)
     assert(speed > 0);
-
-    return _api.setPlaybackSpeed(
-      PlaybackSpeedMessage(playerId: playerId, speed: speed),
-    );
+    try {
+      final int result = _ffiApi.setPlaybackSpeed(playerId, speed);
+      if (result != 0) {
+        throw Exception('FFI setPlaybackSpeed failed with code: $result');
+      }
+    } catch (e) {
+      debugPrint(
+          'FFI setPlaybackSpeed failed, falling back to Platform Channel: $e');
+      return _api.setPlaybackSpeed(
+        PlaybackSpeedMessage(playerId: playerId, speed: speed),
+      );
+    }
   }
 
   @override
-  Future<void> seekTo(int playerId, Duration position) {
-    return _api.seekTo(
-      PositionMessage(playerId: playerId, position: position.inMilliseconds),
-    );
+  Future<void> seekTo(int playerId, Duration position) async {
+    // Use FFI for seekTo (synchronous call)
+    try {
+      final int result = _ffiApi.seekTo(playerId, position.inMilliseconds);
+      if (result != 0) {
+        throw Exception('FFI seekTo failed with code: $result');
+      }
+    } catch (e) {
+      debugPrint('FFI seekTo failed, falling back to Platform Channel: $e');
+      return _api.seekTo(
+        PositionMessage(playerId: playerId, position: position.inMilliseconds),
+      );
+    }
   }
 
   @override
@@ -226,21 +296,45 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<DurationRange> getDuration(int playerId) async {
-    final DurationMessage message = await _api.duration(
-      PlayerMessage(playerId: playerId),
-    );
-    return DurationRange(
-      Duration(milliseconds: message.durationRange?[0] ?? 0),
-      Duration(milliseconds: message.durationRange?[1] ?? 0),
-    );
+    // Use FFI for getDuration (synchronous call)
+    try {
+      final DurationMessage message = _ffiApi.duration(playerId);
+      return DurationRange(
+        Duration(milliseconds: message.durationRange?[0] ?? 0),
+        Duration(milliseconds: message.durationRange?[1] ?? 0),
+      );
+    } catch (e) {
+      debugPrint(
+          'FFI getDuration failed, falling back to Platform Channel: $e');
+      // Fallback to Platform Channel if FFI fails
+      final DurationMessage message = await _api.duration(
+        PlayerMessage(playerId: playerId),
+      );
+      return DurationRange(
+        Duration(milliseconds: message.durationRange?[0] ?? 0),
+        Duration(milliseconds: message.durationRange?[1] ?? 0),
+      );
+    }
   }
 
   @override
   Future<Duration> getPosition(int playerId) async {
-    final PositionMessage response = await _api.position(
-      PlayerMessage(playerId: playerId),
-    );
-    return Duration(milliseconds: response.position);
+    // Use FFI for getPosition (synchronous call)
+    try {
+      final int positionMs = _ffiApi.getPosition(playerId);
+      if (positionMs < 0) {
+        throw Exception('FFI getPosition failed with code: $positionMs');
+      }
+      return Duration(milliseconds: positionMs);
+    } catch (e) {
+      debugPrint(
+          'FFI getPosition failed, falling back to Platform Channel: $e');
+      // Fallback to Platform Channel if FFI fails
+      final PositionMessage response = await _api.position(
+        PlayerMessage(playerId: playerId),
+      );
+      return Duration(milliseconds: response.position);
+    }
   }
 
   @override
@@ -318,21 +412,43 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     int y,
     int width,
     int height,
-  ) {
-    return _api.setDisplayGeometry(
-      GeometryMessage(
-        playerId: playerId,
-        x: x,
-        y: y,
-        width: width,
-        height: height,
-      ),
-    );
+  ) async {
+    // Use FFI for setDisplayGeometry (synchronous call)
+    try {
+      final int result =
+          _ffiApi.setDisplayGeometry(playerId, x, y, width, height);
+      if (result != 0) {
+        throw Exception('FFI setDisplayGeometry failed with code: $result');
+      }
+    } catch (e) {
+      debugPrint(
+          'FFI setDisplayGeometry failed, falling back to Platform Channel: $e');
+      // Fallback to Platform Channel if FFI fails
+      return _api.setDisplayGeometry(
+        GeometryMessage(
+          playerId: playerId,
+          x: x,
+          y: y,
+          width: width,
+          height: height,
+        ),
+      );
+    }
   }
 
   @override
-  Future<void> suspend(int playerId) {
-    return _api.suspend(playerId);
+  Future<void> suspend(int playerId) async {
+    // Use FFI for suspend (synchronous call)
+    try {
+      final int result = _ffiApi.suspend(playerId);
+      if (result != 0) {
+        throw Exception('FFI suspend failed with code: $result');
+      }
+    } catch (e) {
+      debugPrint('FFI suspend failed, falling back to Platform Channel: $e');
+      // Fallback to Platform Channel if FFI fails
+      return _api.suspend(playerId);
+    }
   }
 
   @override
@@ -340,35 +456,101 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     int playerId, {
     DataSource? dataSource,
     int resumeTime = -1,
-  }) {
-    final CreateMessage message = CreateMessage();
+  }) async {
+    // Use FFI for restore (synchronous call)
+    try {
+      // Build JSON string from dataSource (same pattern as create)
+      String? createMessageJson;
+      if (dataSource != null) {
+        final Map<String, dynamic> jsonMap = <String, dynamic>{};
 
-    if (dataSource != null) {
-      switch (dataSource.sourceType) {
-        case DataSourceType.asset:
-          message.asset = dataSource.asset;
-          message.packageName = dataSource.package;
-        case DataSourceType.network:
-          message.uri = dataSource.uri;
-          message.formatHint = _videoFormatStringMap[dataSource.formatHint];
-          message.httpHeaders = dataSource.httpHeaders;
-          message.drmConfigs = dataSource.drmConfigs?.toMap();
-          message.playerOptions = dataSource.playerOptions;
-        case DataSourceType.file:
-          message.uri = dataSource.uri;
-        case DataSourceType.contentUri:
-          message.uri = dataSource.uri;
+        switch (dataSource.sourceType) {
+          case DataSourceType.asset:
+            if (dataSource.asset != null && dataSource.asset!.isNotEmpty) {
+              jsonMap['asset'] = dataSource.asset;
+            }
+            if (dataSource.package != null && dataSource.package!.isNotEmpty) {
+              jsonMap['packageName'] = dataSource.package;
+            }
+          case DataSourceType.network:
+            if (dataSource.uri != null && dataSource.uri!.isNotEmpty) {
+              jsonMap['uri'] = dataSource.uri;
+            }
+            if (dataSource.formatHint != null) {
+              jsonMap['formatHint'] =
+                  _videoFormatStringMap[dataSource.formatHint];
+            }
+            if (dataSource.httpHeaders.isNotEmpty) {
+              jsonMap['httpHeaders'] = dataSource.httpHeaders;
+            }
+            if (dataSource.drmConfigs != null) {
+              jsonMap['drmConfigs'] = dataSource.drmConfigs!.toMap();
+            }
+            if (dataSource.playerOptions != null &&
+                dataSource.playerOptions!.isNotEmpty) {
+              jsonMap['playerOptions'] = dataSource.playerOptions;
+            }
+          case DataSourceType.file:
+          case DataSourceType.contentUri:
+            if (dataSource.uri != null && dataSource.uri!.isNotEmpty) {
+              jsonMap['uri'] = dataSource.uri;
+            }
+        }
+
+        createMessageJson = jsonEncode(jsonMap);
       }
-    }
 
-    return _api.restore(playerId, message, resumeTime);
+      final int result =
+          _ffiApi.restore(playerId, createMessageJson, resumeTime);
+      if (result != 0) {
+        // FFI restore failed, but don't throw - just log and return
+        // The player may still be in a valid state
+        return;
+      }
+    } catch (e) {
+      debugPrint('FFI restore failed, falling back to Platform Channel: $e');
+      // Fallback to Platform Channel if FFI fails
+      final CreateMessage message = CreateMessage();
+
+      if (dataSource != null) {
+        switch (dataSource.sourceType) {
+          case DataSourceType.asset:
+            message.asset = dataSource.asset;
+            message.packageName = dataSource.package;
+          case DataSourceType.network:
+            message.uri = dataSource.uri;
+            message.formatHint = _videoFormatStringMap[dataSource.formatHint];
+            message.httpHeaders = dataSource.httpHeaders;
+            message.drmConfigs = dataSource.drmConfigs?.toMap();
+            message.playerOptions = dataSource.playerOptions;
+          case DataSourceType.file:
+            message.uri = dataSource.uri;
+          case DataSourceType.contentUri:
+            message.uri = dataSource.uri;
+        }
+      }
+
+      return _api.restore(playerId, message, resumeTime);
+    }
   }
 
   @override
-  Future<bool> setDisplayRotate(int playerId, DisplayRotation rotation) {
-    return _api.setDisplayRotate(
-      RotationMessage(playerId: playerId, rotation: rotation.index),
-    );
+  Future<bool> setDisplayRotate(int playerId, DisplayRotation rotation) async {
+    // Use FFI for setDisplayRotate (synchronous call)
+    try {
+      final int result = _ffiApi.setDisplayRotate(playerId, rotation.index);
+      if (result != 0) {
+        throw Exception('FFI setDisplayRotate failed with code: $result');
+      }
+      return true;
+    } catch (e) {
+      debugPrint(
+          'FFI setDisplayRotate failed, falling back to Platform Channel: $e');
+      // Fallback to Platform Channel if FFI fails
+      return _api.setDisplayRotate(
+        RotationMessage(playerId: playerId, rotation: rotation.index),
+      );
+    }
   }
 
   EventChannel _eventChannelFor(int playerId) {

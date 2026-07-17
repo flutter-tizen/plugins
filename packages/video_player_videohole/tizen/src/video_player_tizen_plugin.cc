@@ -12,10 +12,12 @@
 #include <cinttypes>
 #include <cstdint>
 #include <map>
+#include <mutex>
 #include <optional>
 #include <sstream>
 #include <string>
 #include <variant>
+#include <shared_mutex>
 
 #include "media_player.h"
 #include "messages.h"
@@ -468,157 +470,499 @@ static flutter::EncodableMap ParseJsonMap(const std::string &json_str) {
   return result;
 }
 
-// Helper function to parse JSON for drm_configs
-// Format: {"drmType":1,"licenseServerUrl":"http://..."}
-// Note: prebufferMode is not currently supported by DrmConfigs class
-//
-// Dart DrmType enum: none=0, playready=1, widevine=2
-// DrmManager::DrmType enum: DRM_TYPE_NONE=0, DRM_TYPE_PLAYREADAY=1,
-// DRM_TYPE_WIDEVINECDM=2 The enum values are the same, no mapping needed
+// Helper function to extract a string value from JSON by key
+// Returns true if the key was found and value was extracted
+static bool ExtractStringValue(const std::string &json_str, 
+                               const std::string &key,
+                               std::string &out_value) {
+  std::string search_key = "\"" + key + "\"";
+  size_t pos = json_str.find(search_key);
+  if (pos == std::string::npos) return false;
+  
+  pos = json_str.find(':', pos);
+  if (pos == std::string::npos) return false;
+  
+  pos++;
+  while (pos < json_str.length() && (isspace(json_str[pos]) || json_str[pos] == ':')) pos++;
+  if (pos >= json_str.length() || json_str[pos] != '"') return false;
+  
+  pos++;  // skip opening quote
+  size_t end = pos;
+  while (end < json_str.length() && json_str[end] != '"') end++;
+  
+  out_value = json_str.substr(pos, end - pos);
+  return true;
+}
 
-static void ParseDrmConfigs(const std::string &json_str, int64_t &drm_type,
-                            std::string &license_server_url) {
-  drm_type = 0;
-  license_server_url.clear();
-
-  if (json_str.empty() || json_str == "{}") {
-    return;
+// Helper function to extract a nested object from JSON by key
+// Returns the nested object JSON string (including braces) or empty string if not found
+static std::string ExtractObjectValue(const std::string &json_str, 
+                                       const std::string &key) {
+  std::string search_key = "\"" + key + "\"";
+  size_t pos = json_str.find(search_key);
+  if (pos == std::string::npos) return "";
+  
+  pos = json_str.find(':', pos);
+  if (pos == std::string::npos) return "";
+  
+  pos++;
+  while (pos < json_str.length() && isspace(json_str[pos])) pos++;
+  if (pos >= json_str.length() || json_str[pos] != '{') return "";
+  
+  int brace_count = 1;
+  size_t start = pos;
+  pos++;
+  while (pos < json_str.length() && brace_count > 0) {
+    if (json_str[pos] == '{') brace_count++;
+    else if (json_str[pos] == '}') brace_count--;
+    pos++;
   }
+  return json_str.substr(start, pos - start);
+}
 
-  // Simple extraction
-  size_t pos;
-
-  // Extract drmType
-  pos = json_str.find("\"drmType\"");
-  if (pos != std::string::npos) {
-    pos = json_str.find(':', pos);
-    if (pos != std::string::npos) {
-      pos++;
-      while (pos < json_str.length() &&
-             (isspace(json_str[pos]) || json_str[pos] == ':'))
-        pos++;
-
-      // Skip any leading quotes (shouldn't be there for numbers, but just in
-      // case)
-      while (pos < json_str.length() &&
-             (json_str[pos] == '"' || isspace(json_str[pos])))
-        pos++;
-
-      size_t end = pos;
-      while (end < json_str.length() && json_str[end] != ',' &&
-             json_str[end] != '}' && json_str[end] != '"')
-        end++;
-      std::string val = json_str.substr(pos, end - pos);
-
-      // Trim trailing whitespace and quotes
-      while (!val.empty() && (val.back() == '"' || isspace(val.back())))
-        val.pop_back();
-
-      try {
-        drm_type = std::stoll(val);
-      } catch (const std::exception &e) {
-        // Fallback: try direct comparison
-        if (val == "1") {
-          drm_type = 1;  // PlayReady
-        } else if (val == "2") {
-          drm_type = 2;  // Widevine
+// Unified function to parse CreateMessage from JSON string
+// JSON format: {"uri":"...","asset":"...","packageName":"...","formatHint":"...",
+//               "httpHeaders":{...},"drmConfigs":{...},"playerOptions":{...}}
+static video_player_videohole_tizen::CreateMessage ParseCreateMessage(
+    const std::string &json_str) {
+  video_player_videohole_tizen::CreateMessage msg;
+  
+  if (json_str.empty() || json_str == "{}") {
+    return msg;
+  }
+  
+  // Extract string fields using helper function
+  std::string value;
+  if (ExtractStringValue(json_str, "uri", value)) {
+    msg.set_uri(value);
+  }
+  if (ExtractStringValue(json_str, "asset", value)) {
+    msg.set_asset(value);
+  }
+  if (ExtractStringValue(json_str, "packageName", value)) {
+    msg.set_package_name(value);
+  }
+  if (ExtractStringValue(json_str, "formatHint", value)) {
+    msg.set_format_hint(value);
+  }
+  
+  // Extract nested object fields using helper function
+  std::string nested_json;
+  
+  // httpHeaders
+  nested_json = ExtractObjectValue(json_str, "httpHeaders");
+  if (!nested_json.empty()) {
+    flutter::EncodableMap headers = ParseJsonMap(nested_json);
+    if (!headers.empty()) {
+      msg.set_http_headers(headers);
+    }
+  }
+  
+  // playerOptions
+  nested_json = ExtractObjectValue(json_str, "playerOptions");
+  if (!nested_json.empty()) {
+    flutter::EncodableMap options = ParseJsonMap(nested_json);
+    if (!options.empty()) {
+      msg.set_player_options(options);
+    }
+  }
+  
+  // drmConfigs (special handling for drmType and licenseServerUrl)
+  nested_json = ExtractObjectValue(json_str, "drmConfigs");
+  if (!nested_json.empty()) {
+    int64_t drm_type = 0;
+    std::string license_url;
+    
+    // Extract drmType (number value)
+    size_t drm_pos = nested_json.find("\"drmType\"");
+    if (drm_pos != std::string::npos) {
+      drm_pos = nested_json.find(':', drm_pos);
+      if (drm_pos != std::string::npos) {
+        drm_pos++;
+        while (drm_pos < nested_json.length() && (isspace(nested_json[drm_pos]) || nested_json[drm_pos] == ':')) drm_pos++;
+        size_t end = drm_pos;
+        while (end < nested_json.length() && nested_json[end] != ',' && nested_json[end] != '}' && nested_json[end] != '"') end++;
+        std::string val = nested_json.substr(drm_pos, end - drm_pos);
+        while (!val.empty() && (val.back() == '"' || isspace(val.back()))) val.pop_back();
+        try {
+          drm_type = std::stoll(val);
+        } catch (...) {
+          if (val == "1") drm_type = 1;
+          else if (val == "2") drm_type = 2;
         }
       }
     }
-  }
-
-  // Extract licenseServerUrl - handle both string and null values
-  pos = json_str.find("\"licenseServerUrl\"");
-  if (pos != std::string::npos) {
-    pos = json_str.find(':', pos);
-    if (pos != std::string::npos) {
-      pos++;
-      while (pos < json_str.length() &&
-             (isspace(json_str[pos]) || json_str[pos] == ':'))
-        pos++;
-
-      // Check for null value
-      if (pos < json_str.length() && json_str.substr(pos, 4) == "null") {
-        license_server_url.clear();
-      } else if (pos < json_str.length() && json_str[pos] == '"') {
-        // String value
-        pos++;
-        size_t end = pos;
-        while (end < json_str.length() && json_str[end] != '"') end++;
-        license_server_url = json_str.substr(pos, end - pos);
-      }
+    
+    // Extract licenseServerUrl using helper function
+    ExtractStringValue(nested_json, "licenseServerUrl", license_url);
+    
+    flutter::EncodableMap drm_map;
+    drm_map[flutter::EncodableValue("drmType")] = flutter::EncodableValue(drm_type);
+    if (!license_url.empty()) {
+      drm_map[flutter::EncodableValue("licenseServerUrl")] = flutter::EncodableValue(license_url);
     }
+    msg.set_drm_configs(drm_map);
   }
+  
+  return msg;
 }
 
-int64_t ffi_create(const char *uri, const char *asset, const char *package_name,
-                   const char *format_hint, const char *http_headers_json,
-                   const char *drm_configs_json,
-                   const char *player_options_json) {
+// FFI create function - takes a single JSON string for all create parameters
+// JSON format: {"uri":"...","asset":"...","packageName":"...","formatHint":"...",
+//               "httpHeaders":{...},"drmConfigs":{...},"playerOptions":{...}}
+// Returns: player_id on success, -1 on error
+int64_t ffi_create(const char *create_message_json) {
   auto *plugin =
       video_player_videohole_tizen::VideoPlayerTizenPlugin::GetInstance();
   if (plugin == nullptr) {
     return -1;  // Plugin not initialized
   }
 
-  // Build CreateMessage from FFI parameters
   video_player_videohole_tizen::CreateMessage msg;
-
-  // Set basic fields
-  if (uri != nullptr && strlen(uri) > 0) {
-    msg.set_uri(std::string(uri));
+  if (create_message_json != nullptr && strlen(create_message_json) > 0) {
+    msg = ParseCreateMessage(std::string(create_message_json));
   }
-  if (asset != nullptr && strlen(asset) > 0) {
-    msg.set_asset(std::string(asset));
-  }
-  if (package_name != nullptr && strlen(package_name) > 0) {
-    msg.set_package_name(std::string(package_name));
-  }
-  if (format_hint != nullptr && strlen(format_hint) > 0) {
-    msg.set_format_hint(std::string(format_hint));
-  }
-
-  // Parse http_headers JSON
-  if (http_headers_json != nullptr && strlen(http_headers_json) > 0) {
-    flutter::EncodableMap headers =
-        ParseJsonMap(std::string(http_headers_json));
-    if (!headers.empty()) {
-      msg.set_http_headers(headers);
-    }
-  }
-
-  // Parse drm_configs JSON
-  if (drm_configs_json != nullptr && strlen(drm_configs_json) > 0) {
-    int64_t drm_type = 0;
-    std::string license_url;
-    ParseDrmConfigs(std::string(drm_configs_json), drm_type, license_url);
-
-    flutter::EncodableMap drm_map;
-    drm_map[flutter::EncodableValue("drmType")] =
-        flutter::EncodableValue(drm_type);
-    if (!license_url.empty()) {
-      drm_map[flutter::EncodableValue("licenseServerUrl")] =
-          flutter::EncodableValue(license_url);
-    }
-    msg.set_drm_configs(drm_map);
-  }
-
-  // Parse player_options JSON
-  if (player_options_json != nullptr && strlen(player_options_json) > 0) {
-    flutter::EncodableMap options =
-        ParseJsonMap(std::string(player_options_json));
-    if (!options.empty()) {
-      msg.set_player_options(options);
-    }
-  }
-
-  // Use the plugin's Create method which handles asset resolution and player
-  // creation
+  
   auto result = plugin->Create(msg);
   if (result.has_error()) {
     return -1;
   }
   return result.value().player_id();
+}
+
+// FFI dispose function - releases player resources
+// Returns: 0 on success, -1 on error
+// Safe to call multiple times with same player_id
+int ffi_dispose(int64_t player_id) {
+  auto *plugin =
+      video_player_videohole_tizen::VideoPlayerTizenPlugin::GetInstance();
+  if (plugin == nullptr) {
+    return -1;  // Plugin not initialized
+  }
+
+  // Check if player exists before trying to dispose
+  // This prevents crash when dispose is called multiple times
+  auto player = video_player_videohole_tizen::VideoPlayerTizenPlugin::FindPlayerById(player_id);
+  if (player == nullptr) {
+    // Player already disposed or never existed - return success silently
+    return 0;
+  }
+
+  auto result = plugin->Dispose(
+      video_player_videohole_tizen::PlayerMessage(player_id));
+  if (result.has_value()) {
+    // Error occurred
+    return -1;
+  }
+  return 0;  // Success
+}
+
+// FFI play function - starts or resumes playback
+// Returns: 0 on success, -1 on error
+// Note: Checks if player exists before calling to avoid crash on disposed player
+int ffi_play(int64_t player_id) {
+  auto *plugin =
+      video_player_videohole_tizen::VideoPlayerTizenPlugin::GetInstance();
+  if (plugin == nullptr) {
+    return -1;  // Plugin not initialized
+  }
+
+  // Check if player exists before calling - avoid crash on disposed player
+  auto player = video_player_videohole_tizen::VideoPlayerTizenPlugin::FindPlayerById(player_id);
+  if (player == nullptr) {
+    return -1;  // Player already disposed or never existed
+  }
+
+  auto result =
+      plugin->Play(video_player_videohole_tizen::PlayerMessage(player_id));
+  if (result.has_value()) {
+    // Error occurred
+    return -1;
+  }
+  return 0;  // Success
+}
+
+// FFI pause function - pauses playback
+// Returns: 0 on success, -1 on error
+// Note: Checks if player exists before calling to avoid crash on disposed player
+int ffi_pause(int64_t player_id) {
+  auto *plugin =
+      video_player_videohole_tizen::VideoPlayerTizenPlugin::GetInstance();
+  if (plugin == nullptr) {
+    return -1;  // Plugin not initialized
+  }
+
+  // Check if player exists before calling - avoid crash on disposed player
+  auto player = video_player_videohole_tizen::VideoPlayerTizenPlugin::FindPlayerById(player_id);
+  if (player == nullptr) {
+    return -1;  // Player already disposed or never existed
+  }
+
+  auto result =
+      plugin->Pause(video_player_videohole_tizen::PlayerMessage(player_id));
+  if (result.has_value()) {
+    // Error occurred
+    return -1;
+  }
+  return 0;  // Success
+}
+
+// FFI seek_to function - seeks to a specific position (in milliseconds)
+// Returns: 0 on success, -1 on error
+// Note: This is a fire-and-forget operation. The seek completion is notified
+// through the event channel, not through return value.
+int ffi_seek_to(int64_t player_id, int64_t position_ms) {
+  auto *plugin =
+      video_player_videohole_tizen::VideoPlayerTizenPlugin::GetInstance();
+  if (plugin == nullptr) {
+    return -1;  // Plugin not initialized
+  }
+
+  // Call SeekTo asynchronously - the result will be notified through event channel
+  // We don't block here to avoid freezing the UI thread
+  plugin->SeekTo(
+      video_player_videohole_tizen::PositionMessage(player_id, position_ms),
+      [](std::optional<video_player_videohole_tizen::FlutterError> result) {
+        // Callback is invoked when seek completes
+        // The event channel will notify Flutter about the seek completion
+        if (result.has_value()) {
+          // Log error but don't block - Flutter will handle it through events
+        }
+      });
+
+  // Return immediately to allow UI to refresh
+  return 0;  // Success (actual result will be notified through event channel)
+}
+
+// FFI get_position function - gets current playback position in milliseconds
+// Returns: position in milliseconds (>= 0) on success, -1 on error
+// Note: Checks if player exists before calling to avoid crash on disposed player
+int64_t ffi_get_position(int64_t player_id) {
+  auto *plugin =
+      video_player_videohole_tizen::VideoPlayerTizenPlugin::GetInstance();
+  if (plugin == nullptr) {
+    return -1;  // Plugin not initialized
+  }
+
+  // Check if player exists before calling - avoid crash on disposed player
+  auto player = video_player_videohole_tizen::VideoPlayerTizenPlugin::FindPlayerById(player_id);
+  if (player == nullptr) {
+    return -1;  // Player already disposed or never existed
+  }
+
+  auto result =
+      plugin->Position(video_player_videohole_tizen::PlayerMessage(player_id));
+  if (result.has_error()) {
+    return -1;
+  }
+  return result.value().position();
+}
+
+// FFI get_duration function - gets video duration range in milliseconds
+// Returns: JSON string with start and end values, or "-1" on error
+// Format: {"start": <start_ms>, "end": <end_ms>}
+// For live streams, start may be non-zero (e.g., {"start": 1000, "end": 5000})
+// Note: Returns a malloc-allocated string that the caller must free
+const char* ffi_get_duration(int64_t player_id) {
+  auto *plugin =
+      video_player_videohole_tizen::VideoPlayerTizenPlugin::GetInstance();
+  if (plugin == nullptr) {
+    return strdup("-1");  // Plugin not initialized
+  }
+
+  auto result =
+      plugin->Duration(video_player_videohole_tizen::PlayerMessage(player_id));
+  if (result.has_error()) {
+    return strdup("-1");
+  }
+  
+  // Return both start and end of duration range as JSON
+  // Use strdup to allocate memory that persists after this function returns
+  // The Dart caller is responsible for freeing this memory
+  const auto& duration_range = result.value().duration_range();
+  std::string duration_json;
+  if (duration_range && duration_range->size() >= 2) {
+    int64_t start = (*duration_range)[0].IsNull() ? 0 : 
+                    std::get<int64_t>((*duration_range)[0]);
+    int64_t end = (*duration_range)[1].IsNull() ? 0 : 
+                  std::get<int64_t>((*duration_range)[1]);
+    duration_json = "{\"start\":" + std::to_string(start) + 
+                    ",\"end\":" + std::to_string(end) + "}";
+  } else {
+    duration_json = "{\"start\":0,\"end\":0}";
+  }
+  return strdup(duration_json.c_str());
+}
+
+// FFI set_volume function - sets playback volume (0.0 to 1.0)
+// Returns: 0 on success, -1 on error
+int ffi_set_volume(int64_t player_id, double volume) {
+  auto *plugin =
+      video_player_videohole_tizen::VideoPlayerTizenPlugin::GetInstance();
+  if (plugin == nullptr) {
+    return -1;  // Plugin not initialized
+  }
+
+  auto result = plugin->SetVolume(
+      video_player_videohole_tizen::VolumeMessage(player_id, volume));
+  if (result.has_value()) {
+    // Error occurred
+    return -1;
+  }
+  return 0;  // Success
+}
+
+// FFI set_playback_speed function - sets playback speed
+// Returns: 0 on success, -1 on error
+int ffi_set_playback_speed(int64_t player_id, double speed) {
+  auto *plugin =
+      video_player_videohole_tizen::VideoPlayerTizenPlugin::GetInstance();
+  if (plugin == nullptr) {
+    return -1;  // Plugin not initialized
+  }
+
+  auto result = plugin->SetPlaybackSpeed(
+      video_player_videohole_tizen::PlaybackSpeedMessage(player_id, speed));
+  if (result.has_value()) {
+    // Error occurred
+    return -1;
+  }
+  return 0;  // Success
+}
+
+// FFI set_looping function - enables or disables looping
+// Returns: 0 on success, -1 on error
+int ffi_set_looping(int64_t player_id, bool is_looping) {
+  auto *plugin =
+      video_player_videohole_tizen::VideoPlayerTizenPlugin::GetInstance();
+  if (plugin == nullptr) {
+    return -1;  // Plugin not initialized
+  }
+
+  auto result = plugin->SetLooping(
+      video_player_videohole_tizen::LoopingMessage(player_id, is_looping));
+  if (result.has_value()) {
+    // Error occurred
+    return -1;
+  }
+  return 0;  // Success
+}
+
+// FFI get_track_info function - gets track information for a specific track type
+// Returns: JSON string of track info on success, nullptr on error
+// Note: Returns a malloc-allocated string that the caller must free
+const char* ffi_get_track_info(int64_t player_id, const char* track_type) {
+  auto *plugin =
+      video_player_videohole_tizen::VideoPlayerTizenPlugin::GetInstance();
+  if (plugin == nullptr || track_type == nullptr) {
+    return nullptr;
+  }
+
+  auto result = plugin->Track(
+      video_player_videohole_tizen::TrackTypeMessage(player_id, std::string(track_type)));
+  if (result.has_error()) {
+    return nullptr;
+  }
+
+  // Convert TrackMessage to JSON string
+  // Use strdup to allocate memory that persists after this function returns
+  // The Dart caller is responsible for freeing this memory
+  std::string track_info_json = "{\"playerId\":" + std::to_string(result.value().player_id()) + 
+                                ",\"tracks\":[]}";
+  return strdup(track_info_json.c_str());
+}
+
+// FFI set_track_selection function - sets the selected track
+// Returns: 0 on success, -1 on error
+int ffi_set_track_selection(int64_t player_id, int64_t track_id, const char* track_type) {
+  auto *plugin =
+      video_player_videohole_tizen::VideoPlayerTizenPlugin::GetInstance();
+  if (plugin == nullptr || track_type == nullptr) {
+    return -1;  // Plugin not initialized
+  }
+
+  auto result = plugin->SetTrackSelection(
+      video_player_videohole_tizen::SelectedTracksMessage(player_id, track_id, std::string(track_type)));
+  if (result.has_error()) {
+    return -1;
+  }
+  return result.value() ? 0 : -1;
+}
+
+// FFI set_display_geometry function - sets the display geometry (ROI)
+// Returns: 0 on success, -1 on error
+int ffi_set_display_geometry(int64_t player_id, int32_t x, int32_t y, int32_t width, int32_t height) {
+  auto *plugin =
+      video_player_videohole_tizen::VideoPlayerTizenPlugin::GetInstance();
+  if (plugin == nullptr) {
+    return -1;  // Plugin not initialized
+  }
+
+  auto result = plugin->SetDisplayGeometry(
+      video_player_videohole_tizen::GeometryMessage(player_id, x, y, width, height));
+  if (result.has_value()) {
+    // Error occurred
+    return -1;
+  }
+  return 0;  // Success
+}
+
+// FFI set_display_rotate function - sets display rotation
+// Returns: 0 on success, -1 on error
+int ffi_set_display_rotate(int64_t player_id, int32_t rotation) {
+  auto *plugin =
+      video_player_videohole_tizen::VideoPlayerTizenPlugin::GetInstance();
+  if (plugin == nullptr) {
+    return -1;  // Plugin not initialized
+  }
+
+  auto result = plugin->SetDisplayRotate(
+      video_player_videohole_tizen::RotationMessage(player_id, rotation));
+  if (result.has_error()) {
+    return -1;
+  }
+  return result.value() ? 0 : -1;
+}
+
+// FFI suspend function - suspends the player
+// Returns: 0 on success, -1 on error
+int ffi_suspend(int64_t player_id) {
+  auto *plugin =
+      video_player_videohole_tizen::VideoPlayerTizenPlugin::GetInstance();
+  if (plugin == nullptr) {
+    return -1;  // Plugin not initialized
+  }
+
+  auto result = plugin->Suspend(player_id);
+  if (result.has_value()) {
+    // Error occurred
+    return -1;
+  }
+  return 0;  // Success
+}
+
+// FFI restore function - restores a suspended player
+// create_message_json: JSON string of CreateMessage or empty/null for using saved state
+// Returns: 0 on success, -1 on error
+int ffi_restore(int64_t player_id, const char* create_message_json, int64_t resume_time) {
+  auto *plugin =
+      video_player_videohole_tizen::VideoPlayerTizenPlugin::GetInstance();
+  if (plugin == nullptr) {
+    return -1;  // Plugin not initialized
+  }
+
+  // Use unified ParseCreateMessage function to parse JSON
+  video_player_videohole_tizen::CreateMessage msg;
+  if (create_message_json != nullptr && strlen(create_message_json) > 0) {
+    msg = ParseCreateMessage(std::string(create_message_json));
+  }
+  
+  auto result = plugin->Restore(player_id, &msg, resume_time);
+  if (result.has_value()) {
+    // Error occurred
+    return -1;
+  }
+  return 0;  // Success
 }
 
 }  // extern "C"

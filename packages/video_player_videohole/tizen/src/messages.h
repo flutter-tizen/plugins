@@ -457,13 +457,11 @@ extern "C" {
 int ffi_initialize();
 
 // FFI create - returns player_id or -1 on error
-// Parameters: uri, asset, package_name, format_hint, http_headers_json,
-//             drm_configs_json, player_options_json (all const char*)
+// Parameters: create_message_json - JSON string containing all create parameters
+//             Format: {"uri":"...","asset":"...","packageName":"...","formatHint":"...",
+//                      "httpHeaders":{...},"drmConfigs":{...},"playerOptions":{...}}
 // Returns: int64_t player_id (negative value indicates error)
-int64_t ffi_create(const char* uri, const char* asset, const char* package_name,
-                   const char* format_hint, const char* http_headers_json,
-                   const char* drm_configs_json,
-                   const char* player_options_json);
+int64_t ffi_create(const char* create_message_json);
 
 #ifdef __cplusplus
 }  // extern "C"
