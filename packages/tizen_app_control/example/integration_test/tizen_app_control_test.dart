@@ -30,7 +30,7 @@ void main() {
       mime: 'image/*',
     );
     final List<String> matches = await request.getMatchedAppIds();
-    expect(matches.length, greaterThanOrEqualTo(0));
+    expect(matches, isA<List<String>>());
   }, timeout: kTimeout);
 
   testWidgets('Can send and receive request', (WidgetTester _) async {
@@ -39,9 +39,11 @@ void main() {
       appId: kAppId,
       operation: 'operation_1',
     );
+    final Future<ReceivedAppControl> receivedFuture =
+        AppControl.onAppControl.first;
     await request.sendLaunchRequest();
 
-    final ReceivedAppControl received = await AppControl.onAppControl.first;
+    final ReceivedAppControl received = await receivedFuture;
     expect(received.appId, kAppId);
     expect(received.operation, 'operation_1');
     expect(received.uri, isNull);
@@ -60,9 +62,11 @@ void main() {
       uri: 'myapp://test/path',
       mime: 'text/plain',
     );
+    final Future<ReceivedAppControl> receivedFuture =
+        AppControl.onAppControl.first;
     await request.sendLaunchRequest();
 
-    final ReceivedAppControl received = await AppControl.onAppControl.first;
+    final ReceivedAppControl received = await receivedFuture;
     expect(received.uri, 'myapp://test/path');
     expect(received.mime, 'text/plain');
   }, timeout: kTimeout);
@@ -76,9 +80,11 @@ void main() {
         'INTEGER_DATA': 1,
       },
     );
+    final Future<ReceivedAppControl> receivedFuture =
+        AppControl.onAppControl.first;
     await request.sendLaunchRequest();
 
-    final ReceivedAppControl received = await AppControl.onAppControl.first;
+    final ReceivedAppControl received = await receivedFuture;
     expect(received.extraData.length, 2);
     expect(received.extraData['STRING_DATA'], 'string');
     expect(received.extraData['STRING_LIST_DATA'], <String>['string', 'list']);
