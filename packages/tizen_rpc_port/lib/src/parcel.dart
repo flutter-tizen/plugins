@@ -625,8 +625,7 @@ void _ensureFunctionsLoaded() {
   try {
     _rpcPortParcelGetReader = lib
         .lookup<
-            NativeFunction<
-                Int32 Function(rpc_port_parcel_h, Pointer<Uint32>)>>(
+            NativeFunction<Int32 Function(rpc_port_parcel_h, Pointer<Uint32>)>>(
           'rpc_port_parcel_get_reader',
         )
         .asFunction();
@@ -641,8 +640,7 @@ void _ensureFunctionsLoaded() {
   try {
     _rpcPortParcelGetDataSize = lib
         .lookup<
-            NativeFunction<
-                Int32 Function(rpc_port_parcel_h, Pointer<Uint32>)>>(
+            NativeFunction<Int32 Function(rpc_port_parcel_h, Pointer<Uint32>)>>(
           'rpc_port_parcel_get_data_size',
         )
         .asFunction();
