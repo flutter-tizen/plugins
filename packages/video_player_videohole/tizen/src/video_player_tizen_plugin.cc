@@ -20,14 +20,12 @@
 #include <shared_mutex>
 
 #include "media_player.h"
-#include "messages.h"
 #include "video_player.h"
 #include "video_player_options.h"
 
 namespace video_player_videohole_tizen {
 
-class VideoPlayerTizenPlugin : public flutter::Plugin,
-                               public VideoPlayerVideoholeApi {
+class VideoPlayerTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(
       FlutterDesktopPluginRegistrarRef registrar_ref,
@@ -40,33 +38,33 @@ class VideoPlayerTizenPlugin : public flutter::Plugin,
                          flutter::PluginRegistrar *plugin_registrar);
   virtual ~VideoPlayerTizenPlugin();
 
-  std::optional<FlutterError> Initialize() override;
-  ErrorOr<PlayerMessage> Create(const CreateMessage &msg) override;
-  std::optional<FlutterError> Dispose(const PlayerMessage &msg) override;
-  ErrorOr<DurationMessage> Duration(const PlayerMessage &msg) override;
-  std::optional<FlutterError> SetLooping(const LoopingMessage &msg) override;
-  std::optional<FlutterError> SetVolume(const VolumeMessage &msg) override;
+  std::optional<FlutterError> Initialize();
+  ErrorOr<PlayerMessage> Create(const CreateMessage &msg);
+  std::optional<FlutterError> Dispose(const PlayerMessage &msg);
+  ErrorOr<DurationMessage> Duration(const PlayerMessage &msg);
+  std::optional<FlutterError> SetLooping(const LoopingMessage &msg);
+  std::optional<FlutterError> SetVolume(const VolumeMessage &msg);
   std::optional<FlutterError> SetPlaybackSpeed(
-      const PlaybackSpeedMessage &msg) override;
-  ErrorOr<TrackMessage> Track(const TrackTypeMessage &msg) override;
-  ErrorOr<bool> SetTrackSelection(const SelectedTracksMessage &msg) override;
-  std::optional<FlutterError> Play(const PlayerMessage &msg) override;
-  ErrorOr<bool> SetDeactivate(const PlayerMessage &msg) override;
-  ErrorOr<bool> SetActivate(const PlayerMessage &msg) override;
-  ErrorOr<PositionMessage> Position(const PlayerMessage &msg) override;
+      const PlaybackSpeedMessage &msg);
+  ErrorOr<TrackMessage> Track(const TrackTypeMessage &msg);
+  ErrorOr<bool> SetTrackSelection(const SelectedTracksMessage &msg);
+  std::optional<FlutterError> Play(const PlayerMessage &msg);
+  ErrorOr<bool> SetDeactivate(const PlayerMessage &msg);
+  ErrorOr<bool> SetActivate(const PlayerMessage &msg);
+  ErrorOr<PositionMessage> Position(const PlayerMessage &msg);
   void SeekTo(
       const PositionMessage &msg,
-      std::function<void(std::optional<FlutterError> reply)> result) override;
-  std::optional<FlutterError> Pause(const PlayerMessage &msg) override;
+      std::function<void(std::optional<FlutterError> reply)> result);
+  std::optional<FlutterError> Pause(const PlayerMessage &msg);
   std::optional<FlutterError> SetMixWithOthers(
-      const MixWithOthersMessage &msg) override;
+      const MixWithOthersMessage &msg);
   std::optional<FlutterError> SetDisplayGeometry(
-      const GeometryMessage &msg) override;
-  std::optional<FlutterError> Suspend(int64_t player_id) override;
+      const GeometryMessage &msg);
+  std::optional<FlutterError> Suspend(int64_t player_id);
   std::optional<FlutterError> Restore(int64_t player_id,
                                       const CreateMessage *msg,
-                                      int64_t resume_time) override;
-  ErrorOr<bool> SetDisplayRotate(const RotationMessage &msg) override;
+                                      int64_t resume_time);
+  ErrorOr<bool> SetDisplayRotate(const RotationMessage &msg);
 
   static VideoPlayer *FindPlayerById(int64_t player_id) {
     auto iter = players_.find(player_id);
@@ -105,7 +103,7 @@ VideoPlayerTizenPlugin::VideoPlayerTizenPlugin(
     flutter::PluginRegistrar *plugin_registrar)
     : registrar_ref_(registrar_ref), plugin_registrar_(plugin_registrar) {
   instance_ = this;  // Set singleton instance for FFI access
-  VideoPlayerVideoholeApi::SetUp(plugin_registrar->messenger(), this);
+  // VideoPlayerVideoholeApi removed - all methods migrated to FFI
 }
 
 VideoPlayerTizenPlugin::~VideoPlayerTizenPlugin() { DisposeAllPlayers(); }
@@ -848,47 +846,6 @@ int ffi_set_looping(int64_t player_id, bool is_looping) {
   return 0;  // Success
 }
 
-// FFI get_track_info function - gets track information for a specific track type
-// Returns: JSON string of track info on success, nullptr on error
-// Note: Returns a malloc-allocated string that the caller must free
-const char* ffi_get_track_info(int64_t player_id, const char* track_type) {
-  auto *plugin =
-      video_player_videohole_tizen::VideoPlayerTizenPlugin::GetInstance();
-  if (plugin == nullptr || track_type == nullptr) {
-    return nullptr;
-  }
-
-  auto result = plugin->Track(
-      video_player_videohole_tizen::TrackTypeMessage(player_id, std::string(track_type)));
-  if (result.has_error()) {
-    return nullptr;
-  }
-
-  // Convert TrackMessage to JSON string
-  // Use strdup to allocate memory that persists after this function returns
-  // The Dart caller is responsible for freeing this memory
-  std::string track_info_json = "{\"playerId\":" + std::to_string(result.value().player_id()) + 
-                                ",\"tracks\":[]}";
-  return strdup(track_info_json.c_str());
-}
-
-// FFI set_track_selection function - sets the selected track
-// Returns: 0 on success, -1 on error
-int ffi_set_track_selection(int64_t player_id, int64_t track_id, const char* track_type) {
-  auto *plugin =
-      video_player_videohole_tizen::VideoPlayerTizenPlugin::GetInstance();
-  if (plugin == nullptr || track_type == nullptr) {
-    return -1;  // Plugin not initialized
-  }
-
-  auto result = plugin->SetTrackSelection(
-      video_player_videohole_tizen::SelectedTracksMessage(player_id, track_id, std::string(track_type)));
-  if (result.has_error()) {
-    return -1;
-  }
-  return result.value() ? 0 : -1;
-}
-
 // FFI set_display_geometry function - sets the display geometry (ROI)
 // Returns: 0 on success, -1 on error
 int ffi_set_display_geometry(int64_t player_id, int32_t x, int32_t y, int32_t width, int32_t height) {
@@ -958,6 +915,135 @@ int ffi_restore(int64_t player_id, const char* create_message_json, int64_t resu
   }
   
   auto result = plugin->Restore(player_id, &msg, resume_time);
+  if (result.has_value()) {
+    // Error occurred
+    return -1;
+  }
+  return 0;  // Success
+}
+
+// FFI set_activate function - activates the player
+// Returns: 0 on success, -1 on error
+int ffi_set_activate(int64_t player_id) {
+  auto *plugin =
+      video_player_videohole_tizen::VideoPlayerTizenPlugin::GetInstance();
+  if (plugin == nullptr) {
+    return -1;  // Plugin not initialized
+  }
+
+  auto result = plugin->SetActivate(
+      video_player_videohole_tizen::PlayerMessage(player_id));
+  if (result.has_error()) {
+    return -1;
+  }
+  return result.value() ? 0 : -1;
+}
+
+// FFI set_deactivate function - deactivates the player
+// Returns: 0 on success, -1 on error
+int ffi_set_deactivate(int64_t player_id) {
+  auto *plugin =
+      video_player_videohole_tizen::VideoPlayerTizenPlugin::GetInstance();
+  if (plugin == nullptr) {
+    return -1;  // Plugin not initialized
+  }
+
+  auto result = plugin->SetDeactivate(
+      video_player_videohole_tizen::PlayerMessage(player_id));
+  if (result.has_error()) {
+    return -1;
+  }
+  return result.value() ? 0 : -1;
+}
+
+// FFI get_track_info function - gets track information for a specific track type
+// Returns: JSON string of track info on success, nullptr on error
+// Format: {"playerId": <id>, "tracks": [{"trackId": <id>, ...}, ...]}
+// Note: Returns a malloc-allocated string that the caller must free
+const char* ffi_get_track_info(int64_t player_id, const char* track_type) {
+  auto *plugin =
+      video_player_videohole_tizen::VideoPlayerTizenPlugin::GetInstance();
+  if (plugin == nullptr || track_type == nullptr) {
+    return nullptr;
+  }
+
+  auto result = plugin->Track(
+      video_player_videohole_tizen::TrackTypeMessage(player_id, std::string(track_type)));
+  if (result.has_error()) {
+    return nullptr;
+  }
+
+  // Convert TrackMessage to JSON string
+  // Use strdup to allocate memory that persists after this function returns
+  // The Dart caller is responsible for freeing this memory
+  std::string track_info_json = "{\"playerId\":" + std::to_string(result.value().player_id()) + 
+                                ",\"tracks\":[";
+  
+  const auto& tracks = result.value().tracks();
+  for (size_t i = 0; i < tracks.size(); ++i) {
+    if (i > 0) track_info_json += ",";
+    
+    const auto& track_map = std::get<flutter::EncodableMap>(tracks[i]);
+    track_info_json += "{";
+    
+    bool first = true;
+    for (const auto& [key, value] : track_map) {
+      if (!first) track_info_json += ",";
+      first = false;
+      
+      const std::string* key_str = std::get_if<std::string>(&key);
+      if (!key_str) continue;
+      
+      track_info_json += "\"" + *key_str + "\":";
+      
+      if (std::holds_alternative<int32_t>(value)) {
+        track_info_json += std::to_string(std::get<int32_t>(value));
+      } else if (std::holds_alternative<int64_t>(value)) {
+        track_info_json += std::to_string(std::get<int64_t>(value));
+      } else if (std::holds_alternative<double>(value)) {
+        track_info_json += std::to_string(std::get<double>(value));
+      } else if (std::holds_alternative<std::string>(value)) {
+        track_info_json += "\"" + std::get<std::string>(value) + "\"";
+      } else if (std::holds_alternative<bool>(value)) {
+        track_info_json += std::get<bool>(value) ? "true" : "false";
+      }
+    }
+    
+    track_info_json += "}";
+  }
+  
+  track_info_json += "]}";
+  return strdup(track_info_json.c_str());
+}
+
+// FFI set_track_selection function - sets the selected track
+// Returns: 0 on success, -1 on error
+int ffi_set_track_selection(int64_t player_id, int64_t track_id, const char* track_type) {
+  auto *plugin =
+      video_player_videohole_tizen::VideoPlayerTizenPlugin::GetInstance();
+  if (plugin == nullptr || track_type == nullptr) {
+    return -1;  // Plugin not initialized
+  }
+
+  auto result = plugin->SetTrackSelection(
+      video_player_videohole_tizen::SelectedTracksMessage(player_id, track_id, std::string(track_type)));
+  if (result.has_error()) {
+    return -1;
+  }
+  return result.value() ? 0 : -1;
+}
+
+// FFI set_mix_with_others function - sets whether to mix audio with other players
+// Returns: 0 on success, -1 on error
+int ffi_set_mix_with_others(bool mix_with_others) {
+  auto *plugin =
+      video_player_videohole_tizen::VideoPlayerTizenPlugin::GetInstance();
+  if (plugin == nullptr) {
+    return -1;  // Plugin not initialized
+  }
+
+  auto result = plugin->SetMixWithOthers(
+      video_player_videohole_tizen::MixWithOthersMessage(mix_with_others));
   if (result.has_value()) {
     // Error occurred
     return -1;

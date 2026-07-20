@@ -458,10 +458,82 @@ int ffi_initialize();
 
 // FFI create - returns player_id or -1 on error
 // Parameters: create_message_json - JSON string containing all create parameters
-//             Format: {"uri":"...","asset":"...","packageName":"...","formatHint":"...",
-//                      "httpHeaders":{...},"drmConfigs":{...},"playerOptions":{...}}
 // Returns: int64_t player_id (negative value indicates error)
 int64_t ffi_create(const char* create_message_json);
+
+// FFI dispose - releases player resources
+// Returns: 0 on success, -1 on error
+int ffi_dispose(int64_t player_id);
+
+// FFI play - starts or resumes playback
+// Returns: 0 on success, -1 on error
+int ffi_play(int64_t player_id);
+
+// FFI pause - pauses playback
+// Returns: 0 on success, -1 on error
+int ffi_pause(int64_t player_id);
+
+// FFI seek_to - seeks to a specific position (in milliseconds)
+// Returns: 0 on success, -1 on error
+int ffi_seek_to(int64_t player_id, int64_t position_ms);
+
+// FFI get_position - gets current playback position in milliseconds
+// Returns: position in milliseconds (>= 0) on success, -1 on error
+int64_t ffi_get_position(int64_t player_id);
+
+// FFI get_duration - gets video duration range in milliseconds
+// Returns: JSON string with start and end values, or "-1" on error
+// Note: Returns a malloc-allocated string that the caller must free
+const char* ffi_get_duration(int64_t player_id);
+
+// FFI set_volume - sets playback volume (0.0 to 1.0)
+// Returns: 0 on success, -1 on error
+int ffi_set_volume(int64_t player_id, double volume);
+
+// FFI set_playback_speed - sets playback speed
+// Returns: 0 on success, -1 on error
+int ffi_set_playback_speed(int64_t player_id, double speed);
+
+// FFI set_looping - enables or disables looping
+// Returns: 0 on success, -1 on error
+int ffi_set_looping(int64_t player_id, bool is_looping);
+
+// FFI get_track_info - gets track information for a specific track type
+// Returns: JSON string of track info on success, nullptr on error
+// Note: Returns a malloc-allocated string that the caller must free
+const char* ffi_get_track_info(int64_t player_id, const char* track_type);
+
+// FFI set_track_selection - sets the selected track
+// Returns: 0 on success, -1 on error
+int ffi_set_track_selection(int64_t player_id, int64_t track_id, const char* track_type);
+
+// FFI set_display_geometry - sets the display geometry (ROI)
+// Returns: 0 on success, -1 on error
+int ffi_set_display_geometry(int64_t player_id, int32_t x, int32_t y, int32_t width, int32_t height);
+
+// FFI set_display_rotate - sets display rotation
+// Returns: 0 on success, -1 on error
+int ffi_set_display_rotate(int64_t player_id, int32_t rotation);
+
+// FFI suspend - suspends the player
+// Returns: 0 on success, -1 on error
+int ffi_suspend(int64_t player_id);
+
+// FFI restore - restores a suspended player
+// Returns: 0 on success, -1 on error
+int ffi_restore(int64_t player_id, const char* create_message_json, int64_t resume_time);
+
+// FFI set_activate - activates the player
+// Returns: 0 on success, -1 on error
+int ffi_set_activate(int64_t player_id);
+
+// FFI set_deactivate - deactivates the player
+// Returns: 0 on success, -1 on error
+int ffi_set_deactivate(int64_t player_id);
+
+// FFI set_mix_with_others - sets whether to mix audio with other players
+// Returns: 0 on success, -1 on error
+int ffi_set_mix_with_others(bool mix_with_others);
 
 #ifdef __cplusplus
 }  // extern "C"

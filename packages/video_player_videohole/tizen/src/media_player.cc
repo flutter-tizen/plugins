@@ -48,6 +48,9 @@ MediaPlayer::MediaPlayer(flutter::BinaryMessenger *messenger,
 
 MediaPlayer::~MediaPlayer() {
   if (player_) {
+    if (drm_manager_) {
+      drm_manager_->StopDrmSession();
+    }
     player_stop(player_);
     player_unprepare(player_);
     player_unset_buffering_cb(player_);
@@ -219,7 +222,9 @@ bool MediaPlayer::Play() {
   player_state_e state = PLAYER_STATE_NONE;
   int ret = player_get_state(player_, &state);
   if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] Unable to get player state.");
+    LOG_ERROR("[MediaPlayer] Unable to get player state: %s.",
+              get_error_message(ret));
+    return false;
   }
   if (state == PLAYER_STATE_NONE || state == PLAYER_STATE_IDLE) {
     LOG_ERROR("[MediaPlayer] Player not ready.");
@@ -473,7 +478,9 @@ flutter::EncodableList MediaPlayer::GetTrackInfo(std::string track_type) {
               get_error_message(ret));
     return {};
   }
+
   if (track_count <= 0) {
+    LOG_INFO("[MediaPlayer] No tracks found for type=%d", type);
     return {};
   }
 
@@ -680,6 +687,10 @@ bool MediaPlayer::StopAndDestroy() {
     return true;
   }
 
+  if (drm_manager_) {
+    drm_manager_->StopDrmSession();
+  }
+
   if (player_stop(player_) != PLAYER_ERROR_NONE) {
     LOG_ERROR("[MediaPlayer] Player fail to stop.");
     return false;
@@ -729,6 +740,19 @@ bool MediaPlayer::Suspend() {
   LOG_INFO(
       "[MediaPlayer] Saved current player state: %d, playing time: %llu ms",
       pre_state_, pre_playing_time_);
+
+  // For DRM content, always do full destroy/recreate on suspend/restore
+  // to avoid player_start() timeout issues with invalid display surface
+  if (drm_manager_ != nullptr) {
+    LOG_INFO(
+        "[MediaPlayer] DRM content detected, doing full destroy on suspend");
+    if (!StopAndDestroy()) {
+      LOG_ERROR("[MediaPlayer] DRM content StopAndDestroy fail.");
+      return false;
+    }
+    LOG_INFO("[MediaPlayer] DRM content suspend done successfully.");
+    return true;
+  }
 
   if (IsLive()) {
     pre_playing_time_ = 0;

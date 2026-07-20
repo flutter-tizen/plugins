@@ -744,10 +744,13 @@ const flutter::StandardMessageCodec& VideoPlayerVideoholeApi::GetCodec() {
       &VideoPlayerVideoholeApiCodecSerializer::GetInstance());
 }
 
-// Sets up an instance of `VideoPlayerVideoholeApi` to handle messages through
-// the `binary_messenger`.
+// VideoPlayerVideoholeApi::SetUp() removed - all methods migrated to FFI
+// This function is no longer needed
 void VideoPlayerVideoholeApi::SetUp(flutter::BinaryMessenger* binary_messenger,
                                     VideoPlayerVideoholeApi* api) {
+  // No-op: all methods migrated to FFI
+  (void)binary_messenger;
+  (void)api;
   {
     auto channel = std::make_unique<BasicMessageChannel<>>(
         binary_messenger,

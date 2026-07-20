@@ -998,6 +998,15 @@ typedef _FFISetDisplayGeometryDart = int Function(int, int, int, int, int);
 typedef _FFISetDisplayRotateNative = ffi.Int32 Function(ffi.Int64, ffi.Int32);
 typedef _FFISetDisplayRotateDart = int Function(int, int);
 
+typedef _FFISetActivateNative = ffi.Int32 Function(ffi.Int64);
+typedef _FFISetActivateDart = int Function(int);
+
+typedef _FFISetDeactivateNative = ffi.Int32 Function(ffi.Int64);
+typedef _FFISetDeactivateDart = int Function(int);
+
+typedef _FFISetMixWithOthersNative = ffi.Int32 Function(ffi.Bool);
+typedef _FFISetMixWithOthersDart = int Function(bool);
+
 typedef _FFISuspendNative = ffi.Int32 Function(ffi.Int64);
 typedef _FFISuspendDart = int Function(int);
 
@@ -1046,6 +1055,9 @@ class VideoPlayerFFIBindings {
   late int Function(int, int) _ffiSetDisplayRotate;
   late int Function(int) _ffiSuspend;
   late int Function(int, ffi.Pointer<ffi.Char>, int) _ffiRestore;
+  late int Function(int) _ffiSetActivate;
+  late int Function(int) _ffiSetDeactivate;
+  late int Function(bool) _ffiSetMixWithOthers;
 
   static VideoPlayerFFIBindings get instance {
     _instance ??= VideoPlayerFFIBindings._();
@@ -1135,6 +1147,30 @@ class VideoPlayerFFIBindings {
       _ffiRestore = _lib!
           .lookup<ffi.NativeFunction<_FFIRestoreNative>>('ffi_restore')
           .asFunction<_FFIRestoreDart>();
+
+      _ffiSetActivate = _lib!
+          .lookup<ffi.NativeFunction<_FFISetActivateNative>>('ffi_set_activate')
+          .asFunction<_FFISetActivateDart>();
+
+      _ffiSetDeactivate = _lib!
+          .lookup<ffi.NativeFunction<_FFISetDeactivateNative>>(
+              'ffi_set_deactivate')
+          .asFunction<_FFISetDeactivateDart>();
+
+      _ffiGetTrackInfo = _lib!
+          .lookup<ffi.NativeFunction<_FFIGetTrackInfoNative>>(
+              'ffi_get_track_info')
+          .asFunction<_FFIGetTrackInfoDart>();
+
+      _ffiSetTrackSelection = _lib!
+          .lookup<ffi.NativeFunction<_FFISetTrackSelectionNative>>(
+              'ffi_set_track_selection')
+          .asFunction<_FFISetTrackSelectionDart>();
+
+      _ffiSetMixWithOthers = _lib!
+          .lookup<ffi.NativeFunction<_FFISetMixWithOthersNative>>(
+              'ffi_set_mix_with_others')
+          .asFunction<_FFISetMixWithOthersDart>();
 
       debugPrint('FFI bindings loaded successfully');
     } catch (e) {
@@ -1272,6 +1308,26 @@ class VideoPlayerFFIApi {
 
   int restore(int playerId, String? createMessageJson, int resumeTime) {
     return ffiRestore(playerId, createMessageJson, resumeTime);
+  }
+
+  int setActivate(int playerId) {
+    return ffiSetActivate(playerId);
+  }
+
+  int setDeactivate(int playerId) {
+    return ffiSetDeactivate(playerId);
+  }
+
+  String getTrackInfo(int playerId, String trackType) {
+    return ffiGetTrackInfo(playerId, trackType);
+  }
+
+  int setTrackSelection(int playerId, int trackId, String trackType) {
+    return ffiSetTrackSelection(playerId, trackId, trackType);
+  }
+
+  int setMixWithOthers(bool mixWithOthers) {
+    return ffiSetMixWithOthers(mixWithOthers);
   }
 }
 
@@ -1472,4 +1528,83 @@ int ffiRestore(int playerId, String? createMessageJson, int resumeTime) {
   } finally {
     _freePointer(createMessagePtr);
   }
+}
+
+/// FFI set_activate function - activates the player
+/// Returns: 0 on success, -1 on error
+int ffiSetActivate(int playerId) {
+  final bindings = VideoPlayerFFIBindings.instance;
+  if (!bindings.isLoaded) {
+    bindings.load();
+  }
+  return bindings._ffiSetActivate(playerId);
+}
+
+/// FFI set_deactivate function - deactivates the player
+/// Returns: 0 on success, -1 on error
+int ffiSetDeactivate(int playerId) {
+  final bindings = VideoPlayerFFIBindings.instance;
+  if (!bindings.isLoaded) {
+    bindings.load();
+  }
+  return bindings._ffiSetDeactivate(playerId);
+}
+
+/// FFI get_track_info function - gets track info as JSON string
+/// Returns: JSON string containing track information
+String ffiGetTrackInfo(int playerId, String trackType) {
+  final bindings = VideoPlayerFFIBindings.instance;
+  if (!bindings.isLoaded) {
+    bindings.load();
+  }
+  final trackTypePtr = _toPointer(trackType);
+  ffi.Pointer<ffi.Char>? ptr;
+  try {
+    ptr = bindings._ffiGetTrackInfo(playerId, trackTypePtr);
+    if (ptr == ffi.nullptr) {
+      throw Exception('FFI getTrackInfo failed - returned null pointer');
+    }
+    // Convert C string to Dart string by finding null terminator
+    final bytes = ptr.cast<ffi.Uint8>();
+    int length = 0;
+    while (bytes[length] != 0) {
+      length++;
+    }
+    final jsonString = utf8.decode(bytes.asTypedList(length));
+    if (jsonString == '-1') {
+      throw Exception('FFI getTrackInfo failed');
+    }
+    return jsonString;
+  } finally {
+    // Free the strdup-allocated memory to prevent memory leak
+    if (ptr != null) {
+      calloc.free(ptr);
+    }
+    _freePointer(trackTypePtr);
+  }
+}
+
+/// FFI set_track_selection function - sets the track selection
+/// Returns: 0 on success, -1 on error
+int ffiSetTrackSelection(int playerId, int trackId, String trackType) {
+  final bindings = VideoPlayerFFIBindings.instance;
+  if (!bindings.isLoaded) {
+    bindings.load();
+  }
+  final trackTypePtr = _toPointer(trackType);
+  try {
+    return bindings._ffiSetTrackSelection(playerId, trackId, trackTypePtr);
+  } finally {
+    _freePointer(trackTypePtr);
+  }
+}
+
+/// FFI set_mix_with_others function - sets mix with others
+/// Returns: 0 on success, -1 on error
+int ffiSetMixWithOthers(bool mixWithOthers) {
+  final bindings = VideoPlayerFFIBindings.instance;
+  if (!bindings.isLoaded) {
+    bindings.load();
+  }
+  return bindings._ffiSetMixWithOthers(mixWithOthers);
 }
