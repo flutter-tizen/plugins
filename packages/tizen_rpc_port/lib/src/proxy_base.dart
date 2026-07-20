@@ -107,8 +107,8 @@ abstract class ProxyBase {
 
     _activeConnections.add(_handle.address);
     _streamSubscription = _stream!.listen((dynamic data) async {
-      final Map<String, dynamic> map = (data as Map<dynamic, dynamic>)
-          .cast<String, dynamic>();
+      final Map<String, dynamic> map =
+          (data as Map<dynamic, dynamic>).cast<String, dynamic>();
       final int handle = map['handle'] as int;
       if (handle != _handle.address) {
         return;

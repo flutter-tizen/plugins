@@ -87,8 +87,8 @@ abstract class StubBase {
       <String, Object>{'handle': _handle.address},
     );
     _streamSubscription = stream.listen((dynamic data) async {
-      final Map<String, dynamic> map = (data as Map<dynamic, dynamic>)
-          .cast<String, dynamic>();
+      final Map<String, dynamic> map =
+          (data as Map<dynamic, dynamic>).cast<String, dynamic>();
       final int handle = map['handle'] as int;
       if (handle != _handle.address) {
         return;
