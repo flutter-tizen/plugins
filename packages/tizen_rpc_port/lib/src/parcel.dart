@@ -487,9 +487,17 @@ class Parcel {
 
   /// Gets the reader position of this parcel.
   int get reader {
+    _ensureFunctionsLoaded();
+    final int Function(rpc_port_parcel_h, Pointer<Uint32>)? func =
+        _rpcPortParcelGetReader;
+    if (func == null) {
+      throw UnsupportedError(
+        'The reader property is not supported on this version of Tizen.',
+      );
+    }
     return using((Arena arena) {
       final Pointer<Uint32> pValue = arena();
-      final int ret = _rpcPortParcelGetReader(_handle, pValue);
+      final int ret = func(_handle, pValue);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -503,7 +511,14 @@ class Parcel {
   /// Sets the reader position of this parcel.
   set reader(int value) {
     RangeError.checkNotNegative(value, 'value');
-    final int ret = _rpcPortParcelSetReader(_handle, value);
+    _ensureFunctionsLoaded();
+    final int Function(rpc_port_parcel_h, int)? func = _rpcPortParcelSetReader;
+    if (func == null) {
+      throw UnsupportedError(
+        'The reader property is not supported on this version of Tizen.',
+      );
+    }
+    final int ret = func(_handle, value);
     if (ret != 0) {
       throw PlatformException(
         code: ret.toString(),
@@ -514,9 +529,17 @@ class Parcel {
 
   /// Gets the data size of this parcel.
   int get dataSize {
+    _ensureFunctionsLoaded();
+    final int Function(rpc_port_parcel_h, Pointer<Uint32>)? func =
+        _rpcPortParcelGetDataSize;
+    if (func == null) {
+      throw UnsupportedError(
+        'The dataSize property is not supported on this version of Tizen.',
+      );
+    }
     return using((Arena arena) {
       final Pointer<Uint32> pValue = arena();
-      final int ret = _rpcPortParcelGetDataSize(_handle, pValue);
+      final int ret = func(_handle, pValue);
       if (ret != 0) {
         throw PlatformException(
           code: ret.toString(),
@@ -530,7 +553,15 @@ class Parcel {
   /// Sets the data size of this parcel.
   set dataSize(int value) {
     RangeError.checkNotNegative(value, 'value');
-    final int ret = _rpcPortParcelSetDataSize(_handle, value);
+    _ensureFunctionsLoaded();
+    final int Function(rpc_port_parcel_h, int)? func =
+        _rpcPortParcelSetDataSize;
+    if (func == null) {
+      throw UnsupportedError(
+        'The dataSize property is not supported on this version of Tizen.',
+      );
+    }
+    final int ret = func(_handle, value);
     if (ret != 0) {
       throw PlatformException(
         code: ret.toString(),
@@ -542,7 +573,14 @@ class Parcel {
   /// Reserves the capacity of this parcel.
   void reserve(int size) {
     RangeError.checkNotNegative(size, 'size');
-    final int ret = _rpcPortParcelReserve(_handle, size);
+    _ensureFunctionsLoaded();
+    final int Function(rpc_port_parcel_h, int)? func = _rpcPortParcelReserve;
+    if (func == null) {
+      throw UnsupportedError(
+        'The reserve method is not supported on this version of Tizen.',
+      );
+    }
+    final int ret = func(_handle, size);
     if (ret != 0) {
       throw PlatformException(
         code: ret.toString(),
@@ -552,39 +590,75 @@ class Parcel {
   }
 }
 
-final DynamicLibrary _libRpcPort = DynamicLibrary.open('librpc-port.so.1');
+DynamicLibrary? _libRpcPort;
+bool _libRpcPortLoaded = false;
 
-final int Function(rpc_port_parcel_h, Pointer<Uint32>) _rpcPortParcelGetReader =
-    _libRpcPort
+DynamicLibrary? _getLibRpcPort() {
+  if (!_libRpcPortLoaded) {
+    try {
+      _libRpcPort = DynamicLibrary.open('librpc-port.so.1');
+    } catch (_) {
+      _libRpcPort = null;
+    }
+    _libRpcPortLoaded = true;
+  }
+  return _libRpcPort;
+}
+
+int Function(rpc_port_parcel_h, Pointer<Uint32>)? _rpcPortParcelGetReader;
+int Function(rpc_port_parcel_h, int)? _rpcPortParcelSetReader;
+int Function(rpc_port_parcel_h, Pointer<Uint32>)? _rpcPortParcelGetDataSize;
+int Function(rpc_port_parcel_h, int)? _rpcPortParcelSetDataSize;
+int Function(rpc_port_parcel_h, int)? _rpcPortParcelReserve;
+
+bool _functionsLoaded = false;
+
+void _ensureFunctionsLoaded() {
+  if (_functionsLoaded) {
+    return;
+  }
+  _functionsLoaded = true;
+  final DynamicLibrary? lib = _getLibRpcPort();
+  if (lib == null) {
+    return;
+  }
+  try {
+    _rpcPortParcelGetReader = lib
         .lookup<
-            NativeFunction<Int32 Function(rpc_port_parcel_h, Pointer<Uint32>)>>(
+            NativeFunction<
+                Int32 Function(rpc_port_parcel_h, Pointer<Uint32>)>>(
           'rpc_port_parcel_get_reader',
         )
         .asFunction();
-
-final int Function(rpc_port_parcel_h, int) _rpcPortParcelSetReader = _libRpcPort
-    .lookup<NativeFunction<Int32 Function(rpc_port_parcel_h, Uint32)>>(
-      'rpc_port_parcel_set_reader',
-    )
-    .asFunction();
-
-final int Function(rpc_port_parcel_h, Pointer<Uint32>)
-    _rpcPortParcelGetDataSize = _libRpcPort
+  } catch (_) {}
+  try {
+    _rpcPortParcelSetReader = lib
+        .lookup<NativeFunction<Int32 Function(rpc_port_parcel_h, Uint32)>>(
+          'rpc_port_parcel_set_reader',
+        )
+        .asFunction();
+  } catch (_) {}
+  try {
+    _rpcPortParcelGetDataSize = lib
         .lookup<
-            NativeFunction<Int32 Function(rpc_port_parcel_h, Pointer<Uint32>)>>(
+            NativeFunction<
+                Int32 Function(rpc_port_parcel_h, Pointer<Uint32>)>>(
           'rpc_port_parcel_get_data_size',
         )
         .asFunction();
-
-final int Function(rpc_port_parcel_h, int) _rpcPortParcelSetDataSize =
-    _libRpcPort
+  } catch (_) {}
+  try {
+    _rpcPortParcelSetDataSize = lib
         .lookup<NativeFunction<Int32 Function(rpc_port_parcel_h, Uint32)>>(
           'rpc_port_parcel_set_data_size',
         )
         .asFunction();
-
-final int Function(rpc_port_parcel_h, int) _rpcPortParcelReserve = _libRpcPort
-    .lookup<NativeFunction<Int32 Function(rpc_port_parcel_h, Uint32)>>(
-      'rpc_port_parcel_reserve',
-    )
-    .asFunction();
+  } catch (_) {}
+  try {
+    _rpcPortParcelReserve = lib
+        .lookup<NativeFunction<Int32 Function(rpc_port_parcel_h, Uint32)>>(
+          'rpc_port_parcel_reserve',
+        )
+        .asFunction();
+  } catch (_) {}
+}
