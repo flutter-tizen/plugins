@@ -3,6 +3,7 @@
 * Update minimum Flutter and Dart version to 3.13 and 3.1.
 * Update code format.
 * Add YouTube app launch to the example.
+* Update integration tests: relax the `getMatchedAppIds` assertion to accept zero or more results, add a test for `uri`/`mime` round-trip, and verify the exact values of `List<String>` extra data.
 
 ## 0.2.3
 
