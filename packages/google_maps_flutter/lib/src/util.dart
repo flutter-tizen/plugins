@@ -6,6 +6,8 @@
 // ignore_for_file: avoid_setters_without_getters
 
 import 'dart:async';
+import 'dart:convert';
+
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 
 import 'google_maps_js_bridge.dart';
@@ -142,7 +144,8 @@ class GInfoWindowOptions {
     final String pos = position != null
         ? '{lat:${position?.latitude}, lng:${position?.longitude}}'
         : 'null';
-    return '{content:$content, pixelOffset:null , position:$pos, zIndex:$zIndex}';
+    final String contentJs = content != null ? jsonEncode(content) : 'null';
+    return '{content:$contentJs, pixelOffset:null , position:$pos, zIndex:$zIndex}';
   }
 }
 

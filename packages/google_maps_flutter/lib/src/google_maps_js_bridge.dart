@@ -68,7 +68,7 @@ class TilesLoadedJsEvent extends MapsJsEvent {
 }
 
 /// Base class for [MapsJsEvent]s that carry a raw JSON [message] payload.
-abstract class MessageJsEvent extends MapsJsEvent {
+sealed class MessageJsEvent extends MapsJsEvent {
   /// Creates a [MessageJsEvent] carrying the raw [message] payload.
   const MessageJsEvent(this.message);
 
