@@ -283,4 +283,39 @@ void main() {
       expect(proxy.portName, 'TestPort');
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // Tizen 10.0+ Parcel APIs (reader, dataSize, reserve) with safety guards
+  // ---------------------------------------------------------------------------
+
+  group('Tizen 10.0+ Parcel APIs', () {
+    testWidgets('reader getter/setter', (WidgetTester _) async {
+      final Parcel parcel = Parcel();
+      try {
+        parcel.reader = 10;
+        expect(parcel.reader, 10);
+      } on UnsupportedError catch (e) {
+        expect(e.message, contains('not supported on this version of Tizen'));
+      }
+    });
+
+    testWidgets('dataSize getter/setter', (WidgetTester _) async {
+      final Parcel parcel = Parcel();
+      try {
+        parcel.dataSize = 20;
+        expect(parcel.dataSize, 20);
+      } on UnsupportedError catch (e) {
+        expect(e.message, contains('not supported on this version of Tizen'));
+      }
+    });
+
+    testWidgets('reserve', (WidgetTester _) async {
+      final Parcel parcel = Parcel();
+      try {
+        parcel.reserve(100);
+      } on UnsupportedError catch (e) {
+        expect(e.message, contains('not supported on this version of Tizen'));
+      }
+    });
+  });
 }
