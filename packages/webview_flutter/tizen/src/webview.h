@@ -82,6 +82,7 @@ class WebView : public PlatformView {
   static void OnConsoleMessage(void* data, Evas_Object* obj, void* event_info);
   static void OnNavigationPolicy(void* data, Evas_Object* obj,
                                  void* event_info);
+  static void OnResponsePolicy(void* data, Evas_Object* obj, void* event_info);
   static void OnUrlChange(void* data, Evas_Object* obj, void* event_info);
   static void OnEvaluateJavaScript(Evas_Object* obj, const char* result_value,
                                    void* user_data);
@@ -117,6 +118,14 @@ class WebView : public PlatformView {
   std::mutex mutex_;
   std::unique_ptr<BufferPool> tbm_pool_;
   bool disposed_ = false;
+  // Set under mutex_ at the start of Dispose(). The raster thread checks it
+  // in ObtainGpuSurface() and stops being handed engine-owned TBM surfaces
+  // that are about to be freed by the deferred evas_object_del().
+  bool is_disposing_ = false;
+  // Set to false at the start of Dispose(). A pending "navigationRequest"
+  // reply from Dart (resolved asynchronously) captures a copy and checks it
+  // before dereferencing this WebView, avoiding a use-after-free.
+  std::shared_ptr<bool> is_alive_ = std::make_shared<bool>(true);
   Ewk_Mouse_Button_Type mouse_button_type_ = (Ewk_Mouse_Button_Type)0;
   bool scrollbar_enabled_ = true;
 };
