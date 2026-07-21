@@ -354,6 +354,8 @@ void WebView::Dispose() {
                                    &WebView::OnNavigationPolicy);
     evas_object_smart_callback_del(webview_instance_, "url,changed",
                                    &WebView::OnUrlChange);
+    evas_object_smart_callback_del(webview_instance_, "title,changed",
+                                   &WebView::OnTitleChange);
     auto& ewk_view = EwkInternalApiBinding::GetInstance().view;
     if (ewk_view.OnJavaScriptAlert) {
       ewk_view.OnJavaScriptAlert(webview_instance_, nullptr, nullptr);
@@ -620,6 +622,8 @@ bool WebView::InitWebView() {
                                  &WebView::OnNavigationPolicy, this);
   evas_object_smart_callback_add(webview_instance_, "url,changed",
                                  &WebView::OnUrlChange, this);
+  evas_object_smart_callback_add(webview_instance_, "title,changed",
+                                 &WebView::OnTitleChange, this);
 
   Resize(width_, height_);
   evas_object_show(webview_instance_);
@@ -1110,6 +1114,18 @@ void WebView::OnUrlChange(void* data, Evas_Object* obj, void* event_info) {
   webview->webview_channel_->InvokeMethod(
       "onUpdateVisitedHistory",
       std::make_unique<flutter::EncodableValue>(args));
+}
+
+void WebView::OnTitleChange(void* data, Evas_Object* obj, void* event_info) {
+  WebView* webview = static_cast<WebView*>(data);
+  const char* title = static_cast<const char*>(event_info);
+  if (!title) {
+    return;
+  }
+  flutter::EncodableMap args = {
+      {flutter::EncodableValue("title"), flutter::EncodableValue(title)}};
+  webview->webview_channel_->InvokeMethod(
+      "onTitleChanged", std::make_unique<flutter::EncodableValue>(args));
 }
 
 void WebView::OnEvaluateJavaScript(Evas_Object* obj, const char* result_value,
