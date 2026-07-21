@@ -1,3 +1,7 @@
+## 0.8.15
+
+* Add a `playerEngine` option to `VideoPlayerController.network` to select which native playback engine drives a source: `PlayerEngine.adaptiveStreaming` (specialized for DASH/HLS/Smooth Streaming and DRM) or `PlayerEngine.general` (the general-purpose media engine). Defaults to `PlayerEngine.auto`, which keeps the existing URL-based selection, so existing behavior is unchanged.
+
 ## 0.8.14
 
 * Update plusplayer

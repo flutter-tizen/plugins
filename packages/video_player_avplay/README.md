@@ -12,7 +12,7 @@ To use this package, add `video_player_avplay` as a dependency in your `pubspec.
 
 ```yaml
 dependencies:
-  video_player_avplay: ^0.8.14
+  video_player_avplay: ^0.8.15
 ```
 
 Then you can import `video_player_avplay` in your Dart code:
@@ -60,6 +60,25 @@ Note that if you play dash streams, please add dash format when creating the pla
       'https://xxx.mpd',
       formatHint: VideoFormat.dash);
 ```
+
+### Selecting the playback engine
+
+The plugin drives playback with one of two native engines that differ in capability:
+
+| `PlayerEngine`            | Specialized for                                    |
+| ------------------------- | -------------------------------------------------- |
+| `adaptiveStreaming`       | DASH / HLS / Smooth Streaming and DRM              |
+| `general`                 | general-purpose playback of a single media source  |
+
+By default (`PlayerEngine.auto`) the engine is chosen from the URI: one beginning with `http` uses the adaptive-streaming engine, otherwise the general-purpose engine. If a source fails on the auto-selected engine — for example media served through a localhost reverse-proxy, which is an `http://` URI but plays only on the general-purpose engine — you can force one with `playerEngine`:
+
+```dart
+    VideoPlayerController.network(
+      'http://127.0.0.1:PORT/stream',
+      playerEngine: PlayerEngine.general); // or PlayerEngine.adaptiveStreaming
+```
+
+This selects the engine, not the content format: the general-purpose engine can still play adaptive content such as a DASH manifest. `playerEngine` is only available on `VideoPlayerController.network`; other sources always use the general-purpose engine. The engine is fixed when the player is created and is not re-evaluated on restore.
 
 ### Example
 
