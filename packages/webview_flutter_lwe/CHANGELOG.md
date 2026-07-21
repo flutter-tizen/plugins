@@ -1,3 +1,8 @@
+## 0.5.2
+
+* Update lightweight web engine (1.4.1).
+* Add an optional `preferMainThread` parameter to `LWE::Initialize`.
+
 ## 0.5.1
 
 * Update the README.md.
