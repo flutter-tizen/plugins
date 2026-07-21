@@ -456,9 +456,8 @@ extern "C" {
 // FFI initialization
 int ffi_initialize();
 
-// FFI create - returns player_id or -1 on error
-// Parameters: create_message_json - JSON string containing all create parameters
-// Returns: int64_t player_id (negative value indicates error)
+// FFI create - returns player_id or -1 on error.
+// Parameters: JSON string containing all create parameters.
 int64_t ffi_create(const char* create_message_json);
 
 // FFI dispose - releases player resources
@@ -505,11 +504,13 @@ const char* ffi_get_track_info(int64_t player_id, const char* track_type);
 
 // FFI set_track_selection - sets the selected track
 // Returns: 0 on success, -1 on error
-int ffi_set_track_selection(int64_t player_id, int64_t track_id, const char* track_type);
+int ffi_set_track_selection(int64_t player_id, int64_t track_id,
+                            const char* track_type);
 
 // FFI set_display_geometry - sets the display geometry (ROI)
 // Returns: 0 on success, -1 on error
-int ffi_set_display_geometry(int64_t player_id, int32_t x, int32_t y, int32_t width, int32_t height);
+int ffi_set_display_geometry(int64_t player_id, int32_t x, int32_t y,
+                             int32_t width, int32_t height);
 
 // FFI set_display_rotate - sets display rotation
 // Returns: 0 on success, -1 on error
@@ -521,7 +522,8 @@ int ffi_suspend(int64_t player_id);
 
 // FFI restore - restores a suspended player
 // Returns: 0 on success, -1 on error
-int ffi_restore(int64_t player_id, const char* create_message_json, int64_t resume_time);
+int ffi_restore(int64_t player_id, const char* create_message_json,
+                int64_t resume_time);
 
 // FFI set_activate - activates the player
 // Returns: 0 on success, -1 on error

@@ -153,10 +153,11 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
     final List<VideoTrack> videoTracks = <VideoTrack>[];
     for (final dynamic trackMap in tracksJson) {
-      final int trackId = trackMap['trackId'] as int;
-      final int bitrate = trackMap['bitrate'] as int;
-      final int width = trackMap['width'] as int;
-      final int height = trackMap['height'] as int;
+      final Map<String, dynamic> track = trackMap as Map<String, dynamic>;
+      final int trackId = track['trackId'] as int;
+      final int bitrate = track['bitrate'] as int;
+      final int width = track['width'] as int;
+      final int height = track['height'] as int;
 
       videoTracks.add(
         VideoTrack(
@@ -182,10 +183,11 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
     final List<AudioTrack> audioTracks = <AudioTrack>[];
     for (final dynamic trackMap in tracksJson) {
-      final int trackId = trackMap['trackId'] as int;
-      final String language = trackMap['language'] as String;
-      final int channel = trackMap['channel'] as int;
-      final int bitrate = trackMap['bitrate'] as int;
+      final Map<String, dynamic> track = trackMap as Map<String, dynamic>;
+      final int trackId = track['trackId'] as int;
+      final String language = track['language'] as String;
+      final int channel = track['channel'] as int;
+      final int bitrate = track['bitrate'] as int;
 
       audioTracks.add(
         AudioTrack(
@@ -211,8 +213,9 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
     final List<TextTrack> textTracks = <TextTrack>[];
     for (final dynamic trackMap in tracksJson) {
-      final int trackId = trackMap['trackId'] as int;
-      final String language = trackMap['language'] as String;
+      final Map<String, dynamic> track = trackMap as Map<String, dynamic>;
+      final int trackId = track['trackId'] as int;
+      final String language = track['language'] as String;
 
       textTracks.add(TextTrack(trackId: trackId, language: language));
     }
