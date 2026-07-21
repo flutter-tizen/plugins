@@ -1,3 +1,7 @@
+## 0.2.3
+
+* Fix `RTCPeerConnection.close()` to be idempotent; calling it more than once no longer throws an error.
+
 ## 0.2.2
 
 * Support x86_64
