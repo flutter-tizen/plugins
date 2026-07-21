@@ -9,11 +9,11 @@
 
 #include <memory>
 
-#include "ecore_wl2_window_proxy.h"
 #include "log.h"
+#include "window_proxy.h"
 
 TizenWindowManager::TizenWindowManager(void* handle)
-    : window_handle_(handle), proxy_(std::make_unique<EcoreWl2WindowProxy>()) {}
+    : window_handle_(handle), proxy_(std::make_unique<WindowProxy>()) {}
 
 TizenWindowManager::~TizenWindowManager() {}
 
@@ -22,7 +22,7 @@ void TizenWindowManager::Activate() {
     LOG_ERROR("Window handle is null");
   }
 
-  proxy_->ecore_wl2_window_activate(window_handle_);
+  proxy_->Activate(window_handle_);
 }
 
 void TizenWindowManager::Lower() {
@@ -30,7 +30,7 @@ void TizenWindowManager::Lower() {
     LOG_ERROR("Window handle is null");
   }
 
-  proxy_->ecore_wl2_window_lower(window_handle_);
+  proxy_->Lower(window_handle_);
 }
 
 flutter::EncodableMap TizenWindowManager::GetGeometry() {
@@ -46,8 +46,7 @@ flutter::EncodableMap TizenWindowManager::GetGeometry() {
   }
 
   int x, y, width, height;
-  proxy_->ecore_wl2_window_geometry_get(window_handle_, &x, &y, &width,
-                                        &height);
+  proxy_->GetGeometry(window_handle_, &x, &y, &width, &height);
 
   geometry[flutter::EncodableValue("x")] = flutter::EncodableValue(x);
   geometry[flutter::EncodableValue("y")] = flutter::EncodableValue(y);
