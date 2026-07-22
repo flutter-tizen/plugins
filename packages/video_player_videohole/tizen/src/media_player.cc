@@ -93,8 +93,13 @@ int64_t MediaPlayer::Create(const std::string &uri,
     return -1;
   }
 
-  std::string cookie = flutter_common::GetValue(create_message.http_headers(),
-                                                "Cookie", std::string());
+  const auto &http_headers = create_message.http_headers();
+  auto cookie_it = http_headers.find(flutter::EncodableValue("Cookie"));
+  std::string cookie;
+  if (cookie_it != http_headers.end() &&
+      std::holds_alternative<std::string>(cookie_it->second)) {
+    cookie = std::get<std::string>(cookie_it->second);
+  }
   if (!cookie.empty()) {
     int ret =
         player_set_streaming_cookie(player_, cookie.c_str(), cookie.size());
@@ -103,8 +108,12 @@ int64_t MediaPlayer::Create(const std::string &uri,
                 get_error_message(ret));
     }
   }
-  std::string user_agent = flutter_common::GetValue(
-      create_message.http_headers(), "User-Agent", std::string());
+  auto user_agent_it = http_headers.find(flutter::EncodableValue("User-Agent"));
+  std::string user_agent;
+  if (user_agent_it != http_headers.end() &&
+      std::holds_alternative<std::string>(user_agent_it->second)) {
+    user_agent = std::get<std::string>(user_agent_it->second);
+  }
   if (!user_agent.empty()) {
     int ret = player_set_streaming_user_agent(player_, user_agent.c_str(),
                                               user_agent.size());
@@ -114,16 +123,23 @@ int64_t MediaPlayer::Create(const std::string &uri,
     }
   }
 
-  auto drm_configs_ptr = create_message.drm_configs();
-  if (drm_configs_ptr != nullptr) {
+  const auto &drm_configs = create_message.drm_configs();
+  if (!drm_configs.empty()) {
     LOG_INFO("[MediaPlayer] drm_configs is present.");
 
-    // Must use 0LL (int64_t literal) instead of 0 (int literal) for proper type
-    // matching
-    int64_t drm_type =
-        flutter_common::GetValue<int64_t>(drm_configs_ptr, "drmType", 0LL);
-    std::string license_server_url = flutter_common::GetValue<std::string>(
-        drm_configs_ptr, "licenseServerUrl", std::string());
+    int64_t drm_type = 0;
+    std::string license_server_url;
+    auto drm_type_it = drm_configs.find(flutter::EncodableValue("drmType"));
+    if (drm_type_it != drm_configs.end() &&
+        std::holds_alternative<int64_t>(drm_type_it->second)) {
+      drm_type = std::get<int64_t>(drm_type_it->second);
+    }
+    auto license_it =
+        drm_configs.find(flutter::EncodableValue("licenseServerUrl"));
+    if (license_it != drm_configs.end() &&
+        std::holds_alternative<std::string>(license_it->second)) {
+      license_server_url = std::get<std::string>(license_it->second);
+    }
 
     LOG_INFO("[MediaPlayer] drm_type=%lld, license_server_url=%s",
              static_cast<long long>(drm_type), license_server_url.c_str());

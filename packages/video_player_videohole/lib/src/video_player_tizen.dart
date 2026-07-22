@@ -10,7 +10,7 @@ import 'dart:isolate' show RawReceivePort;
 import 'package:flutter/widgets.dart';
 
 import '../video_player_platform_interface.dart';
-import 'messages.g.dart';
+import 'ffi_messages.g.dart';
 import 'tracks.dart';
 
 /// An implementation of [VideoPlayerPlatform] that uses FFI for all methods.

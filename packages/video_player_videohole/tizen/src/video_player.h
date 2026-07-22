@@ -21,7 +21,7 @@
 #include <dart_api_dl.h>
 
 #include "ecore_wl2_window_proxy.h"
-#include "messages.h"
+#include "ffi_messages.h"
 
 namespace video_player_videohole_tizen {
 

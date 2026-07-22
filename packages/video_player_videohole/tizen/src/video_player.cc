@@ -192,8 +192,7 @@ static void NotifyFFIEventCallback(int64_t player_id,
 
 VideoPlayer::VideoPlayer(flutter::BinaryMessenger* messenger,
                          FlutterDesktopViewRef flutter_view)
-    : player_id_(-1),  // Initialize player_id_ to -1 (will be set in
-                       // SetUpEventChannel)
+    : player_id_(-1),  // Will be set in SetUpEventChannel.
       ecore_wl2_window_proxy_(std::make_unique<EcoreWl2WindowProxy>()),
       binary_messenger_(messenger),
       flutter_view_(flutter_view) {
@@ -223,7 +222,6 @@ VideoPlayer::~VideoPlayer() {
 void VideoPlayer::ExecuteSinkEvents() {
   std::lock_guard<std::mutex> lock(queue_mutex_);
 
-  // Process regular events using FFI only
   while (!encodable_event_queue_.empty()) {
     const flutter::EncodableValue& event = encodable_event_queue_.front();
 
@@ -234,7 +232,6 @@ void VideoPlayer::ExecuteSinkEvents() {
     encodable_event_queue_.pop();
   }
 
-  // Process error events via FFI
   while (!error_event_queue_.empty()) {
     const auto& error = error_event_queue_.front();
     // Send error event via FFI
@@ -292,15 +289,12 @@ void VideoPlayer::ScheduleSendPendingEvents() {
 void VideoPlayer::PushEvent(flutter::EncodableValue encodable_value) {
   {
     std::lock_guard<std::mutex> lock(queue_mutex_);
-    // Always add event to queue, even if event_sink_ is nullptr
-    // FFI callback doesn't require event_sink_ to be set
     encodable_event_queue_.push(encodable_value);
   }
   ScheduleSendPendingEvents();
 }
 
 void VideoPlayer::SendInitialized() {
-  // Always send initialized event via FFI
   if (!is_initialized_) {
     LOG_INFO("[VideoPlayer] SendInitialized called.");
 
@@ -370,7 +364,6 @@ void VideoPlayer::SendPlayCompleted() {
 }
 
 void VideoPlayer::SendIsPlayingState(bool is_playing) {
-  LOG_INFO("***********SendIsPlayingState start***************");
   flutter::EncodableMap result = {
       {flutter::EncodableValue("event"),
        flutter::EncodableValue("isPlayingStateUpdate")},
@@ -378,7 +371,6 @@ void VideoPlayer::SendIsPlayingState(bool is_playing) {
        flutter::EncodableValue(is_playing)},
   };
   PushEvent(flutter::EncodableValue(result));
-  LOG_INFO("***********SendIsPlayingState end***************");
 }
 
 void VideoPlayer::SendRestored() {
