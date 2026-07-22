@@ -5,7 +5,7 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:isolate' show RawReceivePort, ReceivePort;
+import 'dart:isolate' show RawReceivePort;
 
 import 'package:flutter/widgets.dart';
 
