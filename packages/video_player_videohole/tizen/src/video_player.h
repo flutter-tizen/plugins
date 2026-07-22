@@ -6,24 +6,52 @@
 #define FLUTTER_PLUGIN_VIDEO_PLAYER_H_
 
 #include <flutter/encodable_value.h>
-#include <flutter/event_channel.h>
 #include <flutter_tizen.h>
 #include <glib.h>
 
+#include <cstdint>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <queue>
 #include <string>
 #include <utility>
 
+// Dart API for sending messages from native code to Dart isolate
+#include <dart_api_dl.h>
+
 #include "ecore_wl2_window_proxy.h"
 #include "messages.h"
 
 namespace video_player_videohole_tizen {
 
+// FFI event callback using Dart_Port - sends message to Dart isolate
+// Parameters: player_id, event_json string
+using DartPortEventCallback =
+    std::function<void(int64_t player_id, const char *event_json)>;
+
+// Static FFI event callback - shared across all VideoPlayer instances
+extern DartPortEventCallback g_dart_port_callback;
+extern int64_t g_dart_port;
+extern std::mutex g_dart_port_mutex;
+
+// Register Dart port for FFI event notifications
+void RegisterDartPort(int64_t port);
+int64_t GetDartPort();
+
+// Post event to Dart using Dart_PostCObject_DL
+void PostEventToDart(int64_t player_id, const std::string &event_json);
+
 class VideoPlayer {
  public:
   using SeekCompletedCallback = std::function<void()>;
+
+  // Static method to register FFI event callback (legacy, kept for
+  // compatibility)
+  static void RegisterFFIEventCallback(DartPortEventCallback callback);
+
+  // Static method to get current FFI event callback (legacy)
+  static DartPortEventCallback GetFFIEventCallback();
 
   explicit VideoPlayer(flutter::BinaryMessenger *messenger,
                        FlutterDesktopViewRef flutter_view);
@@ -58,8 +86,6 @@ class VideoPlayer {
  protected:
   virtual void GetVideoSize(int32_t *width, int32_t *height) = 0;
   void *GetWindowHandle();
-  int64_t SetUpEventChannel();
-  void ClearUpEventChannel();
   void SendInitialized();
   void SendBufferingStart();
   void SendBufferingUpdate(int32_t value);
@@ -71,6 +97,7 @@ class VideoPlayer {
   void SendError(const std::string &error_code,
                  const std::string &error_message);
 
+  int64_t player_id_;  // Store player ID for FFI event callback
   std::mutex queue_mutex_;
   std::unique_ptr<EcoreWl2WindowProxy> ecore_wl2_window_proxy_ = nullptr;
   flutter::BinaryMessenger *binary_messenger_;
@@ -102,9 +129,6 @@ class VideoPlayer {
 
   std::queue<flutter::EncodableValue> encodable_event_queue_;
   std::queue<std::pair<std::string, std::string>> error_event_queue_;
-  std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
-      event_channel_;
-  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
 };
 
 }  // namespace video_player_videohole_tizen

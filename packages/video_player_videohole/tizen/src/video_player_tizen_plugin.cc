@@ -350,8 +350,23 @@ namespace video_player_videohole_tizen {
 VideoPlayerTizenPlugin *VideoPlayerTizenPlugin::instance_ = nullptr;
 }  // namespace video_player_videohole_tizen
 
-// FFI exports for gradual migration
+// C interface for plugin registration (required by C#
+// GeneratedPluginRegistrant) and FFI exports for gradual migration
 extern "C" {
+
+void VideoPlayerTizenPluginRegisterWithRegistrar(
+    FlutterDesktopPluginRegistrarRef registrar_ref) {
+  // Get the plugin registrar from the manager using the template method
+  auto *plugin_registrar =
+      flutter::PluginRegistrarManager::GetInstance()
+          ->GetRegistrar<flutter::PluginRegistrar>(registrar_ref);
+
+  // Create and register the plugin
+  auto plugin =
+      std::make_unique<video_player_videohole_tizen::VideoPlayerTizenPlugin>(
+          registrar_ref, plugin_registrar);
+  plugin_registrar->AddPlugin(std::move(plugin));
+}
 
 int ffi_initialize() {
   auto *plugin =
@@ -1080,11 +1095,60 @@ int ffi_set_mix_with_others(bool mix_with_others) {
   return 0;  // Success
 }
 
-}  // extern "C"
+// FFI event callback function pointer type - matches the C++ type
+// Parameters: player_id, event_json (malloc-allocated string, caller must free)
+typedef void (*FFIEventCallbackFunc)(int64_t player_id, const char *event_json);
 
-void VideoPlayerTizenPluginRegisterWithRegistrar(
-    FlutterDesktopPluginRegistrarRef registrar) {
-  video_player_videohole_tizen::VideoPlayerTizenPlugin::RegisterWithRegistrar(
-      registrar, flutter::PluginRegistrarManager::GetInstance()
-                     ->GetRegistrar<flutter::PluginRegistrar>(registrar));
+// FFI register_event_callback function - registers callback for event
+// notifications The callback will be invoked on the main thread via
+// g_idle_source event_json is a malloc-allocated string that the callback must
+// free
+void ffi_register_event_callback(FFIEventCallbackFunc callback) {
+  if (callback == nullptr) {
+    // Clear the callback
+    video_player_videohole_tizen::VideoPlayer::RegisterFFIEventCallback(
+        nullptr);
+    return;
+  }
+
+  // Wrap the C function pointer in a std::function
+  video_player_videohole_tizen::VideoPlayer::RegisterFFIEventCallback(
+      [callback](int64_t player_id, const char *event_json) {
+        callback(player_id, event_json);
+      });
 }
+
+// FFI unregister_event_callback function - unregisters the event callback
+void ffi_unregister_event_callback() {
+  video_player_videohole_tizen::VideoPlayer::RegisterFFIEventCallback(nullptr);
+}
+
+// Global variable to store Dart_InitializeApiDL data
+static bool g_dart_api_dl_initialized = false;
+
+// FFI initialize_api_dl function - initializes Dart API DL
+// This must be called before using Dart_PostCObject_DL
+// data: The initializeApiDLData from Dart's NativeApi
+void ffi_initialize_api_dl(void *data) {
+  if (!g_dart_api_dl_initialized) {
+    if (Dart_InitializeApiDL(data) == 0) {
+      g_dart_api_dl_initialized = true;
+    }
+  }
+}
+
+// FFI register_event_port function - registers Dart port for event
+// notifications The port is used with Dart_PostCObject_DL to send events to
+// Dart isolate port: The nativePort from Dart's ReceivePort.sendPort
+void ffi_register_event_port(int64_t port) {
+  // Ensure Dart API DL is initialized before using Dart_PostCObject_DL
+  // Note: This assumes Dart side has already called ffi_initialize_api_dl
+  video_player_videohole_tizen::RegisterDartPort(port);
+}
+
+// FFI unregister_event_port function - unregisters the Dart port
+void ffi_unregister_event_port() {
+  video_player_videohole_tizen::RegisterDartPort(-1);
+}
+
+}  // extern "C"

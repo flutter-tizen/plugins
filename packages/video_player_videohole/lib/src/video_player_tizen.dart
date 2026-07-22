@@ -5,8 +5,8 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:isolate' show RawReceivePort, ReceivePort;
 
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../video_player_platform_interface.dart';
@@ -15,6 +15,9 @@ import 'tracks.dart';
 
 /// An implementation of [VideoPlayerPlatform] that uses FFI for all methods.
 class VideoPlayerTizen extends VideoPlayerPlatform {
+  /// Create a new VideoPlayerTizen instance.
+  VideoPlayerTizen() : super();
+
   final VideoPlayerFFIApi _ffiApi = VideoPlayerFFIApi();
 
   @override
@@ -28,6 +31,13 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<void> dispose(int playerId) async {
+    // Close the StreamController for this player
+    final StreamController<VideoEvent>? controller =
+        _eventControllers.remove(playerId);
+    if (controller != null && !controller.isClosed) {
+      await controller.close();
+    }
+
     // Use FFI for dispose (synchronous call)
     final int result = _ffiApi.dispose(playerId);
     // Don't throw on error - just return
@@ -39,6 +49,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<int?> create(DataSource dataSource) async {
+    // Ensure the event port is registered before creating the player
+    // This is important because events may be sent immediately after creation
+    _ensureEventPortRegistered();
+
     // Use FFI for create (synchronous call)
     int playerId;
 
@@ -65,6 +79,45 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       throw Exception('FFI create failed with code: $playerId');
     }
     return playerId;
+  }
+
+  /// Ensure the event port is registered before any events are sent
+  void _ensureEventPortRegistered() {
+    if (_eventPort == null) {
+      // Initialize Dart API DL before using Dart_PostCObject_DL
+      ffiInitializeApiDL();
+
+      _eventPort = RawReceivePort();
+
+      // Listen to FFI events and route them to the appropriate StreamController
+      _eventPort!.handler = (dynamic message) {
+        try {
+          // Message format from C++: [player_id, event_json_string]
+          if (message is List && message.length == 2) {
+            final int receivingPlayerId = message[0] as int;
+            final String eventJson = message[1] as String;
+
+            // Parse JSON to Map
+            final Map<String, dynamic> eventMap =
+                jsonDecode(eventJson) as Map<String, dynamic>;
+
+            // Route to the correct StreamController
+            final StreamController<VideoEvent>? controller =
+                _eventControllers[receivingPlayerId];
+            if (controller != null && !controller.isClosed) {
+              controller.add(_parseVideoEventFromMap(eventMap));
+            }
+          }
+        } catch (e, stackTrace) {
+          // Log error but don't crash
+          debugPrint('Error processing FFI event: $e\n$stackTrace');
+        }
+      };
+
+      // Register the port with C++ side using FFI
+      ffiRegisterEventPort(_eventPort!.nativePort);
+      debugPrint('Event port registered: ${_eventPort!.nativePort}');
+    }
   }
 
   @override
@@ -257,60 +310,105 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     return Duration(milliseconds: positionMs);
   }
 
+  // Static RawReceivePort for FFI event notifications
+  static RawReceivePort? _eventPort;
+
+  // Map of playerId to StreamController for broadcasting events
+  final Map<int, StreamController<VideoEvent>> _eventControllers =
+      <int, StreamController<VideoEvent>>{};
+
   @override
   Stream<VideoEvent> videoEventsFor(int playerId) {
-    return _eventChannelFor(playerId).receiveBroadcastStream().map((
-      dynamic event,
-    ) {
-      final Map<dynamic, dynamic> map = event as Map<dynamic, dynamic>;
-      switch (map['event']) {
-        case 'initialized':
-        case 'restored':
-          final List<dynamic>? durationVal = map['duration'] as List<dynamic>?;
-          VideoEventType videoEventType;
-          if (map['event'] == 'initialized') {
-            videoEventType = VideoEventType.initialized;
-          } else {
-            videoEventType = VideoEventType.restored;
-          }
-          return VideoEvent(
-            eventType: videoEventType,
-            duration: DurationRange(
-              Duration(milliseconds: durationVal?[0] as int),
-              Duration(milliseconds: durationVal?[1] as int),
-            ),
-            size: Size(
-              (map['width'] as num?)?.toDouble() ?? 0.0,
-              (map['height'] as num?)?.toDouble() ?? 0.0,
-            ),
-          );
-        case 'completed':
-          return VideoEvent(eventType: VideoEventType.completed);
-        case 'bufferingUpdate':
-          final int value = map['value']! as int;
+    // Initialize the RawReceivePort once for all players
+    if (_eventPort == null) {
+      _eventPort = RawReceivePort();
 
-          return VideoEvent(
-            buffered: value,
-            eventType: VideoEventType.bufferingUpdate,
-          );
-        case 'bufferingStart':
-          return VideoEvent(eventType: VideoEventType.bufferingStart);
-        case 'bufferingEnd':
-          return VideoEvent(eventType: VideoEventType.bufferingEnd);
-        case 'subtitleUpdate':
-          return VideoEvent(
-            eventType: VideoEventType.subtitleUpdate,
-            text: map['text']! as String,
-          );
-        case 'isPlayingStateUpdate':
-          return VideoEvent(
-            eventType: VideoEventType.isPlayingStateUpdate,
-            isPlaying: map['isPlaying']! as bool,
-          );
-        default:
-          return VideoEvent(eventType: VideoEventType.unknown);
-      }
-    });
+      // Listen to FFI events and route them to the appropriate StreamController
+      _eventPort!.handler = (dynamic message) {
+        try {
+          // Message format from C++: [player_id, event_json_string]
+          if (message is List && message.length == 2) {
+            final int receivingPlayerId = message[0] as int;
+            final String eventJson = message[1] as String;
+
+            // Parse JSON to Map
+            final Map<String, dynamic> eventMap =
+                jsonDecode(eventJson) as Map<String, dynamic>;
+
+            // Route to the correct StreamController
+            final StreamController<VideoEvent>? controller =
+                _eventControllers[receivingPlayerId];
+            if (controller != null && !controller.isClosed) {
+              controller.add(_parseVideoEventFromMap(eventMap));
+            }
+          }
+        } catch (e, stackTrace) {
+          // Log error but don't crash
+          debugPrint('Error processing FFI event: $e\n$stackTrace');
+        }
+      };
+
+      // Register the port with C++ side using FFI
+      // Use NativePort extension to get the raw port number from RawReceivePort
+      ffiRegisterEventPort(_eventPort!.nativePort);
+    }
+
+    // Return the stream for this specific player
+    return _eventControllers
+        .putIfAbsent(
+          playerId,
+          () => StreamController<VideoEvent>.broadcast(),
+        )
+        .stream;
+  }
+
+  VideoEvent _parseVideoEventFromMap(Map<String, dynamic> map) {
+    switch (map['event']) {
+      case 'initialized':
+      case 'restored':
+        final List<dynamic>? durationVal = map['duration'] as List<dynamic>?;
+        VideoEventType videoEventType;
+        if (map['event'] == 'initialized') {
+          videoEventType = VideoEventType.initialized;
+        } else {
+          videoEventType = VideoEventType.restored;
+        }
+        return VideoEvent(
+          eventType: videoEventType,
+          duration: DurationRange(
+            Duration(milliseconds: durationVal?[0] as int? ?? 0),
+            Duration(milliseconds: durationVal?[1] as int? ?? 0),
+          ),
+          size: Size(
+            (map['width'] as num?)?.toDouble() ?? 0.0,
+            (map['height'] as num?)?.toDouble() ?? 0.0,
+          ),
+        );
+      case 'completed':
+        return VideoEvent(eventType: VideoEventType.completed);
+      case 'bufferingUpdate':
+        final int value = map['value']! as int;
+        return VideoEvent(
+          buffered: value,
+          eventType: VideoEventType.bufferingUpdate,
+        );
+      case 'bufferingStart':
+        return VideoEvent(eventType: VideoEventType.bufferingStart);
+      case 'bufferingEnd':
+        return VideoEvent(eventType: VideoEventType.bufferingEnd);
+      case 'subtitleUpdate':
+        return VideoEvent(
+          eventType: VideoEventType.subtitleUpdate,
+          text: map['text']! as String,
+        );
+      case 'isPlayingStateUpdate':
+        return VideoEvent(
+          eventType: VideoEventType.isPlayingStateUpdate,
+          isPlaying: map['isPlaying']! as bool,
+        );
+      default:
+        return VideoEvent(eventType: VideoEventType.unknown);
+    }
   }
 
   @override
@@ -416,10 +514,6 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       throw Exception('FFI setDisplayRotate failed with code: $result');
     }
     return true;
-  }
-
-  EventChannel _eventChannelFor(int playerId) {
-    return EventChannel('tizen/video_player/video_events_$playerId');
   }
 
   static const Map<VideoFormat, String> _videoFormatStringMap =

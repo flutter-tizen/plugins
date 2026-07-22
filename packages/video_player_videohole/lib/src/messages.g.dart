@@ -4,6 +4,8 @@
 
 import 'dart:async';
 import 'dart:ffi' as ffi;
+import 'dart:ffi' show NativeCallable;
+import 'dart:isolate' show RawReceivePort, ReceivePort, SendPort;
 import 'package:ffi/ffi.dart' show calloc;
 import 'dart:typed_data' show Float64List, Int32List, Int64List, Uint8List;
 import 'dart:convert' show utf8, jsonEncode, jsonDecode;
@@ -1607,4 +1609,128 @@ int ffiSetMixWithOthers(bool mixWithOthers) {
     bindings.load();
   }
   return bindings._ffiSetMixWithOthers(mixWithOthers);
+}
+
+// ===== FFI Event Port Section - Using Dart_PostCObject_DL =====
+
+/// FFI initialize_api_dl function - initializes Dart API DL
+/// This must be called before using Dart_PostCObject_DL
+typedef _FFIInitializeApiDlNative = ffi.Int32 Function(ffi.Pointer<ffi.Void>);
+typedef _FFIInitializeApiDlDart = int Function(ffi.Pointer<ffi.Void>);
+
+ffi.Pointer<ffi.NativeFunction<_FFIInitializeApiDlNative>>?
+    _ffiInitializeApiDlPtr;
+bool _apiDlInitialized = false;
+
+/// Initialize the Dart API DL for FFI event notifications
+/// This must be called before registering the event port
+void ffiInitializeApiDL() {
+  if (_apiDlInitialized) return;
+
+  final lib = VideoPlayerFFIBindings.instance._lib;
+  if (lib == null) return;
+
+  try {
+    _ffiInitializeApiDlPtr =
+        lib.lookup<ffi.NativeFunction<_FFIInitializeApiDlNative>>(
+            'ffi_initialize_api_dl');
+
+    if (_ffiInitializeApiDlPtr != null) {
+      // Pass NativeApi.initializeApiDLData to the native side
+      _ffiInitializeApiDlPtr!
+              .cast<ffi.NativeFunction<_FFIInitializeApiDlNative>>()
+              .asFunction<int Function(ffi.Pointer<ffi.Void>)>()(
+          ffi.NativeApi.initializeApiDLData);
+      _apiDlInitialized = true;
+      debugPrint('Dart API DL initialized successfully');
+    }
+  } catch (e) {
+    debugPrint('Failed to initialize Dart API DL: $e');
+  }
+}
+
+/// Extension to get the native port number from RawReceivePort
+extension RawReceivePortNativePort on RawReceivePort {
+  /// Returns the native port number that can be used with Dart_PostCObject_DL
+  int get nativePort => _rawReceivePortNativePort(this);
+}
+
+/// Extension to get the native port number from ReceivePort
+extension ReceivePortNativePort on ReceivePort {
+  /// Returns the native port number that can be used with Dart_PostCObject_DL
+  int get nativePort => _receivePortNativePort(this);
+}
+
+// External function to get native port from RawReceivePort
+// This uses the private _RawReceivePortImpl class internals
+@pragma('vm:never-inline')
+int _rawReceivePortNativePort(RawReceivePort port) {
+  // Access the sendPort's nativePort through the port's internal field
+  // RawReceivePort has a sendPort property that exposes nativePort
+  return port.sendPort.nativePort;
+}
+
+// External function to get native port from ReceivePort
+@pragma('vm:never-inline')
+int _receivePortNativePort(ReceivePort port) {
+  // Access the sendPort's nativePort through the port's internal field
+  return port.sendPort.nativePort;
+}
+
+/// FFI register_event_port function - registers Dart port for event notifications
+/// The port is used with Dart_PostCObject_DL to send events to Dart isolate
+typedef _FFIRegisterEventPortNative = ffi.Void Function(ffi.Int64);
+typedef _FFIRegisterEventPortDart = void Function(int);
+
+/// FFI unregister_event_port function - unregisters the Dart port
+typedef _FFIUnregisterEventPortNative = ffi.Void Function();
+typedef _FFIUnregisterEventPortDart = void Function();
+
+// Global static variables for FFI event port bindings
+ffi.Pointer<ffi.NativeFunction<_FFIRegisterEventPortNative>>?
+    _ffiRegisterEventPortPtr;
+ffi.Pointer<ffi.NativeFunction<_FFIUnregisterEventPortNative>>?
+    _ffiUnregisterEventPortPtr;
+bool _eventPortLoaded = false;
+
+void _loadEventPortBindings(ffi.DynamicLibrary? lib) {
+  if (lib == null || _eventPortLoaded) return;
+
+  try {
+    _ffiRegisterEventPortPtr =
+        lib.lookup<ffi.NativeFunction<_FFIRegisterEventPortNative>>(
+            'ffi_register_event_port');
+
+    _ffiUnregisterEventPortPtr =
+        lib.lookup<ffi.NativeFunction<_FFIUnregisterEventPortNative>>(
+            'ffi_unregister_event_port');
+
+    _eventPortLoaded = true;
+    debugPrint('FFI event port bindings loaded successfully');
+  } catch (e) {
+    debugPrint('Failed to load FFI event port bindings: $e');
+  }
+}
+
+/// Register FFI event port for event notifications using Dart_PostCObject_DL
+/// This function is exported for use in video_player_tizen.dart
+void ffiRegisterEventPort(int port) {
+  if (!_eventPortLoaded) {
+    _loadEventPortBindings(VideoPlayerFFIBindings.instance._lib);
+  }
+  if (_eventPortLoaded && _ffiRegisterEventPortPtr != null) {
+    _ffiRegisterEventPortPtr!
+        .cast<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>()
+        .asFunction<void Function(int)>()(port);
+  }
+}
+
+/// Unregister FFI event port
+/// This function is exported for use in video_player_tizen.dart
+void ffiUnregisterEventPort() {
+  if (_eventPortLoaded && _ffiUnregisterEventPortPtr != null) {
+    _ffiUnregisterEventPortPtr!
+        .cast<ffi.NativeFunction<ffi.Void Function()>>()
+        .asFunction<void Function()>()();
+  }
 }

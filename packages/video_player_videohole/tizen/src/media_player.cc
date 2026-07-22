@@ -44,6 +44,7 @@ MediaPlayer::MediaPlayer(flutter::BinaryMessenger *messenger,
     : VideoPlayer(messenger, flutter_view) {
   media_player_proxy_ = std::make_unique<MediaPlayerProxy>();
   device_proxy_ = std::make_unique<DeviceProxy>();
+  // ecore_wl2_window_proxy_ is already created in VideoPlayer constructor
 }
 
 MediaPlayer::~MediaPlayer() {
@@ -66,6 +67,9 @@ MediaPlayer::~MediaPlayer() {
   }
 }
 
+// Static counter for generating unique player IDs
+static int64_t player_id_counter = 1;
+
 int64_t MediaPlayer::Create(const std::string &uri,
                             const CreateMessage &create_message) {
   LOG_INFO("[MediaPlayer] uri: %s.", uri.c_str());
@@ -74,6 +78,11 @@ int64_t MediaPlayer::Create(const std::string &uri,
     LOG_ERROR("[MediaPlayer] The uri must not be empty.");
     return -1;
   }
+
+  // Assign a unique player ID (this was previously done in SetUpEventChannel)
+  player_id_ = player_id_counter++;
+  LOG_INFO("[MediaPlayer] Assigned player_id_: %lld",
+           static_cast<long long>(player_id_));
   url_ = uri;
   create_message_ = create_message;
 
@@ -195,12 +204,13 @@ int64_t MediaPlayer::Create(const std::string &uri,
     return -1;
   }
 
-  return SetUpEventChannel();
+  // Return player_id_ which was already set in constructor
+  return player_id_;
 }
 
 void MediaPlayer::Dispose() {
   LOG_INFO("[MediaPlayer] Disposing.");
-  ClearUpEventChannel();
+  // EventChannel has been removed, no cleanup needed
 }
 
 void MediaPlayer::SetDisplayRoi(int32_t x, int32_t y, int32_t width,
@@ -391,6 +401,8 @@ bool MediaPlayer::SetDisplay() {
     return false;
   }
 
+  LOG_INFO("[MediaPlayer] Got native window handle: %p", native_window);
+
   int x = 0, y = 0, width = 0, height = 0;
   ecore_wl2_window_proxy_->ecore_wl2_window_geometry_get(native_window, &x, &y,
                                                          &width, &height);
@@ -408,6 +420,8 @@ bool MediaPlayer::SetDisplay() {
               get_error_message(ret));
     return false;
   }
+
+  LOG_INFO("[MediaPlayer] Display set successfully.");
   return true;
 }
 
@@ -834,7 +848,12 @@ bool MediaPlayer::Restore(const CreateMessage *restore_message,
       if (pre_state_ == PLAYER_STATE_PLAYING) {
         if (!Play()) {
           LOG_ERROR("[MediaPlayer] Player play failed.");
-          return false;
+          // return false;
+          if (player_ && !StopAndDestroy()) {
+            LOG_ERROR("[MediaPlayer] Player StopAndDestroy fail.");
+            return false;
+          }
+          return RestorePlayer(restore_message, resume_time);
         }
       }
       break;
@@ -895,8 +914,27 @@ bool MediaPlayer::SetDisplayRotate(int64_t rotation) {
 }
 
 void MediaPlayer::OnRestoreCompleted() {
-  if (pre_playing_time_ <= 0 ||
-      !SeekTo(pre_playing_time_, [this]() { SendRestored(); })) {
+  LOG_INFO(
+      "[MediaPlayer] OnRestoreCompleted called. pre_state_=%d, "
+      "pre_playing_time_=%llu",
+      pre_state_, pre_playing_time_);
+
+  // First, seek to the saved position
+  if (pre_playing_time_ <= 0 || !SeekTo(pre_playing_time_, [this]() {
+        // After seek completed, restore the playing state if it was playing
+        // before suspend
+        if (pre_state_ == PLAYER_STATE_PLAYING) {
+          LOG_INFO("[MediaPlayer] Restoring to PLAYING state after seek.");
+          Play();
+        }
+        SendRestored();
+      })) {
+    // If seek failed or not needed, still restore playing state if it was
+    // playing
+    if (pre_state_ == PLAYER_STATE_PLAYING) {
+      LOG_INFO("[MediaPlayer] Restoring to PLAYING state (no seek needed).");
+      Play();
+    }
     SendRestored();
   }
 }
