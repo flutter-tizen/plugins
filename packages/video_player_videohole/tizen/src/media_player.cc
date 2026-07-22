@@ -44,7 +44,6 @@ MediaPlayer::MediaPlayer(flutter::BinaryMessenger *messenger,
     : VideoPlayer(messenger, flutter_view) {
   media_player_proxy_ = std::make_unique<MediaPlayerProxy>();
   device_proxy_ = std::make_unique<DeviceProxy>();
-  // ecore_wl2_window_proxy_ is already created in VideoPlayer constructor
 }
 
 MediaPlayer::~MediaPlayer() {
@@ -79,10 +78,7 @@ int64_t MediaPlayer::Create(const std::string &uri,
     return -1;
   }
 
-  // Assign a unique player ID (this was previously done in SetUpEventChannel)
   player_id_ = player_id_counter++;
-  LOG_INFO("[MediaPlayer] Assigned player_id_: %lld",
-           static_cast<long long>(player_id_));
   url_ = uri;
   create_message_ = create_message;
 
@@ -93,13 +89,8 @@ int64_t MediaPlayer::Create(const std::string &uri,
     return -1;
   }
 
-  const auto &http_headers = create_message.http_headers();
-  auto cookie_it = http_headers.find(flutter::EncodableValue("Cookie"));
-  std::string cookie;
-  if (cookie_it != http_headers.end() &&
-      std::holds_alternative<std::string>(cookie_it->second)) {
-    cookie = std::get<std::string>(cookie_it->second);
-  }
+  std::string cookie = flutter_common::GetValue(&create_message.http_headers(),
+                                                "Cookie", std::string());
   if (!cookie.empty()) {
     int ret =
         player_set_streaming_cookie(player_, cookie.c_str(), cookie.size());
@@ -108,12 +99,8 @@ int64_t MediaPlayer::Create(const std::string &uri,
                 get_error_message(ret));
     }
   }
-  auto user_agent_it = http_headers.find(flutter::EncodableValue("User-Agent"));
-  std::string user_agent;
-  if (user_agent_it != http_headers.end() &&
-      std::holds_alternative<std::string>(user_agent_it->second)) {
-    user_agent = std::get<std::string>(user_agent_it->second);
-  }
+  std::string user_agent = flutter_common::GetValue(
+      &create_message.http_headers(), "User-Agent", std::string());
   if (!user_agent.empty()) {
     int ret = player_set_streaming_user_agent(player_, user_agent.c_str(),
                                               user_agent.size());
@@ -123,37 +110,15 @@ int64_t MediaPlayer::Create(const std::string &uri,
     }
   }
 
-  const auto &drm_configs = create_message.drm_configs();
-  if (!drm_configs.empty()) {
-    LOG_INFO("[MediaPlayer] drm_configs is present.");
-
-    int64_t drm_type = 0;
-    std::string license_server_url;
-    auto drm_type_it = drm_configs.find(flutter::EncodableValue("drmType"));
-    if (drm_type_it != drm_configs.end() &&
-        std::holds_alternative<int64_t>(drm_type_it->second)) {
-      drm_type = std::get<int64_t>(drm_type_it->second);
+  int64_t drm_type = flutter_common::GetValue(&create_message.drm_configs(),
+                                              "drmType", (int64_t)0);
+  std::string license_server_url = flutter_common::GetValue(
+      &create_message.drm_configs(), "licenseServerUrl", std::string());
+  if (drm_type != 0) {
+    if (!SetDrm(uri, drm_type, license_server_url)) {
+      LOG_ERROR("[MediaPlayer] Failed to set drm.");
+      return -1;
     }
-    auto license_it =
-        drm_configs.find(flutter::EncodableValue("licenseServerUrl"));
-    if (license_it != drm_configs.end() &&
-        std::holds_alternative<std::string>(license_it->second)) {
-      license_server_url = std::get<std::string>(license_it->second);
-    }
-
-    LOG_INFO("[MediaPlayer] drm_type=%lld, license_server_url=%s",
-             static_cast<long long>(drm_type), license_server_url.c_str());
-
-    if (drm_type != 0) {
-      if (!SetDrm(uri, drm_type, license_server_url)) {
-        LOG_ERROR("[MediaPlayer] Failed to set drm.");
-        return -1;
-      }
-    } else {
-      LOG_INFO("[MediaPlayer] drm_type is 0, skipping SetDrm.");
-    }
-  } else {
-    LOG_INFO("[MediaPlayer] drm_configs is NOT present (null).");
   }
 
   if (!SetDisplay()) {
@@ -220,7 +185,6 @@ int64_t MediaPlayer::Create(const std::string &uri,
     return -1;
   }
 
-  // Return player_id_ which was already set in constructor
   return player_id_;
 }
 
@@ -417,8 +381,6 @@ bool MediaPlayer::SetDisplay() {
     return false;
   }
 
-  LOG_INFO("[MediaPlayer] Got native window handle: %p", native_window);
-
   int x = 0, y = 0, width = 0, height = 0;
   ecore_wl2_window_proxy_->ecore_wl2_window_geometry_get(native_window, &x, &y,
                                                          &width, &height);
@@ -437,7 +399,6 @@ bool MediaPlayer::SetDisplay() {
     return false;
   }
 
-  LOG_INFO("[MediaPlayer] Display set successfully.");
   return true;
 }
 
@@ -644,7 +605,6 @@ bool MediaPlayer::SetTrackSelection(int32_t track_id, std::string track_type) {
 bool MediaPlayer::SetDrm(const std::string &uri, int drm_type,
                          const std::string &license_server_url) {
   drm_manager_ = std::make_unique<DrmManager>();
-
   if (!drm_manager_->CreateDrmSession(drm_type, false)) {
     LOG_ERROR("[MediaPlayer] Failed to create drm session.");
     return false;
@@ -683,17 +643,16 @@ bool MediaPlayer::SetDrm(const std::string &uri, int drm_type,
   if (license_server_url.empty()) {
     bool success = drm_manager_->SetChallenge(uri, binary_messenger_);
     if (!success) {
-      LOG_ERROR("[MediaPlayer] Failed to set challenge via licenseCallback.");
+      LOG_ERROR("[MediaPlayer] Failed to set challenge.");
       return false;
     }
   } else {
     if (!drm_manager_->SetChallenge(uri, license_server_url)) {
-      LOG_ERROR("[MediaPlayer] Failed to set challenge via licenseServerUrl.");
+      LOG_ERROR("[MediaPlayer] Failed to set challenge.");
       return false;
     }
   }
 
-  LOG_INFO("[MediaPlayer] SetDrm completed successfully.");
   return true;
 }
 
@@ -770,19 +729,6 @@ bool MediaPlayer::Suspend() {
   LOG_INFO(
       "[MediaPlayer] Saved current player state: %d, playing time: %llu ms",
       pre_state_, pre_playing_time_);
-
-  // For DRM content, always do full destroy/recreate on suspend/restore
-  // to avoid player_start() timeout issues with invalid display surface
-  if (drm_manager_ != nullptr) {
-    LOG_INFO(
-        "[MediaPlayer] DRM content detected, doing full destroy on suspend");
-    if (!StopAndDestroy()) {
-      LOG_ERROR("[MediaPlayer] DRM content StopAndDestroy fail.");
-      return false;
-    }
-    LOG_INFO("[MediaPlayer] DRM content suspend done successfully.");
-    return true;
-  }
 
   if (IsLive()) {
     pre_playing_time_ = 0;
@@ -864,12 +810,7 @@ bool MediaPlayer::Restore(const CreateMessage *restore_message,
       if (pre_state_ == PLAYER_STATE_PLAYING) {
         if (!Play()) {
           LOG_ERROR("[MediaPlayer] Player play failed.");
-          // return false;
-          if (player_ && !StopAndDestroy()) {
-            LOG_ERROR("[MediaPlayer] Player StopAndDestroy fail.");
-            return false;
-          }
-          return RestorePlayer(restore_message, resume_time);
+          return false;
         }
       }
       break;
@@ -935,22 +876,14 @@ void MediaPlayer::OnRestoreCompleted() {
       "pre_playing_time_=%llu",
       pre_state_, pre_playing_time_);
 
-  // First, seek to the saved position
   if (pre_playing_time_ <= 0 || !SeekTo(pre_playing_time_, [this]() {
-        // After seek completed, restore the playing state if it was playing
-        // before suspend
         if (pre_state_ == PLAYER_STATE_PLAYING) {
           LOG_INFO("[MediaPlayer] Restoring to PLAYING state after seek.");
           Play();
         }
         SendRestored();
       })) {
-    // If seek failed or not needed, still restore playing state if it was
-    // playing
-    if (pre_state_ == PLAYER_STATE_PLAYING) {
-      LOG_INFO("[MediaPlayer] Restoring to PLAYING state (no seek needed).");
-      Play();
-    }
+    if (pre_state_ == PLAYER_STATE_PLAYING) Play();
     SendRestored();
   }
 }

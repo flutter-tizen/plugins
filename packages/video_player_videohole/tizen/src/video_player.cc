@@ -221,7 +221,6 @@ VideoPlayer::~VideoPlayer() {
 
 void VideoPlayer::ExecuteSinkEvents() {
   std::lock_guard<std::mutex> lock(queue_mutex_);
-
   while (!encodable_event_queue_.empty()) {
     const flutter::EncodableValue& event = encodable_event_queue_.front();
 
@@ -296,8 +295,6 @@ void VideoPlayer::PushEvent(flutter::EncodableValue encodable_value) {
 
 void VideoPlayer::SendInitialized() {
   if (!is_initialized_) {
-    LOG_INFO("[VideoPlayer] SendInitialized called.");
-
     int32_t width = 0, height = 0;
     GetVideoSize(&width, &height);
     is_initialized_ = true;
@@ -313,10 +310,7 @@ void VideoPlayer::SendInitialized() {
         {flutter::EncodableValue("width"), flutter::EncodableValue(width)},
         {flutter::EncodableValue("height"), flutter::EncodableValue(height)},
     };
-    LOG_INFO("[VideoPlayer] Pushing initialized event to FFI");
     PushEvent(flutter::EncodableValue(result));
-  } else {
-    LOG_INFO("[VideoPlayer] SendInitialized skipped - already initialized");
   }
 }
 
