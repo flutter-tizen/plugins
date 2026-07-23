@@ -5,6 +5,7 @@
 #include "media_player.h"
 
 #include <dlfcn.h>
+#include <unistd.h>
 
 #include <sstream>
 
@@ -375,6 +376,7 @@ bool MediaPlayer::IsReady() {
 }
 
 bool MediaPlayer::SetDisplay() {
+  LOG_INFO("***********SetDisplay start**************");
   void *native_window = GetWindowHandle();
   if (!native_window) {
     LOG_ERROR("[MediaPlayer] Could not get a native window handle.");
@@ -398,7 +400,7 @@ bool MediaPlayer::SetDisplay() {
               get_error_message(ret));
     return false;
   }
-
+  LOG_INFO("***********SetDisplay end**************");
   return true;
 }
 
@@ -652,7 +654,6 @@ bool MediaPlayer::SetDrm(const std::string &uri, int drm_type,
       return false;
     }
   }
-
   return true;
 }
 
@@ -753,13 +754,14 @@ bool MediaPlayer::Suspend() {
     LOG_INFO("[MediaPlayer] Player state is not standby: %d, do nothing.", res);
   }
 
-  if (player_state == PLAYER_STATE_IDLE) {
+  if (player_state == PLAYER_STATE_IDLE || player_state == PLAYER_STATE_READY) {
     if (!StopAndDestroy()) {
       LOG_ERROR("[MediaPlayer] Player StopAndDestroy fail.");
       return false;
     }
     LOG_INFO("[MediaPlayer] Player called in IDLE state, so stop the player.");
-  } else if (player_state != PLAYER_STATE_PAUSED) {
+  } else if (player_state == PLAYER_STATE_PLAYING) {
+    // 只有当前是 PLAYING 时才调用 pause，并保存 pre_state_ 为 PLAYING
     LOG_INFO("[MediaPlayer] Player calling pause from suspend.");
     if (!Pause()) {
       LOG_ERROR(
@@ -808,10 +810,13 @@ bool MediaPlayer::Restore(const CreateMessage *restore_message,
       break;
     case PLAYER_STATE_PAUSED:
       if (pre_state_ == PLAYER_STATE_PLAYING) {
-        if (!Play()) {
-          LOG_ERROR("[MediaPlayer] Player play failed.");
-          return false;
-        }
+        // 不尝试 Play()，直接重建 player
+        // 因为 Play() 可能会阻塞很长时间（甚至卡死）
+        // 而且最终也会 fallback 到 RestorePlayer
+        LOG_INFO(
+            "[MediaPlayer] Restore: skipping Play(), calling RestorePlayer "
+            "directly.");
+        return RestorePlayer(restore_message, resume_time);
       }
       break;
     case PLAYER_STATE_PLAYING:
@@ -819,11 +824,10 @@ bool MediaPlayer::Restore(const CreateMessage *restore_message,
       // restore more than once, just ignore.
       break;
     default:
-      LOG_INFO(
-          "[MediaPlayer] Unhandled state, dont know how to process, just "
-          "return "
-          "false.");
-      return false;
+      LOG_ERROR(
+          "[MediaPlayer] Restore: unhandled state=%d, calling RestorePlayer.",
+          player_state);
+      return RestorePlayer(restore_message, resume_time);
   }
   return true;
 }
@@ -831,6 +835,13 @@ bool MediaPlayer::Restore(const CreateMessage *restore_message,
 bool MediaPlayer::RestorePlayer(const CreateMessage *restore_message,
                                 int64_t resume_time) {
   LOG_INFO("[MediaPlayer] RestorePlayer is called.");
+
+  // 先清理旧的 player，避免状态冲突导致卡死
+  if (player_ && !StopAndDestroy()) {
+    LOG_ERROR("[MediaPlayer] RestorePlayer: StopAndDestroy failed.");
+    return false;
+  }
+  LOG_INFO("[MediaPlayer] RestorePlayer: old player cleaned up.");
 
   if (restore_message->uri()) {
     LOG_INFO("[MediaPlayer] Player previous url: %s", url_.c_str());
