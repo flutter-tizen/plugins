@@ -26,16 +26,19 @@
 namespace video_player_videohole_tizen {
 
 // ===== Global State =====
-// Player registry - manages all player instances using shared_ptr for thread safety
+// Player registry - manages all player instances using shared_ptr for thread
+// safety
 static std::map<int64_t, std::shared_ptr<VideoPlayer>> g_players;
-static std::shared_mutex g_players_mutex;  // Read-write lock for better concurrency
+static std::shared_mutex
+    g_players_mutex;  // Read-write lock for better concurrency
 
 // Global resources needed for player creation
 static FlutterDesktopPluginRegistrarRef g_registrar_ref = nullptr;
 static flutter::PluginRegistrar* g_plugin_registrar = nullptr;
 static VideoPlayerOptions g_options;
 
-// Helper function to get player by ID (returns shared_ptr, caller holds reference)
+// Helper function to get player by ID (returns shared_ptr, caller holds
+// reference)
 static std::shared_ptr<VideoPlayer> GetPlayer(int64_t player_id) {
   std::shared_lock<std::shared_mutex> lock(g_players_mutex);  // Read lock
   auto iter = g_players.find(player_id);
@@ -182,9 +185,9 @@ static std::string ExtractObjectValue(const std::string& json_str,
 // Unified function to parse CreateMessage from JSON string
 static video_player_videohole_tizen::CreateMessage ParseCreateMessage(
     const std::string& json_str) {
-  using video_player_videohole_tizen::CreateMessage;
   using flutter::EncodableMap;
   using flutter::EncodableValue;
+  using video_player_videohole_tizen::CreateMessage;
 
   video_player_videohole_tizen::CreateMessage msg;
 
@@ -296,14 +299,14 @@ void VideoPlayerTizenPluginRegisterWithRegistrar(
 #include <string.h>
 
 using video_player_videohole_tizen::CreateMessage;
-using video_player_videohole_tizen::GetPlayer;
 using video_player_videohole_tizen::g_dart_port;
 using video_player_videohole_tizen::g_dart_port_mutex;
 using video_player_videohole_tizen::g_options;
-using video_player_videohole_tizen::g_plugin_registrar;
 using video_player_videohole_tizen::g_players;
 using video_player_videohole_tizen::g_players_mutex;
+using video_player_videohole_tizen::g_plugin_registrar;
 using video_player_videohole_tizen::g_registrar_ref;
+using video_player_videohole_tizen::GetPlayer;
 using video_player_videohole_tizen::ParseCreateMessage;
 using video_player_videohole_tizen::VideoPlayer;
 
@@ -320,7 +323,8 @@ int64_t ffi_create(const char* create_message_json) {
     return -1;
   }
 
-  FlutterDesktopViewRef view = FlutterDesktopPluginRegistrarGetView(g_registrar_ref);
+  FlutterDesktopViewRef view =
+      FlutterDesktopPluginRegistrarGetView(g_registrar_ref);
   if (!view) {
     return -1;
   }
@@ -409,8 +413,9 @@ const char* ffi_get_duration(int64_t player_id) {
   }
 
   auto duration_pair = player->GetDuration();
-  std::string duration_json = "{\"start\":" + std::to_string(duration_pair.first) +
-                              ",\"end\":" + std::to_string(duration_pair.second) + "}";
+  std::string duration_json =
+      "{\"start\":" + std::to_string(duration_pair.first) +
+      ",\"end\":" + std::to_string(duration_pair.second) + "}";
   return strdup(duration_json.c_str());
 }
 
@@ -445,8 +450,8 @@ const char* ffi_get_track_info(int64_t player_id, const char* track_type) {
   }
 
   auto tracks = player->GetTrackInfo(std::string(track_type));
-  std::string track_info_json = "{\"playerId\":" + std::to_string(player_id) +
-                                ",\"tracks\":[";
+  std::string track_info_json =
+      "{\"playerId\":" + std::to_string(player_id) + ",\"tracks\":[";
 
   for (size_t i = 0; i < tracks.size(); ++i) {
     if (i > 0) track_info_json += ",";
