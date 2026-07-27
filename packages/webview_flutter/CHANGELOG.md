@@ -2,8 +2,10 @@
 
 * Implement `clearLocalStorage`.
 * Implement `onHttpError` for the navigation delegate.
-* Fix races and use-after-frees on WebView disposal, and avoid a web engine
-  teardown crash on the Tizen 10.0 TV emulator.
+* Fix races and use-after-frees on WebView disposal, including a buffer-pool
+  use-after-free on the raster thread.
+* Replace the Ecore main loop API with GLib.
+* Narrow the TV emulator teardown workaround to a runtime profile check.
 
 ## 0.10.0
 

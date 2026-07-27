@@ -116,15 +116,13 @@ class WebView : public PlatformView {
   std::unique_ptr<FlMethodChannel> navigation_delegate_channel_;
   std::unique_ptr<flutter::TextureVariant> texture_variant_;
   std::mutex mutex_;
-  std::unique_ptr<BufferPool> tbm_pool_;
+  std::shared_ptr<BufferPool> tbm_pool_;
   bool disposed_ = false;
-  // Set under mutex_ at the start of Dispose(). The raster thread checks it
-  // in ObtainGpuSurface() and stops being handed engine-owned TBM surfaces
-  // that are about to be freed by the deferred evas_object_del().
+  // Guarded by mutex_. Keeps the raster thread from being handed TBM surfaces
+  // that the deferred evas_object_del() is about to free.
   bool is_disposing_ = false;
-  // Set to false at the start of Dispose(). A pending "navigationRequest"
-  // reply from Dart (resolved asynchronously) captures a copy and checks it
-  // before dereferencing this WebView, avoiding a use-after-free.
+  // Copied into pending async Dart replies so they can detect a WebView that
+  // was destroyed before the reply arrived.
   std::shared_ptr<bool> is_alive_ = std::make_shared<bool>(true);
   Ewk_Mouse_Button_Type mouse_button_type_ = (Ewk_Mouse_Button_Type)0;
   bool scrollbar_enabled_ = true;

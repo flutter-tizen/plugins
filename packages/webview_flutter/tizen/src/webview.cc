@@ -4,12 +4,15 @@
 
 #include "webview.h"
 
-#include <Ecore.h>
 #include <Ecore_Evas.h>
 #include <app_common.h>
 #include <flutter/standard_method_codec.h>
 #include <flutter_texture_registrar.h>
+#include <glib.h>
 #include <tbm_surface.h>
+
+#include <cstdlib>
+#include <cstring>
 
 #include "buffer_pool.h"
 #include "log.h"
@@ -45,12 +48,8 @@ std::string ConvertLogLevelToString(Ewk_Console_Message_Level level) {
 
 class NavigationRequestResult : public FlMethodResult {
  public:
-  // |alive| is the WebView's is_alive_ flag. Dart resolves the
-  // "navigationRequest" method call asynchronously (it round-trips through
-  // the Dart navigation delegate), so this result's completion can run well
-  // after the WebView that created it has been disposed; |webview_| would
-  // then be a dangling pointer. Checking |alive| before dereferencing it
-  // avoids a use-after-free in that case.
+  // Dart resolves "navigationRequest" asynchronously, so completion can run
+  // after |webview| is destroyed; |alive| gates every dereference.
   NavigationRequestResult(WebView* webview, std::shared_ptr<bool> alive)
       : webview_(webview), alive_(std::move(alive)) {}
 
@@ -121,7 +120,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
     return;
   }
 
-  tbm_pool_ = std::make_unique<SingleBufferPool>(width, height);
+  tbm_pool_ = std::make_shared<SingleBufferPool>(width, height);
 
   texture_variant_ =
       std::make_unique<flutter::TextureVariant>(flutter::GpuSurfaceTexture(
@@ -192,21 +191,14 @@ void WebView::Dispose() {
     return;
   }
   disposed_ = true;
-
-  // A Dart "navigationRequest" reply can still arrive after Dispose() has
-  // run. The reply handler checks this flag and returns early, instead of
-  // using a WebView that no longer exists.
   *is_alive_ = false;
 
   Evas_Object* instance = webview_instance_;
   webview_instance_ = nullptr;
 
   if (instance) {
-    // Detach every callback registered in InitWebView() and
-    // RegisterJavaScriptChannelName(). The engine instance lives until the
-    // deferred evas_object_del() below, while this WebView is destroyed
-    // right after Dispose(). Without detaching, the engine could invoke
-    // these callbacks on the already-destroyed WebView during that window.
+    // The engine instance outlives this WebView until the deferred
+    // evas_object_del() below, so every callback must be detached here.
     evas_object_smart_callback_del(instance, "offscreen,frame,rendered",
                                    &WebView::OnFrameRendered);
     evas_object_smart_callback_del(instance, "load,started",
@@ -233,16 +225,12 @@ void WebView::Dispose() {
         instance, nullptr, nullptr);
     evas_object_data_del(instance, kEwkInstance);
 
-    // Cancel any in-flight load and pause the page so it stops running while
-    // the deferred teardown below is pending.
+    // Stop the page so it cannot run while the deferred teardown is pending.
     ewk_view_stop(instance);
     ewk_view_suspend(instance);
   }
 
-  // Stop handing out engine-owned TBM surfaces to the raster thread, and
-  // detach the buffer pool so its GPU surface descriptors outlive this
-  // object for any raster-thread frame still in flight.
-  std::unique_ptr<BufferPool> pool;
+  std::shared_ptr<BufferPool> pool;
   {
     std::lock_guard<std::mutex> lock(mutex_);
     is_disposing_ = true;
@@ -252,47 +240,36 @@ void WebView::Dispose() {
     pool = std::move(tbm_pool_);
   }
 
-  // The TBM surfaces backing the texture are owned by the web engine and are
-  // freed when the engine view is deleted. Deleting the view while an
-  // in-flight raster-thread frame is still reading one of those surfaces is a
-  // use-after-free (the emulator's SW rendering path reads the buffer on the
-  // CPU), crashing with SIGSEGV during EWebView teardown. The embedder tears
-  // the external texture down on the render thread only after any in-flight
-  // frame callback has completed and then invokes this completion callback,
-  // so evas_object_del() (and the release of the descriptor-owning buffer
-  // pool) is deferred until then. The callback fires on the render thread;
-  // evas_object_del() must run on the main thread, so hop back via
-  // ecore_main_loop_thread_safe_call_async().
+  // evas_object_del() frees TBM surfaces the raster thread may still be
+  // reading, so defer it until the embedder confirms the texture is torn
+  // down. That confirmation fires on the render thread, hence the hop below.
   struct TeardownContext {
     Evas_Object* instance;
-    std::unique_ptr<BufferPool> pool;
+    std::shared_ptr<BufferPool> pool;
   };
   auto* context = new TeardownContext{instance, std::move(pool)};
   texture_registrar_->UnregisterTexture(GetTextureId(), [context]() {
-    ecore_main_loop_thread_safe_call_async(
-        [](void* data) {
+    // Must stay a high-priority timeout: g_idle_add() runs too late and the
+    // delete then races the raster thread on the TV emulator.
+    g_timeout_add_full(
+        G_PRIORITY_HIGH, 0,
+        [](gpointer data) -> gboolean {
           auto* context = static_cast<TeardownContext*>(data);
           if (context->instance) {
-#if defined(TV_PROFILE) && (defined(__x86_64__) || defined(__i386__))
-            // On the Tizen 10.0 TV emulator image (the only TV + x86_64
-            // target), deleting the ewk view crashes with SIGSEGV inside
-            // chromium-efl's ~SelectionControllerEfl(): after unsubscribing
-            // VCONFKEY_LANGSET it calls HideHandleAndContextMenu() ->
-            // CancelContextMenu(), which dereferences the WebContents that is
-            // already being destructed. That is engine code this plugin
-            // cannot fix, so hide the (already stopped and suspended) view
-            // and intentionally leak it instead of crashing. All other
-            // targets (arm/arm64 devices, the 32-bit x86 emulator, and the
-            // common-profile x86_64 emulator, whose engines are unaffected)
-            // delete normally.
-            evas_object_hide(context->instance);
-#else
-            evas_object_del(context->instance);
-#endif
+            const char* profile = getenv("ELM_PROFILE");
+            if (profile && strcmp(profile, "tv") == 0) {
+              // TODO: evas_object_del() still crashes the raster thread
+              // intermittently on the Tizen 10.0 TV emulator, so leak the view
+              // there instead until the engine is fixed.
+              evas_object_hide(context->instance);
+            } else {
+              evas_object_del(context->instance);
+            }
           }
-          delete context;
+          return G_SOURCE_REMOVE;
         },
-        context);
+        context,
+        [](gpointer data) { delete static_cast<TeardownContext*>(data); });
   });
 
   // ewk_shutdown();
@@ -468,6 +445,9 @@ bool WebView::InitWebView() {
   // temporarily comment out ewk_init() and ewk_shutdown(). It can be reverted
   // depending on updates to chromium-efl.
   // ewk_init();
+
+  // Not freed on disposal: ecore_evas_free() would eglTerminate() the EGL
+  // display shared with the Flutter renderer and kill the process.
   Ecore_Evas* evas = ecore_evas_new("wayland_egl", 0, 0, 1, 1, 0);
 
   webview_instance_ = ewk_view_add(ecore_evas_get(evas));
