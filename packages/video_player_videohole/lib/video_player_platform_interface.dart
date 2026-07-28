@@ -29,18 +29,7 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
   /// The default instance of [VideoPlayerPlatform] to use.
   ///
   /// Defaults to [VideoPlayerTizen].
-  ///
-  /// The [binaryMessenger] argument is used for communicating with the
-  /// platform-side EventChannel for event notifications.
   static VideoPlayerPlatform get instance => _instance;
-
-  /// Sets the default instance of [VideoPlayerPlatform] to use.
-  ///
-  /// This should be called by platform-specific code to initialize
-  /// the platform interface.
-  static void setupInstance() {
-    _instance = VideoPlayerTizen();
-  }
 
   /// Platform-specific plugins should override this with their own
   /// platform-specific class that extends [VideoPlayerPlatform] when they
@@ -170,7 +159,8 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
   }
 
   /// Restores the player state when the application is resumed.
-  Future<void> restore(
+  /// Returns the new player ID (may be same or different from the original).
+  Future<int> restore(
     int playerId, {
     DataSource? dataSource,
     int resumeTime = -1,

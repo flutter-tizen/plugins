@@ -18,7 +18,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   /// Create a new VideoPlayerTizen instance.
   VideoPlayerTizen() : super();
 
-  final VideoPlayerFFIApi _ffiApi = VideoPlayerFFIApi();
+  final VideoPlayerVideoholeFFIApi _ffiApi = VideoPlayerVideoholeFFIApi();
 
   @override
   Future<void> init() async {
@@ -53,27 +53,25 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     // This is important because events may be sent immediately after creation
     _ensureEventPortRegistered();
 
-    // Use FFI for create (synchronous call)
-    int playerId;
+    // Use CreateMessage class for FFI create (synchronous call)
+    final CreateMessage message = CreateMessage();
 
     switch (dataSource.sourceType) {
       case DataSourceType.asset:
-        playerId = _ffiApi.create(
-          asset: dataSource.asset,
-          packageName: dataSource.package,
-        );
+        message.asset = dataSource.asset;
+        message.packageName = dataSource.package;
       case DataSourceType.network:
-        playerId = _ffiApi.create(
-          uri: dataSource.uri,
-          formatHint: _videoFormatStringMap[dataSource.formatHint],
-          httpHeaders: dataSource.httpHeaders,
-          drmConfigs: dataSource.drmConfigs?.toMap(),
-          playerOptions: dataSource.playerOptions,
-        );
+        message.uri = dataSource.uri;
+        message.formatHint = _videoFormatStringMap[dataSource.formatHint];
+        message.httpHeaders = dataSource.httpHeaders;
+        message.drmConfigs = dataSource.drmConfigs?.toMap();
+        message.playerOptions = dataSource.playerOptions;
       case DataSourceType.file:
       case DataSourceType.contentUri:
-        playerId = _ffiApi.create(uri: dataSource.uri);
+        message.uri = dataSource.uri;
     }
+
+    final int playerId = _ffiApi.create(message);
 
     if (playerId < 0) {
       throw Exception('FFI create failed with code: $playerId');
@@ -105,7 +103,8 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
             final StreamController<VideoEvent>? controller =
                 _eventControllers[receivingPlayerId];
             if (controller != null && !controller.isClosed) {
-              controller.add(_parseVideoEventFromMap(eventMap));
+              final VideoEvent videoEvent = _parseVideoEventFromMap(eventMap);
+              controller.add(videoEvent);
             }
           }
         } catch (e, stackTrace) {
@@ -197,20 +196,14 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<List<VideoTrack>> getVideoTracks(int playerId) async {
-    // Use FFI for getTrackInfo (synchronous call)
-    // C++ returns: {"playerId": <id>, "tracks": [{...}, ...]}
-    final String jsonResponse = _ffiApi.getTrackInfo(playerId, 'video');
-    final Map<String, dynamic> responseJson =
-        jsonDecode(jsonResponse) as Map<String, dynamic>;
-    final List<dynamic> tracksJson = responseJson['tracks'] as List<dynamic>;
+    final TrackMessage message = _ffiApi.getTrackInfo(playerId, 'video');
 
     final List<VideoTrack> videoTracks = <VideoTrack>[];
-    for (final dynamic trackMap in tracksJson) {
-      final Map<String, dynamic> track = trackMap as Map<String, dynamic>;
-      final int trackId = track['trackId'] as int;
-      final int bitrate = track['bitrate'] as int;
-      final int width = track['width'] as int;
-      final int height = track['height'] as int;
+    for (final Map<Object?, Object?>? trackMap in message.tracks) {
+      final int trackId = trackMap!['trackId']! as int;
+      final int bitrate = trackMap['bitrate']! as int;
+      final int width = trackMap['width']! as int;
+      final int height = trackMap['height']! as int;
 
       videoTracks.add(
         VideoTrack(
@@ -227,20 +220,14 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<List<AudioTrack>> getAudioTracks(int playerId) async {
-    // Use FFI for getTrackInfo (synchronous call)
-    // C++ returns: {"playerId": <id>, "tracks": [{...}, ...]}
-    final String jsonResponse = _ffiApi.getTrackInfo(playerId, 'audio');
-    final Map<String, dynamic> responseJson =
-        jsonDecode(jsonResponse) as Map<String, dynamic>;
-    final List<dynamic> tracksJson = responseJson['tracks'] as List<dynamic>;
+    final TrackMessage message = _ffiApi.getTrackInfo(playerId, 'audio');
 
     final List<AudioTrack> audioTracks = <AudioTrack>[];
-    for (final dynamic trackMap in tracksJson) {
-      final Map<String, dynamic> track = trackMap as Map<String, dynamic>;
-      final int trackId = track['trackId'] as int;
-      final String language = track['language'] as String;
-      final int channel = track['channel'] as int;
-      final int bitrate = track['bitrate'] as int;
+    for (final Map<Object?, Object?>? trackMap in message.tracks) {
+      final int trackId = trackMap!['trackId']! as int;
+      final String language = trackMap['language']! as String;
+      final int channel = trackMap['channel']! as int;
+      final int bitrate = trackMap['bitrate']! as int;
 
       audioTracks.add(
         AudioTrack(
@@ -257,18 +244,12 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<List<TextTrack>> getTextTracks(int playerId) async {
-    // Use FFI for getTrackInfo (synchronous call)
-    // C++ returns: {"playerId": <id>, "tracks": [{...}, ...]}
-    final String jsonResponse = _ffiApi.getTrackInfo(playerId, 'text');
-    final Map<String, dynamic> responseJson =
-        jsonDecode(jsonResponse) as Map<String, dynamic>;
-    final List<dynamic> tracksJson = responseJson['tracks'] as List<dynamic>;
+    final TrackMessage message = _ffiApi.getTrackInfo(playerId, 'text');
 
     final List<TextTrack> textTracks = <TextTrack>[];
-    for (final dynamic trackMap in tracksJson) {
-      final Map<String, dynamic> track = trackMap as Map<String, dynamic>;
-      final int trackId = track['trackId'] as int;
-      final String language = track['language'] as String;
+    for (final Map<Object?, Object?>? trackMap in message.tracks) {
+      final int trackId = trackMap!['trackId']! as int;
+      final String language = trackMap['language']! as String;
 
       textTracks.add(TextTrack(trackId: trackId, language: language));
     }
@@ -319,39 +300,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Stream<VideoEvent> videoEventsFor(int playerId) {
-    // Initialize the RawReceivePort once for all players
-    if (_eventPort == null) {
-      _eventPort = RawReceivePort();
-
-      // Listen to FFI events and route them to the appropriate StreamController
-      _eventPort!.handler = (dynamic message) {
-        try {
-          // Message format from C++: [player_id, event_json_string]
-          if (message is List && message.length == 2) {
-            final int receivingPlayerId = message[0] as int;
-            final String eventJson = message[1] as String;
-
-            // Parse JSON to Map
-            final Map<String, dynamic> eventMap =
-                jsonDecode(eventJson) as Map<String, dynamic>;
-
-            // Route to the correct StreamController
-            final StreamController<VideoEvent>? controller =
-                _eventControllers[receivingPlayerId];
-            if (controller != null && !controller.isClosed) {
-              controller.add(_parseVideoEventFromMap(eventMap));
-            }
-          }
-        } catch (e, stackTrace) {
-          // Log error but don't crash
-          debugPrint('Error processing FFI event: $e\n$stackTrace');
-        }
-      };
-
-      // Register the port with C++ side using FFI
-      // Use NativePort extension to get the raw port number from RawReceivePort
-      ffiRegisterEventPort(_eventPort!.nativePort);
-    }
+    _ensureEventPortRegistered();
 
     // Return the stream for this specific player
     return _eventControllers
@@ -451,59 +400,53 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   }
 
   @override
-  Future<void> restore(
+  Future<int> restore(
     int playerId, {
     DataSource? dataSource,
     int resumeTime = -1,
   }) async {
     // Use FFI for restore (synchronous call)
-    // Build JSON string from dataSource (same pattern as create)
-    String? createMessageJson;
+    // Use CreateMessage class (JSON conversion handled internally)
+    CreateMessage? message;
     if (dataSource != null) {
-      final Map<String, dynamic> jsonMap = <String, dynamic>{};
+      message = CreateMessage();
 
       switch (dataSource.sourceType) {
         case DataSourceType.asset:
-          if (dataSource.asset != null && dataSource.asset!.isNotEmpty) {
-            jsonMap['asset'] = dataSource.asset;
-          }
-          if (dataSource.package != null && dataSource.package!.isNotEmpty) {
-            jsonMap['packageName'] = dataSource.package;
-          }
+          message.asset = dataSource.asset;
+          message.packageName = dataSource.package;
         case DataSourceType.network:
-          if (dataSource.uri != null && dataSource.uri!.isNotEmpty) {
-            jsonMap['uri'] = dataSource.uri;
-          }
-          if (dataSource.formatHint != null) {
-            jsonMap['formatHint'] =
-                _videoFormatStringMap[dataSource.formatHint];
-          }
-          if (dataSource.httpHeaders.isNotEmpty) {
-            jsonMap['httpHeaders'] = dataSource.httpHeaders;
-          }
-          if (dataSource.drmConfigs != null) {
-            jsonMap['drmConfigs'] = dataSource.drmConfigs!.toMap();
-          }
-          if (dataSource.playerOptions != null &&
-              dataSource.playerOptions!.isNotEmpty) {
-            jsonMap['playerOptions'] = dataSource.playerOptions;
-          }
+          message.uri = dataSource.uri;
+          message.formatHint = _videoFormatStringMap[dataSource.formatHint];
+          message.httpHeaders = dataSource.httpHeaders;
+          message.drmConfigs = dataSource.drmConfigs?.toMap();
+          message.playerOptions = dataSource.playerOptions;
         case DataSourceType.file:
         case DataSourceType.contentUri:
-          if (dataSource.uri != null && dataSource.uri!.isNotEmpty) {
-            jsonMap['uri'] = dataSource.uri;
-          }
+          message.uri = dataSource.uri;
+      }
+    }
+
+    // Restore returns the new player ID (may be same or different)
+    final int newPlayerId = _ffiApi.restore(playerId, message, resumeTime);
+
+    // If player ID changed, update the StreamController
+    if (newPlayerId != playerId && newPlayerId > 0) {
+      // Close old StreamController
+      final StreamController<VideoEvent>? oldController =
+          _eventControllers.remove(playerId);
+      if (oldController != null && !oldController.isClosed) {
+        await oldController.close();
       }
 
-      createMessageJson = jsonEncode(jsonMap);
+      // Create new StreamController for the new player ID
+      _eventControllers.putIfAbsent(
+        newPlayerId,
+        () => StreamController<VideoEvent>.broadcast(),
+      );
     }
 
-    final int result = _ffiApi.restore(playerId, createMessageJson, resumeTime);
-    if (result != 0) {
-      // FFI restore failed, but don't throw - just return
-      // The player may still be in a valid state
-      return;
-    }
+    return newPlayerId;
   }
 
   @override

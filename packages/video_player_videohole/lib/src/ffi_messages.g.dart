@@ -16,158 +16,29 @@ import 'package:flutter/foundation.dart'
     show ReadBuffer, WriteBuffer, debugPrint;
 import 'package:flutter/services.dart';
 
-// ===== Message Types =====
-
-class PlayerMessage {
-  PlayerMessage({required this.playerId});
-
-  int playerId;
-
-  Object encode() {
-    return <Object?>[playerId];
-  }
-
-  static PlayerMessage decode(Object result) {
-    result as List<Object?>;
-    return PlayerMessage(playerId: result[0]! as int);
-  }
-}
-
-class LoopingMessage {
-  LoopingMessage({required this.playerId, required this.isLooping});
-
-  int playerId;
-  bool isLooping;
-
-  Object encode() {
-    return <Object?>[playerId, isLooping];
-  }
-
-  static LoopingMessage decode(Object result) {
-    result as List<Object?>;
-    return LoopingMessage(
-      playerId: result[0]! as int,
-      isLooping: result[1]! as bool,
-    );
-  }
-}
-
-class VolumeMessage {
-  VolumeMessage({required this.playerId, required this.volume});
-
-  int playerId;
-  double volume;
-
-  Object encode() {
-    return <Object?>[playerId, volume];
-  }
-
-  static VolumeMessage decode(Object result) {
-    result as List<Object?>;
-    return VolumeMessage(
-      playerId: result[0]! as int,
-      volume: result[1]! as double,
-    );
-  }
-}
-
-class PlaybackSpeedMessage {
-  PlaybackSpeedMessage({required this.playerId, required this.speed});
-
-  int playerId;
-  double speed;
-
-  Object encode() {
-    return <Object?>[playerId, speed];
-  }
-
-  static PlaybackSpeedMessage decode(Object result) {
-    result as List<Object?>;
-    return PlaybackSpeedMessage(
-      playerId: result[0]! as int,
-      speed: result[1]! as double,
-    );
-  }
-}
-
 class TrackMessage {
   TrackMessage({required this.playerId, required this.tracks});
 
   int playerId;
   List<Map<Object?, Object?>?> tracks;
 
-  Object encode() {
-    return <Object?>[playerId, tracks];
+  /// Convert to JSON string for FFI call
+  String toJson() {
+    final Map<String, dynamic> jsonMap = <String, dynamic>{
+      'playerId': playerId,
+      'tracks': tracks,
+    };
+    return jsonEncode(jsonMap);
   }
 
-  static TrackMessage decode(Object result) {
-    result as List<Object?>;
+  /// Create from JSON string
+  static TrackMessage fromJson(String jsonString) {
+    final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
     return TrackMessage(
-      playerId: result[0]! as int,
-      tracks: (result[1] as List<Object?>?)!.cast<Map<Object?, Object?>?>(),
-    );
-  }
-}
-
-class TrackTypeMessage {
-  TrackTypeMessage({required this.playerId, required this.trackType});
-
-  int playerId;
-  String trackType;
-
-  Object encode() {
-    return <Object?>[playerId, trackType];
-  }
-
-  static TrackTypeMessage decode(Object result) {
-    result as List<Object?>;
-    return TrackTypeMessage(
-      playerId: result[0]! as int,
-      trackType: result[1]! as String,
-    );
-  }
-}
-
-class SelectedTracksMessage {
-  SelectedTracksMessage({
-    required this.playerId,
-    required this.trackId,
-    required this.trackType,
-  });
-
-  int playerId;
-  int trackId;
-  String trackType;
-
-  Object encode() {
-    return <Object?>[playerId, trackId, trackType];
-  }
-
-  static SelectedTracksMessage decode(Object result) {
-    result as List<Object?>;
-    return SelectedTracksMessage(
-      playerId: result[0]! as int,
-      trackId: result[1]! as int,
-      trackType: result[2]! as String,
-    );
-  }
-}
-
-class PositionMessage {
-  PositionMessage({required this.playerId, required this.position});
-
-  int playerId;
-  int position;
-
-  Object encode() {
-    return <Object?>[playerId, position];
-  }
-
-  static PositionMessage decode(Object result) {
-    result as List<Object?>;
-    return PositionMessage(
-      playerId: result[0]! as int,
-      position: result[1]! as int,
+      playerId: jsonMap['playerId'] as int,
+      tracks: (jsonMap['tracks'] as List<dynamic>)
+          .map((e) => (e as Map<String, dynamic>).cast<Object?, Object?>())
+          .toList(),
     );
   }
 }
@@ -191,77 +62,36 @@ class CreateMessage {
   Map<Object?, Object?>? drmConfigs;
   Map<Object?, Object?>? playerOptions;
 
-  Object encode() {
-    return <Object?>[
-      asset,
-      uri,
-      packageName,
-      formatHint,
-      httpHeaders,
-      drmConfigs,
-      playerOptions,
-    ];
+  /// Convert to JSON string for FFI call
+  String toJson() {
+    final Map<String, dynamic> jsonMap = <String, dynamic>{};
+    if (asset != null && asset!.isNotEmpty) jsonMap['asset'] = asset;
+    if (uri != null && uri!.isNotEmpty) jsonMap['uri'] = uri;
+    if (packageName != null && packageName!.isNotEmpty)
+      jsonMap['packageName'] = packageName;
+    if (formatHint != null && formatHint!.isNotEmpty)
+      jsonMap['formatHint'] = formatHint;
+    if (httpHeaders != null && httpHeaders!.isNotEmpty)
+      jsonMap['httpHeaders'] = httpHeaders;
+    if (drmConfigs != null && drmConfigs!.isNotEmpty)
+      jsonMap['drmConfigs'] = drmConfigs;
+    if (playerOptions != null && playerOptions!.isNotEmpty)
+      jsonMap['playerOptions'] = playerOptions;
+    return jsonEncode(jsonMap);
   }
 
-  static CreateMessage decode(Object result) {
-    result as List<Object?>;
+  /// Create from JSON string
+  static CreateMessage fromJson(String jsonString) {
+    final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
     return CreateMessage(
-      asset: result[0] as String?,
-      uri: result[1] as String?,
-      packageName: result[2] as String?,
-      formatHint: result[3] as String?,
-      httpHeaders:
-          (result[4] as Map<Object?, Object?>?)?.cast<Object?, Object?>(),
-      drmConfigs:
-          (result[5] as Map<Object?, Object?>?)?.cast<Object?, Object?>(),
+      asset: jsonMap['asset'] as String?,
+      uri: jsonMap['uri'] as String?,
+      packageName: jsonMap['packageName'] as String?,
+      formatHint: jsonMap['formatHint'] as String?,
+      httpHeaders: (jsonMap['httpHeaders'] as Map?)?.cast<Object?, Object?>(),
+      drmConfigs: (jsonMap['drmConfigs'] as Map?)?.cast<Object?, Object?>(),
       playerOptions:
-          (result[6] as Map<Object?, Object?>?)?.cast<Object?, Object?>(),
-    );
-  }
-}
-
-class MixWithOthersMessage {
-  MixWithOthersMessage({required this.mixWithOthers});
-
-  bool mixWithOthers;
-
-  Object encode() {
-    return <Object?>[mixWithOthers];
-  }
-
-  static MixWithOthersMessage decode(Object result) {
-    result as List<Object?>;
-    return MixWithOthersMessage(mixWithOthers: result[0]! as bool);
-  }
-}
-
-class GeometryMessage {
-  GeometryMessage({
-    required this.playerId,
-    required this.x,
-    required this.y,
-    required this.width,
-    required this.height,
-  });
-
-  int playerId;
-  int x;
-  int y;
-  int width;
-  int height;
-
-  Object encode() {
-    return <Object?>[playerId, x, y, width, height];
-  }
-
-  static GeometryMessage decode(Object result) {
-    result as List<Object?>;
-    return GeometryMessage(
-      playerId: result[0]! as int,
-      x: result[1]! as int,
-      y: result[2]! as int,
-      width: result[3]! as int,
-      height: result[4]! as int,
+          (jsonMap['playerOptions'] as Map?)?.cast<Object?, Object?>(),
     );
   }
 }
@@ -272,34 +102,24 @@ class DurationMessage {
   int playerId;
   List<int?>? durationRange;
 
-  Object encode() {
-    return <Object?>[playerId, durationRange];
+  /// Convert to JSON string for FFI call
+  String toJson() {
+    final Map<String, dynamic> jsonMap = <String, dynamic>{
+      'playerId': playerId,
+      if (durationRange != null) 'durationRange': durationRange,
+    };
+    return jsonEncode(jsonMap);
   }
 
-  static DurationMessage decode(Object result) {
-    result as List<Object?>;
+  /// Create from JSON string
+  /// C++ returns: {"playerId": <int>, "durationRange": [<start>, <end>]}
+  static DurationMessage fromJson(String jsonString) {
+    final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
     return DurationMessage(
-      playerId: result[0]! as int,
-      durationRange: (result[1] as List<Object?>?)?.cast<int?>(),
-    );
-  }
-}
-
-class RotationMessage {
-  RotationMessage({required this.playerId, required this.rotation});
-
-  int playerId;
-  int rotation;
-
-  Object encode() {
-    return <Object?>[playerId, rotation];
-  }
-
-  static RotationMessage decode(Object result) {
-    result as List<Object?>;
-    return RotationMessage(
-      playerId: result[0]! as int,
-      rotation: result[1]! as int,
+      playerId: jsonMap['playerId'] as int,
+      durationRange: (jsonMap['durationRange'] as List<dynamic>?)
+          ?.map((e) => (e as num).toInt())
+          .toList(),
     );
   }
 }
@@ -368,7 +188,7 @@ typedef _FFISetMixWithOthersDart = int Function(bool);
 typedef _FFISuspendNative = ffi.Int32 Function(ffi.Int64);
 typedef _FFISuspendDart = int Function(int);
 
-typedef _FFIRestoreNative = ffi.Int32 Function(
+typedef _FFIRestoreNative = ffi.Int64 Function(
     ffi.Int64, ffi.Pointer<ffi.Char>, ffi.Int64);
 typedef _FFIRestoreDart = int Function(int, ffi.Pointer<ffi.Char>, int);
 
@@ -530,387 +350,229 @@ class VideoPlayerFFIBindings {
   }
 
   bool get isLoaded => _lib != null;
-
-  /// FFI initialize function
-  int ffiInitialize() {
-    if (!isLoaded) {
-      throw StateError('FFI bindings not loaded. Call load() first.');
-    }
-    return _ffiInitialize();
-  }
-
-  /// FFI create function - takes a single JSON string for all parameters
-  int ffiCreate({
-    String? uri,
-    String? asset,
-    String? packageName,
-    String? formatHint,
-    Map<Object?, Object?>? httpHeaders,
-    Map<Object?, Object?>? drmConfigs,
-    Map<Object?, Object?>? playerOptions,
-  }) {
-    if (!isLoaded) {
-      throw StateError('FFI bindings not loaded. Call load() first.');
-    }
-
-    // Build JSON string from individual parameters
-    final Map<String, dynamic> jsonMap = <String, dynamic>{};
-    if (uri != null && uri.isNotEmpty) jsonMap['uri'] = uri;
-    if (asset != null && asset.isNotEmpty) jsonMap['asset'] = asset;
-    if (packageName != null && packageName.isNotEmpty)
-      jsonMap['packageName'] = packageName;
-    if (formatHint != null && formatHint.isNotEmpty)
-      jsonMap['formatHint'] = formatHint;
-    if (httpHeaders != null && httpHeaders.isNotEmpty)
-      jsonMap['httpHeaders'] = httpHeaders;
-    if (drmConfigs != null && drmConfigs.isNotEmpty)
-      jsonMap['drmConfigs'] = drmConfigs;
-    if (playerOptions != null && playerOptions.isNotEmpty)
-      jsonMap['playerOptions'] = playerOptions;
-
-    final String jsonString = jsonEncode(jsonMap);
-    final jsonPtr = _toPointer(jsonString);
-
-    try {
-      return _ffiCreate(jsonPtr);
-    } finally {
-      _freePointer(jsonPtr);
-    }
-  }
 }
 
 // ===== FFI API Class =====
 
-class VideoPlayerFFIApi {
+class VideoPlayerVideoholeFFIApi {
+  /// Initialize the FFI bindings
   int initialize() {
-    return ffiInitialize();
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
+    }
+    return bindings._ffiInitialize();
   }
 
-  int create({
-    String? uri,
-    String? asset,
-    String? packageName,
-    String? formatHint,
-    Map<Object?, Object?>? httpHeaders,
-    Map<Object?, Object?>? drmConfigs,
-    Map<Object?, Object?>? playerOptions,
-  }) {
-    return ffiCreate(
-      uri: uri,
-      asset: asset,
-      packageName: packageName,
-      formatHint: formatHint,
-      httpHeaders: httpHeaders,
-      drmConfigs: drmConfigs,
-      playerOptions: playerOptions,
-    );
+  /// Create using CreateMessage object
+  int create(CreateMessage message) {
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
+    }
+    final String jsonString = message.toJson();
+    final jsonPtr = _toPointer(jsonString);
+    try {
+      return bindings._ffiCreate(jsonPtr);
+    } finally {
+      _freePointer(jsonPtr);
+    }
+  }
+
+  /// Restore using CreateMessage object
+  int restore(int playerId, CreateMessage? message, int resumeTime) {
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
+    }
+    final String? jsonString = message?.toJson();
+    final createMessagePtr = _toPointer(jsonString);
+    try {
+      return bindings._ffiRestore(playerId, createMessagePtr, resumeTime);
+    } finally {
+      _freePointer(createMessagePtr);
+    }
   }
 
   int dispose(int playerId) {
-    return ffiDispose(playerId);
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
+    }
+    return bindings._ffiDispose(playerId);
   }
 
   int play(int playerId) {
-    return ffiPlay(playerId);
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
+    }
+    return bindings._ffiPlay(playerId);
   }
 
   int pause(int playerId) {
-    return ffiPause(playerId);
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
+    }
+    return bindings._ffiPause(playerId);
   }
 
   int seekTo(int playerId, int positionMs) {
-    return ffiSeekTo(playerId, positionMs);
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
+    }
+    return bindings._ffiSeekTo(playerId, positionMs);
   }
 
   int getPosition(int playerId) {
-    return ffiGetPosition(playerId);
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
+    }
+    return bindings._ffiGetPosition(playerId);
   }
 
   DurationMessage duration(int playerId) {
-    return ffiGetDuration(playerId);
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
+    }
+    final ptr = bindings._ffiGetDuration(playerId);
+    if (ptr == ffi.nullptr) {
+      throw Exception('FFI getDuration failed - returned null pointer');
+    }
+    try {
+      final bytes = ptr.cast<ffi.Uint8>();
+      int length = 0;
+      while (bytes[length] != 0) {
+        length++;
+      }
+      final jsonString = utf8.decode(bytes.asTypedList(length));
+      if (jsonString == '-1') {
+        throw Exception('FFI getDuration failed');
+      }
+      return DurationMessage.fromJson(jsonString);
+    } finally {
+      calloc.free(ptr);
+    }
   }
 
   int setVolume(int playerId, double volume) {
-    return ffiSetVolume(playerId, volume);
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
+    }
+    return bindings._ffiSetVolume(playerId, volume);
   }
 
   int setPlaybackSpeed(int playerId, double speed) {
-    return ffiSetPlaybackSpeed(playerId, speed);
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
+    }
+    return bindings._ffiSetPlaybackSpeed(playerId, speed);
   }
 
   int setLooping(int playerId, bool isLooping) {
-    return ffiSetLooping(playerId, isLooping);
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
+    }
+    return bindings._ffiSetLooping(playerId, isLooping);
   }
 
   int setDisplayGeometry(int playerId, int x, int y, int width, int height) {
-    return ffiSetDisplayGeometry(playerId, x, y, width, height);
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
+    }
+    return bindings._ffiSetDisplayGeometry(playerId, x, y, width, height);
   }
 
   int setDisplayRotate(int playerId, int rotation) {
-    return ffiSetDisplayRotate(playerId, rotation);
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
+    }
+    return bindings._ffiSetDisplayRotate(playerId, rotation);
   }
 
   int suspend(int playerId) {
-    return ffiSuspend(playerId);
-  }
-
-  int restore(int playerId, String? createMessageJson, int resumeTime) {
-    return ffiRestore(playerId, createMessageJson, resumeTime);
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
+    }
+    return bindings._ffiSuspend(playerId);
   }
 
   int setActivate(int playerId) {
-    return ffiSetActivate(playerId);
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
+    }
+    return bindings._ffiSetActivate(playerId);
   }
 
   int setDeactivate(int playerId) {
-    return ffiSetDeactivate(playerId);
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
+    }
+    return bindings._ffiSetDeactivate(playerId);
   }
 
-  String getTrackInfo(int playerId, String trackType) {
-    return ffiGetTrackInfo(playerId, trackType);
+  TrackMessage getTrackInfo(int playerId, String trackType) {
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
+    }
+    final trackTypePtr = _toPointer(trackType);
+    ffi.Pointer<ffi.Char>? ptr;
+    try {
+      ptr = bindings._ffiGetTrackInfo(playerId, trackTypePtr);
+      if (ptr == ffi.nullptr) {
+        throw Exception('FFI getTrackInfo failed - returned null pointer');
+      }
+      final bytes = ptr.cast<ffi.Uint8>();
+      int length = 0;
+      while (bytes[length] != 0) {
+        length++;
+      }
+      final jsonString = utf8.decode(bytes.asTypedList(length));
+      if (jsonString == '-1') {
+        throw Exception('FFI getTrackInfo failed');
+      }
+      return TrackMessage.fromJson(jsonString);
+    } finally {
+      if (ptr != null) {
+        calloc.free(ptr.cast());
+      }
+      _freePointer(trackTypePtr);
+    }
   }
 
   int setTrackSelection(int playerId, int trackId, String trackType) {
-    return ffiSetTrackSelection(playerId, trackId, trackType);
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
+    }
+    final trackTypePtr = _toPointer(trackType);
+    try {
+      return bindings._ffiSetTrackSelection(playerId, trackId, trackTypePtr);
+    } finally {
+      _freePointer(trackTypePtr);
+    }
   }
 
   int setMixWithOthers(bool mixWithOthers) {
-    return ffiSetMixWithOthers(mixWithOthers);
-  }
-}
-
-// ===== Top-level FFI Functions =====
-
-int ffiInitialize() {
-  final bindings = VideoPlayerFFIBindings.instance;
-  if (!bindings.isLoaded) {
-    bindings.load();
-  }
-  return bindings.ffiInitialize();
-}
-
-int ffiCreate({
-  String? uri,
-  String? asset,
-  String? packageName,
-  String? formatHint,
-  Map<Object?, Object?>? httpHeaders,
-  Map<Object?, Object?>? drmConfigs,
-  Map<Object?, Object?>? playerOptions,
-}) {
-  final bindings = VideoPlayerFFIBindings.instance;
-  if (!bindings.isLoaded) {
-    bindings.load();
-  }
-  return bindings.ffiCreate(
-    uri: uri,
-    asset: asset,
-    packageName: packageName,
-    formatHint: formatHint,
-    httpHeaders: httpHeaders,
-    drmConfigs: drmConfigs,
-    playerOptions: playerOptions,
-  );
-}
-
-int ffiDispose(int playerId) {
-  final bindings = VideoPlayerFFIBindings.instance;
-  if (!bindings.isLoaded) {
-    bindings.load();
-  }
-  return bindings._ffiDispose(playerId);
-}
-
-int ffiPlay(int playerId) {
-  final bindings = VideoPlayerFFIBindings.instance;
-  if (!bindings.isLoaded) {
-    bindings.load();
-  }
-  return bindings._ffiPlay(playerId);
-}
-
-int ffiPause(int playerId) {
-  final bindings = VideoPlayerFFIBindings.instance;
-  if (!bindings.isLoaded) {
-    bindings.load();
-  }
-  return bindings._ffiPause(playerId);
-}
-
-int ffiSeekTo(int playerId, int positionMs) {
-  final bindings = VideoPlayerFFIBindings.instance;
-  if (!bindings.isLoaded) {
-    bindings.load();
-  }
-  return bindings._ffiSeekTo(playerId, positionMs);
-}
-
-int ffiGetPosition(int playerId) {
-  final bindings = VideoPlayerFFIBindings.instance;
-  if (!bindings.isLoaded) {
-    bindings.load();
-  }
-  return bindings._ffiGetPosition(playerId);
-}
-
-DurationMessage ffiGetDuration(int playerId) {
-  final bindings = VideoPlayerFFIBindings.instance;
-  if (!bindings.isLoaded) {
-    bindings.load();
-  }
-  final ptr = bindings._ffiGetDuration(playerId);
-  if (ptr == ffi.nullptr) {
-    throw Exception('FFI getDuration failed - returned null pointer');
-  }
-  try {
-    final bytes = ptr.cast<ffi.Uint8>();
-    int length = 0;
-    while (bytes[length] != 0) {
-      length++;
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
     }
-    final jsonString = utf8.decode(bytes.asTypedList(length));
-    if (jsonString == '-1') {
-      throw Exception('FFI getDuration failed');
-    }
-    final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
-    return DurationMessage(
-      playerId: playerId,
-      durationRange: [
-        jsonMap['start'] as int,
-        jsonMap['end'] as int,
-      ],
-    );
-  } finally {
-    calloc.free(ptr);
+    return bindings._ffiSetMixWithOthers(mixWithOthers);
   }
-}
-
-int ffiSetVolume(int playerId, double volume) {
-  final bindings = VideoPlayerFFIBindings.instance;
-  if (!bindings.isLoaded) {
-    bindings.load();
-  }
-  return bindings._ffiSetVolume(playerId, volume);
-}
-
-int ffiSetPlaybackSpeed(int playerId, double speed) {
-  final bindings = VideoPlayerFFIBindings.instance;
-  if (!bindings.isLoaded) {
-    bindings.load();
-  }
-  return bindings._ffiSetPlaybackSpeed(playerId, speed);
-}
-
-int ffiSetLooping(int playerId, bool isLooping) {
-  final bindings = VideoPlayerFFIBindings.instance;
-  if (!bindings.isLoaded) {
-    bindings.load();
-  }
-  return bindings._ffiSetLooping(playerId, isLooping);
-}
-
-int ffiSetDisplayGeometry(int playerId, int x, int y, int width, int height) {
-  final bindings = VideoPlayerFFIBindings.instance;
-  if (!bindings.isLoaded) {
-    bindings.load();
-  }
-  return bindings._ffiSetDisplayGeometry(playerId, x, y, width, height);
-}
-
-int ffiSetDisplayRotate(int playerId, int rotation) {
-  final bindings = VideoPlayerFFIBindings.instance;
-  if (!bindings.isLoaded) {
-    bindings.load();
-  }
-  return bindings._ffiSetDisplayRotate(playerId, rotation);
-}
-
-int ffiSuspend(int playerId) {
-  final bindings = VideoPlayerFFIBindings.instance;
-  if (!bindings.isLoaded) {
-    bindings.load();
-  }
-  return bindings._ffiSuspend(playerId);
-}
-
-int ffiRestore(int playerId, String? createMessageJson, int resumeTime) {
-  final bindings = VideoPlayerFFIBindings.instance;
-  if (!bindings.isLoaded) {
-    bindings.load();
-  }
-  final createMessagePtr = _toPointer(createMessageJson);
-  try {
-    return bindings._ffiRestore(playerId, createMessagePtr, resumeTime);
-  } finally {
-    _freePointer(createMessagePtr);
-  }
-}
-
-int ffiSetActivate(int playerId) {
-  final bindings = VideoPlayerFFIBindings.instance;
-  if (!bindings.isLoaded) {
-    bindings.load();
-  }
-  return bindings._ffiSetActivate(playerId);
-}
-
-int ffiSetDeactivate(int playerId) {
-  final bindings = VideoPlayerFFIBindings.instance;
-  if (!bindings.isLoaded) {
-    bindings.load();
-  }
-  return bindings._ffiSetDeactivate(playerId);
-}
-
-String ffiGetTrackInfo(int playerId, String trackType) {
-  final bindings = VideoPlayerFFIBindings.instance;
-  if (!bindings.isLoaded) {
-    bindings.load();
-  }
-  final trackTypePtr = _toPointer(trackType);
-  ffi.Pointer<ffi.Char>? ptr;
-  try {
-    ptr = bindings._ffiGetTrackInfo(playerId, trackTypePtr);
-    if (ptr == ffi.nullptr) {
-      throw Exception('FFI getTrackInfo failed - returned null pointer');
-    }
-    final bytes = ptr.cast<ffi.Uint8>();
-    int length = 0;
-    while (bytes[length] != 0) {
-      length++;
-    }
-    final jsonString = utf8.decode(bytes.asTypedList(length));
-    if (jsonString == '-1') {
-      throw Exception('FFI getTrackInfo failed');
-    }
-    return jsonString;
-  } finally {
-    if (ptr != null) {
-      calloc.free(ptr.cast());
-    }
-    _freePointer(trackTypePtr);
-  }
-}
-
-int ffiSetTrackSelection(int playerId, int trackId, String trackType) {
-  final bindings = VideoPlayerFFIBindings.instance;
-  if (!bindings.isLoaded) {
-    bindings.load();
-  }
-  final trackTypePtr = _toPointer(trackType);
-  try {
-    return bindings._ffiSetTrackSelection(playerId, trackId, trackTypePtr);
-  } finally {
-    _freePointer(trackTypePtr);
-  }
-}
-
-int ffiSetMixWithOthers(bool mixWithOthers) {
-  final bindings = VideoPlayerFFIBindings.instance;
-  if (!bindings.isLoaded) {
-    bindings.load();
-  }
-  return bindings._ffiSetMixWithOthers(mixWithOthers);
 }
 
 // ===== FFI Event Port Section - Using Dart_PostCObject_DL =====

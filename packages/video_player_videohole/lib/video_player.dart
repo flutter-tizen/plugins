@@ -371,6 +371,10 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   RestoreDataSourceCallback? _onRestoreDataSource;
   RestoreTimeCallback? _onRestoreTime;
 
+  // Store event and error listeners for re-subscription during restore
+  void Function(VideoEvent)? _eventListener;
+  void Function(Object)? _errorListener;
+
   /// The id of a player that hasn't been initialized.
   @visibleForTesting
   static const int kUninitializedPlayerId = -1;
@@ -435,7 +439,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     _creatingCompleter!.complete(null);
     final Completer<void> initializingCompleter = Completer<void>();
 
-    void eventListener(VideoEvent event) {
+    _eventListener = (VideoEvent event) {
       if (_isDisposed) {
         return;
       }
@@ -509,7 +513,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         case VideoEventType.unknown:
           break;
       }
-    }
+    };
 
     if (closedCaptionFile != null) {
       _closedCaptionFile ??= await closedCaptionFile;
@@ -529,7 +533,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       });
     }
 
-    void errorListener(Object obj) {
+    _errorListener = (Object obj) {
       final PlatformException e = obj as PlatformException;
       value = VideoPlayerValue.erroneous(e.message!);
       if (!initializingCompleter.isCompleted) {
@@ -540,11 +544,11 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       if (!initializingCompleter.isCompleted) {
         initializingCompleter.completeError(obj);
       }
-    }
+    };
 
     _eventSubscription = _videoPlayerPlatform
         .videoEventsFor(_playerId)
-        .listen(eventListener, onError: errorListener);
+        .listen(_eventListener!, onError: _errorListener);
     return initializingCompleter.future;
   }
 
@@ -630,7 +634,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     return Timer.periodic(const Duration(milliseconds: 500), (
       Timer timer,
     ) async {
-      if (_isDisposed) {
+      if (_isDisposed || _isDisposedOrNotInitialized) {
         return;
       }
       final Duration? newPosition = await position;
@@ -913,11 +917,23 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         (_onRestoreDataSource != null) ? _onRestoreDataSource!() : null;
     final int resumeTime = (_onRestoreTime != null) ? _onRestoreTime!() : -1;
 
-    await _videoPlayerPlatform.restore(
+    // Restore returns the new player ID (may be same or different)
+    final int newPlayerId = await _videoPlayerPlatform.restore(
       _playerId,
       dataSource: dataSource,
       resumeTime: resumeTime,
     );
+
+    // Update playerId if it changed during restore
+    if (newPlayerId != _playerId && newPlayerId > 0) {
+      _playerId = newPlayerId;
+
+      // Re-subscribe to event stream with the new player ID
+      await _eventSubscription?.cancel();
+      _eventSubscription = _videoPlayerPlatform
+          .videoEventsFor(_playerId)
+          .listen(_eventListener, onError: _errorListener);
+    }
   }
 
   /// Set the rotate angle of display

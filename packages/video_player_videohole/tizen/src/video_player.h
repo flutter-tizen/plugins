@@ -78,8 +78,9 @@ class VideoPlayer {
   virtual flutter::EncodableList GetTrackInfo(std::string track_type) = 0;
   virtual bool SetTrackSelection(int32_t track_id, std::string track_type) = 0;
   virtual bool Suspend() = 0;
-  virtual bool Restore(const CreateMessage *restore_message,
-                       int64_t resume_time) = 0;
+  // Restore player and return new player ID (may be same or different)
+  virtual int64_t Restore(const CreateMessage *restore_message,
+                          int64_t resume_time) = 0;
   virtual bool SetDisplayRotate(int64_t rotation) = 0;
 
  protected:
@@ -95,6 +96,9 @@ class VideoPlayer {
   void SendRestored();
   void SendError(const std::string &error_code,
                  const std::string &error_message);
+
+  // Reset event dispatch state for restored player
+  void ResetEventDispatchState();
 
   int64_t player_id_;  // Store player ID for FFI event callback
   std::mutex queue_mutex_;

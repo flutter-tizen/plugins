@@ -43,8 +43,8 @@ class MediaPlayer : public VideoPlayer {
   flutter::EncodableList GetTrackInfo(std::string track_type) override;
   bool SetTrackSelection(int32_t track_id, std::string track_type) override;
   bool Suspend() override;
-  bool Restore(const CreateMessage *restore_message,
-               int64_t resume_time) override;
+  int64_t Restore(const CreateMessage *restore_message,
+                  int64_t resume_time) override;
   bool SetDisplayRotate(int64_t rotation) override;
 
  private:
@@ -54,7 +54,8 @@ class MediaPlayer : public VideoPlayer {
   bool SetDrm(const std::string &uri, int drm_type,
               const std::string &license_server_url);
   bool StopAndDestroy();
-  bool RestorePlayer(const CreateMessage *restore_message, int64_t resume_time);
+  int64_t RestorePlayer(const CreateMessage *restore_message,
+                        int64_t resume_time);
   void OnRestoreCompleted();
 
   static void OnPrepared(void *user_data);

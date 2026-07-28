@@ -41,12 +41,6 @@ void PostEventToDart(int64_t player_id, const std::string& event_json) {
     return;
   }
 
-  LOG_INFO(
-      "[VideoPlayer] Posting event to Dart: player_id=%lld, event=%s, "
-      "port=%lld",
-      static_cast<long long>(player_id), event_json.c_str(),
-      static_cast<long long>(g_dart_port));
-
   // Message format: [player_id, event_json]
   // This matches what Dart side expects
   Dart_CObject player_id_obj;
@@ -70,10 +64,7 @@ void PostEventToDart(int64_t player_id, const std::string& event_json) {
   message.value.as_array.length = 2;
   message.value.as_array.values = array_elements;
 
-  LOG_INFO("[VideoPlayer] Calling Dart_PostCObject_DL...");
-
   bool result = Dart_PostCObject_DL(g_dart_port, &message);
-  LOG_INFO("[VideoPlayer] Dart_PostCObject_DL result: %d", result ? 1 : 0);
 
   if (!result) {
     LOG_ERROR("[VideoPlayer] Failed to post event to Dart. Freeing json_copy.");
@@ -219,6 +210,17 @@ VideoPlayer::~VideoPlayer() {
   main_context_.reset();
 }
 
+void VideoPlayer::ResetEventDispatchState() {
+  if (event_dispatch_state_) {
+    std::lock_guard<std::mutex> lock(event_dispatch_state_->mutex);
+    event_dispatch_state_->disposed = false;
+    event_dispatch_state_->player = this;
+    event_dispatch_state_->pending_source_id = 0;
+    LOG_INFO("[VideoPlayer] ResetEventDispatchState: player=%p, this=%p",
+             event_dispatch_state_->player, this);
+  }
+}
+
 void VideoPlayer::ExecuteSinkEvents() {
   std::lock_guard<std::mutex> lock(queue_mutex_);
   while (!encodable_event_queue_.empty()) {
@@ -258,6 +260,8 @@ void VideoPlayer::ScheduleSendPendingEvents() {
   auto* state = new std::shared_ptr<EventDispatchState>(event_dispatch_state_);
 
   GSource* source = g_idle_source_new();
+
+  // CRITICAL: Set callback BEFORE attaching to main context!
   g_source_set_callback(
       source,
       [](gpointer data) -> gboolean {

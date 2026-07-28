@@ -413,9 +413,10 @@ const char* ffi_get_duration(int64_t player_id) {
   }
 
   auto duration_pair = player->GetDuration();
-  std::string duration_json =
-      "{\"start\":" + std::to_string(duration_pair.first) +
-      ",\"end\":" + std::to_string(duration_pair.second) + "}";
+  std::string duration_json = "{\"playerId\":" + std::to_string(player_id) +
+                              ",\"durationRange\":[" +
+                              std::to_string(duration_pair.first) + "," +
+                              std::to_string(duration_pair.second) + "]}";
   return strdup(duration_json.c_str());
 }
 
@@ -524,8 +525,8 @@ int ffi_suspend(int64_t player_id) {
   return player->Suspend() ? 0 : -1;
 }
 
-int ffi_restore(int64_t player_id, const char* create_message_json,
-                int64_t resume_time) {
+int64_t ffi_restore(int64_t player_id, const char* create_message_json,
+                    int64_t resume_time) {
   auto player = GetPlayer(player_id);
   if (!player) {
     return -1;
@@ -536,7 +537,17 @@ int ffi_restore(int64_t player_id, const char* create_message_json,
     msg = ParseCreateMessage(std::string(create_message_json));
   }
 
-  return player->Restore(&msg, resume_time) ? 0 : -1;
+  // Restore returns the new player ID (may be same or different)
+  int64_t new_player_id = player->Restore(&msg, resume_time);
+
+  // Update g_players map if player ID changed
+  if (new_player_id > 0 && new_player_id != player_id) {
+    std::unique_lock<std::shared_mutex> lock(g_players_mutex);
+    g_players.erase(player_id);
+    g_players[new_player_id] = player;
+  }
+
+  return new_player_id;
 }
 
 int ffi_set_activate(int64_t player_id) {
