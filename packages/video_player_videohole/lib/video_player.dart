@@ -548,7 +548,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
     _eventSubscription = _videoPlayerPlatform
         .videoEventsFor(_playerId)
-        .listen(_eventListener!, onError: _errorListener);
+        .listen(_eventListener, onError: _errorListener);
     return initializingCompleter.future;
   }
 

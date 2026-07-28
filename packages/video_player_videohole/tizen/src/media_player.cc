@@ -882,11 +882,6 @@ bool MediaPlayer::SetDisplayRotate(int64_t rotation) {
 }
 
 void MediaPlayer::OnRestoreCompleted() {
-  LOG_INFO(
-      "[MediaPlayer] OnRestoreCompleted called. pre_state_=%d, "
-      "pre_playing_time_=%llu",
-      pre_state_, pre_playing_time_);
-
   if (pre_playing_time_ <= 0 || !SeekTo(pre_playing_time_, [this]() {
         if (pre_state_ == PLAYER_STATE_PLAYING) {
           LOG_INFO("[MediaPlayer] Restoring to PLAYING state after seek.");
