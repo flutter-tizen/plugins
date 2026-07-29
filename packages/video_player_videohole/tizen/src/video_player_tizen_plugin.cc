@@ -299,8 +299,6 @@ void VideoPlayerTizenPluginRegisterWithRegistrar(
 #include <string.h>
 
 using video_player_videohole_tizen::CreateMessage;
-using video_player_videohole_tizen::g_dart_port;
-using video_player_videohole_tizen::g_dart_port_mutex;
 using video_player_videohole_tizen::g_options;
 using video_player_videohole_tizen::g_players;
 using video_player_videohole_tizen::g_players_mutex;
@@ -309,6 +307,8 @@ using video_player_videohole_tizen::g_registrar_ref;
 using video_player_videohole_tizen::GetPlayer;
 using video_player_videohole_tizen::ParseCreateMessage;
 using video_player_videohole_tizen::VideoPlayer;
+using video_player_videohole_tizen::RegisterPlayerEventPort;
+using video_player_videohole_tizen::UnregisterPlayerEventPort;
 
 extern "C" {
 
@@ -525,8 +525,8 @@ int ffi_suspend(int64_t player_id) {
   return player->Suspend() ? 0 : -1;
 }
 
-int64_t ffi_restore(int64_t player_id, const char* create_message_json,
-                    int64_t resume_time) {
+int ffi_restore(int64_t player_id, const char* create_message_json,
+                int64_t resume_time) {
   auto player = GetPlayer(player_id);
   if (!player) {
     return -1;
@@ -537,17 +537,10 @@ int64_t ffi_restore(int64_t player_id, const char* create_message_json,
     msg = ParseCreateMessage(std::string(create_message_json));
   }
 
-  // Restore returns the new player ID (may be same or different)
-  int64_t new_player_id = player->Restore(&msg, resume_time);
-
-  // Update g_players map if player ID changed
-  if (new_player_id > 0 && new_player_id != player_id) {
-    std::unique_lock<std::shared_mutex> lock(g_players_mutex);
-    g_players.erase(player_id);
-    g_players[new_player_id] = player;
-  }
-
-  return new_player_id;
+  // Restore returns true on success, false on failure
+  // Player ID remains unchanged
+  bool success = player->Restore(&msg, resume_time);
+  return success ? 0 : -1;
 }
 
 int ffi_set_activate(int64_t player_id) {
@@ -566,13 +559,21 @@ int ffi_set_deactivate(int64_t player_id) {
   return player->Deactivate() ? 0 : -1;
 }
 
+int ffi_is_live(int64_t player_id) {
+  auto player = GetPlayer(player_id);
+  if (!player) {
+    return -1;
+  }
+  // MediaPlayer::IsLive() returns bool, cast to int for FFI
+  return player->IsLive() ? 1 : 0;
+}
+
 int ffi_set_mix_with_others(bool mix_with_others) {
   g_options.SetMixWithOthers(mix_with_others);
   return 0;
 }
 
 // FFI event port functions
-// Note: g_dart_port and g_dart_port_mutex are declared in video_player.h
 static bool g_dart_api_dl_initialized = false;
 
 int ffi_initialize_api_dl(void* data) {
@@ -586,14 +587,36 @@ int ffi_initialize_api_dl(void* data) {
   return 0;
 }
 
+// Legacy global event port registration - kept for compatibility
+// New code should use ffi_register_player_event_port instead
+static int64_t g_legacy_dart_port = -1;
+static std::mutex g_legacy_dart_port_mutex;
+
 void ffi_register_event_port(int64_t port) {
-  std::lock_guard<std::mutex> lock(g_dart_port_mutex);
-  g_dart_port = port;
+  std::lock_guard<std::mutex> lock(g_legacy_dart_port_mutex);
+  g_legacy_dart_port = port;
 }
 
 void ffi_unregister_event_port() {
-  std::lock_guard<std::mutex> lock(g_dart_port_mutex);
-  g_dart_port = 0;
+  std::lock_guard<std::mutex> lock(g_legacy_dart_port_mutex);
+  g_legacy_dart_port = -1;
+}
+
+// P0-1 fix: FFI string memory management
+// Provides matching free for strdup() allocated strings returned by FFI functions
+void ffi_free_string(char* ptr) {
+  if (ptr != nullptr) {
+    free(ptr);
+  }
+}
+
+// P0-2 fix: Per-player event port registration
+void ffi_register_player_event_port(int64_t player_id, int64_t port) {
+  RegisterPlayerEventPort(player_id, port);
+}
+
+void ffi_unregister_player_event_port(int64_t player_id) {
+  UnregisterPlayerEventPort(player_id);
 }
 
 }  // extern "C"

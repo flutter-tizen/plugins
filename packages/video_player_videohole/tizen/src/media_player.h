@@ -24,8 +24,8 @@ class MediaPlayer : public VideoPlayer {
                        FlutterDesktopViewRef flutter_view);
   ~MediaPlayer();
 
-  int64_t Create(const std::string &uri,
-                 const CreateMessage &create_message) override;
+  int64_t Create(const std::string &uri, const CreateMessage &create_message,
+                 bool reuse_existing_id = false) override;
   void Dispose() override;
 
   void SetDisplayRoi(int32_t x, int32_t y, int32_t width,
@@ -43,8 +43,8 @@ class MediaPlayer : public VideoPlayer {
   flutter::EncodableList GetTrackInfo(std::string track_type) override;
   bool SetTrackSelection(int32_t track_id, std::string track_type) override;
   bool Suspend() override;
-  int64_t Restore(const CreateMessage *restore_message,
-                  int64_t resume_time) override;
+  bool Restore(const CreateMessage *restore_message,
+               int64_t resume_time) override;
   bool SetDisplayRotate(int64_t rotation) override;
 
  private:
@@ -54,8 +54,7 @@ class MediaPlayer : public VideoPlayer {
   bool SetDrm(const std::string &uri, int drm_type,
               const std::string &license_server_url);
   bool StopAndDestroy();
-  int64_t RestorePlayer(const CreateMessage *restore_message,
-                        int64_t resume_time);
+  bool RestorePlayer(const CreateMessage *restore_message, int64_t resume_time);
   void OnRestoreCompleted();
 
   static void OnPrepared(void *user_data);

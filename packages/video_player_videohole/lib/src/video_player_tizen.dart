@@ -31,6 +31,9 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<void> dispose(int playerId) async {
+    // P0-2 fix: Unregister per-player event port before disposing
+    _ffiApi.unregisterPlayerEventPort(playerId);
+
     // Close the StreamController for this player
     final StreamController<VideoEvent>? controller =
         _eventControllers.remove(playerId);
@@ -76,6 +79,12 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     if (playerId < 0) {
       throw Exception('FFI create failed with code: $playerId');
     }
+
+    // P0-2 fix: Register per-player event port after successful creation
+    _ffiApi.registerPlayerEventPort(playerId, _eventPort!.nativePort);
+    debugPrint(
+        'Registered player $playerId with port ${_eventPort!.nativePort}');
+
     return playerId;
   }
 
@@ -400,7 +409,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   }
 
   @override
-  Future<int> restore(
+  Future<void> restore(
     int playerId, {
     DataSource? dataSource,
     int resumeTime = -1,
@@ -427,26 +436,13 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       }
     }
 
-    // Restore returns the new player ID (may be same or different)
-    final int newPlayerId = _ffiApi.restore(playerId, message, resumeTime);
-
-    // If player ID changed, update the StreamController
-    if (newPlayerId != playerId && newPlayerId > 0) {
-      // Close old StreamController
-      final StreamController<VideoEvent>? oldController =
-          _eventControllers.remove(playerId);
-      if (oldController != null && !oldController.isClosed) {
-        await oldController.close();
-      }
-
-      // Create new StreamController for the new player ID
-      _eventControllers.putIfAbsent(
-        newPlayerId,
-        () => StreamController<VideoEvent>.broadcast(),
-      );
+    // P0-3 fix: restore returns void, player ID remains unchanged
+    // FFI restore returns 0 on success, -1 on failure
+    final int result = _ffiApi.restore(playerId, message, resumeTime);
+    if (result != 0) {
+      throw Exception('FFI restore failed with code: $result');
     }
-
-    return newPlayerId;
+    // Player ID remains unchanged, no StreamController update needed
   }
 
   @override
@@ -457,6 +453,12 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       throw Exception('FFI setDisplayRotate failed with code: $result');
     }
     return true;
+  }
+
+  @override
+  Future<bool> isLive(int playerId) async {
+    // Use FFI for isLive (synchronous call)
+    return _ffiApi.isLive(playerId);
   }
 
   static const Map<VideoFormat, String> _videoFormatStringMap =

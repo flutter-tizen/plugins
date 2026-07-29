@@ -71,15 +71,26 @@ MediaPlayer::~MediaPlayer() {
 static int64_t player_id_counter = 1;
 
 int64_t MediaPlayer::Create(const std::string &uri,
-                            const CreateMessage &create_message) {
-  LOG_INFO("[MediaPlayer] uri: %s.", uri.c_str());
+                            const CreateMessage &create_message,
+                            bool reuse_existing_id) {
+  LOG_INFO("[MediaPlayer] Create: uri=%s, reuse_existing_id=%d", uri.c_str(),
+           reuse_existing_id ? 1 : 0);
 
   if (uri.empty()) {
     LOG_ERROR("[MediaPlayer] The uri must not be empty.");
     return -1;
   }
 
-  player_id_ = player_id_counter++;
+  // Only allocate new ID if not reusing or if this is the first creation
+  if (!reuse_existing_id || player_id_ <= 0) {
+    player_id_ = player_id_counter++;
+    LOG_INFO("[MediaPlayer] Allocated new player_id=%lld",
+             static_cast<long long>(player_id_));
+  } else {
+    LOG_INFO("[MediaPlayer] Reusing existing player_id=%lld",
+             static_cast<long long>(player_id_));
+  }
+
   url_ = uri;
   create_message_ = create_message;
 
@@ -190,8 +201,30 @@ int64_t MediaPlayer::Create(const std::string &uri,
 }
 
 void MediaPlayer::Dispose() {
-  LOG_INFO("[MediaPlayer] Disposing.");
-  // EventChannel has been removed, no cleanup needed
+  if (!player_) {
+    return;
+  }
+
+  // Unset all callbacks BEFORE stopping/destroying player
+  // This prevents callbacks from firing during disposal
+  player_unset_buffering_cb(player_);
+  player_unset_completed_cb(player_);
+  player_unset_interrupted_cb(player_);
+  player_unset_error_cb(player_);
+  player_unset_subtitle_updated_cb(player_);
+
+  // Stop and destroy player
+  player_stop(player_);
+  player_unprepare(player_);
+  player_destroy(player_);
+  player_ = nullptr;
+
+  // Release DRM
+  if (drm_manager_) {
+    drm_manager_->StopDrmSession();
+    drm_manager_->ReleaseDrmSession();
+    drm_manager_.reset();
+  }
 }
 
 void MediaPlayer::SetDisplayRoi(int32_t x, int32_t y, int32_t width,
@@ -225,6 +258,7 @@ bool MediaPlayer::Play() {
     LOG_INFO("[MediaPlayer] Player already playing.");
     return false;
   }
+
   ret = player_start(player_);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[MediaPlayer] player_start failed: %s.", get_error_message(ret));
@@ -328,18 +362,18 @@ int64_t MediaPlayer::GetPosition() {
 }
 
 std::pair<int64_t, int64_t> MediaPlayer::GetDuration() {
-  if (IsLive()) {
-    return GetLiveDuration();
-  } else {
-    int duration = 0;
-    int ret = player_get_duration(player_, &duration);
-    if (ret != PLAYER_ERROR_NONE) {
-      LOG_ERROR("[MediaPlayer] player_get_duration failed: %s.",
-                get_error_message(ret));
-    }
-    LOG_INFO("[MediaPlayer] Video duration: %d.", duration);
-    return std::make_pair(0, duration);
+  // if (IsLive()) {
+  //   return GetLiveDuration();
+  // } else {
+  int duration = 0;
+  int ret = player_get_duration(player_, &duration);
+  if (ret != PLAYER_ERROR_NONE) {
+    LOG_ERROR("[MediaPlayer] player_get_duration failed: %s.",
+              get_error_message(ret));
   }
+  LOG_INFO("[MediaPlayer] Video duration: %d.", duration);
+  return std::make_pair(0, duration);
+  //}
 }
 
 void MediaPlayer::GetVideoSize(int32_t *width, int32_t *height) {
@@ -734,15 +768,15 @@ bool MediaPlayer::Suspend() {
       "[MediaPlayer] Saved current player state: %d, playing time: %llu ms",
       pre_state_, pre_playing_time_);
 
-  if (IsLive()) {
-    pre_playing_time_ = 0;
-    if (!StopAndDestroy()) {
-      LOG_ERROR("[MediaPlayer] Player is live, StopAndDestroy fail.");
-      return false;
-    }
-    LOG_INFO("[MediaPlayer] Player is live: close done successfully.");
-    return true;
-  }
+  // if (IsLive()) {
+  //   pre_playing_time_ = 0;
+  //   if (!StopAndDestroy()) {
+  //     LOG_ERROR("[MediaPlayer] Player is live, StopAndDestroy fail.");
+  //     return false;
+  //   }
+  //   LOG_INFO("[MediaPlayer] Player is live: close done successfully.");
+  //   return true;
+  // }
 
   res = device_proxy_->device_power_get_state();
   if (res == POWER_STATE_STANDBY) {
@@ -780,20 +814,17 @@ bool MediaPlayer::Suspend() {
   return true;
 }
 
-int64_t MediaPlayer::Restore(const CreateMessage *restore_message,
-                             int64_t resume_time) {
-  LOG_INFO("[MediaPlayer] Restore is called.");
+bool MediaPlayer::Restore(const CreateMessage *restore_message,
+                          int64_t resume_time) {
+  LOG_INFO("[MediaPlayer] Restore is called for player_id=%lld",
+           static_cast<long long>(player_id_));
 
   player_state_e player_state = PLAYER_STATE_NONE;
-  if (player_) {
-    int ret = player_get_state(player_, &player_state);
-    if (ret != PLAYER_ERROR_NONE || (player_state != PLAYER_STATE_PAUSED &&
-                                     player_state != PLAYER_STATE_PLAYING)) {
-      LOG_ERROR(
-          "[MediaPlayer] Player get state failed or in invalid state[%d].",
-          player_state);
-      return -1;
-    }
+  int ret = player_get_state(player_, &player_state);
+  if (ret != PLAYER_ERROR_NONE) {
+    LOG_ERROR("[MediaPlayer] Player get state failed: %s",
+              get_error_message(ret));
+    return false;
   }
 
   if (restore_message->uri()) {
@@ -809,35 +840,39 @@ int64_t MediaPlayer::Restore(const CreateMessage *restore_message,
 
   switch (player_state) {
     case PLAYER_STATE_NONE:
+    case PLAYER_STATE_IDLE:
       return RestorePlayer(restore_message, resume_time);
-      break;
+
+    case PLAYER_STATE_READY:
+      return RestorePlayer(restore_message, resume_time);
+
     case PLAYER_STATE_PAUSED:
       if (pre_state_ == PLAYER_STATE_PLAYING) {
         return RestorePlayer(restore_message, resume_time);
       }
       break;
+
     case PLAYER_STATE_PLAYING:
-      // might be the case that widget has called
-      // restore more than once, just ignore.
+      // Already playing, nothing to do
       break;
+
     default:
-      LOG_ERROR(
-          "[MediaPlayer] Restore: unhandled state=%d, calling RestorePlayer.",
-          player_state);
+      LOG_ERROR("[MediaPlayer] Restore: unhandled state=%d",
+                static_cast<int>(player_state));
       return RestorePlayer(restore_message, resume_time);
   }
-  // Return current player ID when no restore is needed
-  return player_id_;
+
+  return true;
 }
 
-int64_t MediaPlayer::RestorePlayer(const CreateMessage *restore_message,
-                                   int64_t resume_time) {
+bool MediaPlayer::RestorePlayer(const CreateMessage *restore_message,
+                                int64_t resume_time) {
   LOG_INFO("[MediaPlayer] RestorePlayer is called.");
 
-  // 先清理旧的 player，避免状态冲突导致卡死
+  // Clean up old player first to avoid state conflicts
   if (player_ && !StopAndDestroy()) {
     LOG_ERROR("[MediaPlayer] RestorePlayer: StopAndDestroy failed.");
-    return -1;
+    return false;
   }
   LOG_INFO("[MediaPlayer] RestorePlayer: old player cleaned up.");
 
@@ -858,15 +893,16 @@ int64_t MediaPlayer::RestorePlayer(const CreateMessage *restore_message,
   if (resume_time >= 0) pre_playing_time_ = static_cast<uint64_t>(resume_time);
 
   is_restored_ = true;
-  int64_t new_player_id = Create(url_, create_message_);
-  if (new_player_id < 0) {
+
+  // Reuse current player_id_ by passing reuse_existing_id = true
+  int64_t result = Create(url_, create_message_, true);
+  if (result < 0) {
     LOG_ERROR("[MediaPlayer] Fail to create player.");
     is_restored_ = false;
-    return -1;
+    return false;
   }
 
-  // Return the new player ID
-  return new_player_id;
+  return true;
 }
 
 bool MediaPlayer::SetDisplayRotate(int64_t rotation) {
@@ -899,14 +935,14 @@ void MediaPlayer::OnPrepared(void *user_data) {
 
   MediaPlayer *self = static_cast<MediaPlayer *>(user_data);
 
-  // Reset event dispatch state for restored player BEFORE sending any events
-  // This ensures event_dispatch_state_->player points to the correct instance
+  // Reset event dispatch state for restored player
   if (self->is_restored_) {
     self->ResetEventDispatchState();
     LOG_INFO("[MediaPlayer] Event dispatch state reset for restored player.");
     self->OnRestoreCompleted();
   }
 
+  // Call SendInitialized() - it uses GetInitialDuration() which is safe
   if (!self->is_initialized_) {
     self->SendInitialized();
   }
@@ -916,6 +952,11 @@ void MediaPlayer::OnBuffering(int percent, void *user_data) {
   LOG_INFO("[MediaPlayer] Buffering percent: %d.", percent);
 
   MediaPlayer *self = static_cast<MediaPlayer *>(user_data);
+
+  if (self->IsDisposed()) {
+    return;
+  }
+
   if (percent == 100) {
     self->SendBufferingEnd();
     self->is_buffering_ = false;
@@ -931,6 +972,13 @@ void MediaPlayer::OnSeekCompleted(void *user_data) {
   LOG_INFO("[MediaPlayer] Seek completed.");
 
   MediaPlayer *self = static_cast<MediaPlayer *>(user_data);
+
+  if (self->IsDisposed()) {
+    LOG_DEBUG(
+        "[MediaPlayer] OnSeekCompleted: player disposed, dropping callback");
+    return;
+  }
+
   if (self->on_seek_completed_) {
     self->on_seek_completed_();
     self->on_seek_completed_ = nullptr;
@@ -941,6 +989,13 @@ void MediaPlayer::OnPlayCompleted(void *user_data) {
   LOG_INFO("[MediaPlayer] Play completed.");
 
   MediaPlayer *self = static_cast<MediaPlayer *>(user_data);
+
+  if (self->IsDisposed()) {
+    LOG_DEBUG(
+        "[MediaPlayer] OnPlayCompleted: player disposed, dropping callback");
+    return;
+  }
+
   self->SendPlayCompleted();
   self->Pause();
 }
@@ -948,6 +1003,13 @@ void MediaPlayer::OnPlayCompleted(void *user_data) {
 void MediaPlayer::OnInterrupted(player_interrupted_code_e code,
                                 void *user_data) {
   MediaPlayer *self = static_cast<MediaPlayer *>(user_data);
+
+  if (self->IsDisposed()) {
+    LOG_DEBUG(
+        "[MediaPlayer] OnInterrupted: player disposed, dropping callback");
+    return;
+  }
+
   self->SendIsPlayingState(false);
   LOG_ERROR("[MediaPlayer] Interrupt code: %d.", code);
 }
@@ -957,6 +1019,12 @@ void MediaPlayer::OnError(int error_code, void *user_data) {
             get_error_message(error_code));
 
   MediaPlayer *self = static_cast<MediaPlayer *>(user_data);
+
+  if (self->IsDisposed()) {
+    LOG_DEBUG("[MediaPlayer] OnError: player disposed, dropping callback");
+    return;
+  }
+
   self->SendError("Media Player error", get_error_message(error_code));
 }
 
@@ -966,6 +1034,13 @@ void MediaPlayer::OnSubtitleUpdated(unsigned long duration, char *text,
            text);
 
   MediaPlayer *self = static_cast<MediaPlayer *>(user_data);
+
+  if (self->IsDisposed()) {
+    LOG_DEBUG(
+        "[MediaPlayer] OnSubtitleUpdated: player disposed, dropping callback");
+    return;
+  }
+
   self->SendSubtitleUpdate(duration, std::string(text));
 }
 

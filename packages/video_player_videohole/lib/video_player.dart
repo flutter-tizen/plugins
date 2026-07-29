@@ -908,6 +908,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   }
 
   /// Restores the player state when the application is resumed.
+  /// Player ID remains unchanged after restore.
   Future<void> _restore() async {
     if (_isDisposedOrNotInitialized) {
       return;
@@ -917,23 +918,13 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         (_onRestoreDataSource != null) ? _onRestoreDataSource!() : null;
     final int resumeTime = (_onRestoreTime != null) ? _onRestoreTime!() : -1;
 
-    // Restore returns the new player ID (may be same or different)
-    final int newPlayerId = await _videoPlayerPlatform.restore(
+    // P0-3 fix: restore returns void, player ID remains unchanged
+    await _videoPlayerPlatform.restore(
       _playerId,
       dataSource: dataSource,
       resumeTime: resumeTime,
     );
-
-    // Update playerId if it changed during restore
-    if (newPlayerId != _playerId && newPlayerId > 0) {
-      _playerId = newPlayerId;
-
-      // Re-subscribe to event stream with the new player ID
-      await _eventSubscription?.cancel();
-      _eventSubscription = _videoPlayerPlatform
-          .videoEventsFor(_playerId)
-          .listen(_eventListener, onError: _errorListener);
-    }
+    // Player ID remains unchanged, no need to update event subscription
   }
 
   /// Set the rotate angle of display
@@ -943,6 +934,18 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     }
 
     return _videoPlayerPlatform.setDisplayRotate(_playerId, rotation);
+  }
+
+  /// Check if the video is a live stream.
+  /// Returns true if live, false if VOD.
+  ///
+  /// This method should be called after the video is initialized.
+  /// The result is cached in native side to avoid repeated API calls.
+  Future<bool> isLive() async {
+    if (_isDisposedOrNotInitialized) {
+      return false;
+    }
+    return _videoPlayerPlatform.isLive(_playerId);
   }
 }
 

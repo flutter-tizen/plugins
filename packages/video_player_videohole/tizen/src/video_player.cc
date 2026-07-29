@@ -15,40 +15,79 @@ namespace video_player_videohole_tizen {
 
 static int64_t player_index = 1;
 
-// Static FFI event callback - shared across all VideoPlayer instances
-static DartPortEventCallback g_ffi_event_callback = nullptr;
-static std::mutex g_ffi_callback_mutex;
+// P0-2 fix: Per-player event port registration
+// Each player has its own Dart port for event notifications
+static std::map<int64_t, int64_t> g_player_dart_ports;
+static std::mutex g_player_ports_mutex;
 
-// Dart Port for FFI event notifications using Dart_PostCObject_DL
-// Defined here (extern declared in video_player.h)
-int64_t g_dart_port = -1;
-std::mutex g_dart_port_mutex;
-
-void RegisterDartPort(int64_t port) {
-  std::lock_guard<std::mutex> lock(g_dart_port_mutex);
-  g_dart_port = port;
+// P0-2 fix: Register Dart port for a specific player
+void RegisterPlayerEventPort(int64_t player_id, int64_t dart_port) {
+  std::lock_guard<std::mutex> lock(g_player_ports_mutex);
+  g_player_dart_ports[player_id] = dart_port;
+  LOG_INFO("[VideoPlayer] Registered port %lld for player %lld", 
+           static_cast<long long>(dart_port), static_cast<long long>(player_id));
 }
 
-int64_t GetDartPort() {
-  std::lock_guard<std::mutex> lock(g_dart_port_mutex);
-  return g_dart_port;
+// P0-2 fix: Unregister Dart port for a specific player
+void UnregisterPlayerEventPort(int64_t player_id) {
+  std::lock_guard<std::mutex> lock(g_player_ports_mutex);
+  auto it = g_player_dart_ports.find(player_id);
+  if (it != g_player_dart_ports.end()) {
+    g_player_dart_ports.erase(it);
+    LOG_INFO("[VideoPlayer] Unregistered port for player %lld", 
+             static_cast<long long>(player_id));
+  }
 }
 
+// P0-2 fix: Post event to Dart using per-player port
 void PostEventToDart(int64_t player_id, const std::string& event_json) {
-  std::lock_guard<std::mutex> lock(g_dart_port_mutex);
-  if (g_dart_port < 0) {
-    LOG_INFO("[VideoPlayer] Dart port not registered yet.");
+  std::lock_guard<std::mutex> lock(g_player_ports_mutex);
+  auto it = g_player_dart_ports.find(player_id);
+  if (it == g_player_dart_ports.end()) {
+    LOG_DEBUG("[VideoPlayer] Port not registered for player %lld, dropping event", 
+              static_cast<long long>(player_id));
     return;
   }
-
+  
+  int64_t port = it->second;
+  
+  // TEMP_DEBUG: Add detailed logging for crash investigation
+  std::string event_type = "unknown";
+  if (event_json.find("\"initialized\"") != std::string::npos) {
+    event_type = "initialized";
+  } else if (event_json.find("\"bufferingStart\"") != std::string::npos) {
+    event_type = "bufferingStart";
+  } else if (event_json.find("\"bufferingUpdate\"") != std::string::npos) {
+    event_type = "bufferingUpdate";
+  } else if (event_json.find("\"bufferingEnd\"") != std::string::npos) {
+    event_type = "bufferingEnd";
+  } else if (event_json.find("\"completed\"") != std::string::npos) {
+    event_type = "completed";
+  } else if (event_json.find("\"subtitleUpdate\"") != std::string::npos) {
+    event_type = "subtitleUpdate";
+  } else if (event_json.find("\"error\"") != std::string::npos) {
+    event_type = "error";
+  }
+  
+  // LOG_INFO("[FFI_DEBUG] Pre-PostEvent: player_id=%lld, port=%lld, event_type=%s, json_len=%zu", 
+  //          static_cast<long long>(player_id), 
+  //          static_cast<long long>(port), 
+  //          event_type.c_str(), 
+  //          event_json.length());
+  
+  // Log first 200 chars of JSON for debugging (truncated to avoid log spam)
+  std::string json_preview = event_json.length() > 200 ? event_json.substr(0, 200) + "..." : event_json;
+  //LOG_INFO("[FFI_DEBUG] JSON preview: %s", json_preview.c_str());
+  
   // Message format: [player_id, event_json]
-  // This matches what Dart side expects
   Dart_CObject player_id_obj;
   player_id_obj.type = Dart_CObject_kInt64;
   player_id_obj.value.as_int64 = player_id;
 
   // Dart_PostCObject_DL takes ownership of the string on success
   char* json_copy = strdup(event_json.c_str());
+  //LOG_INFO("[FFI_DEBUG] strdup completed, json_copy=%p", json_copy);
+  
   Dart_CObject event_json_obj;
   event_json_obj.type = Dart_CObject_kString;
   event_json_obj.value.as_string = json_copy;
@@ -64,23 +103,26 @@ void PostEventToDart(int64_t player_id, const std::string& event_json) {
   message.value.as_array.length = 2;
   message.value.as_array.values = array_elements;
 
-  bool result = Dart_PostCObject_DL(g_dart_port, &message);
+  //LOG_INFO("[FFI_DEBUG] Calling Dart_PostCObject_DL...");
+  bool result = Dart_PostCObject_DL(port, &message);
+  //LOG_INFO("[FFI_DEBUG] Dart_PostCObject_DL returned: %d", result ? 1 : 0);
 
   if (!result) {
-    LOG_ERROR("[VideoPlayer] Failed to post event to Dart. Freeing json_copy.");
+    LOG_ERROR("[VideoPlayer] Failed to post event to Dart for player %lld. Freeing json_copy.", 
+              static_cast<long long>(player_id));
     free(json_copy);
   }
   // On success, Dart takes ownership of json_copy
 }
 
+// Legacy FFI event callback functions removed - use per-player port registration instead
 void VideoPlayer::RegisterFFIEventCallback(DartPortEventCallback callback) {
-  std::lock_guard<std::mutex> lock(g_ffi_callback_mutex);
-  g_ffi_event_callback = std::move(callback);
+  // Deprecated: use RegisterPlayerEventPort instead
 }
 
 DartPortEventCallback VideoPlayer::GetFFIEventCallback() {
-  std::lock_guard<std::mutex> lock(g_ffi_callback_mutex);
-  return g_ffi_event_callback;
+  // Deprecated: use RegisterPlayerEventPort instead
+  return nullptr;
 }
 
 // Helper function to convert EncodableValue to JSON string
@@ -221,17 +263,59 @@ void VideoPlayer::ResetEventDispatchState() {
   }
 }
 
+bool VideoPlayer::IsDisposed() const {
+  if (event_dispatch_state_) {
+    std::lock_guard<std::mutex> lock(event_dispatch_state_->mutex);
+    return event_dispatch_state_->disposed;
+  }
+  return true;  // If no event_dispatch_state_, consider as disposed
+}
+
 void VideoPlayer::ExecuteSinkEvents() {
+  // Double-check: make sure we're not disposed
+  if (event_dispatch_state_) {
+    std::lock_guard<std::mutex> state_lock(event_dispatch_state_->mutex);
+    if (event_dispatch_state_->disposed) {
+      LOG_ERROR("[VideoPlayer] ExecuteSinkEvents: disposed, dropping events");
+      return;
+    }
+  }
+
+  // LOG_INFO("[VideoPlayer] ExecuteSinkEvents: player_id=%lld, queue_size=%zu", 
+  //          static_cast<long long>(player_id_), encodable_event_queue_.size());
+
   std::lock_guard<std::mutex> lock(queue_mutex_);
+  int event_count = 0;
   while (!encodable_event_queue_.empty()) {
     const flutter::EncodableValue& event = encodable_event_queue_.front();
 
     // Send to FFI using Dart_PostCObject_DL
     std::string event_json = EncodableValueToJson(event);
+    
+    // Extract event type for logging
+    std::string event_type = "unknown";
+    if (event_json.find("\"event\":\"initialized\"") != std::string::npos) {
+      event_type = "initialized";
+    } else if (event_json.find("\"event\":\"bufferingStart\"") != std::string::npos) {
+      event_type = "bufferingStart";
+    } else if (event_json.find("\"event\":\"bufferingUpdate\"") != std::string::npos) {
+      event_type = "bufferingUpdate";
+    } else if (event_json.find("\"event\":\"bufferingEnd\"") != std::string::npos) {
+      event_type = "bufferingEnd";
+    } else if (event_json.find("\"event\":\"completed\"") != std::string::npos) {
+      event_type = "completed";
+    }
+    
+    LOG_INFO("[VideoPlayer] Sending event #%d: type=%s, player_id=%lld, json_len=%zu", 
+             event_count, event_type.c_str(), static_cast<long long>(player_id_), event_json.length());
+    
     PostEventToDart(player_id_, event_json);
+    event_count++;
 
     encodable_event_queue_.pop();
   }
+  
+  LOG_INFO("[VideoPlayer] ExecuteSinkEvents: sent %d events", event_count);
 
   while (!error_event_queue_.empty()) {
     const auto& error = error_event_queue_.front();
@@ -297,11 +381,12 @@ void VideoPlayer::PushEvent(flutter::EncodableValue encodable_value) {
   ScheduleSendPendingEvents();
 }
 
-void VideoPlayer::SendInitialized() {
+  void VideoPlayer::SendInitialized() {
   if (!is_initialized_) {
     int32_t width = 0, height = 0;
     GetVideoSize(&width, &height);
     is_initialized_ = true;
+    // Use GetDuration() to get the duration
     auto duration = GetDuration();
     flutter::EncodableList duration_range{
         flutter::EncodableValue(duration.first),

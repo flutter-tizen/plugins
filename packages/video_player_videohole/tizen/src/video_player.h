@@ -29,16 +29,12 @@ namespace video_player_videohole_tizen {
 using DartPortEventCallback =
     std::function<void(int64_t player_id, const char *event_json)>;
 
-// Static FFI event callback - shared across all VideoPlayer instances.
-extern DartPortEventCallback g_dart_port_callback;
-extern int64_t g_dart_port;
-extern std::mutex g_dart_port_mutex;
+// P0-2 fix: Per-player event port registration.
+// Register Dart port for a specific player.
+void RegisterPlayerEventPort(int64_t player_id, int64_t dart_port);
+void UnregisterPlayerEventPort(int64_t player_id);
 
-// Register Dart port for FFI event notifications.
-void RegisterDartPort(int64_t port);
-int64_t GetDartPort();
-
-// Post event to Dart using Dart_PostCObject_DL.
+// Post event to Dart using per-player port.
 void PostEventToDart(int64_t player_id, const std::string &event_json);
 
 class VideoPlayer {
@@ -59,7 +55,8 @@ class VideoPlayer {
   virtual ~VideoPlayer();
 
   virtual int64_t Create(const std::string &uri,
-                         const CreateMessage &create_message) = 0;
+                         const CreateMessage &create_message,
+                         bool reuse_existing_id = false) = 0;
   virtual void Dispose() = 0;
 
   virtual void SetDisplayRoi(int32_t x, int32_t y, int32_t width,
@@ -74,13 +71,15 @@ class VideoPlayer {
   virtual bool SeekTo(int64_t position, SeekCompletedCallback callback) = 0;
   virtual int64_t GetPosition() = 0;
   virtual std::pair<int64_t, int64_t> GetDuration() = 0;
+  virtual bool IsLive() = 0;
   virtual bool IsReady() = 0;
   virtual flutter::EncodableList GetTrackInfo(std::string track_type) = 0;
   virtual bool SetTrackSelection(int32_t track_id, std::string track_type) = 0;
   virtual bool Suspend() = 0;
-  // Restore player and return new player ID (may be same or different)
-  virtual int64_t Restore(const CreateMessage *restore_message,
-                          int64_t resume_time) = 0;
+  // Restore player state (returns true on success, false on failure)
+  // Player ID remains unchanged after restore
+  virtual bool Restore(const CreateMessage *restore_message,
+                       int64_t resume_time) = 0;
   virtual bool SetDisplayRotate(int64_t rotation) = 0;
 
  protected:
@@ -99,6 +98,9 @@ class VideoPlayer {
 
   // Reset event dispatch state for restored player
   void ResetEventDispatchState();
+
+  // Check if player is disposed (for use in callbacks)
+  bool IsDisposed() const;
 
   int64_t player_id_;  // Store player ID for FFI event callback
   std::mutex queue_mutex_;

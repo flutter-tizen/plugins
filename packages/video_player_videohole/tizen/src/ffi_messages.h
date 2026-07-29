@@ -41,8 +41,10 @@ int ffi_set_display_geometry(int64_t player_id, int32_t x, int32_t y,
                              int32_t width, int32_t height);
 int ffi_set_display_rotate(int64_t player_id, int32_t rotation);
 int ffi_suspend(int64_t player_id);
-int64_t ffi_restore(int64_t player_id, const char* create_message_json,
-                    int64_t resume_time);
+// P0-3 fix: restore returns int (0 on success, -1 on failure)
+// Player ID remains unchanged after restore
+int ffi_restore(int64_t player_id, const char* create_message_json,
+                int64_t resume_time);
 int ffi_set_activate(int64_t player_id);
 int ffi_set_deactivate(int64_t player_id);
 int ffi_set_mix_with_others(bool mix_with_others);
@@ -51,6 +53,13 @@ int ffi_set_mix_with_others(bool mix_with_others);
 int ffi_initialize_api_dl(void* data);
 void ffi_register_event_port(int64_t port);
 void ffi_unregister_event_port();
+
+// P0-1 fix: FFI string memory management
+void ffi_free_string(char* ptr);
+
+// P0-2 fix: Per-player event port registration
+void ffi_register_player_event_port(int64_t player_id, int64_t port);
+void ffi_unregister_player_event_port(int64_t player_id);
 
 #ifdef __cplusplus
 }  // extern "C"

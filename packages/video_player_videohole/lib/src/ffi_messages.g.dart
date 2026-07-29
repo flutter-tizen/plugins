@@ -185,12 +185,30 @@ typedef _FFISetDeactivateDart = int Function(int);
 typedef _FFISetMixWithOthersNative = ffi.Int32 Function(ffi.Bool);
 typedef _FFISetMixWithOthersDart = int Function(bool);
 
+// Check if video is live stream - returns 1 if live, 0 if VOD
+typedef _FFIIsLiveNative = ffi.Int32 Function(ffi.Int64);
+typedef _FFIIsLiveDart = int Function(int);
+
 typedef _FFISuspendNative = ffi.Int32 Function(ffi.Int64);
 typedef _FFISuspendDart = int Function(int);
 
-typedef _FFIRestoreNative = ffi.Int64 Function(
+// P0-3 fix: restore returns int (0 on success, -1 on failure)
+// Player ID remains unchanged after restore
+typedef _FFIRestoreNative = ffi.Int32 Function(
     ffi.Int64, ffi.Pointer<ffi.Char>, ffi.Int64);
 typedef _FFIRestoreDart = int Function(int, ffi.Pointer<ffi.Char>, int);
+
+// P0-1 fix: FFI string memory management
+typedef _FFIFreeStringNative = ffi.Void Function(ffi.Pointer<ffi.Char>);
+typedef _FFIFreeStringDart = void Function(ffi.Pointer<ffi.Char>);
+
+// P0-2 fix: Per-player event port registration
+typedef _FFIRegisterPlayerEventPortNative = ffi.Void Function(
+    ffi.Int64, ffi.Int64);
+typedef _FFIRegisterPlayerEventPortDart = void Function(int, int);
+
+typedef _FFIUnregisterPlayerEventPortNative = ffi.Void Function(ffi.Int64);
+typedef _FFIUnregisterPlayerEventPortDart = void Function(int);
 
 // ===== Helper Functions =====
 
@@ -234,10 +252,17 @@ class VideoPlayerFFIBindings {
   late int Function(int, int, int, int, int) _ffiSetDisplayGeometry;
   late int Function(int, int) _ffiSetDisplayRotate;
   late int Function(int) _ffiSuspend;
+  // P0-3 fix: restore returns int (0 on success, -1 on failure)
   late int Function(int, ffi.Pointer<ffi.Char>, int) _ffiRestore;
   late int Function(int) _ffiSetActivate;
   late int Function(int) _ffiSetDeactivate;
   late int Function(bool) _ffiSetMixWithOthers;
+  late int Function(int) _ffiIsLive;
+  // P0-1 fix: FFI string memory management
+  late void Function(ffi.Pointer<ffi.Char>) _ffiFreeString;
+  // P0-2 fix: Per-player event port registration
+  late void Function(int, int) _ffiRegisterPlayerEventPort;
+  late void Function(int) _ffiUnregisterPlayerEventPort;
 
   static VideoPlayerFFIBindings get instance {
     _instance ??= VideoPlayerFFIBindings._();
@@ -341,6 +366,25 @@ class VideoPlayerFFIBindings {
           .lookup<ffi.NativeFunction<_FFISetMixWithOthersNative>>(
               'ffi_set_mix_with_others')
           .asFunction<_FFISetMixWithOthersDart>();
+
+      // P0-1 fix: FFI string memory management
+      _ffiFreeString = _lib!
+          .lookup<ffi.NativeFunction<_FFIFreeStringNative>>('ffi_free_string')
+          .asFunction<_FFIFreeStringDart>();
+
+      // P0-2 fix: Per-player event port registration
+      _ffiRegisterPlayerEventPort = _lib!
+          .lookup<ffi.NativeFunction<_FFIRegisterPlayerEventPortNative>>(
+              'ffi_register_player_event_port')
+          .asFunction<_FFIRegisterPlayerEventPortDart>();
+      _ffiUnregisterPlayerEventPort = _lib!
+          .lookup<ffi.NativeFunction<_FFIUnregisterPlayerEventPortNative>>(
+              'ffi_unregister_player_event_port')
+          .asFunction<_FFIUnregisterPlayerEventPortDart>();
+
+      _ffiIsLive = _lib!
+          .lookup<ffi.NativeFunction<_FFIIsLiveNative>>('ffi_is_live')
+          .asFunction<_FFIIsLiveDart>();
 
       debugPrint('FFI bindings loaded successfully');
     } catch (e) {
@@ -455,7 +499,7 @@ class VideoPlayerVideoholeFFIApi {
       }
       return DurationMessage.fromJson(jsonString);
     } finally {
-      calloc.free(ptr);
+      bindings._ffiFreeString(ptr);
     }
   }
 
@@ -547,7 +591,7 @@ class VideoPlayerVideoholeFFIApi {
       return TrackMessage.fromJson(jsonString);
     } finally {
       if (ptr != null) {
-        calloc.free(ptr.cast());
+        bindings._ffiFreeString(ptr);
       }
       _freePointer(trackTypePtr);
     }
@@ -572,6 +616,34 @@ class VideoPlayerVideoholeFFIApi {
       bindings.load();
     }
     return bindings._ffiSetMixWithOthers(mixWithOthers);
+  }
+
+  // P0-2 fix: Per-player event port registration
+  void registerPlayerEventPort(int playerId, int port) {
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
+    }
+    bindings._ffiRegisterPlayerEventPort(playerId, port);
+  }
+
+  void unregisterPlayerEventPort(int playerId) {
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
+    }
+    bindings._ffiUnregisterPlayerEventPort(playerId);
+  }
+
+  /// Check if video is live stream
+  /// Returns true if live, false if VOD
+  bool isLive(int playerId) {
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
+    }
+    final int result = bindings._ffiIsLive(playerId);
+    return result != 0;
   }
 }
 
