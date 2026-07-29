@@ -181,10 +181,10 @@ using video_player_videohole_tizen::g_plugin_registrar;
 using video_player_videohole_tizen::g_registrar_ref;
 using video_player_videohole_tizen::GetPlayer;
 using video_player_videohole_tizen::ParseCreateMessage;
-using video_player_videohole_tizen::VideoPlayer;
 using video_player_videohole_tizen::RegisterPlayerEventPort;
-using video_player_videohole_tizen::UnregisterPlayerEventPort;
 using video_player_videohole_tizen::UnregisterAllPlayerEventPorts;
+using video_player_videohole_tizen::UnregisterPlayerEventPort;
+using video_player_videohole_tizen::VideoPlayer;
 
 extern "C" {
 
@@ -479,7 +479,8 @@ void ffi_unregister_event_port() {
 }
 
 // P0-1 fix: FFI string memory management
-// Provides matching free for strdup() allocated strings returned by FFI functions
+// Provides matching free for strdup() allocated strings returned by FFI
+// functions
 void ffi_free_string(char* ptr) {
   if (ptr != nullptr) {
     free(ptr);
