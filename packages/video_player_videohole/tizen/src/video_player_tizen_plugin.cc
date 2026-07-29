@@ -18,10 +18,14 @@
 #include <string>
 #include <variant>
 
+#include "../third_party/json.hpp"
 #include "ffi_messages.h"
+#include "log.h"
 #include "media_player.h"
 #include "video_player.h"
 #include "video_player_options.h"
+
+using nlohmann::json;
 
 namespace video_player_videohole_tizen {
 
@@ -48,138 +52,53 @@ static std::shared_ptr<VideoPlayer> GetPlayer(int64_t player_id) {
   return nullptr;
 }
 
-// Helper function to parse simple JSON-like string to flutter::EncodableMap
+// Helper function to convert JSON value to EncodableValue
+static flutter::EncodableValue EncodableValueFromJson(const json& j) {
+  if (j.is_null()) {
+    return flutter::EncodableValue();
+  } else if (j.is_boolean()) {
+    return flutter::EncodableValue(j.get<bool>());
+  } else if (j.is_number_integer()) {
+    return flutter::EncodableValue(static_cast<int64_t>(j.get<int64_t>()));
+  } else if (j.is_number_float()) {
+    return flutter::EncodableValue(j.get<double>());
+  } else if (j.is_string()) {
+    return flutter::EncodableValue(j.get<std::string>());
+  } else if (j.is_array()) {
+    flutter::EncodableList list;
+    for (const auto& item : j) {
+      list.push_back(EncodableValueFromJson(item));
+    }
+    return flutter::EncodableValue(list);
+  } else if (j.is_object()) {
+    flutter::EncodableMap map;
+    for (auto& [key, value] : j.items()) {
+      map[flutter::EncodableValue(key)] = EncodableValueFromJson(value);
+    }
+    return flutter::EncodableValue(map);
+  }
+  return flutter::EncodableValue();
+}
+
+// Helper function to parse JSON string to flutter::EncodableMap
 static flutter::EncodableMap ParseJsonMap(const std::string& json_str) {
   flutter::EncodableMap result;
   if (json_str.empty() || json_str == "{}") {
     return result;
   }
 
-  std::string content = json_str;
-  if (content.front() == '{') content = content.substr(1);
-  if (content.back() == '}') content.pop_back();
-
-  size_t pos = 0;
-  while (pos < content.length()) {
-    while (pos < content.length() &&
-           (isspace(content[pos]) || content[pos] == ',')) {
-      pos++;
-    }
-    if (pos >= content.length()) break;
-
-    if (content[pos] != '"') break;
-    pos++;
-    size_t key_start = pos;
-    while (pos < content.length() && content[pos] != '"') pos++;
-    std::string key = content.substr(key_start, pos - key_start);
-    pos++;
-
-    while (pos < content.length() &&
-           (isspace(content[pos]) || content[pos] == ':')) {
-      pos++;
-    }
-    if (pos >= content.length()) break;
-
-    std::string value;
-    if (content[pos] == '"') {
-      pos++;
-      size_t val_start = pos;
-      while (pos < content.length() && content[pos] != '"') pos++;
-      value = content.substr(val_start, pos - val_start);
-      pos++;
-      result[flutter::EncodableValue(key)] = flutter::EncodableValue(value);
-    } else if (content[pos] == '{') {
-      int brace_count = 1;
-      pos++;
-      while (pos < content.length() && brace_count > 0) {
-        if (content[pos] == '{')
-          brace_count++;
-        else if (content[pos] == '}')
-          brace_count--;
-        pos++;
-      }
-      result[flutter::EncodableValue(key)] = flutter::EncodableMap();
-    } else {
-      size_t val_start = pos;
-      while (pos < content.length() && content[pos] != ',' &&
-             content[pos] != '}') {
-        pos++;
-      }
-      value = content.substr(val_start, pos - val_start);
-      while (!value.empty() && isspace(value.back())) value.pop_back();
-
-      if (value == "true") {
-        result[flutter::EncodableValue(key)] = flutter::EncodableValue(true);
-      } else if (value == "false") {
-        result[flutter::EncodableValue(key)] = flutter::EncodableValue(false);
-      } else {
-        try {
-          if (value.find('.') != std::string::npos) {
-            result[flutter::EncodableValue(key)] =
-                flutter::EncodableValue(std::stod(value));
-          } else {
-            result[flutter::EncodableValue(key)] =
-                flutter::EncodableValue(std::stoll(value));
-          }
-        } catch (...) {
-          result[flutter::EncodableValue(key)] = flutter::EncodableValue(value);
-        }
+  try {
+    json j = json::parse(json_str);
+    if (j.is_object()) {
+      for (auto& [key, value] : j.items()) {
+        result[flutter::EncodableValue(key)] = EncodableValueFromJson(value);
       }
     }
+  } catch (const json::parse_error& e) {
+    LOG_ERROR("[ParseJsonMap] JSON parse error: %s", e.what());
   }
 
   return result;
-}
-
-// Helper function to extract a string value from JSON by key
-static bool ExtractStringValue(const std::string& json_str,
-                               const std::string& key, std::string& out_value) {
-  std::string search_key = "\"" + key + "\"";
-  size_t pos = json_str.find(search_key);
-  if (pos == std::string::npos) return false;
-
-  pos = json_str.find(':', pos);
-  if (pos == std::string::npos) return false;
-
-  pos++;
-  while (pos < json_str.length() &&
-         (isspace(json_str[pos]) || json_str[pos] == ':'))
-    pos++;
-  if (pos >= json_str.length() || json_str[pos] != '"') return false;
-
-  pos++;
-  size_t end = pos;
-  while (end < json_str.length() && json_str[end] != '"') end++;
-
-  out_value = json_str.substr(pos, end - pos);
-  return true;
-}
-
-// Helper function to extract a nested object from JSON by key
-static std::string ExtractObjectValue(const std::string& json_str,
-                                      const std::string& key) {
-  std::string search_key = "\"" + key + "\"";
-  size_t pos = json_str.find(search_key);
-  if (pos == std::string::npos) return "";
-
-  pos = json_str.find(':', pos);
-  if (pos == std::string::npos) return "";
-
-  pos++;
-  while (pos < json_str.length() && isspace(json_str[pos])) pos++;
-  if (pos >= json_str.length() || json_str[pos] != '{') return "";
-
-  int brace_count = 1;
-  size_t start = pos;
-  pos++;
-  while (pos < json_str.length() && brace_count > 0) {
-    if (json_str[pos] == '{')
-      brace_count++;
-    else if (json_str[pos] == '}')
-      brace_count--;
-    pos++;
-  }
-  return json_str.substr(start, pos - start);
 }
 
 // Unified function to parse CreateMessage from JSON string
@@ -189,85 +108,41 @@ static video_player_videohole_tizen::CreateMessage ParseCreateMessage(
   using flutter::EncodableValue;
   using video_player_videohole_tizen::CreateMessage;
 
-  video_player_videohole_tizen::CreateMessage msg;
+  CreateMessage msg;
 
   if (json_str.empty() || json_str == "{}") {
     return msg;
   }
 
-  std::string value;
-  if (ExtractStringValue(json_str, "uri", value)) {
-    msg.set_uri(value);
-  }
-  if (ExtractStringValue(json_str, "asset", value)) {
-    msg.set_asset(value);
-  }
-  if (ExtractStringValue(json_str, "packageName", value)) {
-    msg.set_package_name(value);
-  }
-  if (ExtractStringValue(json_str, "formatHint", value)) {
-    msg.set_format_hint(value);
-  }
+  try {
+    json j = json::parse(json_str);
 
-  std::string nested_json;
-
-  nested_json = ExtractObjectValue(json_str, "httpHeaders");
-  if (!nested_json.empty()) {
-    flutter::EncodableMap headers = ParseJsonMap(nested_json);
-    if (!headers.empty()) {
-      msg.set_http_headers(headers);
+    // Parse simple string fields
+    if (j.contains("uri") && !j["uri"].is_null()) {
+      msg.set_uri(j["uri"].get<std::string>());
     }
-  }
-
-  nested_json = ExtractObjectValue(json_str, "playerOptions");
-  if (!nested_json.empty()) {
-    flutter::EncodableMap options = ParseJsonMap(nested_json);
-    if (!options.empty()) {
-      msg.set_player_options(options);
+    if (j.contains("asset") && !j["asset"].is_null()) {
+      msg.set_asset(j["asset"].get<std::string>());
     }
-  }
-
-  nested_json = ExtractObjectValue(json_str, "drmConfigs");
-  if (!nested_json.empty()) {
-    int64_t drm_type = 0;
-    std::string license_url;
-
-    size_t drm_pos = nested_json.find("\"drmType\"");
-    if (drm_pos != std::string::npos) {
-      drm_pos = nested_json.find(':', drm_pos);
-      if (drm_pos != std::string::npos) {
-        drm_pos++;
-        while (drm_pos < nested_json.length() &&
-               (isspace(nested_json[drm_pos]) || nested_json[drm_pos] == ':'))
-          drm_pos++;
-        size_t end = drm_pos;
-        while (end < nested_json.length() && nested_json[end] != ',' &&
-               nested_json[end] != '}' && nested_json[end] != '"')
-          end++;
-        std::string val = nested_json.substr(drm_pos, end - drm_pos);
-        while (!val.empty() && (val.back() == '"' || isspace(val.back())))
-          val.pop_back();
-        try {
-          drm_type = std::stoll(val);
-        } catch (...) {
-          if (val == "1")
-            drm_type = 1;
-          else if (val == "2")
-            drm_type = 2;
-        }
-      }
+    if (j.contains("packageName") && !j["packageName"].is_null()) {
+      msg.set_package_name(j["packageName"].get<std::string>());
+    }
+    if (j.contains("formatHint") && !j["formatHint"].is_null()) {
+      msg.set_format_hint(j["formatHint"].get<std::string>());
     }
 
-    ExtractStringValue(nested_json, "licenseServerUrl", license_url);
-
-    flutter::EncodableMap drm_map;
-    drm_map[flutter::EncodableValue("drmType")] =
-        flutter::EncodableValue(drm_type);
-    if (!license_url.empty()) {
-      drm_map[flutter::EncodableValue("licenseServerUrl")] =
-          flutter::EncodableValue(license_url);
+    // Parse nested objects
+    if (j.contains("httpHeaders") && j["httpHeaders"].is_object()) {
+      msg.set_http_headers(ParseJsonMap(j["httpHeaders"].dump()));
     }
-    msg.set_drm_configs(drm_map);
+    if (j.contains("playerOptions") && j["playerOptions"].is_object()) {
+      msg.set_player_options(ParseJsonMap(j["playerOptions"].dump()));
+    }
+    if (j.contains("drmConfigs") && j["drmConfigs"].is_object()) {
+      msg.set_drm_configs(ParseJsonMap(j["drmConfigs"].dump()));
+    }
+  } catch (const json::parse_error& e) {
+    LOG_ERROR("[ParseCreateMessage] JSON parse error: %s", e.what());
   }
 
   return msg;
