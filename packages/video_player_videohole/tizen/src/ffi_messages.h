@@ -61,6 +61,9 @@ void ffi_free_string(char* ptr);
 void ffi_register_player_event_port(int64_t player_id, int64_t port);
 void ffi_unregister_player_event_port(int64_t player_id);
 
+// P1-2 fix: Unregister all player event ports (for hot restart cleanup)
+void ffi_unregister_all_player_event_ports();
+
 #ifdef __cplusplus
 }  // extern "C"
 

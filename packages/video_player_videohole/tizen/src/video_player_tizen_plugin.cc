@@ -184,6 +184,7 @@ using video_player_videohole_tizen::ParseCreateMessage;
 using video_player_videohole_tizen::VideoPlayer;
 using video_player_videohole_tizen::RegisterPlayerEventPort;
 using video_player_videohole_tizen::UnregisterPlayerEventPort;
+using video_player_videohole_tizen::UnregisterAllPlayerEventPorts;
 
 extern "C" {
 
@@ -492,6 +493,11 @@ void ffi_register_player_event_port(int64_t player_id, int64_t port) {
 
 void ffi_unregister_player_event_port(int64_t player_id) {
   UnregisterPlayerEventPort(player_id);
+}
+
+// P1-2 fix: Unregister all player event ports (for hot restart cleanup)
+void ffi_unregister_all_player_event_ports() {
+  UnregisterAllPlayerEventPorts();
 }
 
 }  // extern "C"

@@ -34,6 +34,9 @@ using DartPortEventCallback =
 void RegisterPlayerEventPort(int64_t player_id, int64_t dart_port);
 void UnregisterPlayerEventPort(int64_t player_id);
 
+// P1-2 fix: Unregister all player event ports (for hot restart cleanup).
+void UnregisterAllPlayerEventPorts();
+
 // Post event to Dart using per-player port.
 void PostEventToDart(int64_t player_id, const std::string &event_json);
 

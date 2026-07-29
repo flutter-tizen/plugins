@@ -22,6 +22,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<void> init() async {
+    // P1-2 fix: Clean up all player event ports on hot restart
+    // This prevents port leaks when the Dart VM is restarted but the native process continues
+    _ffiApi.unregisterAllPlayerEventPorts();
+
     // Use FFI for initialization (synchronous call)
     final int result = _ffiApi.initialize();
     if (result != 0) {

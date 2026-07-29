@@ -210,6 +210,10 @@ typedef _FFIRegisterPlayerEventPortDart = void Function(int, int);
 typedef _FFIUnregisterPlayerEventPortNative = ffi.Void Function(ffi.Int64);
 typedef _FFIUnregisterPlayerEventPortDart = void Function(int);
 
+// P1-2 fix: Unregister all player event ports (for hot restart cleanup)
+typedef _FFIUnregisterAllPlayerEventPortsNative = ffi.Void Function();
+typedef _FFIUnregisterAllPlayerEventPortsDart = void Function();
+
 // ===== Helper Functions =====
 
 ffi.Pointer<ffi.Char> _toPointer(String? str) {
@@ -263,6 +267,8 @@ class VideoPlayerFFIBindings {
   // P0-2 fix: Per-player event port registration
   late void Function(int, int) _ffiRegisterPlayerEventPort;
   late void Function(int) _ffiUnregisterPlayerEventPort;
+  // P1-2 fix: Unregister all player event ports
+  late void Function() _ffiUnregisterAllPlayerEventPorts;
 
   static VideoPlayerFFIBindings get instance {
     _instance ??= VideoPlayerFFIBindings._();
@@ -381,6 +387,12 @@ class VideoPlayerFFIBindings {
           .lookup<ffi.NativeFunction<_FFIUnregisterPlayerEventPortNative>>(
               'ffi_unregister_player_event_port')
           .asFunction<_FFIUnregisterPlayerEventPortDart>();
+
+      // P1-2 fix: Unregister all player event ports
+      _ffiUnregisterAllPlayerEventPorts = _lib!
+          .lookup<ffi.NativeFunction<_FFIUnregisterAllPlayerEventPortsNative>>(
+              'ffi_unregister_all_player_event_ports')
+          .asFunction<_FFIUnregisterAllPlayerEventPortsDart>();
 
       _ffiIsLive = _lib!
           .lookup<ffi.NativeFunction<_FFIIsLiveNative>>('ffi_is_live')
@@ -633,6 +645,15 @@ class VideoPlayerVideoholeFFIApi {
       bindings.load();
     }
     bindings._ffiUnregisterPlayerEventPort(playerId);
+  }
+
+  // P1-2 fix: Unregister all player event ports (for hot restart cleanup)
+  void unregisterAllPlayerEventPorts() {
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
+    }
+    bindings._ffiUnregisterAllPlayerEventPorts();
   }
 
   /// Check if video is live stream

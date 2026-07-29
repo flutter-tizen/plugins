@@ -39,6 +39,13 @@ void UnregisterPlayerEventPort(int64_t player_id) {
   }
 }
 
+// P1-2 fix: Unregister all player event ports (for hot restart cleanup)
+void UnregisterAllPlayerEventPorts() {
+  std::lock_guard<std::mutex> lock(g_player_ports_mutex);
+  g_player_dart_ports.clear();
+  LOG_INFO("[VideoPlayer] Unregistered all player ports");
+}
+
 // P0-2 fix: Post event to Dart using per-player port
 void PostEventToDart(int64_t player_id, const std::string& event_json) {
   std::lock_guard<std::mutex> lock(g_player_ports_mutex);
