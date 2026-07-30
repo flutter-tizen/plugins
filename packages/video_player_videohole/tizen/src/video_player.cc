@@ -18,50 +18,40 @@ namespace video_player_videohole_tizen {
 
 static int64_t player_index = 1;
 
-// P0-2 fix: Per-player event port registration
-// Each player has its own Dart port for event notifications
-static std::map<int64_t, int64_t> g_player_dart_ports;
-static std::mutex g_player_ports_mutex;
+// Global Dart port for all player events
+static int64_t g_dart_port = -1;
+static std::mutex g_dart_port_mutex;
 
-// P0-2 fix: Register Dart port for a specific player
-void RegisterPlayerEventPort(int64_t player_id, int64_t dart_port) {
-  std::lock_guard<std::mutex> lock(g_player_ports_mutex);
-  g_player_dart_ports[player_id] = dart_port;
-  LOG_INFO("[VideoPlayer] Registered port %lld for player %lld",
-           static_cast<long long>(dart_port),
-           static_cast<long long>(player_id));
+// Register global Dart port for all player events
+void RegisterDartPort(int64_t dart_port) {
+  std::lock_guard<std::mutex> lock(g_dart_port_mutex);
+  g_dart_port = dart_port;
+  LOG_INFO("[VideoPlayer] Registered global port %lld",
+           static_cast<long long>(dart_port));
 }
 
-// P0-2 fix: Unregister Dart port for a specific player
-void UnregisterPlayerEventPort(int64_t player_id) {
-  std::lock_guard<std::mutex> lock(g_player_ports_mutex);
-  auto it = g_player_dart_ports.find(player_id);
-  if (it != g_player_dart_ports.end()) {
-    g_player_dart_ports.erase(it);
-    LOG_INFO("[VideoPlayer] Unregistered port for player %lld",
-             static_cast<long long>(player_id));
-  }
+// Unregister global Dart port
+void UnregisterDartPort() {
+  std::lock_guard<std::mutex> lock(g_dart_port_mutex);
+  g_dart_port = -1;
+  LOG_INFO("[VideoPlayer] Unregistered global port");
 }
 
-// P1-2 fix: Unregister all player event ports (for hot restart cleanup)
-void UnregisterAllPlayerEventPorts() {
-  std::lock_guard<std::mutex> lock(g_player_ports_mutex);
-  g_player_dart_ports.clear();
-  LOG_INFO("[VideoPlayer] Unregistered all player ports");
-}
-
-// P0-2 fix: Post event to Dart using per-player port
+// Post event to Dart using global port
 void PostEventToDart(int64_t player_id, const std::string& event_json) {
-  std::lock_guard<std::mutex> lock(g_player_ports_mutex);
-  auto it = g_player_dart_ports.find(player_id);
-  if (it == g_player_dart_ports.end()) {
-    LOG_DEBUG(
-        "[VideoPlayer] Port not registered for player %lld, dropping event",
-        static_cast<long long>(player_id));
+  std::lock_guard<std::mutex> lock(g_dart_port_mutex);
+
+  // DEBUG: Log port value before check
+  LOG_INFO("[VideoPlayer] PostEventToDart: player_id=%lld, g_dart_port=%lld",
+           static_cast<long long>(player_id),
+           static_cast<long long>(g_dart_port));
+
+  if (g_dart_port < 0) {
+    LOG_ERROR("[VideoPlayer] Global port not registered, dropping event");
     return;
   }
 
-  int64_t port = it->second;
+  int64_t port = g_dart_port;
 
   // TEMP_DEBUG: Add detailed logging for crash investigation
   std::string event_type = "unknown";
@@ -118,9 +108,15 @@ void PostEventToDart(int64_t player_id, const std::string& event_json) {
   message.value.as_array.length = 2;
   message.value.as_array.values = array_elements;
 
-  // LOG_INFO("[FFI_DEBUG] Calling Dart_PostCObject_DL...");
+  // DEBUG: Log before calling Dart_PostCObject_DL
+  LOG_INFO("[VideoPlayer] Calling Dart_PostCObject_DL: port=%lld, json_copy=%p",
+           static_cast<long long>(port), json_copy);
+
   bool result = Dart_PostCObject_DL(port, &message);
-  // LOG_INFO("[FFI_DEBUG] Dart_PostCObject_DL returned: %d", result ? 1 : 0);
+
+  // DEBUG: Log result
+  LOG_INFO("[VideoPlayer] Dart_PostCObject_DL returned: %d, player_id=%lld",
+           result ? 1 : 0, static_cast<long long>(player_id));
 
   if (!result) {
     LOG_ERROR(
@@ -237,10 +233,12 @@ static std::string EncodableValueToJson(const flutter::EncodableValue& value) {
       return "[]";
     }
     if (std::holds_alternative<flutter::EncodableList>(value)) {
-      return EncodableListToJsonJson(std::get<flutter::EncodableList>(value)).dump();
+      return EncodableListToJsonJson(std::get<flutter::EncodableList>(value))
+          .dump();
     }
     if (std::holds_alternative<flutter::EncodableMap>(value)) {
-      return EncodableMapToJsonJson(std::get<flutter::EncodableMap>(value)).dump();
+      return EncodableMapToJsonJson(std::get<flutter::EncodableMap>(value))
+          .dump();
     }
     if (std::holds_alternative<std::vector<float>>(value)) {
       return "[]";
@@ -376,7 +374,8 @@ void VideoPlayer::ExecuteSinkEvents() {
     }
   }
 
-  // Step 4: Send error events directly using PostEventToDart (more efficient than PushEvent)
+  // Step 4: Send error events directly using PostEventToDart (more efficient
+  // than PushEvent)
   for (const auto& error : error_events) {
     flutter::EncodableMap error_map = {
         {flutter::EncodableValue("event"), flutter::EncodableValue("error")},
@@ -384,7 +383,8 @@ void VideoPlayer::ExecuteSinkEvents() {
         {flutter::EncodableValue("message"),
          flutter::EncodableValue(error.second)},
     };
-    std::string error_json = EncodableValueToJson(flutter::EncodableValue(error_map));
+    std::string error_json =
+        EncodableValueToJson(flutter::EncodableValue(error_map));
     PostEventToDart(player_id_, error_json);
   }
 }

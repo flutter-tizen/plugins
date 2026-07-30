@@ -22,10 +22,6 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<void> init() async {
-    // P1-2 fix: Clean up all player event ports on hot restart
-    // This prevents port leaks when the Dart VM is restarted but the native process continues
-    _ffiApi.unregisterAllPlayerEventPorts();
-
     // Use FFI for initialization (synchronous call)
     final int result = _ffiApi.initialize();
     if (result != 0) {
@@ -35,9 +31,6 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<void> dispose(int playerId) async {
-    // P0-2 fix: Unregister per-player event port before disposing
-    _ffiApi.unregisterPlayerEventPort(playerId);
-
     // Close the StreamController for this player
     final StreamController<VideoEvent>? controller =
         _eventControllers.remove(playerId);
@@ -56,8 +49,11 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<int?> create(DataSource dataSource) async {
-    // Ensure the event port is registered before creating the player
-    // This is important because events may be sent immediately after creation
+    // Two-phase initialization:
+    // Phase 1: Create player without starting prepare
+    // Phase 2: Register event port and start listening BEFORE calling prepare()
+
+    // Ensure the global event port is registered
     _ensureEventPortRegistered();
 
     // Use CreateMessage class for FFI create (synchronous call)
@@ -78,18 +74,26 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
         message.uri = dataSource.uri;
     }
 
+    // Phase 1: Create player (does NOT start prepare_async)
     final int playerId = _ffiApi.create(message);
 
     if (playerId < 0) {
       throw Exception('FFI create failed with code: $playerId');
     }
 
-    // P0-2 fix: Register per-player event port after successful creation
-    _ffiApi.registerPlayerEventPort(playerId, _eventPort!.nativePort);
-    debugPrint(
-        'Registered player $playerId with port ${_eventPort!.nativePort}');
+    // Phase 2: Register global Dart port (only needs to be done once)
+    // Note: registerDartPort is now a no-op since we use global port
+    // The port is already registered in _ensureEventPortRegistered()
 
     return playerId;
+  }
+
+  @override
+  Future<void> prepare(int playerId) async {
+    final int result = _ffiApi.prepare(playerId);
+    if (result < 0) {
+      throw Exception('FFI prepare failed with code: $result');
+    }
   }
 
   /// Ensure the event port is registered before any events are sent

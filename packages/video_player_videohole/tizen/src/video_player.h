@@ -29,15 +29,11 @@ namespace video_player_videohole_tizen {
 using DartPortEventCallback =
     std::function<void(int64_t player_id, const char *event_json)>;
 
-// P0-2 fix: Per-player event port registration.
-// Register Dart port for a specific player.
-void RegisterPlayerEventPort(int64_t player_id, int64_t dart_port);
-void UnregisterPlayerEventPort(int64_t player_id);
+// Global Dart port for all player events.
+void RegisterDartPort(int64_t dart_port);
+void UnregisterDartPort();
 
-// P1-2 fix: Unregister all player event ports (for hot restart cleanup).
-void UnregisterAllPlayerEventPorts();
-
-// Post event to Dart using per-player port.
+// Post event to Dart using global port.
 void PostEventToDart(int64_t player_id, const std::string &event_json);
 
 class VideoPlayer {
@@ -60,6 +56,8 @@ class VideoPlayer {
   virtual int64_t Create(const std::string &uri,
                          const CreateMessage &create_message,
                          bool reuse_existing_id = false) = 0;
+  virtual int
+  Prepare() = 0;  // Two-phase: start player_prepare_async separately
   virtual void Dispose() = 0;
 
   virtual void SetDisplayRoi(int32_t x, int32_t y, int32_t width,

@@ -132,6 +132,9 @@ typedef _FFIInitializeDart = int Function();
 typedef _FFICreateNative = ffi.Int64 Function(ffi.Pointer<ffi.Char>);
 typedef _FFICreateDart = int Function(ffi.Pointer<ffi.Char>);
 
+typedef _FFIPrepareNative = ffi.Int32 Function(ffi.Int64);
+typedef _FFIPrepareDart = int Function(int);
+
 typedef _FFIDisposeNative = ffi.Int32 Function(ffi.Int64);
 typedef _FFIDisposeDart = int Function(int);
 
@@ -240,6 +243,7 @@ class VideoPlayerFFIBindings {
 
   late int Function() _ffiInitialize;
   late int Function(ffi.Pointer<ffi.Char>) _ffiCreate;
+  late int Function(int) _ffiPrepare;
 
   late int Function(int) _ffiDispose;
   late int Function(int) _ffiPlay;
@@ -264,11 +268,9 @@ class VideoPlayerFFIBindings {
   late int Function(int) _ffiIsLive;
   // P0-1 fix: FFI string memory management
   late void Function(ffi.Pointer<ffi.Char>) _ffiFreeString;
-  // P0-2 fix: Per-player event port registration
-  late void Function(int, int) _ffiRegisterPlayerEventPort;
-  late void Function(int) _ffiUnregisterPlayerEventPort;
-  // P1-2 fix: Unregister all player event ports
-  late void Function() _ffiUnregisterAllPlayerEventPorts;
+  // Global Dart port registration
+  late void Function(int) _ffiRegisterDartPort;
+  late void Function() _ffiUnregisterDartPort;
 
   static VideoPlayerFFIBindings get instance {
     _instance ??= VideoPlayerFFIBindings._();
@@ -293,6 +295,10 @@ class VideoPlayerFFIBindings {
       _ffiCreate = _lib!
           .lookup<ffi.NativeFunction<_FFICreateNative>>('ffi_create')
           .asFunction<_FFICreateDart>();
+
+      _ffiPrepare = _lib!
+          .lookup<ffi.NativeFunction<_FFIPrepareNative>>('ffi_prepare')
+          .asFunction<_FFIPrepareDart>();
 
       _ffiDispose = _lib!
           .lookup<ffi.NativeFunction<_FFIDisposeNative>>('ffi_dispose')
@@ -378,21 +384,15 @@ class VideoPlayerFFIBindings {
           .lookup<ffi.NativeFunction<_FFIFreeStringNative>>('ffi_free_string')
           .asFunction<_FFIFreeStringDart>();
 
-      // P0-2 fix: Per-player event port registration
-      _ffiRegisterPlayerEventPort = _lib!
-          .lookup<ffi.NativeFunction<_FFIRegisterPlayerEventPortNative>>(
-              'ffi_register_player_event_port')
-          .asFunction<_FFIRegisterPlayerEventPortDart>();
-      _ffiUnregisterPlayerEventPort = _lib!
-          .lookup<ffi.NativeFunction<_FFIUnregisterPlayerEventPortNative>>(
-              'ffi_unregister_player_event_port')
-          .asFunction<_FFIUnregisterPlayerEventPortDart>();
-
-      // P1-2 fix: Unregister all player event ports
-      _ffiUnregisterAllPlayerEventPorts = _lib!
-          .lookup<ffi.NativeFunction<_FFIUnregisterAllPlayerEventPortsNative>>(
-              'ffi_unregister_all_player_event_ports')
-          .asFunction<_FFIUnregisterAllPlayerEventPortsDart>();
+      // Global Dart port registration
+      _ffiRegisterDartPort = _lib!
+          .lookup<ffi.NativeFunction<_FFIRegisterEventPortNative>>(
+              'ffi_register_dart_port')
+          .asFunction<_FFIRegisterEventPortDart>();
+      _ffiUnregisterDartPort = _lib!
+          .lookup<ffi.NativeFunction<_FFIUnregisterEventPortNative>>(
+              'ffi_unregister_dart_port')
+          .asFunction<_FFIUnregisterEventPortDart>();
 
       _ffiIsLive = _lib!
           .lookup<ffi.NativeFunction<_FFIIsLiveNative>>('ffi_is_live')
@@ -420,7 +420,7 @@ class VideoPlayerVideoholeFFIApi {
     return bindings._ffiInitialize();
   }
 
-  /// Create using CreateMessage object
+  /// Create using CreateMessage object (two-phase: call prepare() separately)
   int create(CreateMessage message) {
     final bindings = VideoPlayerFFIBindings.instance;
     if (!bindings.isLoaded) {
@@ -433,6 +433,15 @@ class VideoPlayerVideoholeFFIApi {
     } finally {
       _freePointer(jsonPtr);
     }
+  }
+
+  /// Prepare the player for playback (two-phase initialization)
+  int prepare(int playerId) {
+    final bindings = VideoPlayerFFIBindings.instance;
+    if (!bindings.isLoaded) {
+      bindings.load();
+    }
+    return bindings._ffiPrepare(playerId);
   }
 
   /// Restore using CreateMessage object
@@ -630,30 +639,21 @@ class VideoPlayerVideoholeFFIApi {
     return bindings._ffiSetMixWithOthers(mixWithOthers);
   }
 
-  // P0-2 fix: Per-player event port registration
-  void registerPlayerEventPort(int playerId, int port) {
+  // Global Dart port registration
+  void registerDartPort(int port) {
     final bindings = VideoPlayerFFIBindings.instance;
     if (!bindings.isLoaded) {
       bindings.load();
     }
-    bindings._ffiRegisterPlayerEventPort(playerId, port);
+    bindings._ffiRegisterDartPort(port);
   }
 
-  void unregisterPlayerEventPort(int playerId) {
+  void unregisterDartPort() {
     final bindings = VideoPlayerFFIBindings.instance;
     if (!bindings.isLoaded) {
       bindings.load();
     }
-    bindings._ffiUnregisterPlayerEventPort(playerId);
-  }
-
-  // P1-2 fix: Unregister all player event ports (for hot restart cleanup)
-  void unregisterAllPlayerEventPorts() {
-    final bindings = VideoPlayerFFIBindings.instance;
-    if (!bindings.isLoaded) {
-      bindings.load();
-    }
-    bindings._ffiUnregisterAllPlayerEventPorts();
+    bindings._ffiUnregisterDartPort();
   }
 
   /// Check if video is live stream
@@ -737,11 +737,11 @@ void _loadEventPortBindings(ffi.DynamicLibrary? lib) {
   try {
     _ffiRegisterEventPortPtr =
         lib.lookup<ffi.NativeFunction<_FFIRegisterEventPortNative>>(
-            'ffi_register_event_port');
+            'ffi_register_dart_port');
 
     _ffiUnregisterEventPortPtr =
         lib.lookup<ffi.NativeFunction<_FFIUnregisterEventPortNative>>(
-            'ffi_unregister_event_port');
+            'ffi_unregister_dart_port');
 
     _eventPortLoaded = true;
     debugPrint('FFI event port bindings loaded successfully');

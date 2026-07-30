@@ -439,6 +439,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     _creatingCompleter!.complete(null);
     final Completer<void> initializingCompleter = Completer<void>();
 
+    // Set up event listener BEFORE calling prepare() to ensure we don't miss
+    // the initialized event (two-phase initialization)
     _eventListener = (VideoEvent event) {
       if (_isDisposed) {
         return;
@@ -470,6 +472,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           }
           _applyLooping();
           _applyVolume();
+          // Note: Native side already handles play/pause restoration in OnRestoreCompleted()
+          // We only need to apply current state, not trigger play() again
           if (VideoEventType.restored == event.eventType &&
               _onRestoreDataSource != null) {
             play();
@@ -549,6 +553,13 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     _eventSubscription = _videoPlayerPlatform
         .videoEventsFor(_playerId)
         .listen(_eventListener, onError: _errorListener);
+
+    // Two-phase initialization: Call prepare() AFTER setting up event listeners
+    // This ensures the initialized event is not missed
+    // For Tizen, prepare() starts player_prepare_async
+    // For other platforms, prepare() is a no-op (prepare already done in create())
+    await _videoPlayerPlatform.prepare(_playerId);
+
     return initializingCompleter.future;
   }
 

@@ -181,9 +181,8 @@ using video_player_videohole_tizen::g_plugin_registrar;
 using video_player_videohole_tizen::g_registrar_ref;
 using video_player_videohole_tizen::GetPlayer;
 using video_player_videohole_tizen::ParseCreateMessage;
-using video_player_videohole_tizen::RegisterPlayerEventPort;
-using video_player_videohole_tizen::UnregisterAllPlayerEventPorts;
-using video_player_videohole_tizen::UnregisterPlayerEventPort;
+using video_player_videohole_tizen::RegisterDartPort;
+using video_player_videohole_tizen::UnregisterDartPort;
 using video_player_videohole_tizen::VideoPlayer;
 
 extern "C" {
@@ -235,6 +234,14 @@ int64_t ffi_create(const char* create_message_json) {
   std::unique_lock<std::shared_mutex> lock(g_players_mutex);
   g_players[player_id] = std::move(player);
   return player_id;
+}
+
+int ffi_prepare(int64_t player_id) {
+  auto player = GetPlayer(player_id);
+  if (!player) {
+    return -1;
+  }
+  return player->Prepare();
 }
 
 int ffi_dispose(int64_t player_id) {
@@ -328,7 +335,7 @@ const char* ffi_get_track_info(int64_t player_id, const char* track_type) {
   }
 
   auto tracks = player->GetTrackInfo(std::string(track_type));
-  
+
   // Build JSON using nlohmann::json for proper string escaping
   json j;
   j["playerId"] = player_id;
@@ -483,18 +490,9 @@ void ffi_free_string(char* ptr) {
   }
 }
 
-// P0-2 fix: Per-player event port registration
-void ffi_register_player_event_port(int64_t player_id, int64_t port) {
-  RegisterPlayerEventPort(player_id, port);
-}
+// Global Dart port registration
+void ffi_register_dart_port(int64_t port) { RegisterDartPort(port); }
 
-void ffi_unregister_player_event_port(int64_t player_id) {
-  UnregisterPlayerEventPort(player_id);
-}
-
-// P1-2 fix: Unregister all player event ports (for hot restart cleanup)
-void ffi_unregister_all_player_event_ports() {
-  UnregisterAllPlayerEventPorts();
-}
+void ffi_unregister_dart_port() { UnregisterDartPort(); }
 
 }  // extern "C"

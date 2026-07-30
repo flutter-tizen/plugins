@@ -190,14 +190,29 @@ int64_t MediaPlayer::Create(const std::string &uri,
     return -1;
   }
 
-  ret = player_prepare_async(player_, OnPrepared, this);
+  // Two-phase: player_prepare_async is now called in Prepare() method
+  // Create() only sets up the player without starting prepare
+
+  return player_id_;
+}
+
+int MediaPlayer::Prepare() {
+  LOG_INFO("[MediaPlayer] Prepare() called for player_id=%lld",
+           static_cast<long long>(player_id_));
+
+  if (!player_) {
+    LOG_ERROR("[MediaPlayer] Player not created.");
+    return -1;
+  }
+
+  int ret = player_prepare_async(player_, OnPrepared, this);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[MediaPlayer] player_prepare_async failed : %s.",
               get_error_message(ret));
     return -1;
   }
 
-  return player_id_;
+  return 0;
 }
 
 void MediaPlayer::Dispose() {
@@ -256,7 +271,7 @@ bool MediaPlayer::Play() {
   }
   if (state == PLAYER_STATE_PLAYING) {
     LOG_INFO("[MediaPlayer] Player already playing.");
-    return false;
+    return true;  // Already playing, not an error
   }
 
   ret = player_start(player_);
@@ -898,6 +913,17 @@ bool MediaPlayer::RestorePlayer(const CreateMessage *restore_message,
   int64_t result = Create(url_, create_message_, true);
   if (result < 0) {
     LOG_ERROR("[MediaPlayer] Fail to create player.");
+    is_restored_ = false;
+    return false;
+  }
+
+  // P0-3 fix: Call Prepare() after RestorePlayer to ensure player is ready
+  // This is needed because Create() in two-phase mode does not call
+  // prepare_async
+  LOG_INFO("[MediaPlayer] RestorePlayer: calling Prepare() after Create().");
+  int prepare_result = Prepare();
+  if (prepare_result < 0) {
+    LOG_ERROR("[MediaPlayer] RestorePlayer: Prepare() failed.");
     is_restored_ = false;
     return false;
   }
