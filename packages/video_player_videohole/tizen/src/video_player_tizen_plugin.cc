@@ -320,6 +320,7 @@ int ffi_set_looping(int64_t player_id, bool is_looping) {
   return player->SetLooping(is_looping) ? 0 : -1;
 }
 
+// Fix P1 #4: Use nlohmann::json for proper string escaping
 const char* ffi_get_track_info(int64_t player_id, const char* track_type) {
   auto player = GetPlayer(player_id);
   if (!player || track_type == nullptr) {
@@ -327,43 +328,38 @@ const char* ffi_get_track_info(int64_t player_id, const char* track_type) {
   }
 
   auto tracks = player->GetTrackInfo(std::string(track_type));
-  std::string track_info_json =
-      "{\"playerId\":" + std::to_string(player_id) + ",\"tracks\":[";
+  
+  // Build JSON using nlohmann::json for proper string escaping
+  json j;
+  j["playerId"] = player_id;
+  j["tracks"] = json::array();
 
-  for (size_t i = 0; i < tracks.size(); ++i) {
-    if (i > 0) track_info_json += ",";
+  for (const auto& track_value : tracks) {
+    const auto& track_map = std::get<flutter::EncodableMap>(track_value);
+    json track_j = json::object();
 
-    const auto& track_map = std::get<flutter::EncodableMap>(tracks[i]);
-    track_info_json += "{";
-
-    bool first = true;
     for (const auto& [key, value] : track_map) {
-      if (!first) track_info_json += ",";
-      first = false;
-
       const std::string* key_str = std::get_if<std::string>(&key);
       if (!key_str) continue;
 
-      track_info_json += "\"" + *key_str + "\":";
-
       if (std::holds_alternative<int32_t>(value)) {
-        track_info_json += std::to_string(std::get<int32_t>(value));
+        track_j[*key_str] = std::get<int32_t>(value);
       } else if (std::holds_alternative<int64_t>(value)) {
-        track_info_json += std::to_string(std::get<int64_t>(value));
+        track_j[*key_str] = std::get<int64_t>(value);
       } else if (std::holds_alternative<double>(value)) {
-        track_info_json += std::to_string(std::get<double>(value));
+        track_j[*key_str] = std::get<double>(value);
       } else if (std::holds_alternative<std::string>(value)) {
-        track_info_json += "\"" + std::get<std::string>(value) + "\"";
+        // nlohmann::json handles string escaping automatically
+        track_j[*key_str] = std::get<std::string>(value);
       } else if (std::holds_alternative<bool>(value)) {
-        track_info_json += std::get<bool>(value) ? "true" : "false";
+        track_j[*key_str] = std::get<bool>(value);
       }
     }
 
-    track_info_json += "}";
+    j["tracks"].push_back(track_j);
   }
 
-  track_info_json += "]}";
-  return strdup(track_info_json.c_str());
+  return strdup(j.dump().c_str());
 }
 
 int ffi_set_track_selection(int64_t player_id, int64_t track_id,
