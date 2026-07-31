@@ -41,48 +41,12 @@ void UnregisterDartPort() {
 void PostEventToDart(int64_t player_id, const std::string& event_json) {
   std::lock_guard<std::mutex> lock(g_dart_port_mutex);
 
-  // DEBUG: Log port value before check
-  LOG_INFO("[VideoPlayer] PostEventToDart: player_id=%lld, g_dart_port=%lld",
-           static_cast<long long>(player_id),
-           static_cast<long long>(g_dart_port));
-
   if (g_dart_port < 0) {
     LOG_ERROR("[VideoPlayer] Global port not registered, dropping event");
     return;
   }
 
   int64_t port = g_dart_port;
-
-  // TEMP_DEBUG: Add detailed logging for crash investigation
-  std::string event_type = "unknown";
-  if (event_json.find("\"initialized\"") != std::string::npos) {
-    event_type = "initialized";
-  } else if (event_json.find("\"bufferingStart\"") != std::string::npos) {
-    event_type = "bufferingStart";
-  } else if (event_json.find("\"bufferingUpdate\"") != std::string::npos) {
-    event_type = "bufferingUpdate";
-  } else if (event_json.find("\"bufferingEnd\"") != std::string::npos) {
-    event_type = "bufferingEnd";
-  } else if (event_json.find("\"completed\"") != std::string::npos) {
-    event_type = "completed";
-  } else if (event_json.find("\"subtitleUpdate\"") != std::string::npos) {
-    event_type = "subtitleUpdate";
-  } else if (event_json.find("\"error\"") != std::string::npos) {
-    event_type = "error";
-  }
-
-  // LOG_INFO("[FFI_DEBUG] Pre-PostEvent: player_id=%lld, port=%lld,
-  // event_type=%s, json_len=%zu",
-  //          static_cast<long long>(player_id),
-  //          static_cast<long long>(port),
-  //          event_type.c_str(),
-  //          event_json.length());
-
-  // Log first 200 chars of JSON for debugging (truncated to avoid log spam)
-  std::string json_preview = event_json.length() > 200
-                                 ? event_json.substr(0, 200) + "..."
-                                 : event_json;
-  // LOG_INFO("[FFI_DEBUG] JSON preview: %s", json_preview.c_str());
 
   // Message format: [player_id, event_json]
   Dart_CObject player_id_obj;
@@ -91,7 +55,6 @@ void PostEventToDart(int64_t player_id, const std::string& event_json) {
 
   // Dart_PostCObject_DL takes ownership of the string on success
   char* json_copy = strdup(event_json.c_str());
-  // LOG_INFO("[FFI_DEBUG] strdup completed, json_copy=%p", json_copy);
 
   Dart_CObject event_json_obj;
   event_json_obj.type = Dart_CObject_kString;
@@ -108,15 +71,7 @@ void PostEventToDart(int64_t player_id, const std::string& event_json) {
   message.value.as_array.length = 2;
   message.value.as_array.values = array_elements;
 
-  // DEBUG: Log before calling Dart_PostCObject_DL
-  LOG_INFO("[VideoPlayer] Calling Dart_PostCObject_DL: port=%lld, json_copy=%p",
-           static_cast<long long>(port), json_copy);
-
   bool result = Dart_PostCObject_DL(port, &message);
-
-  // DEBUG: Log result
-  LOG_INFO("[VideoPlayer] Dart_PostCObject_DL returned: %d, player_id=%lld",
-           result ? 1 : 0, static_cast<long long>(player_id));
 
   if (!result) {
     LOG_ERROR(

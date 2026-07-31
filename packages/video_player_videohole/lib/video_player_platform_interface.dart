@@ -69,9 +69,7 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
   ///
   /// For platforms that don't support two-phase initialization,
   /// this method is a no-op.
-  Future<void> prepare(int playerId) {
-    throw UnimplementedError('prepare() has not been implemented.');
-  }
+  Future<void> prepare(int playerId) async {}
 
   /// Returns a Stream of [VideoEventType]s.
   Stream<VideoEvent> videoEventsFor(int playerId) {

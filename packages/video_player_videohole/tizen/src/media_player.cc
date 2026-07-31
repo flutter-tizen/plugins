@@ -724,25 +724,22 @@ bool MediaPlayer::StopAndDestroy() {
               get_error_message(ret));
     return false;
   }
-  if (player_state == PLAYER_STATE_NONE || player_state == PLAYER_STATE_IDLE) {
-    LOG_INFO("[MediaPlayer] Player already stop, nothing to do.");
-    return true;
-  }
 
   if (drm_manager_) {
     drm_manager_->StopDrmSession();
   }
 
-  if (player_stop(player_) != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] Player fail to stop.");
-    return false;
-  }
+  if (player_state != PLAYER_STATE_NONE && player_state != PLAYER_STATE_IDLE) {
+    if (player_stop(player_) != PLAYER_ERROR_NONE) {
+      LOG_ERROR("[MediaPlayer] Player fail to stop.");
+      return false;
+    }
 
-  if (player_unprepare(player_) != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] Player fail to unprepare.");
-    return false;
+    if (player_unprepare(player_) != PLAYER_ERROR_NONE) {
+      LOG_ERROR("[MediaPlayer] Player fail to unprepare.");
+      return false;
+    }
   }
-  player_get_state(player_, &player_state);
 
   if (drm_manager_) {
     drm_manager_->ReleaseDrmSession();
@@ -834,6 +831,10 @@ bool MediaPlayer::Restore(const CreateMessage *restore_message,
   LOG_INFO("[MediaPlayer] Restore is called for player_id=%lld",
            static_cast<long long>(player_id_));
 
+  if (!player_) {
+    return RestorePlayer(restore_message, resume_time);
+  }
+
   player_state_e player_state = PLAYER_STATE_NONE;
   int ret = player_get_state(player_, &player_state);
   if (ret != PLAYER_ERROR_NONE) {
@@ -856,8 +857,6 @@ bool MediaPlayer::Restore(const CreateMessage *restore_message,
   switch (player_state) {
     case PLAYER_STATE_NONE:
     case PLAYER_STATE_IDLE:
-      return RestorePlayer(restore_message, resume_time);
-
     case PLAYER_STATE_READY:
       return RestorePlayer(restore_message, resume_time);
 
