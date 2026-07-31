@@ -53,7 +53,6 @@ void PostEventToDart(int64_t player_id, const std::string& event_json) {
   player_id_obj.type = Dart_CObject_kInt64;
   player_id_obj.value.as_int64 = player_id;
 
-  // Dart_PostCObject_DL takes ownership of the string on success
   char* json_copy = strdup(event_json.c_str());
 
   Dart_CObject event_json_obj;
@@ -80,7 +79,6 @@ void PostEventToDart(int64_t player_id, const std::string& event_json) {
         "json_copy.",
         static_cast<long long>(player_id));
   }
-  // On success, Dart takes ownership of json_copy
 }
 
 // Legacy FFI event callback functions removed - use per-player port

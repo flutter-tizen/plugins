@@ -201,16 +201,14 @@ void MediaPlayer::Dispose() {
   if (!player_) {
     return;
   }
+  LOG_INFO("[MediaPlayer] Player disposing.");
 
-  // Unset all callbacks BEFORE stopping/destroying player
-  // This prevents callbacks from firing during disposal
   player_unset_buffering_cb(player_);
   player_unset_completed_cb(player_);
   player_unset_interrupted_cb(player_);
   player_unset_error_cb(player_);
   player_unset_subtitle_updated_cb(player_);
 
-  // Reuse StopAndDestroy() for state-protected player cleanup
   StopAndDestroy();
 }
 
@@ -801,10 +799,14 @@ bool MediaPlayer::Suspend() {
 
 bool MediaPlayer::Restore(const CreateMessage *restore_message,
                           int64_t resume_time) {
-  LOG_INFO("[MediaPlayer] Restore is called for player_id=%lld",
-           static_cast<long long>(player_id_));
+  LOG_INFO("[MediaPlayer] Restore is called.");
 
   if (!player_) {
+    return RestorePlayer(restore_message, resume_time);
+  }
+
+  if (restore_message->uri()) {
+    LOG_INFO("[MediaPlayer] Restore URL is not emptpy, recreate the player.");
     return RestorePlayer(restore_message, resume_time);
   }
 
@@ -813,43 +815,19 @@ bool MediaPlayer::Restore(const CreateMessage *restore_message,
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[MediaPlayer] Player get state failed: %s",
               get_error_message(ret));
-    return false;
-  }
-
-  if (restore_message->uri()) {
-    LOG_INFO(
-        "[MediaPlayer] Restore URL is not emptpy, close the existing "
-        "instance.");
-    if (player_ && !StopAndDestroy()) {
-      LOG_ERROR("[MediaPlayer] Player StopAndDestroy fail.");
-      return false;
-    }
     return RestorePlayer(restore_message, resume_time);
   }
 
-  switch (player_state) {
-    case PLAYER_STATE_NONE:
-    case PLAYER_STATE_IDLE:
-    case PLAYER_STATE_READY:
-      return RestorePlayer(restore_message, resume_time);
+  bool is_playing = player_state == PLAYER_STATE_PLAYING;
+  bool is_paused_by_user =
+      player_state == PLAYER_STATE_PAUSED && pre_state_ != PLAYER_STATE_PLAYING;
 
-    case PLAYER_STATE_PAUSED:
-      if (pre_state_ == PLAYER_STATE_PLAYING) {
-        return RestorePlayer(restore_message, resume_time);
-      }
-      break;
-
-    case PLAYER_STATE_PLAYING:
-      // Already playing, nothing to do
-      break;
-
-    default:
-      LOG_ERROR("[MediaPlayer] Restore: unhandled state=%d",
-                static_cast<int>(player_state));
-      return RestorePlayer(restore_message, resume_time);
+  if (is_playing || is_paused_by_user) {
+    LOG_INFO("[MediaPlayer] Keep current player.");
+    return true;
   }
 
-  return true;
+  return RestorePlayer(restore_message, resume_time);
 }
 
 bool MediaPlayer::RestorePlayer(const CreateMessage *restore_message,
