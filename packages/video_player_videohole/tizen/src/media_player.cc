@@ -867,9 +867,9 @@ bool MediaPlayer::RestorePlayer(const CreateMessage *restore_message,
     return false;
   }
 
-  // P0-3 fix: Call Prepare() after RestorePlayer to ensure player is ready
+  // Call Prepare() after RestorePlayer to ensure player is ready.
   // This is needed because Create() in two-phase mode does not call
-  // prepare_async
+  // prepare_async.
   LOG_INFO("[MediaPlayer] RestorePlayer: calling Prepare() after Create().");
   int prepare_result = Prepare();
   if (prepare_result < 0) {

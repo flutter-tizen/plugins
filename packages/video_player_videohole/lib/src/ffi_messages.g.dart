@@ -205,18 +205,6 @@ typedef _FFIRestoreDart = int Function(int, ffi.Pointer<ffi.Char>, int);
 typedef _FFIFreeStringNative = ffi.Void Function(ffi.Pointer<ffi.Char>);
 typedef _FFIFreeStringDart = void Function(ffi.Pointer<ffi.Char>);
 
-// P0-2 fix: Per-player event port registration
-typedef _FFIRegisterPlayerEventPortNative = ffi.Void Function(
-    ffi.Int64, ffi.Int64);
-typedef _FFIRegisterPlayerEventPortDart = void Function(int, int);
-
-typedef _FFIUnregisterPlayerEventPortNative = ffi.Void Function(ffi.Int64);
-typedef _FFIUnregisterPlayerEventPortDart = void Function(int);
-
-// P1-2 fix: Unregister all player event ports (for hot restart cleanup)
-typedef _FFIUnregisterAllPlayerEventPortsNative = ffi.Void Function();
-typedef _FFIUnregisterAllPlayerEventPortsDart = void Function();
-
 // ===== Helper Functions =====
 
 ffi.Pointer<ffi.Char> _toPointer(String? str) {

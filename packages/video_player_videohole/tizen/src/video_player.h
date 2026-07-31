@@ -25,10 +25,6 @@
 
 namespace video_player_videohole_tizen {
 
-// FFI event callback using Dart_Port - sends message to Dart isolate.
-using DartPortEventCallback =
-    std::function<void(int64_t player_id, const char *event_json)>;
-
 // Global Dart port for all player events.
 void RegisterDartPort(int64_t dart_port);
 void UnregisterDartPort();
@@ -39,13 +35,6 @@ void PostEventToDart(int64_t player_id, const std::string &event_json);
 class VideoPlayer {
  public:
   using SeekCompletedCallback = std::function<void()>;
-
-  // Static method to register FFI event callback (legacy, kept for
-  // compatibility).
-  static void RegisterFFIEventCallback(DartPortEventCallback callback);
-
-  // Static method to get current FFI event callback (legacy).
-  static DartPortEventCallback GetFFIEventCallback();
 
   explicit VideoPlayer(flutter::BinaryMessenger *messenger,
                        FlutterDesktopViewRef flutter_view);
@@ -103,7 +92,7 @@ class VideoPlayer {
   // Check if player is disposed (for use in callbacks)
   bool IsDisposed() const;
 
-  int64_t player_id_;  // Store player ID for FFI event callback
+  int64_t player_id_;  // Store player ID for event routing
   std::mutex queue_mutex_;
   std::unique_ptr<EcoreWl2WindowProxy> ecore_wl2_window_proxy_ = nullptr;
   flutter::BinaryMessenger *binary_messenger_;

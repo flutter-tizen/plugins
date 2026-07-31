@@ -481,9 +481,7 @@ void ffi_unregister_event_port() {
   g_legacy_dart_port = -1;
 }
 
-// P0-1 fix: FFI string memory management
-// Provides matching free for strdup() allocated strings returned by FFI
-// functions
+// Free strdup-allocated string returned by FFI functions
 void ffi_free_string(char* ptr) {
   if (ptr != nullptr) {
     free(ptr);

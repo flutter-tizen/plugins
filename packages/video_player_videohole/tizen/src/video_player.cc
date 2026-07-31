@@ -81,17 +81,6 @@ void PostEventToDart(int64_t player_id, const std::string& event_json) {
   }
 }
 
-// Legacy FFI event callback functions removed - use per-player port
-// registration instead
-void VideoPlayer::RegisterFFIEventCallback(DartPortEventCallback callback) {
-  // Deprecated: use RegisterPlayerEventPort instead
-}
-
-DartPortEventCallback VideoPlayer::GetFFIEventCallback() {
-  // Deprecated: use RegisterPlayerEventPort instead
-  return nullptr;
-}
-
 // Fix P1 #4: Use nlohmann::json for proper string escaping
 
 // Forward declaration
@@ -200,17 +189,6 @@ static std::string EncodableValueToJson(const flutter::EncodableValue& value) {
     return "null";
   } catch (const std::bad_variant_access& e) {
     return "null";
-  }
-}
-
-// Convert event to JSON and call FFI callback if registered
-static void NotifyFFIEventCallback(int64_t player_id,
-                                   const flutter::EncodableValue& event_value) {
-  DartPortEventCallback callback = VideoPlayer::GetFFIEventCallback();
-  if (callback) {
-    std::string event_json = EncodableValueToJson(event_value);
-    // Pass strdup-allocated string to callback
-    callback(player_id, strdup(event_json.c_str()));
   }
 }
 
