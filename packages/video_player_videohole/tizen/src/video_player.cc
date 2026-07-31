@@ -72,13 +72,13 @@ void PostEventToDart(int64_t player_id, const std::string& event_json) {
   message.value.as_array.values = array_elements;
 
   bool result = Dart_PostCObject_DL(port, &message);
+  free(json_copy);
 
   if (!result) {
     LOG_ERROR(
         "[VideoPlayer] Failed to post event to Dart for player %lld. Freeing "
         "json_copy.",
         static_cast<long long>(player_id));
-    free(json_copy);
   }
   // On success, Dart takes ownership of json_copy
 }

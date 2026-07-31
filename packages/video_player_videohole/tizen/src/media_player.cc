@@ -47,25 +47,7 @@ MediaPlayer::MediaPlayer(flutter::BinaryMessenger *messenger,
   device_proxy_ = std::make_unique<DeviceProxy>();
 }
 
-MediaPlayer::~MediaPlayer() {
-  if (player_) {
-    if (drm_manager_) {
-      drm_manager_->StopDrmSession();
-    }
-    player_stop(player_);
-    player_unprepare(player_);
-    player_unset_buffering_cb(player_);
-    player_unset_completed_cb(player_);
-    player_unset_interrupted_cb(player_);
-    player_unset_error_cb(player_);
-    player_unset_subtitle_updated_cb(player_);
-    player_destroy(player_);
-    player_ = nullptr;
-  }
-  if (drm_manager_) {
-    drm_manager_->ReleaseDrmSession();
-  }
-}
+MediaPlayer::~MediaPlayer() { Dispose(); }
 
 // Static counter for generating unique player IDs
 static int64_t player_id_counter = 1;
@@ -228,18 +210,8 @@ void MediaPlayer::Dispose() {
   player_unset_error_cb(player_);
   player_unset_subtitle_updated_cb(player_);
 
-  // Stop and destroy player
-  player_stop(player_);
-  player_unprepare(player_);
-  player_destroy(player_);
-  player_ = nullptr;
-
-  // Release DRM
-  if (drm_manager_) {
-    drm_manager_->StopDrmSession();
-    drm_manager_->ReleaseDrmSession();
-    drm_manager_.reset();
-  }
+  // Reuse StopAndDestroy() for state-protected player cleanup
+  StopAndDestroy();
 }
 
 void MediaPlayer::SetDisplayRoi(int32_t x, int32_t y, int32_t width,
@@ -810,7 +782,8 @@ bool MediaPlayer::Suspend() {
     }
     LOG_INFO("[MediaPlayer] Player called in IDLE state, so stop the player.");
   } else if (player_state == PLAYER_STATE_PLAYING) {
-    // 只有当前是 PLAYING 时才调用 pause，并保存 pre_state_ 为 PLAYING
+    // Only call pause when current state is PLAYING, and preserve pre_state_ as
+    // PLAYING
     LOG_INFO("[MediaPlayer] Player calling pause from suspend.");
     if (!Pause()) {
       LOG_ERROR(
@@ -849,7 +822,7 @@ bool MediaPlayer::Restore(const CreateMessage *restore_message,
         "instance.");
     if (player_ && !StopAndDestroy()) {
       LOG_ERROR("[MediaPlayer] Player StopAndDestroy fail.");
-      return -1;
+      return false;
     }
     return RestorePlayer(restore_message, resume_time);
   }
