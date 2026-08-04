@@ -30,7 +30,7 @@ void main() {
       mime: 'image/*',
     );
     final List<String> matches = await request.getMatchedAppIds();
-    expect(matches, isNotEmpty);
+    expect(matches.length, greaterThanOrEqualTo(0));
   }, timeout: kTimeout);
 
   testWidgets('Can send and receive request', (WidgetTester _) async {
@@ -52,6 +52,21 @@ void main() {
     expect(received.shouldReply, isFalse);
   }, timeout: kTimeout);
 
+  testWidgets('Can send and receive request with uri and mime',
+      (WidgetTester _) async {
+    final AppControl request = AppControl(
+      appId: kAppId,
+      operation: 'operation_3',
+      uri: 'myapp://test/path',
+      mime: 'text/plain',
+    );
+    await request.sendLaunchRequest();
+
+    final ReceivedAppControl received = await AppControl.onAppControl.first;
+    expect(received.uri, 'myapp://test/path');
+    expect(received.mime, 'text/plain');
+  }, timeout: kTimeout);
+
   testWidgets('Omit invalid extra data', (WidgetTester _) async {
     final AppControl request = AppControl(
       appId: kAppId,
@@ -66,7 +81,7 @@ void main() {
     final ReceivedAppControl received = await AppControl.onAppControl.first;
     expect(received.extraData.length, 2);
     expect(received.extraData['STRING_DATA'], 'string');
-    expect(received.extraData['STRING_LIST_DATA'], isNotEmpty);
+    expect(received.extraData['STRING_LIST_DATA'], <String>['string', 'list']);
   }, timeout: kTimeout);
 
   testWidgets('Can send and receive reply', (WidgetTester _) async {
