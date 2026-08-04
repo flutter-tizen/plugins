@@ -69,8 +69,11 @@ class LWE_EXPORT LWE {
    *
    * \param storageDirectoryPath Directory path for storage.
    *
+   * \param preferMainThread If true, LWE prefers to run on the process main
+   * thread. Default is true.
    */
-  static void Initialize(const char* storageDirectoryPath);
+  static void Initialize(const char* storageDirectoryPath,
+                         bool preferMainThread = true);
 
   /**
    * \brief Returns the initialization status of lightweight web engine.
