@@ -45,7 +45,7 @@ flutter::EncodableMap TizenWindowManager::GetGeometry() {
     return geometry;
   }
 
-  int x, y, width, height;
+  int x = 0, y = 0, width = 0, height = 0;
   proxy_->GetGeometry(window_handle_, &x, &y, &width, &height);
 
   geometry[flutter::EncodableValue("x")] = flutter::EncodableValue(x);
