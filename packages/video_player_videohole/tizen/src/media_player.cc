@@ -347,18 +347,18 @@ int64_t MediaPlayer::GetPosition() {
 }
 
 std::pair<int64_t, int64_t> MediaPlayer::GetDuration() {
-  // if (IsLive()) {
-  //   return GetLiveDuration();
-  // } else {
-  int duration = 0;
-  int ret = player_get_duration(player_, &duration);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_get_duration failed: %s.",
-              get_error_message(ret));
+  if (IsLive()) {
+    return GetLiveDuration();
+  } else {
+    int duration = 0;
+    int ret = player_get_duration(player_, &duration);
+    if (ret != PLAYER_ERROR_NONE) {
+      LOG_ERROR("[MediaPlayer] player_get_duration failed: %s.",
+                get_error_message(ret));
+    }
+    LOG_INFO("[MediaPlayer] Video duration: %d.", duration);
+    return std::make_pair(0, duration);
   }
-  LOG_INFO("[MediaPlayer] Video duration: %d.", duration);
-  return std::make_pair(0, duration);
-  //}
 }
 
 void MediaPlayer::GetVideoSize(int32_t *width, int32_t *height) {
@@ -752,15 +752,15 @@ bool MediaPlayer::Suspend() {
       "[MediaPlayer] Saved current player state: %d, playing time: %llu ms",
       pre_state_, pre_playing_time_);
 
-  // if (IsLive()) {
-  //   pre_playing_time_ = 0;
-  //   if (!StopAndDestroy()) {
-  //     LOG_ERROR("[MediaPlayer] Player is live, StopAndDestroy fail.");
-  //     return false;
-  //   }
-  //   LOG_INFO("[MediaPlayer] Player is live: close done successfully.");
-  //   return true;
-  // }
+  if (IsLive()) {
+    pre_playing_time_ = 0;
+    if (!StopAndDestroy()) {
+      LOG_ERROR("[MediaPlayer] Player is live, StopAndDestroy fail.");
+      return false;
+    }
+    LOG_INFO("[MediaPlayer] Player is live: close done successfully.");
+    return true;
+  }
 
   res = device_proxy_->device_power_get_state();
   if (res == POWER_STATE_STANDBY) {

@@ -10,12 +10,19 @@
 
 #include <flutter/binary_messenger.h>
 #include <flutter/encodable_value.h>
+#include <flutter/plugin_registrar.h>
+#include <flutter_tizen.h>
 
 #include <cstdint>
 #include <map>
+#include <memory>
+#include <mutex>
 #include <optional>
+#include <shared_mutex>
 #include <string>
 #include <variant>
+
+#include "video_player_options.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,6 +32,7 @@ extern "C" {
 
 int ffi_initialize();
 int64_t ffi_create(const char* create_message_json);
+int ffi_prepare(int64_t player_id);
 int ffi_dispose(int64_t player_id);
 int ffi_play(int64_t player_id);
 int ffi_pause(int64_t player_id);
@@ -110,4 +118,41 @@ class CreateMessage {
 }  // namespace video_player_videohole_tizen
 
 #endif  // __cplusplus
+
+// ===== Internal API for plugin registration (not part of public FFI) =====
+// These functions are used internally to inject dependencies from the plugin
+// registrar
+// Note: Full type definitions are available via includes in ffi_messages.cc
+#ifdef __cplusplus
+namespace video_player_videohole_tizen {
+
+// Set plugin registrar reference (called during plugin registration)
+void ffi_set_plugin_registrar(FlutterDesktopPluginRegistrarRef registrar_ref,
+                              flutter::PluginRegistrar* registrar);
+
+// Get plugin registrar (for internal use)
+flutter::PluginRegistrar* ffi_get_plugin_registrar();
+
+// Get registrar reference (for internal use)
+FlutterDesktopPluginRegistrarRef ffi_get_registrar_ref();
+
+// Get global options (for internal use)
+// Note: VideoPlayerOptions is defined in video_player_options.h (included
+// above)
+VideoPlayerOptions& ffi_get_global_options();
+
+// Get players registry (for internal use)
+// Note: VideoPlayer forward declaration needed here
+class VideoPlayer;
+std::map<int64_t, std::shared_ptr<VideoPlayer>>& ffi_get_players();
+
+// Get players mutex (for internal use)
+std::shared_mutex& ffi_get_players_mutex();
+
+// Parse CreateMessage from JSON string (utility function)
+CreateMessage ParseCreateMessage(const std::string& json_str);
+
+}  // namespace video_player_videohole_tizen
+#endif  // __cplusplus
+
 #endif  // FFI_MESSAGES_H_
