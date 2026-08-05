@@ -451,19 +451,21 @@ static std::vector<std::string> split(const std::string &s, char delim) {
 
 std::pair<int64_t, int64_t> MediaPlayer::GetLiveDuration() {
   std::string live_duration_str = "";
-  char live_duration_buff[64] = {
-      0,
-  };
+  char *live_duration_buff = static_cast<char *>(malloc(sizeof(char) * 64));
+  memset(live_duration_buff, 0, sizeof(char) * 64);
+
   int ret = media_player_proxy_->player_get_adaptive_streaming_info(
-      player_, (void *)live_duration_buff, PLAYER_ADAPTIVE_INFO_LIVE_DURATION);
+      player_, (void *)&live_duration_buff, PLAYER_ADAPTIVE_INFO_LIVE_DURATION);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[MediaPlayer] player_get_adaptive_streaming_info failed: %s",
               get_error_message(ret));
+    free(live_duration_buff);
     return std::make_pair(0, 0);
   }
-  if (live_duration_buff[0]) {
+  if (*live_duration_buff) {
     live_duration_str = std::string(live_duration_buff);
   }
+  free(live_duration_buff);
   if (live_duration_str.empty()) {
     return std::make_pair(0, 0);
   }
