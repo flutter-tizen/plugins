@@ -438,15 +438,6 @@ int ffi_set_deactivate(int64_t player_id) {
   return player->Deactivate() ? 0 : -1;
 }
 
-int ffi_is_live(int64_t player_id) {
-  auto player = GetPlayer(player_id);
-  if (!player) {
-    return -1;
-  }
-  // MediaPlayer::IsLive() returns bool, cast to int for FFI
-  return player->IsLive() ? 1 : 0;
-}
-
 int ffi_set_mix_with_others(bool mix_with_others) {
   g_options.SetMixWithOthers(mix_with_others);
   return 0;

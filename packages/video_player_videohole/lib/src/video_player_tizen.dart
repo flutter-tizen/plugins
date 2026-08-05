@@ -463,12 +463,6 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     return true;
   }
 
-  @override
-  Future<bool> isLive(int playerId) async {
-    // Use FFI for isLive (synchronous call)
-    return _ffiApi.isLive(playerId);
-  }
-
   static const Map<VideoFormat, String> _videoFormatStringMap =
       <VideoFormat, String>{
     VideoFormat.ss: 'ss',

@@ -188,10 +188,6 @@ typedef _FFISetDeactivateDart = int Function(int);
 typedef _FFISetMixWithOthersNative = ffi.Int32 Function(ffi.Bool);
 typedef _FFISetMixWithOthersDart = int Function(bool);
 
-// Check if video is live stream - returns 1 if live, 0 if VOD
-typedef _FFIIsLiveNative = ffi.Int32 Function(ffi.Int64);
-typedef _FFIIsLiveDart = int Function(int);
-
 typedef _FFISuspendNative = ffi.Int32 Function(ffi.Int64);
 typedef _FFISuspendDart = int Function(int);
 
@@ -253,7 +249,6 @@ class VideoPlayerFFIBindings {
   late int Function(int) _ffiSetActivate;
   late int Function(int) _ffiSetDeactivate;
   late int Function(bool) _ffiSetMixWithOthers;
-  late int Function(int) _ffiIsLive;
   // P0-1 fix: FFI string memory management
   late void Function(ffi.Pointer<ffi.Char>) _ffiFreeString;
   // Global Dart port registration
@@ -381,10 +376,6 @@ class VideoPlayerFFIBindings {
           .lookup<ffi.NativeFunction<_FFIUnregisterEventPortNative>>(
               'ffi_unregister_dart_port')
           .asFunction<_FFIUnregisterEventPortDart>();
-
-      _ffiIsLive = _lib!
-          .lookup<ffi.NativeFunction<_FFIIsLiveNative>>('ffi_is_live')
-          .asFunction<_FFIIsLiveDart>();
 
       debugPrint('FFI bindings loaded successfully');
     } catch (e) {
@@ -642,17 +633,6 @@ class VideoPlayerVideoholeFFIApi {
       bindings.load();
     }
     bindings._ffiUnregisterDartPort();
-  }
-
-  /// Check if video is live stream
-  /// Returns true if live, false if VOD
-  bool isLive(int playerId) {
-    final bindings = VideoPlayerFFIBindings.instance;
-    if (!bindings.isLoaded) {
-      bindings.load();
-    }
-    final int result = bindings._ffiIsLive(playerId);
-    return result != 0;
   }
 }
 

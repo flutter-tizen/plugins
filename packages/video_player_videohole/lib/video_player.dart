@@ -946,18 +946,6 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
     return _videoPlayerPlatform.setDisplayRotate(_playerId, rotation);
   }
-
-  /// Check if the video is a live stream.
-  /// Returns true if live, false if VOD.
-  ///
-  /// This method should be called after the video is initialized.
-  /// The result is cached in native side to avoid repeated API calls.
-  Future<bool> isLive() async {
-    if (_isDisposedOrNotInitialized) {
-      return false;
-    }
-    return _videoPlayerPlatform.isLive(_playerId);
-  }
 }
 
 class _VideoAppLifeCycleObserver extends Object with WidgetsBindingObserver {

@@ -186,12 +186,6 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
   Future<bool> setDisplayRotate(int playerId, DisplayRotation rotation) {
     throw UnimplementedError('setDisplayRotate() has not been implemented.');
   }
-
-  /// Check if the video is a live stream.
-  /// Returns true if live, false if VOD.
-  Future<bool> isLive(int playerId) {
-    throw UnimplementedError('isLive() has not been implemented.');
-  }
 }
 
 /// Description of the data source used to create an instance of
