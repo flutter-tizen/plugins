@@ -16,8 +16,6 @@ using nlohmann::json;
 
 namespace video_player_videohole_tizen {
 
-static int64_t player_index = 1;
-
 // Global Dart port for all player events
 static int64_t g_dart_port = -1;
 static std::mutex g_dart_port_mutex;
@@ -38,17 +36,20 @@ void UnregisterDartPort() {
 }
 
 // Post event to Dart using global port
+// Note: Copy port under lock, then release lock BEFORE calling
+// Dart_PostCObject_DL to avoid potential deadlock if Dart_PostCObject_DL blocks
+// or callbacks
 void PostEventToDart(int64_t player_id, const std::string& event_json) {
-  std::lock_guard<std::mutex> lock(g_dart_port_mutex);
-
-  if (g_dart_port < 0) {
-    LOG_ERROR("[VideoPlayer] Global port not registered, dropping event");
-    return;
+  int64_t port;
+  {
+    std::lock_guard<std::mutex> lock(g_dart_port_mutex);
+    if (g_dart_port < 0) {
+      LOG_ERROR("[VideoPlayer] Global port not registered, dropping event");
+      return;
+    }
+    port = g_dart_port;
   }
 
-  int64_t port = g_dart_port;
-
-  // Message format: [player_id, event_json]
   Dart_CObject player_id_obj;
   player_id_obj.type = Dart_CObject_kInt64;
   player_id_obj.value.as_int64 = player_id;
