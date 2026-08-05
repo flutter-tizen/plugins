@@ -1,3 +1,9 @@
+## 0.6.0
+
+* Migrated from Platform Channels to Dart FFI.
+* Replaced EventChannel with FFI port for event callbacks.
+* Added JSON serialization for complex parameters.
+
 ## 0.5.9
 
 * Adds compatibility with `http` 1.0 in example.
