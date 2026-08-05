@@ -120,37 +120,16 @@ class CreateMessage {
 #endif  // __cplusplus
 
 // ===== Internal API for plugin registration (not part of public FFI) =====
-// These functions are used internally to inject dependencies from the plugin
-// registrar
-// Note: Full type definitions are available via includes in ffi_messages.cc
+// Only ffi_set_plugin_registrar is exposed; all other helpers are internal
+// to ffi_messages.cc
 #ifdef __cplusplus
 namespace video_player_videohole_tizen {
 
 // Set plugin registrar reference (called during plugin registration)
+// This is the ONLY public internal API; everything else is static in
+// ffi_messages.cc
 void ffi_set_plugin_registrar(FlutterDesktopPluginRegistrarRef registrar_ref,
                               flutter::PluginRegistrar* registrar);
-
-// Get plugin registrar (for internal use)
-flutter::PluginRegistrar* ffi_get_plugin_registrar();
-
-// Get registrar reference (for internal use)
-FlutterDesktopPluginRegistrarRef ffi_get_registrar_ref();
-
-// Get global options (for internal use)
-// Note: VideoPlayerOptions is defined in video_player_options.h (included
-// above)
-VideoPlayerOptions& ffi_get_global_options();
-
-// Get players registry (for internal use)
-// Note: VideoPlayer forward declaration needed here
-class VideoPlayer;
-std::map<int64_t, std::shared_ptr<VideoPlayer>>& ffi_get_players();
-
-// Get players mutex (for internal use)
-std::shared_mutex& ffi_get_players_mutex();
-
-// Parse CreateMessage from JSON string (utility function)
-CreateMessage ParseCreateMessage(const std::string& json_str);
 
 }  // namespace video_player_videohole_tizen
 #endif  // __cplusplus
