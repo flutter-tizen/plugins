@@ -1,3 +1,7 @@
+## 0.5.3
+
+* Update lightweight web engine (1.5.1).
+
 ## 0.5.2
 
 * Update lightweight web engine (1.4.1).
