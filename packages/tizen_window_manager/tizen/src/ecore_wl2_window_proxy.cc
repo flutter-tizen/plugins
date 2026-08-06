@@ -28,9 +28,8 @@ EcoreWl2WindowProxy::~EcoreWl2WindowProxy() {
   }
 }
 
-void EcoreWl2WindowProxy::ecore_wl2_window_geometry_get(void *window, int *x,
-                                                        int *y, int *width,
-                                                        int *height) {
+void EcoreWl2WindowProxy::GetGeometry(void *window, int *x, int *y, int *width,
+                                      int *height) {
   if (!ecore_wl2_window_handle_) {
     LOG_ERROR("ecore_wl2_window_handle_ not valid");
     return;
@@ -46,7 +45,7 @@ void EcoreWl2WindowProxy::ecore_wl2_window_geometry_get(void *window, int *x,
   ecore_wl2_window_geometry_get(window, x, y, width, height);
 }
 
-void EcoreWl2WindowProxy::ecore_wl2_window_activate(void *window) {
+void EcoreWl2WindowProxy::Activate(void *window) {
   if (!ecore_wl2_window_handle_) {
     LOG_ERROR("ecore_wl2_window_handle_ not valid");
     return;
@@ -62,7 +61,7 @@ void EcoreWl2WindowProxy::ecore_wl2_window_activate(void *window) {
   ecore_wl2_window_activate(window);
 }
 
-void EcoreWl2WindowProxy::ecore_wl2_window_lower(void *window) {
+void EcoreWl2WindowProxy::Lower(void *window) {
   if (!ecore_wl2_window_handle_) {
     LOG_ERROR("ecore_wl2_window_handle_ not valid");
     return;
