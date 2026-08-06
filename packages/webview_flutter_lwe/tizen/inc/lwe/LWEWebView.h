@@ -43,6 +43,39 @@ using LWEDelegateRef = std::unique_ptr<void, std::function<void(void*)>>;
 namespace LWE {
 
 /**
+ * \brief Initialize option bit-flags that can be combined with the | operator.
+ *
+ * Pass to LWE::Initialize to prefer specific runtime behaviors.
+ */
+enum class InitializeOption : uint32_t {
+  None = 0,
+  /**
+   * \brief Prefer running LWE on a separate thread instead of the process
+   * main thread. Some backends (e.g., flutter, uv_cairo_gl) always use a
+   * separate thread regardless of this flag.
+   */
+  PreferSeparateThread = 1 << 0,
+  /**
+   * \brief Prefer using incremental garbage collection if the GC supports it.
+   */
+  PreferIncrementalGC = 1 << 1,
+};
+
+inline InitializeOption operator|(InitializeOption a, InitializeOption b) {
+  return static_cast<InitializeOption>(static_cast<uint32_t>(a) |
+                                       static_cast<uint32_t>(b));
+}
+
+inline InitializeOption operator&(InitializeOption a, InitializeOption b) {
+  return static_cast<InitializeOption>(static_cast<uint32_t>(a) &
+                                       static_cast<uint32_t>(b));
+}
+
+inline InitializeOption operator~(InitializeOption a) {
+  return static_cast<InitializeOption>(~static_cast<uint32_t>(a));
+}
+
+/**
  * \brief Perform initialization or cleanup of lightweight web engine.
  */
 class LWE_EXPORT LWE {
@@ -64,16 +97,29 @@ class LWE_EXPORT LWE {
    * function before using WebContainer or WebView
    *
    * \code{.cpp}
+   *     // Default: prefer main thread, no incremental GC
    *     LWE::LWE::Initialize("/tmp/Starfish_storage");
+   *
+   *     // Prefer separate thread (may be ignored by some backends)
+   *     LWE::LWE::Initialize("/tmp/Starfish_storage",
+   *         LWE::InitializeOption::PreferSeparateThread);
+   *
+   *     // Combine options with the | operator
+   *     LWE::LWE::Initialize("/tmp/Starfish_storage",
+   *         LWE::InitializeOption::PreferSeparateThread |
+   *         LWE::InitializeOption::PreferIncrementalGC);
    * \endcode
    *
    * \param storageDirectoryPath Directory path for storage.
    *
-   * \param preferMainThread If true, LWE prefers to run on the process main
-   * thread. Default is true.
+   * \param option Bit-flag combination of InitializeOption values.
+   * Default is InitializeOption::None (prefer main thread, no incremental
+   * GC). Note: Some backends (e.g., flutter, uv_cairo_gl) always use a
+   * separate thread regardless of the PreferSeparateThread flag.
+   *
    */
   static void Initialize(const char* storageDirectoryPath,
-                         bool preferMainThread = true);
+                         InitializeOption option = InitializeOption::None);
 
   /**
    * \brief Returns the initialization status of lightweight web engine.
@@ -113,6 +159,16 @@ class LWE_EXPORT LWE {
    * \brief Returns LWE version number if the parameter is not null.
    */
   static void GetVersion(int* major, int* minor, int* patch);
+
+  /**
+   * \brief Returns whether LWE is running on a separate thread.
+   *
+   * \return true if LWE is using a separate thread, false if running on the
+   * main thread.
+   *
+   * \remark Must be called after Initialize.
+   */
+  static bool IsUsingSeparateThread();
 };
 
 #define LWE_DEFAULT_FONT_SIZE 16
@@ -402,14 +458,23 @@ class LWE_EXPORT WebContainer {
   void DispatchMouseUpEvent(MouseButtonValue button, MouseButtonsValue buttons,
                             double x, double y);
   void DispatchMouseWheelEvent(double x, double y, int delta);
+  // points: interleaved [x0,y0, x1,y1, ...], ids: per-point identifier,
+  // pointCount: number of touch points
+  void DispatchTouchStartEvent(const float* points, const int* ids,
+                               size_t pointCount);
+  void DispatchTouchMoveEvent(const float* points, const int* ids,
+                              size_t pointCount);
+  void DispatchTouchEndEvent(const float* points, const int* ids,
+                             size_t pointCount);
   void DispatchKeyDownEvent(KeyValue keyCode);
   void DispatchKeyPressEvent(KeyValue keyCode);
   void DispatchKeyUpEvent(KeyValue keyCode);
 
-  void DispatchCompositionStartEvent(const std::string& soFarCompositiedString);
+  void DispatchCompositionStartEvent(
+      const std::string& currentCompositionString);
   void DispatchCompositionUpdateEvent(
-      const std::string& soFarCompositiedString);
-  void DispatchCompositionEndEvent(const std::string& soFarCompositiedString);
+      const std::string& currentCompositionString);
+  void DispatchCompositionEndEvent(const std::string& currentCompositionString);
   void RegisterOnShowSoftwareKeyboardIfPossibleHandler(
       const std::function<void(WebContainer*)>& cb);
   void RegisterOnHideSoftwareKeyboardIfPossibleHandler(
@@ -973,6 +1038,14 @@ class LWE_EXPORT WebView {
    *
    */
   float GetDevicePixelRatio();
+
+  /**
+   * \brief Returns the WebContainer associated with this WebView.
+   *
+   * \return Pointer to the WebContainer. Owned by this WebView.
+   *
+   */
+  WebContainer* FetchWebContainer();
 
  private:
   WebView();
