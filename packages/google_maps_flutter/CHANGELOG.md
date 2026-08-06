@@ -2,7 +2,7 @@
 
 * Refactor the JavaScript interaction layer by introducing `GoogleMapsJsBridge`,
   replacing direct `WebViewController` calls.
-* Update `webview_flutter_lwe` to ^0.5.2.
+* Update `webview_flutter_lwe` to ^0.5.3.
 * Verify integration tests pass against upstream google_maps_flutter v2.17.0.
 
 ## 0.1.14
