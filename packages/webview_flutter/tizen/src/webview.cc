@@ -11,8 +11,11 @@
 #include <glib.h>
 #include <tbm_surface.h>
 
+#include <algorithm>
+#include <atomic>
 #include <cstdlib>
 #include <cstring>
+#include <vector>
 
 #include "buffer_pool.h"
 #include "log.h"
@@ -102,6 +105,42 @@ bool GetValueFromEncodableMap(const flutter::EncodableValue* arguments,
     }
   }
   return false;
+}
+
+// Tracks Dispose()'s deferred evas_object_del() calls so
+// FlushPendingTeardowns() can drain them to empty before ewk_shutdown().
+struct PendingTeardown {
+  Evas_Object* instance = nullptr;
+  // Guards against the queued callback and a force-delete both deleting
+  // the same instance.
+  std::atomic<bool> completed{false};
+};
+
+std::mutex g_pending_teardown_mutex;
+std::vector<std::shared_ptr<PendingTeardown>> g_pending_teardowns;
+
+std::shared_ptr<PendingTeardown> RegisterPendingTeardown(
+    Evas_Object* instance) {
+  auto pending = std::make_shared<PendingTeardown>();
+  pending->instance = instance;
+  std::lock_guard<std::mutex> lock(g_pending_teardown_mutex);
+  g_pending_teardowns.push_back(pending);
+  return pending;
+}
+
+// Idempotent: safe to call more than once for the same |pending|.
+void CompletePendingTeardown(const std::shared_ptr<PendingTeardown>& pending) {
+  bool expected = false;
+  if (pending->completed.compare_exchange_strong(expected, true) &&
+      pending->instance) {
+    evas_object_del(pending->instance);
+  }
+  std::lock_guard<std::mutex> lock(g_pending_teardown_mutex);
+  auto it = std::find(g_pending_teardowns.begin(), g_pending_teardowns.end(),
+                      pending);
+  if (it != g_pending_teardowns.end()) {
+    g_pending_teardowns.erase(it);
+  }
 }
 
 }  // namespace
@@ -244,10 +283,11 @@ void WebView::Dispose() {
   // reading, so defer it until the embedder confirms the texture is torn
   // down. That confirmation fires on the render thread, hence the hop below.
   struct TeardownContext {
-    Evas_Object* instance;
+    std::shared_ptr<PendingTeardown> pending;
     std::shared_ptr<BufferPool> pool;
   };
-  auto* context = new TeardownContext{instance, std::move(pool)};
+  auto* context =
+      new TeardownContext{RegisterPendingTeardown(instance), std::move(pool)};
   texture_registrar_->UnregisterTexture(GetTextureId(), [context]() {
     // Must stay a high-priority timeout: g_idle_add() runs too late and the
     // delete then races the raster thread on the TV emulator.
@@ -255,24 +295,39 @@ void WebView::Dispose() {
         G_PRIORITY_HIGH, 0,
         [](gpointer data) -> gboolean {
           auto* context = static_cast<TeardownContext*>(data);
-          if (context->instance) {
-            const char* profile = getenv("ELM_PROFILE");
-            if (profile && strcmp(profile, "tv") == 0) {
-              // TODO: evas_object_del() still crashes the raster thread
-              // intermittently on the Tizen 10.0 TV emulator, so leak the view
-              // there instead until the engine is fixed.
-              evas_object_hide(context->instance);
-            } else {
-              evas_object_del(context->instance);
-            }
-          }
+          CompletePendingTeardown(context->pending);
           return G_SOURCE_REMOVE;
         },
         context,
         [](gpointer data) { delete static_cast<TeardownContext*>(data); });
   });
+}
 
-  // ewk_shutdown();
+// static
+void WebView::FlushPendingTeardowns() {
+  constexpr gint64 kDeadlineUsec = 2 * G_USEC_PER_SEC;
+  const gint64 deadline = g_get_monotonic_time() + kDeadlineUsec;
+  for (;;) {
+    std::shared_ptr<PendingTeardown> pending;
+    {
+      std::lock_guard<std::mutex> lock(g_pending_teardown_mutex);
+      if (g_pending_teardowns.empty()) {
+        return;
+      }
+      pending = g_pending_teardowns.front();
+    }
+    if (g_get_monotonic_time() >= deadline) {
+      // A leaked Ewk_View is a guaranteed fatal CHECK in ewk_shutdown(), so
+      // force the remaining deletes through rather than waiting any longer.
+      LOG_WARN("Forcing WebView teardown past the deadline before ewk_shutdown()");
+      CompletePendingTeardown(pending);
+      continue;
+    }
+    // Pump the same GLib context the queued g_timeout_add_full hop (see
+    // Dispose()) is scheduled on, so it gets a chance to run and remove
+    // this entry itself.
+    g_main_context_iteration(g_main_context_default(), TRUE);
+  }
 }
 
 void WebView::Offset(double left, double top) {
@@ -436,19 +491,14 @@ bool WebView::InitWebView() {
   EwkInternalApiBinding::GetInstance().main.SetArguments(chromium_argc,
                                                          chromium_argv);
 
-  // TODO(jsuya): ewk_init() and ewk_shutdown() are designed to be called only
-  // once in a process.(If ewk_init() is called after ewk_shutdown() is
-  // called, SIGTRAP is called internally.) ewk_init() initializes the efl
-  // modules and web engine's arguments data. The efl modules are initialized
-  // by default in OS, and arguments data is also initialized through
-  // SetArguments() API, so calling ewk_init() is not necessary. Therefore,
-  // temporarily comment out ewk_init() and ewk_shutdown(). It can be reverted
-  // depending on updates to chromium-efl.
-  // ewk_init();
+  // ewk_init() is called once for the process lifetime by
+  // WebviewFlutterTizenPlugin's constructor, not per WebView instance.
 
-  // Not freed on disposal: ecore_evas_free() would eglTerminate() the EGL
-  // display shared with the Flutter renderer and kill the process.
-  Ecore_Evas* evas = ecore_evas_new("wayland_egl", 0, 0, 1, 1, 0);
+  // "wayland_shm", not "wayland_egl": this canvas only hosts the ewk_view
+  // smart object (content arrives via tbm_surface), and wayland_egl raced
+  // libtpl-egl's wl_egl_thread teardown on disposal. Intentionally leaked
+  // (not ecore_evas_free()'d) on disposal, as before.
+  Ecore_Evas* evas = ecore_evas_new("wayland_shm", 0, 0, 1, 1, 0);
 
   webview_instance_ = ewk_view_add(ecore_evas_get(evas));
   if (!webview_instance_) {

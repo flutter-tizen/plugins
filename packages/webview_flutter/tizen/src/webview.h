@@ -58,6 +58,11 @@ class WebView : public PlatformView {
   FlutterDesktopGpuSurfaceDescriptor* ObtainGpuSurface(size_t width,
                                                        size_t height);
 
+  // Blocks until every WebView's deferred evas_object_del() (queued in
+  // Dispose()) has run, force-deleting stragglers after a timeout. Must be
+  // called before ewk_shutdown(), which fatally CHECKs on any live Ewk_View.
+  static void FlushPendingTeardowns();
+
  private:
   void HandleWebViewMethodCall(const FlMethodCall& method_call,
                                std::unique_ptr<FlMethodResult> result);
