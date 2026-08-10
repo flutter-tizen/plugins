@@ -27,6 +27,7 @@ typedef flutter::MethodChannel<flutter::EncodableValue> FlMethodChannel;
 
 class BufferPool;
 class BufferUnit;
+typedef struct _Ecore_Evas Ecore_Evas;
 
 class WebView : public PlatformView {
  public:
@@ -62,6 +63,11 @@ class WebView : public PlatformView {
   // Dispose()) has run, force-deleting stragglers after a timeout. Must be
   // called before ewk_shutdown(), which fatally CHECKs on any live Ewk_View.
   static void FlushPendingTeardowns();
+
+  static Ecore_Evas* GetSharedCanvas();
+
+  // Must be called after FlushPendingTeardowns() and before ewk_shutdown().
+  static void FreeSharedCanvas();
 
  private:
   void HandleWebViewMethodCall(const FlMethodCall& method_call,

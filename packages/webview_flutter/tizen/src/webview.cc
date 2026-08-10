@@ -119,6 +119,8 @@ struct PendingTeardown {
 std::mutex g_pending_teardown_mutex;
 std::vector<std::shared_ptr<PendingTeardown>> g_pending_teardowns;
 
+Ecore_Evas* g_shared_canvas = nullptr;
+
 std::shared_ptr<PendingTeardown> RegisterPendingTeardown(
     Evas_Object* instance) {
   auto pending = std::make_shared<PendingTeardown>();
@@ -301,6 +303,25 @@ void WebView::Dispose() {
         context,
         [](gpointer data) { delete static_cast<TeardownContext*>(data); });
   });
+}
+
+// static
+Ecore_Evas* WebView::GetSharedCanvas() {
+  if (!g_shared_canvas) {
+    // "wayland_shm", not "wayland_egl": this canvas only hosts the ewk_view
+    // smart object (content arrives via tbm_surface), and wayland_egl raced
+    // libtpl-egl's wl_egl_thread teardown on disposal.
+    g_shared_canvas = ecore_evas_new("wayland_shm", 0, 0, 1, 1, 0);
+  }
+  return g_shared_canvas;
+}
+
+// static
+void WebView::FreeSharedCanvas() {
+  if (g_shared_canvas) {
+    ecore_evas_free(g_shared_canvas);
+    g_shared_canvas = nullptr;
+  }
 }
 
 // static
@@ -493,12 +514,10 @@ bool WebView::InitWebView() {
 
   // ewk_init() is called once for the process lifetime by
   // WebviewFlutterTizenPlugin's constructor, not per WebView instance.
-
-  // "wayland_shm", not "wayland_egl": this canvas only hosts the ewk_view
-  // smart object (content arrives via tbm_surface), and wayland_egl raced
-  // libtpl-egl's wl_egl_thread teardown on disposal. Intentionally leaked
-  // (not ecore_evas_free()'d) on disposal, as before.
-  Ecore_Evas* evas = ecore_evas_new("wayland_shm", 0, 0, 1, 1, 0);
+  Ecore_Evas* evas = GetSharedCanvas();
+  if (!evas) {
+    return false;
+  }
 
   webview_instance_ = ewk_view_add(ecore_evas_get(evas));
   if (!webview_instance_) {
