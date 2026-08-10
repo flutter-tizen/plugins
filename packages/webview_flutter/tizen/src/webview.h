@@ -59,9 +59,9 @@ class WebView : public PlatformView {
   FlutterDesktopGpuSurfaceDescriptor* ObtainGpuSurface(size_t width,
                                                        size_t height);
 
-  // Blocks until every WebView's deferred evas_object_del() (queued in
-  // Dispose()) has run, force-deleting stragglers after a timeout. Must be
-  // called before ewk_shutdown(), which fatally CHECKs on any live Ewk_View.
+  // Blocks until every WebView's deferred delete (queued in Dispose()) has
+  // run, force-deleting stragglers after a timeout. Must be called before
+  // ewk_shutdown(), which fatally CHECKs on any live Ewk_View.
   static void FlushPendingTeardowns();
 
   static Ecore_Evas* GetSharedCanvas();
@@ -130,7 +130,7 @@ class WebView : public PlatformView {
   std::shared_ptr<BufferPool> tbm_pool_;
   bool disposed_ = false;
   // Guarded by mutex_. Keeps the raster thread from being handed TBM surfaces
-  // that the deferred evas_object_del() is about to free.
+  // during the deferred teardown.
   bool is_disposing_ = false;
   // Copied into pending async Dart replies so they can detect a WebView that
   // was destroyed before the reply arrived.

@@ -107,8 +107,9 @@ bool GetValueFromEncodableMap(const flutter::EncodableValue* arguments,
   return false;
 }
 
-// Tracks Dispose()'s deferred evas_object_del() calls so
-// FlushPendingTeardowns() can drain them to empty before ewk_shutdown().
+// Deferred: the raster thread may still be reading TBM surfaces the engine
+// owns, and ewk_shutdown() fatally CHECKs if any Ewk_View is still alive.
+// FlushPendingTeardowns() drains this registry before that shutdown call.
 struct PendingTeardown {
   Evas_Object* instance = nullptr;
   // Guards against the queued callback and a force-delete both deleting
@@ -238,8 +239,8 @@ void WebView::Dispose() {
   webview_instance_ = nullptr;
 
   if (instance) {
-    // The engine instance outlives this WebView until the deferred
-    // evas_object_del() below, so every callback must be detached here.
+    // |instance| outlives this WebView until its deferred delete runs (see
+    // PendingTeardown), so every callback bound to it must be detached now.
     evas_object_smart_callback_del(instance, "offscreen,frame,rendered",
                                    &WebView::OnFrameRendered);
     evas_object_smart_callback_del(instance, "load,started",
@@ -281,9 +282,8 @@ void WebView::Dispose() {
     pool = std::move(tbm_pool_);
   }
 
-  // evas_object_del() frees TBM surfaces the raster thread may still be
-  // reading, so defer it until the embedder confirms the texture is torn
-  // down. That confirmation fires on the render thread, hence the hop below.
+  // UnregisterTexture()'s completion callback fires on the render thread, so
+  // hop back to the main loop before completing the deferred delete.
   struct TeardownContext {
     std::shared_ptr<PendingTeardown> pending;
     std::shared_ptr<BufferPool> pool;
@@ -338,9 +338,10 @@ void WebView::FlushPendingTeardowns() {
       pending = g_pending_teardowns.front();
     }
     if (g_get_monotonic_time() >= deadline) {
-      // A leaked Ewk_View is a guaranteed fatal CHECK in ewk_shutdown(), so
-      // force the remaining deletes through rather than waiting any longer.
-      LOG_WARN("Forcing WebView teardown past the deadline before ewk_shutdown()");
+      // Force stragglers through past the deadline instead of blocking
+      // forever.
+      LOG_WARN(
+          "Forcing WebView teardown past the deadline before ewk_shutdown()");
       CompletePendingTeardown(pending);
       continue;
     }

@@ -31,9 +31,7 @@ class WebviewFlutterTizenPlugin : public flutter::Plugin {
   WebviewFlutterTizenPlugin() { ewk_init(); }
 
   virtual ~WebviewFlutterTizenPlugin() {
-    // ewk_shutdown() fatally CHECKs if any Ewk_View is still alive; drain
-    // Dispose()'s deferred deletes first, then free the canvas they were
-    // hosted on.
+    // See WebView::FlushPendingTeardowns() for why this must run first.
     WebView::FlushPendingTeardowns();
     WebView::FreeSharedCanvas();
     ewk_shutdown();
