@@ -5,6 +5,9 @@
 * Update `webview_flutter_lwe` to ^0.5.3.
 * Raise the SDK constraint to match `webview_flutter_lwe` 0.5.3
   (Dart ^3.8.0, Flutter >=3.32.0).
+* Fix info window content being rendered with stray quote characters.
+* Cancel the bridge event subscription on dispose to avoid a late event
+  throwing a `StateError` on an already-closed stream.
 * Verify integration tests pass against upstream google_maps_flutter v2.17.0.
 
 ## 0.1.14

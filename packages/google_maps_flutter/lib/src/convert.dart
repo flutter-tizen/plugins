@@ -307,9 +307,11 @@ util.GInfoWindowOptions? _infoWindowOptionsFromMarker(Marker marker) {
     return null;
   }
 
-  // Add an outer wrapper to the contents of the infowindow
+  // Add an outer wrapper to the contents of the infowindow. The content is
+  // JSON-encoded by its consumers (GInfoWindowOptions.toString and
+  // GInfoWindow._setContent), so it must be raw, unquoted HTML here.
   final StringBuffer buffer = StringBuffer();
-  buffer.write('\'<div id="marker-${marker.markerId.value}-infowindow">');
+  buffer.write('<div id="marker-${marker.markerId.value}-infowindow">');
   if (markerTitle.isNotEmpty) {
     buffer.write('<h3 class="infowindow-title">');
     buffer.write(markerTitle);
@@ -320,7 +322,7 @@ util.GInfoWindowOptions? _infoWindowOptionsFromMarker(Marker marker) {
     buffer.write(markerSnippet);
     buffer.write('</div>');
   }
-  buffer.write("</div>'");
+  buffer.write('</div>');
 
   // Need to add Click Event to infoWindow's content
   return util.GInfoWindowOptions()
