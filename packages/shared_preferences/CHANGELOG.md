@@ -1,6 +1,7 @@
 ## NEXT
 
 * Add 12 integration test cases for the legacy-to-async migration utility.
+* Update integration tests.
 
 ## 2.3.3
 
