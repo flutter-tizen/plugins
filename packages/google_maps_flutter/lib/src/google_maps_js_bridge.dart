@@ -223,6 +223,18 @@ class WebViewGoogleMapsJsBridge implements GoogleMapsJsBridge {
   @override
   Stream<MapsJsEvent> get events => _events.stream;
 
+  /// Adds [event] to [_events], unless this bridge has already been
+  /// disposed.
+  ///
+  /// JS-side timers and in-flight `postMessage` calls can still invoke the
+  /// channel callbacks below after [dispose] closes [_events], so emission
+  /// must be guarded rather than left to throw on a closed controller.
+  void _emit(MapsJsEvent event) {
+    if (!_events.isClosed) {
+      _events.add(event);
+    }
+  }
+
   @override
   Future<void> load() {
     String path = Platform.environment['AUL_ROOT_PATH'] ?? '';
@@ -241,85 +253,85 @@ class WebViewGoogleMapsJsBridge implements GoogleMapsJsBridge {
       ..addJavaScriptChannel(
         'BoundChanged',
         onMessageReceived: (JavaScriptMessage message) {
-          _events.add(const BoundsChangedJsEvent());
+          _emit(const BoundsChangedJsEvent());
         },
       )
       ..addJavaScriptChannel(
         'Idle',
         onMessageReceived: (JavaScriptMessage message) {
-          _events.add(const IdleJsEvent());
+          _emit(const IdleJsEvent());
         },
       )
       ..addJavaScriptChannel(
         'Tilesloaded',
         onMessageReceived: (JavaScriptMessage message) {
-          _events.add(const TilesLoadedJsEvent());
+          _emit(const TilesLoadedJsEvent());
         },
       )
       ..addJavaScriptChannel(
         'Click',
         onMessageReceived: (JavaScriptMessage message) {
-          _events.add(ClickJsEvent(message.message));
+          _emit(ClickJsEvent(message.message));
         },
       )
       ..addJavaScriptChannel(
         'LongPress',
         onMessageReceived: (JavaScriptMessage message) {
-          _events.add(LongPressJsEvent(message.message));
+          _emit(LongPressJsEvent(message.message));
         },
       )
       ..addJavaScriptChannel(
         'MarkerClick',
         onMessageReceived: (JavaScriptMessage message) {
-          _events.add(MarkerClickJsEvent(message.message));
+          _emit(MarkerClickJsEvent(message.message));
         },
       )
       ..addJavaScriptChannel(
         'ClusterClick',
         onMessageReceived: (JavaScriptMessage message) {
-          _events.add(ClusterClickJsEvent(message.message));
+          _emit(ClusterClickJsEvent(message.message));
         },
       )
       ..addJavaScriptChannel(
         'MarkerDragStart',
         onMessageReceived: (JavaScriptMessage message) {
-          _events.add(MarkerDragStartJsEvent(message.message));
+          _emit(MarkerDragStartJsEvent(message.message));
         },
       )
       ..addJavaScriptChannel(
         'MarkerDrag',
         onMessageReceived: (JavaScriptMessage message) {
-          _events.add(MarkerDragJsEvent(message.message));
+          _emit(MarkerDragJsEvent(message.message));
         },
       )
       ..addJavaScriptChannel(
         'MarkerDragEnd',
         onMessageReceived: (JavaScriptMessage message) {
-          _events.add(MarkerDragEndJsEvent(message.message));
+          _emit(MarkerDragEndJsEvent(message.message));
         },
       )
       ..addJavaScriptChannel(
         'PolylineClick',
         onMessageReceived: (JavaScriptMessage message) {
-          _events.add(PolylineClickJsEvent(message.message));
+          _emit(PolylineClickJsEvent(message.message));
         },
       )
       ..addJavaScriptChannel(
         'PolygonClick',
         onMessageReceived: (JavaScriptMessage message) {
-          _events.add(PolygonClickJsEvent(message.message));
+          _emit(PolygonClickJsEvent(message.message));
         },
       )
       ..addJavaScriptChannel(
         'CircleClick',
         onMessageReceived: (JavaScriptMessage message) {
-          _events.add(CircleClickJsEvent(message.message));
+          _emit(CircleClickJsEvent(message.message));
         },
       )
       ..addJavaScriptChannel(
         'GroundOverlayClick',
         onMessageReceived: (JavaScriptMessage message) {
-          _events.add(GroundOverlayClickJsEvent(message.message));
+          _emit(GroundOverlayClickJsEvent(message.message));
         },
       )
       ..loadFile(path);
