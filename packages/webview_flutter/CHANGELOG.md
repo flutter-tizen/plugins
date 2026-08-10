@@ -5,10 +5,8 @@
 * Fix races and use-after-frees on WebView disposal, including a buffer-pool
   use-after-free on the raster thread.
 * Replace the Ecore main loop API with GLib.
-* Remove the TV emulator's evas_object_hide() workaround (which skipped
-  evas_object_del() to avoid a crash); drain all pending WebView teardowns
-  before ewk_shutdown() instead, fixing a native crash on app exit and
-  enabling simultaneous use of multiple WebViews.
+* Drain all pending WebView teardowns before ewk_shutdown(), fixing a native
+  crash on app exit and enabling simultaneous use of multiple WebViews.
 
 ## 0.10.0
 
