@@ -620,8 +620,7 @@ Future<void> main() async {
   });
 
   // Tizen-specific: mounts and disposes two WebViews at the same time, which
-  // used to hit a native disposal race (see the "Using more than one WebView
-  // at the same time" note in README.md).
+  // used to hit a native disposal race fixed in CHANGELOG.md's 0.10.1 entry.
   testWidgets('multiple WebViews can be used simultaneously', (
     WidgetTester tester,
   ) async {
