@@ -347,8 +347,12 @@ void WebView::FlushPendingTeardowns() {
     }
     // Pump the same GLib context the queued g_timeout_add_full hop (see
     // Dispose()) is scheduled on, so it gets a chance to run and remove
-    // this entry itself.
-    g_main_context_iteration(g_main_context_default(), TRUE);
+    // this entry itself. Non-blocking: if that hop never arrives (e.g. the
+    // render thread already stalled), a blocking iteration here would never
+    // return to let the deadline check above fire.
+    if (!g_main_context_iteration(g_main_context_default(), FALSE)) {
+      g_usleep(1000);
+    }
   }
 }
 
