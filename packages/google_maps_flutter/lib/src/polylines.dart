@@ -11,10 +11,10 @@ class PolylinesController extends GeometryController {
   PolylinesController({
     required StreamController<MapEvent<Object?>> stream,
     required GoogleMapsJsBridge bridge,
-  })  : _streamController = stream,
-        _bridge = bridge,
-        _polylineIdToController = <PolylineId, PolylineController>{},
-        _idToPolylineId = <int, PolylineId>{};
+  }) : _streamController = stream,
+       _bridge = bridge,
+       _polylineIdToController = <PolylineId, PolylineController>{},
+       _idToPolylineId = <int, PolylineId>{};
 
   // A cache of [PolylineController]s indexed by their [PolylineId].
   final Map<PolylineId, PolylineController> _polylineIdToController;

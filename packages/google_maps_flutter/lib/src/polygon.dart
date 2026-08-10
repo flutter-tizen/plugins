@@ -13,9 +13,9 @@ class PolygonController {
     bool consumeTapEvents = false,
     ui.VoidCallback? onTap,
     required GoogleMapsJsBridge bridge,
-  })  : _polygon = polygon,
-        _consumeTapEvents = consumeTapEvents,
-        tapEvent = onTap {
+  }) : _polygon = polygon,
+       _consumeTapEvents = consumeTapEvents,
+       tapEvent = onTap {
     _addPolygonEvent(bridge);
   }
 

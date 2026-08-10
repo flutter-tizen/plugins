@@ -18,11 +18,11 @@ class ClusterManagersController extends GeometryController {
   ClusterManagersController({
     required StreamController<MapEvent<Object?>> stream,
     required GoogleMapsJsBridge bridge,
-  })  : _streamController = stream,
-        _bridge = bridge,
-        _idToClusterManagerId = <String, ClusterManagerId>{},
-        _clusterManagerIdToMarkerClusterer =
-            <ClusterManagerId, util.GMarkerClusterer>{};
+  }) : _streamController = stream,
+       _bridge = bridge,
+       _idToClusterManagerId = <String, ClusterManagerId>{},
+       _clusterManagerIdToMarkerClusterer =
+           <ClusterManagerId, util.GMarkerClusterer>{};
 
   // The stream over which cluster managers broadcast their events
   final StreamController<MapEvent<Object?>> _streamController;
@@ -31,7 +31,7 @@ class ClusterManagersController extends GeometryController {
 
   // A cache of [MarkerClusterer]s indexed by their [ClusterManagerId].
   final Map<ClusterManagerId, util.GMarkerClusterer>
-      _clusterManagerIdToMarkerClusterer;
+  _clusterManagerIdToMarkerClusterer;
   final Map<String, ClusterManagerId> _idToClusterManagerId;
 
   /// A cache of [ClusterManagerId]s indexed by [GMarkerClusterer.id].

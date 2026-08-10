@@ -21,16 +21,16 @@ class GoogleMapsController {
     Set<ClusterManager> clusterManagers = const <ClusterManager>{},
     Set<GroundOverlay> groundOverlays = const <GroundOverlay>{},
     Map<String, dynamic> mapOptions = const <String, dynamic>{},
-  })  : _mapId = mapId,
-        _streamController = streamController,
-        _initialCameraPosition = initialCameraPosition,
-        _markers = markers,
-        _polygons = polygons,
-        _polylines = polylines,
-        _circles = circles,
-        _clusterManagers = clusterManagers,
-        _groundOverlays = groundOverlays,
-        _rawMapOptions = mapOptions {
+  }) : _mapId = mapId,
+       _streamController = streamController,
+       _initialCameraPosition = initialCameraPosition,
+       _markers = markers,
+       _polygons = polygons,
+       _polylines = polylines,
+       _circles = circles,
+       _clusterManagers = clusterManagers,
+       _groundOverlays = groundOverlays,
+       _rawMapOptions = mapOptions {
     _circlesController = CirclesController(
       stream: _streamController,
       bridge: _bridge,
@@ -85,9 +85,11 @@ class GoogleMapsController {
   /// Returns min-max zoom levels. Test only.
   @visibleForTesting
   Future<MinMaxZoomPreference> getMinMaxZoomLevels() async {
-    final String value = await _bridge.runJavaScriptReturningResult(
-      'JSON.stringify([map.minZoom, map.maxZoom])',
-    ) as String;
+    final String value =
+        await _bridge.runJavaScriptReturningResult(
+              'JSON.stringify([map.minZoom, map.maxZoom])',
+            )
+            as String;
     final dynamic bound = json.decode(value);
     double min = 0, max = 0;
     if (bound is List<dynamic>) {
@@ -109,8 +111,9 @@ class GoogleMapsController {
   /// Returns if zoomGestures property is enabled. Test only.
   @visibleForTesting
   Future<bool> isZoomGesturesEnabled() async {
-    final String value = await _bridge
-        .runJavaScriptReturningResult('map.gestureHandling') as String;
+    final String value =
+        await _bridge.runJavaScriptReturningResult('map.gestureHandling')
+            as String;
     return value != 'none';
   }
 
@@ -125,8 +128,9 @@ class GoogleMapsController {
   /// Returns if scrollGestures property is enabled. Test only.
   @visibleForTesting
   Future<bool> isScrollGesturesEnabled() async {
-    final String value = await _bridge
-        .runJavaScriptReturningResult('map.gestureHandling') as String;
+    final String value =
+        await _bridge.runJavaScriptReturningResult('map.gestureHandling')
+            as String;
     return value != 'none';
   }
 
@@ -578,7 +582,8 @@ class GoogleMapsController {
 
   // Attaches/detaches a Traffic Layer on the `map` if `attach` is true/false.
   Future<void> _setTrafficLayer(bool attach) async {
-    final String command = '''
+    final String command =
+        '''
       var trafficLayer;
       if ($attach == true && trafficLayer == null) {
         trafficLayer = new google.maps.TrafficLayer();
@@ -685,8 +690,9 @@ class GoogleMapsController {
           zoomDelta = (json[1] as num) + 0.0;
         }
         // Web only supports integer changes...
-        final int newZoomDelta =
-            zoomDelta < 0 ? zoomDelta.floor() : zoomDelta.ceil();
+        final int newZoomDelta = zoomDelta < 0
+            ? zoomDelta.floor()
+            : zoomDelta.ceil();
         if (json.length == 3) {
           // With focus
           try {
@@ -714,7 +720,8 @@ class GoogleMapsController {
   }
 
   Future<String> _pixelToLatLng(double x, double y) async {
-    final String command = '''
+    final String command =
+        '''
       function getPixelToLatLng() {
         var projection = map.getProjection();
         var ne = map.getBounds().getNorthEast();
@@ -732,7 +739,8 @@ class GoogleMapsController {
   }
 
   Future<String> _latLngToPoint(LatLng latLng) async {
-    final String command = '''
+    final String command =
+        '''
       function getLatLngToPixel() {
         var ne = map.getBounds().getNorthEast();
         var sw = map.getBounds().getSouthWest();

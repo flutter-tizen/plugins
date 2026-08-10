@@ -11,10 +11,10 @@ class CirclesController extends GeometryController {
   CirclesController({
     required StreamController<MapEvent<Object?>> stream,
     required GoogleMapsJsBridge bridge,
-  })  : _streamController = stream,
-        _bridge = bridge,
-        _circleIdToController = <CircleId, CircleController>{},
-        _idToCircleId = <int, CircleId>{};
+  }) : _streamController = stream,
+       _bridge = bridge,
+       _circleIdToController = <CircleId, CircleController>{},
+       _idToCircleId = <int, CircleId>{};
 
   // A cache of [CircleController]s indexed by their [CircleId].
   final Map<CircleId, CircleController> _circleIdToController;

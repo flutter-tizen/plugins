@@ -14,8 +14,8 @@ class GroundOverlayController {
     required util.GGroundOverlay groundOverlay,
     ui.VoidCallback? onTap,
     required GoogleMapsJsBridge bridge,
-  })  : _groundOverlay = groundOverlay,
-        tapEvent = onTap {
+  }) : _groundOverlay = groundOverlay,
+       tapEvent = onTap {
     _addGroundOverlayEvent(bridge);
   }
 

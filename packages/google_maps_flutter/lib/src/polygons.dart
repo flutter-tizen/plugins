@@ -11,10 +11,10 @@ class PolygonsController extends GeometryController {
   PolygonsController({
     required StreamController<MapEvent<Object?>> stream,
     required GoogleMapsJsBridge bridge,
-  })  : _streamController = stream,
-        _bridge = bridge,
-        _polygonIdToController = <PolygonId, PolygonController>{},
-        _idToPolygonId = <int, PolygonId>{};
+  }) : _streamController = stream,
+       _bridge = bridge,
+       _polygonIdToController = <PolygonId, PolygonController>{},
+       _idToPolygonId = <int, PolygonId>{};
 
   // A cache of [PolygonController]s indexed by their [PolygonId].
   final Map<PolygonId, PolygonController> _polygonIdToController;

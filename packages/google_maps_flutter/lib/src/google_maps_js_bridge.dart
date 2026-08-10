@@ -211,7 +211,7 @@ class WebViewGoogleMapsJsBridge implements GoogleMapsJsBridge {
   /// Creates a bridge over [controller], or a fresh [WebViewController] if
   /// none is provided.
   WebViewGoogleMapsJsBridge({WebViewController? controller})
-      : controller = controller ?? WebViewController();
+    : controller = controller ?? WebViewController();
 
   @override
   final WebViewController controller;
@@ -341,7 +341,8 @@ class WebViewGoogleMapsJsBridge implements GoogleMapsJsBridge {
 
   @override
   Future<void> createMap(String optionsJs) async {
-    final String command = '''
+    final String command =
+        '''
       map = new google.maps.Map(document.getElementById('map'), $optionsJs);
       map.addListener('bounds_changed', (event) => { BoundChanged.postMessage(''); });
       map.addListener('idle', (event) => { Idle.postMessage(''); });
@@ -403,11 +404,7 @@ class WebViewGoogleMapsJsBridge implements GoogleMapsJsBridge {
   }
 
   @override
-  Future<void> setProperty(
-    JsRef ref,
-    String property,
-    Object? value,
-  ) async {
+  Future<void> setProperty(JsRef ref, String property, Object? value) async {
     await controller.runJavaScript(
       "JSON.stringify($ref['$property'] = ${_serializeArg(value)})",
     );
@@ -419,11 +416,7 @@ class WebViewGoogleMapsJsBridge implements GoogleMapsJsBridge {
   }
 
   @override
-  Future<void> callMethod(
-    JsRef ref,
-    String method,
-    List<Object?> args,
-  ) async {
+  Future<void> callMethod(JsRef ref, String method, List<Object?> args) async {
     final String serializedArgs = '[${args.map(_serializeArg).join(', ')}]';
     await controller.runJavaScript(
       'JSON.stringify($ref.$method.apply($ref, $serializedArgs))',

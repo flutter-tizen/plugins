@@ -12,11 +12,11 @@ class MarkersController extends GeometryController {
     required StreamController<MapEvent<Object?>> stream,
     required ClusterManagersController clusterManagersController,
     required GoogleMapsJsBridge bridge,
-  })  : _streamController = stream,
-        _clusterManagersController = clusterManagersController,
-        _bridge = bridge,
-        _idToMarkerId = <int, MarkerId>{},
-        _markerIdToController = <MarkerId, MarkerController>{};
+  }) : _streamController = stream,
+       _clusterManagersController = clusterManagersController,
+       _bridge = bridge,
+       _idToMarkerId = <int, MarkerId>{},
+       _markerIdToController = <MarkerId, MarkerController>{};
 
   // A cache of [MarkerController]s indexed by their [MarkerId].
   final Map<MarkerId, MarkerController> _markerIdToController;
@@ -178,10 +178,11 @@ class MarkersController extends GeometryController {
   void _hideAllMarkerInfoWindow() {
     _markerIdToController.values
         .where(
-      (MarkerController? controller) => controller?.infoWindowShown ?? false,
-    )
+          (MarkerController? controller) =>
+              controller?.infoWindowShown ?? false,
+        )
         .forEach((MarkerController controller) {
-      controller.hideInfoWindow();
-    });
+          controller.hideInfoWindow();
+        });
   }
 }

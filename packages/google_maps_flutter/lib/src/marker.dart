@@ -18,14 +18,14 @@ class MarkerController {
     ui.VoidCallback? onTap,
     ClusterManagerId? clusterManagerId,
     GoogleMapsJsBridge? bridge,
-  })  : _marker = marker,
-        _infoWindow = infoWindow,
-        _consumeTapEvents = consumeTapEvents,
-        _clusterManagerId = clusterManagerId,
-        tapEvent = onTap,
-        dragStartEvent = onDragStart,
-        dragEvent = onDrag,
-        dragEndEvent = onDragEnd {
+  }) : _marker = marker,
+       _infoWindow = infoWindow,
+       _consumeTapEvents = consumeTapEvents,
+       _clusterManagerId = clusterManagerId,
+       tapEvent = onTap,
+       dragStartEvent = onDragStart,
+       dragEvent = onDrag,
+       dragEndEvent = onDragEnd {
     if (bridge != null) {
       _addMarkerEvent(bridge);
     }
@@ -50,7 +50,8 @@ class MarkerController {
   LatLngCallback? dragEndEvent;
 
   Future<void> _addMarkerEvent(GoogleMapsJsBridge bridge) async {
-    final String command = '''
+    final String command =
+        '''
         $marker.addListener("click", (event) => MarkerClick.postMessage(JSON.stringify(${marker?.id})));
         $marker.addListener("dragstart", (event) => MarkerDragStart.postMessage(JSON.stringify({id:${marker?.id}, event:event})));
         $marker.addListener("drag", (event) => MarkerDrag.postMessage(JSON.stringify({id:${marker?.id}, event:event})));

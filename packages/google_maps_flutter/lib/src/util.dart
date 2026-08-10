@@ -153,18 +153,15 @@ class GInfoWindowOptions {
 class GInfoWindow {
   /// GInfoWindow Constructor.
   GInfoWindow(GoogleMapsJsBridge bridge, GInfoWindowOptions? opts)
-      : _bridge = bridge,
-        _id = _gid++ {
+    : _bridge = bridge,
+      _id = _gid++ {
     _createInfoWindow(opts);
   }
 
   final GoogleMapsJsBridge _bridge;
 
   Future<void> _createInfoWindow(GInfoWindowOptions? opts) async {
-    await _bridge.createObject(
-      toString(),
-      'new google.maps.InfoWindow($opts)',
-    );
+    await _bridge.createObject(toString(), 'new google.maps.InfoWindow($opts)');
   }
 
   final int _id;
@@ -218,9 +215,9 @@ class GInfoWindow {
 class GMarker {
   /// GMarker Constructor.
   GMarker(GoogleMapsJsBridge bridge, [GMarkerOptions? opts])
-      : _bridge = bridge,
-        id = _gid++,
-        _options = opts {
+    : _bridge = bridge,
+      id = _gid++,
+      _options = opts {
     _createMarker(opts);
   }
 
@@ -301,9 +298,7 @@ class GMarker {
   }
 
   Future<void> _setVisible(bool? visible) async {
-    await _bridge.callMethod(JsRef(toString()), 'setVisible', <bool?>[
-      visible,
-    ]);
+    await _bridge.callMethod(JsRef(toString()), 'setVisible', <bool?>[visible]);
   }
 
   Future<void> _setDraggable(bool? visible) async {
@@ -317,9 +312,7 @@ class GMarker {
   }
 
   Future<void> _setOpacity(num? opacity) async {
-    await _bridge.callMethod(JsRef(toString()), 'setOpacity', <num?>[
-      opacity,
-    ]);
+    await _bridge.callMethod(JsRef(toString()), 'setOpacity', <num?>[opacity]);
   }
 
   Future<void> _setPosition(LatLng? position) async {
@@ -344,18 +337,15 @@ class GMarker {
 class GPolyline {
   /// GPolyline Constructor.
   GPolyline(GoogleMapsJsBridge bridge, [GPolylineOptions? opts])
-      : _bridge = bridge,
-        id = _gid++ {
+    : _bridge = bridge,
+      id = _gid++ {
     _createPolyline(opts);
   }
 
   final GoogleMapsJsBridge _bridge;
 
   Future<void> _createPolyline(GPolylineOptions? opts) async {
-    await _bridge.createObject(
-      toString(),
-      'new google.maps.Polyline($opts)',
-    );
+    await _bridge.createObject(toString(), 'new google.maps.Polyline($opts)');
   }
 
   /// GPolyline id.
@@ -379,9 +369,7 @@ class GPolyline {
   }
 
   Future<void> _setVisible(bool? visible) async {
-    await _bridge.callMethod(JsRef(toString()), 'setVisible', <bool?>[
-      visible,
-    ]);
+    await _bridge.callMethod(JsRef(toString()), 'setVisible', <bool?>[visible]);
   }
 
   Future<void> _setMap(Object? /*GMap?|StreetViewPanorama?*/ map) async {
@@ -446,8 +434,8 @@ class GPolylineOptions {
 class GPolygon {
   /// GPolygon Constructor.
   GPolygon(GoogleMapsJsBridge bridge, [GPolygonOptions? opts])
-      : _bridge = bridge,
-        id = _gid++ {
+    : _bridge = bridge,
+      id = _gid++ {
     _createPolygon(opts);
   }
 
@@ -478,9 +466,7 @@ class GPolygon {
   }
 
   Future<void> _setVisible(bool? visible) async {
-    await _bridge.callMethod(JsRef(toString()), 'setVisible', <bool?>[
-      visible,
-    ]);
+    await _bridge.callMethod(JsRef(toString()), 'setVisible', <bool?>[visible]);
   }
 
   Future<void> _setMap(Object? /*GMap?|StreetViewPanorama?*/ map) async {
@@ -555,8 +541,8 @@ class GPolygonOptions {
 class GCircle {
   /// GCircle Constructor.
   GCircle(GoogleMapsJsBridge bridge, [GCircleOptions? opts])
-      : _bridge = bridge,
-        id = _gid++ {
+    : _bridge = bridge,
+      id = _gid++ {
     _createCircle(opts);
   }
 
@@ -590,9 +576,7 @@ class GCircle {
   }
 
   Future<void> _setVisible(bool? visible) async {
-    await _bridge.callMethod(JsRef(toString()), 'setVisible', <bool?>[
-      visible,
-    ]);
+    await _bridge.callMethod(JsRef(toString()), 'setVisible', <bool?>[visible]);
   }
 
   Future<void> _setRadius(num? radius) async {
@@ -605,11 +589,9 @@ class GCircle {
   }
 
   Future<void> _setOptions(GCircleOptions? options) async {
-    await _bridge.callMethod(
-      JsRef(toString()),
-      'setOptions',
-      <GCircleOptions?>[options],
-    );
+    await _bridge.callMethod(JsRef(toString()), 'setOptions', <GCircleOptions?>[
+      options,
+    ]);
   }
 }
 
@@ -657,8 +639,8 @@ class GCircleOptions {
 class GMarkerClusterer {
   /// GMarkerCluster Constructor.
   GMarkerClusterer(GoogleMapsJsBridge bridge, [GMarkerClustererOptions? opts])
-      : _bridge = bridge,
-        id = _gid++ {
+    : _bridge = bridge,
+      id = _gid++ {
     _createMarkerClusterer(opts);
   }
 
@@ -681,9 +663,11 @@ class GMarkerClusterer {
 
   /// Removes a marker from the [GMarkerClusterer].
   Future<bool> removeMarker(GMarker marker, bool? noDraw) async {
-    final bool result = await _bridge.runJavaScriptReturningResult(
-      '${toString()}.removeMarker($marker, $noDraw);',
-    ) as bool;
+    final bool result =
+        await _bridge.runJavaScriptReturningResult(
+              '${toString()}.removeMarker($marker, $noDraw);',
+            )
+            as bool;
 
     return result;
   }
@@ -775,9 +759,9 @@ class GMarkerClustererOptions {
 class GGroundOverlay {
   /// GGroundOverlay Constructor.
   GGroundOverlay(GoogleMapsJsBridge bridge, [GGroundOverlayOptions? opts])
-      : _bridge = bridge,
-        id = _gid++,
-        _options = opts {
+    : _bridge = bridge,
+      id = _gid++,
+      _options = opts {
     _createGroundOverlay(opts);
   }
 
@@ -835,9 +819,7 @@ class GGroundOverlay {
   }
 
   Future<void> _setOpacity(num? opacity) async {
-    await _bridge.callMethod(JsRef(toString()), 'setOpacity', <num?>[
-      opacity,
-    ]);
+    await _bridge.callMethod(JsRef(toString()), 'setOpacity', <num?>[opacity]);
   }
 }
 

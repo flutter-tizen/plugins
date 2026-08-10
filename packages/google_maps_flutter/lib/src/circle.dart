@@ -13,9 +13,9 @@ class CircleController {
     bool consumeTapEvents = false,
     ui.VoidCallback? onTap,
     required GoogleMapsJsBridge bridge,
-  })  : _circle = circle,
-        _consumeTapEvents = consumeTapEvents,
-        tapEvent = onTap {
+  }) : _circle = circle,
+       _consumeTapEvents = consumeTapEvents,
+       tapEvent = onTap {
     _addCircleEvent(bridge);
   }
 

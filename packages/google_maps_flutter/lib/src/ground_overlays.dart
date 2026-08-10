@@ -13,15 +13,15 @@ class GroundOverlaysController extends GeometryController {
   GroundOverlaysController({
     required StreamController<MapEvent<Object?>> stream,
     required GoogleMapsJsBridge bridge,
-  })  : _streamController = stream,
-        _bridge = bridge,
-        _groundOverlayIdToController =
-            <GroundOverlayId, GroundOverlayController>{},
-        _idToGroundOverlayId = <int, GroundOverlayId>{};
+  }) : _streamController = stream,
+       _bridge = bridge,
+       _groundOverlayIdToController =
+           <GroundOverlayId, GroundOverlayController>{},
+       _idToGroundOverlayId = <int, GroundOverlayId>{};
 
   // A cache of [GroundOverlayController]s indexed by their [GroundOverlayId].
   final Map<GroundOverlayId, GroundOverlayController>
-      _groundOverlayIdToController;
+  _groundOverlayIdToController;
   final Map<int, GroundOverlayId> _idToGroundOverlayId;
 
   // The stream over which ground overlays broadcast events.
