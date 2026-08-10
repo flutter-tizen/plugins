@@ -111,9 +111,7 @@ void main() {
   }, timeout: const Timeout(Duration(seconds: 5)));
 
   group('LocalPort lifecycle', () {
-    test('registered reflects the register/unregister lifecycle', (
-      WidgetTester tester,
-    ) async {
+    test('registered reflects the register/unregister lifecycle', () async {
       final LocalPort localPort = await LocalPort.create(kTestPort);
       // Ensure the port is unregistered even if an assertion below fails.
       addTearDown(localPort.unregister);
@@ -127,9 +125,7 @@ void main() {
       expect(localPort.registered, isFalse);
     }, timeout: const Timeout(Duration(seconds: 5)));
 
-    test('register throws when the port is already registered', (
-      WidgetTester tester,
-    ) async {
+    test('register throws when the port is already registered', () async {
       final LocalPort localPort = await LocalPort.create(kTestPort);
       addTearDown(localPort.unregister);
       localPort.register((dynamic message, [RemotePort? remotePort]) {});
@@ -141,9 +137,7 @@ void main() {
       );
     }, timeout: const Timeout(Duration(seconds: 5)));
 
-    test('unregister is safe when not registered and when repeated', (
-      WidgetTester tester,
-    ) async {
+    test('unregister is safe when not registered and when repeated', () async {
       final LocalPort localPort = await LocalPort.create(kTestPort);
       addTearDown(localPort.unregister);
 
