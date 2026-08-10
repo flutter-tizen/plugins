@@ -140,8 +140,10 @@ class GoogleMapsController {
     return _isTrafficLayerEnabled(_rawMapOptions);
   }
 
+  StreamSubscription<MapsJsEvent>? _bridgeEventsSubscription;
+
   void _getWebview() {
-    _bridge.events.listen(_onJsEvent);
+    _bridgeEventsSubscription = _bridge.events.listen(_onJsEvent);
     _webview = WebViewWidget(controller: _bridge.controller);
   }
 
@@ -869,6 +871,7 @@ class GoogleMapsController {
   /// You won't be able to call many of the methods on this controller after
   /// calling `dispose`!
   void dispose() {
+    unawaited(_bridgeEventsSubscription?.cancel());
     _bridge.dispose();
     _webview = null;
     _circlesController = null;
