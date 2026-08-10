@@ -4,6 +4,7 @@
 * Update minimum Flutter and Dart version to 3.13 and 3.1.
 * Update code format.
 * Add 5 integration test cases.
+* Update integration tests.
 
 ## 0.3.2
 

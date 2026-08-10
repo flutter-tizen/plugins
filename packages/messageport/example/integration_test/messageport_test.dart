@@ -14,17 +14,17 @@ const String kTestAppId = 'org.tizen.messageport_tizen_example';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Create non trusted local port', (WidgetTester tester) async {
+  test('Create non trusted local port', () async {
     final LocalPort port = await LocalPort.create(kTestPort, trusted: false);
     expect(port.trusted, isFalse);
   }, timeout: const Timeout(Duration(seconds: 5)));
 
-  testWidgets('Create trusted local port', (WidgetTester tester) async {
+  test('Create trusted local port', () async {
     final LocalPort port = await LocalPort.create(kTestPort);
     expect(port.trusted, isTrue);
   }, timeout: const Timeout(Duration(seconds: 5)));
 
-  testWidgets('Create remote port', (WidgetTester tester) async {
+  test('Create remote port', () async {
     final LocalPort localPort = await LocalPort.create(kTestPort);
     localPort.register((dynamic message, [RemotePort? remotePort]) {});
 
@@ -38,9 +38,9 @@ void main() {
     await localPort.unregister();
   }, timeout: const Timeout(Duration(seconds: 5)));
 
-  testWidgets(
+  test(
     'Create trusted remote port from not trusted',
-    (WidgetTester tester) async {
+    () async {
       final LocalPort localPort = await LocalPort.create(
         kTestPort,
         trusted: false,
@@ -57,7 +57,7 @@ void main() {
     timeout: const Timeout(Duration(seconds: 5)),
   );
 
-  testWidgets('Check for remote', (WidgetTester tester) async {
+  test('Check for remote', () async {
     final LocalPort localPort = await LocalPort.create(kTestPort);
     localPort.register((dynamic message, [RemotePort? remotePort]) {});
 
@@ -71,7 +71,7 @@ void main() {
     expect(await remotePort.check(), isFalse);
   }, timeout: const Timeout(Duration(seconds: 5)));
 
-  testWidgets('Send simple message', (WidgetTester tester) async {
+  test('Send simple message', () async {
     final LocalPort localPort = await LocalPort.create(kTestPort);
     final Completer<dynamic> completer = Completer<dynamic>();
     localPort.register((dynamic message, [RemotePort? remotePort]) {
@@ -88,7 +88,7 @@ void main() {
     await localPort.unregister();
   }, timeout: const Timeout(Duration(seconds: 5)));
 
-  testWidgets('Send message with local port', (WidgetTester tester) async {
+  test('Send message with local port', () async {
     final LocalPort localPort = await LocalPort.create(kTestPort);
     final Completer<List<dynamic>> completer = Completer<List<dynamic>>();
     localPort.register((dynamic message, [RemotePort? remotePort]) {
@@ -111,7 +111,7 @@ void main() {
   }, timeout: const Timeout(Duration(seconds: 5)));
 
   group('LocalPort lifecycle', () {
-    testWidgets('registered reflects the register/unregister lifecycle', (
+    test('registered reflects the register/unregister lifecycle', (
       WidgetTester tester,
     ) async {
       final LocalPort localPort = await LocalPort.create(kTestPort);
@@ -127,7 +127,7 @@ void main() {
       expect(localPort.registered, isFalse);
     }, timeout: const Timeout(Duration(seconds: 5)));
 
-    testWidgets('register throws when the port is already registered', (
+    test('register throws when the port is already registered', (
       WidgetTester tester,
     ) async {
       final LocalPort localPort = await LocalPort.create(kTestPort);
@@ -141,7 +141,7 @@ void main() {
       );
     }, timeout: const Timeout(Duration(seconds: 5)));
 
-    testWidgets('unregister is safe when not registered and when repeated', (
+    test('unregister is safe when not registered and when repeated', (
       WidgetTester tester,
     ) async {
       final LocalPort localPort = await LocalPort.create(kTestPort);
@@ -188,46 +188,46 @@ void main() {
       expect(receivedMessage, equals(message));
     }
 
-    testWidgets('null', (WidgetTester tester) async {
+    test('null', () async {
       await checkForMessage(null);
     }, timeout: const Timeout(Duration(seconds: 5)));
 
-    testWidgets('bool', (WidgetTester tester) async {
+    test('bool', () async {
       const bool value = true;
       await checkForMessage<bool>(value);
     }, timeout: const Timeout(Duration(seconds: 5)));
 
-    testWidgets('int', (WidgetTester tester) async {
+    test('int', () async {
       const int value = 834;
       await checkForMessage<int>(value);
     }, timeout: const Timeout(Duration(seconds: 5)));
 
-    testWidgets('double', (WidgetTester tester) async {
+    test('double', () async {
       const double value = 12.847;
       await checkForMessage<double>(value);
     }, timeout: const Timeout(Duration(seconds: 5)));
 
-    testWidgets('string', (WidgetTester tester) async {
+    test('string', () async {
       const String value = 'Short string message';
       await checkForMessage<String>(value);
     }, timeout: const Timeout(Duration(seconds: 5)));
 
-    testWidgets('list', (WidgetTester tester) async {
+    test('list', () async {
       final List<int> value = <int>[1, 5, 8, 12, 0, 2];
       await checkForMessage<List<dynamic>>(value);
     }, timeout: const Timeout(Duration(seconds: 5)));
 
-    testWidgets('map', (WidgetTester tester) async {
+    test('map', () async {
       final Map<String, int> value = <String, int>{'a': 5, 'b': 12};
       await checkForMessage<Map<dynamic, dynamic>>(value);
     }, timeout: const Timeout(Duration(seconds: 5)));
 
-    testWidgets('empty string', (WidgetTester tester) async {
+    test('empty string', () async {
       const String value = '';
       await checkForMessage<String>(value);
     }, timeout: const Timeout(Duration(seconds: 5)));
 
-    testWidgets('nested collection', (WidgetTester tester) async {
+    test('nested collection', () async {
       final Map<String, dynamic> value = <String, dynamic>{
         'numbers': <int>[1, 2, 3],
         'nested': <String, String>{'key': 'value'},
