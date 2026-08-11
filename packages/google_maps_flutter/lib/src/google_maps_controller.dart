@@ -77,7 +77,7 @@ class GoogleMapsController {
 
   /// The bridge mediating all interaction with the Google Maps JavaScript
   /// API running inside the WebView.
-  final GoogleMapsJsBridge _bridge = WebViewGoogleMapsJsBridge();
+  final GoogleMapsJsBridge _bridge = GoogleMapsJsBridge();
 
   /// The Flutter widget that will contain the rendered Map. Used for caching.
   WebViewWidget? get webview => _webview;
@@ -148,35 +148,35 @@ class GoogleMapsController {
   }
 
   Future<void> _onJsEvent(MapsJsEvent event) async {
-    switch (event) {
-      case BoundsChangedJsEvent():
+    switch (event.type) {
+      case MapsJsEventType.boundsChanged:
         await _onBoundsChanged();
-      case IdleJsEvent():
+      case MapsJsEventType.idle:
         _onIdle();
-      case TilesLoadedJsEvent():
+      case MapsJsEventType.tilesLoaded:
         _onTilesloaded();
-      case ClickJsEvent(message: final String message):
-        _onClick(message);
-      case LongPressJsEvent(message: final String message):
-        _onLongPress(message);
-      case MarkerClickJsEvent(message: final String message):
-        _onMarkerClick(message);
-      case ClusterClickJsEvent(message: final String message):
-        _onClusterClick(message);
-      case MarkerDragStartJsEvent(message: final String message):
-        _onMarkerDragStart(message);
-      case MarkerDragJsEvent(message: final String message):
-        _onMarkerDrag(message);
-      case MarkerDragEndJsEvent(message: final String message):
-        _onMarkerDragEnd(message);
-      case PolylineClickJsEvent(message: final String message):
-        _onPolylineClick(message);
-      case PolygonClickJsEvent(message: final String message):
-        _onPolygonClick(message);
-      case CircleClickJsEvent(message: final String message):
-        _onCircleClick(message);
-      case GroundOverlayClickJsEvent(message: final String message):
-        _onGroundOverlayClick(message);
+      case MapsJsEventType.click:
+        _onClick(event.message!);
+      case MapsJsEventType.longPress:
+        _onLongPress(event.message!);
+      case MapsJsEventType.markerClick:
+        _onMarkerClick(event.message!);
+      case MapsJsEventType.clusterClick:
+        _onClusterClick(event.message!);
+      case MapsJsEventType.markerDragStart:
+        _onMarkerDragStart(event.message!);
+      case MapsJsEventType.markerDrag:
+        _onMarkerDrag(event.message!);
+      case MapsJsEventType.markerDragEnd:
+        _onMarkerDragEnd(event.message!);
+      case MapsJsEventType.polylineClick:
+        _onPolylineClick(event.message!);
+      case MapsJsEventType.polygonClick:
+        _onPolygonClick(event.message!);
+      case MapsJsEventType.circleClick:
+        _onCircleClick(event.message!);
+      case MapsJsEventType.groundOverlayClick:
+        _onGroundOverlayClick(event.message!);
     }
   }
 

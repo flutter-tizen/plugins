@@ -1,7 +1,9 @@
-## 0.1.15
+## 0.2.0
 
 * Refactor the JavaScript interaction layer by introducing `GoogleMapsJsBridge`,
-  replacing direct `WebViewController` calls.
+  replacing direct `WebViewController` calls. This removes the public
+  `GoogleMapsController.controller` field; use the plugin's public API
+  instead of reaching into the WebView controller directly.
 * Update `webview_flutter_lwe` to ^0.5.3.
 * Raise the SDK constraint to match `webview_flutter_lwe` 0.5.3
   (Dart ^3.8.0, Flutter >=3.32.0).

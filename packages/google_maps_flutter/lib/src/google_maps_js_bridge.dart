@@ -1,4 +1,4 @@
-// Copyright 2021 Samsung Electronics Co., Ltd. All rights reserved.
+// Copyright 2026 Samsung Electronics Co., Ltd. All rights reserved.
 // Copyright 2013 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -42,105 +42,58 @@ class JsExpression {
   String toString() => code;
 }
 
-/// Base class for events dispatched from the Google Maps JavaScript runtime
-/// back into Dart through a [GoogleMapsJsBridge].
-sealed class MapsJsEvent {
-  /// Const constructor for subclasses.
-  const MapsJsEvent();
+/// Identifies the kind of a [MapsJsEvent] dispatched from the Google Maps
+/// JavaScript runtime.
+enum MapsJsEventType {
+  /// The map's `bounds_changed` listener fired.
+  boundsChanged,
+
+  /// The map's `idle` listener fired.
+  idle,
+
+  /// The map's `tilesloaded` listener fired.
+  tilesLoaded,
+
+  /// The map was clicked.
+  click,
+
+  /// The map was long-pressed.
+  longPress,
+
+  /// A marker was clicked.
+  markerClick,
+
+  /// A marker cluster was clicked.
+  clusterClick,
+
+  /// A marker drag started.
+  markerDragStart,
+
+  /// A marker is being dragged.
+  markerDrag,
+
+  /// A marker drag ended.
+  markerDragEnd,
+
+  /// A polyline was clicked.
+  polylineClick,
+
+  /// A polygon was clicked.
+  polygonClick,
+
+  /// A circle was clicked.
+  circleClick,
+
+  /// A ground overlay was clicked.
+  groundOverlayClick,
 }
 
-/// Fired when the map's `bounds_changed` listener fires.
-class BoundsChangedJsEvent extends MapsJsEvent {
-  /// Creates a [BoundsChangedJsEvent].
-  const BoundsChangedJsEvent();
-}
-
-/// Fired when the map's `idle` listener fires.
-class IdleJsEvent extends MapsJsEvent {
-  /// Creates an [IdleJsEvent].
-  const IdleJsEvent();
-}
-
-/// Fired when the map's `tilesloaded` listener fires.
-class TilesLoadedJsEvent extends MapsJsEvent {
-  /// Creates a [TilesLoadedJsEvent].
-  const TilesLoadedJsEvent();
-}
-
-/// Base class for [MapsJsEvent]s that carry a raw JSON [message] payload.
-sealed class MessageJsEvent extends MapsJsEvent {
-  /// Creates a [MessageJsEvent] carrying the raw [message] payload.
-  const MessageJsEvent(this.message);
-
-  /// The raw (JSON-encoded) message payload posted from the JS side.
-  final String message;
-}
-
-/// Fired when the map is clicked.
-class ClickJsEvent extends MessageJsEvent {
-  /// Creates a [ClickJsEvent].
-  const ClickJsEvent(super.message);
-}
-
-/// Fired when the map is long-pressed.
-class LongPressJsEvent extends MessageJsEvent {
-  /// Creates a [LongPressJsEvent].
-  const LongPressJsEvent(super.message);
-}
-
-/// Fired when a marker is clicked.
-class MarkerClickJsEvent extends MessageJsEvent {
-  /// Creates a [MarkerClickJsEvent].
-  const MarkerClickJsEvent(super.message);
-}
-
-/// Fired when a marker cluster is clicked.
-class ClusterClickJsEvent extends MessageJsEvent {
-  /// Creates a [ClusterClickJsEvent].
-  const ClusterClickJsEvent(super.message);
-}
-
-/// Fired when a marker drag starts.
-class MarkerDragStartJsEvent extends MessageJsEvent {
-  /// Creates a [MarkerDragStartJsEvent].
-  const MarkerDragStartJsEvent(super.message);
-}
-
-/// Fired while a marker is being dragged.
-class MarkerDragJsEvent extends MessageJsEvent {
-  /// Creates a [MarkerDragJsEvent].
-  const MarkerDragJsEvent(super.message);
-}
-
-/// Fired when a marker drag ends.
-class MarkerDragEndJsEvent extends MessageJsEvent {
-  /// Creates a [MarkerDragEndJsEvent].
-  const MarkerDragEndJsEvent(super.message);
-}
-
-/// Fired when a polyline is clicked.
-class PolylineClickJsEvent extends MessageJsEvent {
-  /// Creates a [PolylineClickJsEvent].
-  const PolylineClickJsEvent(super.message);
-}
-
-/// Fired when a polygon is clicked.
-class PolygonClickJsEvent extends MessageJsEvent {
-  /// Creates a [PolygonClickJsEvent].
-  const PolygonClickJsEvent(super.message);
-}
-
-/// Fired when a circle is clicked.
-class CircleClickJsEvent extends MessageJsEvent {
-  /// Creates a [CircleClickJsEvent].
-  const CircleClickJsEvent(super.message);
-}
-
-/// Fired when a ground overlay is clicked.
-class GroundOverlayClickJsEvent extends MessageJsEvent {
-  /// Creates a [GroundOverlayClickJsEvent].
-  const GroundOverlayClickJsEvent(super.message);
-}
+/// An event dispatched from the Google Maps JavaScript runtime back into
+/// Dart through a [GoogleMapsJsBridge].
+///
+/// [message] carries the raw (JSON-encoded) payload posted from the JS side,
+/// or `null` for a [type] that carries no payload.
+typedef MapsJsEvent = ({MapsJsEventType type, String? message});
 
 /// Mediates all interaction between Dart and the Google Maps JavaScript API
 /// running inside a WebView.
@@ -148,79 +101,49 @@ class GroundOverlayClickJsEvent extends MessageJsEvent {
 /// This is the single seam through which JS commands are built and JS→Dart
 /// events are dispatched, replacing ad hoc `runJavaScript` calls and
 /// hand-built JS strings scattered across the plugin.
-abstract class GoogleMapsJsBridge {
-  /// The underlying WebView controller. Exposed so callers can build the
-  /// [WebViewWidget] that hosts this bridge's JS runtime.
-  WebViewController get controller;
-
-  /// Broadcasts events received from the JS side.
-  Stream<MapsJsEvent> get events;
-
-  /// Loads the map HTML shell and wires up the JS→Dart event channels.
-  ///
-  /// Completes once the page has finished loading.
-  Future<void> load();
-
-  /// Creates the top-level `map` JS variable using [optionsJs] (a JS object
-  /// literal), plus its built-in map-level listeners.
-  Future<void> createMap(String optionsJs);
-
-  /// Creates a JS object via `new <constructorExpression>`, assigns it to
-  /// the JS-side variable [varName], and returns a [JsRef] handle to it.
-  Future<JsRef> createObject(String varName, String constructorExpression);
-
-  /// Assigns `ref[property] = value` on the JS side.
-  Future<void> setProperty(JsRef ref, String property, Object? value);
-
-  /// Reads `ref.property` from the JS side.
-  Future<Object?> getProperty(JsRef ref, String property);
-
-  /// Calls `ref.method(...args)` on the JS side, discarding the result.
-  Future<void> callMethod(JsRef ref, String method, List<Object?> args);
-
-  /// Calls `ref.method(...args)` on the JS side and returns the result.
-  Future<Object?> callMethodReturning(
-    JsRef ref,
-    String method,
-    List<Object?> args,
-  );
-
-  /// Registers `ref.addListener(eventName, ...)` on the JS side, so that
-  /// [payloadJs] (a JS expression, evaluated with `event` bound to the
-  /// listener's callback argument) is posted to [channel] whenever it fires.
-  Future<void> addListener(
-    JsRef ref,
-    String eventName,
-    String channel,
-    String payloadJs,
-  );
-
-  /// Escape hatch for JS not yet expressed in terms of the methods above.
-  Future<void> runJavaScript(String script);
-
-  /// Escape hatch for JS not yet expressed in terms of the methods above,
-  /// returning the raw result.
-  Future<Object> runJavaScriptReturningResult(String script);
-
-  /// Releases the resources held by this bridge.
-  void dispose();
-}
-
-/// A [GoogleMapsJsBridge] backed by a [WebViewController].
-class WebViewGoogleMapsJsBridge implements GoogleMapsJsBridge {
+class GoogleMapsJsBridge {
   /// Creates a bridge over [controller], or a fresh [WebViewController] if
   /// none is provided.
-  WebViewGoogleMapsJsBridge({WebViewController? controller})
+  GoogleMapsJsBridge({WebViewController? controller})
     : controller = controller ?? WebViewController();
 
-  @override
+  /// The JS-side channel name and payload-less-ness for each event type,
+  /// registered in [load].
+  static const Map<String, MapsJsEventType> _channelEventTypes =
+      <String, MapsJsEventType>{
+        'BoundChanged': MapsJsEventType.boundsChanged,
+        'Idle': MapsJsEventType.idle,
+        'Tilesloaded': MapsJsEventType.tilesLoaded,
+        'Click': MapsJsEventType.click,
+        'LongPress': MapsJsEventType.longPress,
+        'MarkerClick': MapsJsEventType.markerClick,
+        'ClusterClick': MapsJsEventType.clusterClick,
+        'MarkerDragStart': MapsJsEventType.markerDragStart,
+        'MarkerDrag': MapsJsEventType.markerDrag,
+        'MarkerDragEnd': MapsJsEventType.markerDragEnd,
+        'PolylineClick': MapsJsEventType.polylineClick,
+        'PolygonClick': MapsJsEventType.polygonClick,
+        'CircleClick': MapsJsEventType.circleClick,
+        'GroundOverlayClick': MapsJsEventType.groundOverlayClick,
+      };
+
+  /// Event types whose JS side posts an empty payload, so [MapsJsEvent] is
+  /// created with a `null` [MapsJsEvent.message] instead of `''`.
+  static const Set<MapsJsEventType> _payloadlessEventTypes = <MapsJsEventType>{
+    MapsJsEventType.boundsChanged,
+    MapsJsEventType.idle,
+    MapsJsEventType.tilesLoaded,
+  };
+
+  /// The underlying WebView controller. Exposed so callers can build the
+  /// [WebViewWidget] that hosts this bridge's JS runtime.
   final WebViewController controller;
 
   final StreamController<MapsJsEvent> _events =
       StreamController<MapsJsEvent>.broadcast();
   final Completer<bool> _pageFinished = Completer<bool>();
 
-  @override
+  /// Broadcasts events received from the JS side.
   Stream<MapsJsEvent> get events => _events.stream;
 
   /// Adds [event] to [_events], unless this bridge has already been
@@ -235,7 +158,9 @@ class WebViewGoogleMapsJsBridge implements GoogleMapsJsBridge {
     }
   }
 
-  @override
+  /// Loads the map HTML shell and wires up the JS→Dart event channels.
+  ///
+  /// Completes once the page has finished loading.
   Future<void> load() {
     String path = Platform.environment['AUL_ROOT_PATH'] ?? '';
     path += '/res/flutter_assets/assets/map.html';
@@ -249,97 +174,31 @@ class WebViewGoogleMapsJsBridge implements GoogleMapsJsBridge {
           },
         ),
       )
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..addJavaScriptChannel(
-        'BoundChanged',
+      ..setJavaScriptMode(JavaScriptMode.unrestricted);
+
+    for (final MapEntry<String, MapsJsEventType> entry
+        in _channelEventTypes.entries) {
+      final MapsJsEventType type = entry.value;
+      controller.addJavaScriptChannel(
+        entry.key,
         onMessageReceived: (JavaScriptMessage message) {
-          _emit(const BoundsChangedJsEvent());
+          _emit((
+            type: type,
+            message: _payloadlessEventTypes.contains(type)
+                ? null
+                : message.message,
+          ));
         },
-      )
-      ..addJavaScriptChannel(
-        'Idle',
-        onMessageReceived: (JavaScriptMessage message) {
-          _emit(const IdleJsEvent());
-        },
-      )
-      ..addJavaScriptChannel(
-        'Tilesloaded',
-        onMessageReceived: (JavaScriptMessage message) {
-          _emit(const TilesLoadedJsEvent());
-        },
-      )
-      ..addJavaScriptChannel(
-        'Click',
-        onMessageReceived: (JavaScriptMessage message) {
-          _emit(ClickJsEvent(message.message));
-        },
-      )
-      ..addJavaScriptChannel(
-        'LongPress',
-        onMessageReceived: (JavaScriptMessage message) {
-          _emit(LongPressJsEvent(message.message));
-        },
-      )
-      ..addJavaScriptChannel(
-        'MarkerClick',
-        onMessageReceived: (JavaScriptMessage message) {
-          _emit(MarkerClickJsEvent(message.message));
-        },
-      )
-      ..addJavaScriptChannel(
-        'ClusterClick',
-        onMessageReceived: (JavaScriptMessage message) {
-          _emit(ClusterClickJsEvent(message.message));
-        },
-      )
-      ..addJavaScriptChannel(
-        'MarkerDragStart',
-        onMessageReceived: (JavaScriptMessage message) {
-          _emit(MarkerDragStartJsEvent(message.message));
-        },
-      )
-      ..addJavaScriptChannel(
-        'MarkerDrag',
-        onMessageReceived: (JavaScriptMessage message) {
-          _emit(MarkerDragJsEvent(message.message));
-        },
-      )
-      ..addJavaScriptChannel(
-        'MarkerDragEnd',
-        onMessageReceived: (JavaScriptMessage message) {
-          _emit(MarkerDragEndJsEvent(message.message));
-        },
-      )
-      ..addJavaScriptChannel(
-        'PolylineClick',
-        onMessageReceived: (JavaScriptMessage message) {
-          _emit(PolylineClickJsEvent(message.message));
-        },
-      )
-      ..addJavaScriptChannel(
-        'PolygonClick',
-        onMessageReceived: (JavaScriptMessage message) {
-          _emit(PolygonClickJsEvent(message.message));
-        },
-      )
-      ..addJavaScriptChannel(
-        'CircleClick',
-        onMessageReceived: (JavaScriptMessage message) {
-          _emit(CircleClickJsEvent(message.message));
-        },
-      )
-      ..addJavaScriptChannel(
-        'GroundOverlayClick',
-        onMessageReceived: (JavaScriptMessage message) {
-          _emit(GroundOverlayClickJsEvent(message.message));
-        },
-      )
-      ..loadFile(path);
+      );
+    }
+
+    controller.loadFile(path);
 
     return _pageFinished.future;
   }
 
-  @override
+  /// Creates the top-level `map` JS variable using [optionsJs] (a JS object
+  /// literal), plus its built-in map-level listeners.
   Future<void> createMap(String optionsJs) async {
     final String command =
         '''
@@ -378,7 +237,8 @@ class WebViewGoogleMapsJsBridge implements GoogleMapsJsBridge {
     await controller.runJavaScript(command);
   }
 
-  @override
+  /// Creates a JS object via `new <constructorExpression>`, assigns it to
+  /// the JS-side variable [varName], and returns a [JsRef] handle to it.
   Future<JsRef> createObject(
     String varName,
     String constructorExpression,
@@ -403,19 +263,19 @@ class WebViewGoogleMapsJsBridge implements GoogleMapsJsBridge {
     return arg.toString();
   }
 
-  @override
+  /// Assigns `ref[property] = value` on the JS side.
   Future<void> setProperty(JsRef ref, String property, Object? value) async {
     await controller.runJavaScript(
       "JSON.stringify($ref['$property'] = ${_serializeArg(value)})",
     );
   }
 
-  @override
+  /// Reads `ref.property` from the JS side.
   Future<Object?> getProperty(JsRef ref, String property) async {
     return controller.runJavaScriptReturningResult('$ref.$property');
   }
 
-  @override
+  /// Calls `ref.method(...args)` on the JS side, discarding the result.
   Future<void> callMethod(JsRef ref, String method, List<Object?> args) async {
     final String serializedArgs = '[${args.map(_serializeArg).join(', ')}]';
     await controller.runJavaScript(
@@ -423,7 +283,7 @@ class WebViewGoogleMapsJsBridge implements GoogleMapsJsBridge {
     );
   }
 
-  @override
+  /// Calls `ref.method(...args)` on the JS side and returns the result.
   Future<Object?> callMethodReturning(
     JsRef ref,
     String method,
@@ -435,7 +295,9 @@ class WebViewGoogleMapsJsBridge implements GoogleMapsJsBridge {
     );
   }
 
-  @override
+  /// Registers `ref.addListener(eventName, ...)` on the JS side, so that
+  /// [payloadJs] (a JS expression, evaluated with `event` bound to the
+  /// listener's callback argument) is posted to [channel] whenever it fires.
   Future<void> addListener(
     JsRef ref,
     String eventName,
@@ -447,17 +309,18 @@ class WebViewGoogleMapsJsBridge implements GoogleMapsJsBridge {
     );
   }
 
-  @override
+  /// Escape hatch for JS not yet expressed in terms of the methods above.
   Future<void> runJavaScript(String script) async {
     await controller.runJavaScript(script);
   }
 
-  @override
+  /// Escape hatch for JS not yet expressed in terms of the methods above,
+  /// returning the raw result.
   Future<Object> runJavaScriptReturningResult(String script) async {
     return controller.runJavaScriptReturningResult(script);
   }
 
-  @override
+  /// Releases the resources held by this bridge.
   void dispose() {
     _events.close();
   }
