@@ -12,37 +12,35 @@ void main() {
   const String tag = 'TizenLogTest';
 
   group('Log', () {
-    testWidgets('verbose does not throw', (WidgetTester tester) async {
+    test('verbose does not throw', () async {
       expect(() => Log.verbose(tag, 'verbose message'), returnsNormally);
     });
 
-    testWidgets('debug does not throw', (WidgetTester tester) async {
+    test('debug does not throw', () async {
       expect(() => Log.debug(tag, 'debug message'), returnsNormally);
     });
 
-    testWidgets('info does not throw', (WidgetTester tester) async {
+    test('info does not throw', () async {
       expect(() => Log.info(tag, 'info message'), returnsNormally);
     });
 
-    testWidgets('warn does not throw', (WidgetTester tester) async {
+    test('warn does not throw', () async {
       expect(() => Log.warn(tag, 'warn message'), returnsNormally);
     });
 
-    testWidgets('error does not throw', (WidgetTester tester) async {
+    test('error does not throw', () async {
       expect(() => Log.error(tag, 'error message'), returnsNormally);
     });
 
-    testWidgets('fatal does not throw', (WidgetTester tester) async {
+    test('fatal does not throw', () async {
       expect(() => Log.fatal(tag, 'fatal message'), returnsNormally);
     });
 
-    testWidgets('isDebugEnabled is false by default',
-        (WidgetTester tester) async {
+    test('isDebugEnabled is false by default', () async {
       expect(Log.isDebugEnabled, isFalse);
     });
 
-    testWidgets('log with optional file, func, and line does not throw',
-        (WidgetTester tester) async {
+    test('log with optional file, func, and line does not throw', () async {
       expect(
         () => Log.info(
           tag,
