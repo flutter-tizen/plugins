@@ -4,7 +4,6 @@
 
 #include "webview_flutter_tizen_plugin.h"
 
-#include <EWebKit.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter_tizen.h>
 
@@ -17,10 +16,8 @@ namespace {
 
 constexpr char kViewType[] = "plugins.flutter.io/webview";
 
-// Tied to this plugin object's lifetime (constructed/destroyed exactly once
-// by flutter-tizen's engine start/stop), not per-WebView: chromium-efl does
-// not support re-initializing its browser process after ewk_shutdown() has
-// run once.
+// Constructed/destroyed exactly once by flutter-tizen's engine start/stop,
+// not per-WebView.
 class WebviewFlutterTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar* registrar) {
@@ -28,14 +25,9 @@ class WebviewFlutterTizenPlugin : public flutter::Plugin {
     registrar->AddPlugin(std::move(plugin));
   }
 
-  WebviewFlutterTizenPlugin() { ewk_init(); }
+  WebviewFlutterTizenPlugin() { WebView::InitializeEngine(); }
 
-  virtual ~WebviewFlutterTizenPlugin() {
-    // See WebView::FlushPendingTeardowns() for why this must run first.
-    WebView::FlushPendingTeardowns();
-    WebView::FreeSharedCanvas();
-    ewk_shutdown();
-  }
+  virtual ~WebviewFlutterTizenPlugin() { WebView::ShutdownEngine(); }
 };
 
 }  // namespace

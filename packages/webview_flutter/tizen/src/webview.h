@@ -59,15 +59,11 @@ class WebView : public PlatformView {
   FlutterDesktopGpuSurfaceDescriptor* ObtainGpuSurface(size_t width,
                                                        size_t height);
 
-  // Blocks until every WebView's deferred delete (queued in Dispose()) has
-  // run, force-deleting stragglers after a timeout. Must be called before
-  // ewk_shutdown(), which fatally CHECKs on any live Ewk_View.
-  static void FlushPendingTeardowns();
+  // Must be called exactly once, before any WebView is constructed.
+  static void InitializeEngine();
 
-  static Ecore_Evas* GetSharedCanvas();
-
-  // Must be called after FlushPendingTeardowns() and before ewk_shutdown().
-  static void FreeSharedCanvas();
+  // Must be called exactly once, after every WebView has been destroyed.
+  static void ShutdownEngine();
 
  private:
   void HandleWebViewMethodCall(const FlMethodCall& method_call,
@@ -84,6 +80,10 @@ class WebView : public PlatformView {
   std::string GetNavigationDelegateChannelName();
 
   bool InitWebView();
+
+  static Ecore_Evas* GetOffscreenHost();
+  static void FreeOffscreenHost();
+  static void FlushPendingTeardowns();
 
   static void OnFrameRendered(void* data, Evas_Object* obj, void* event_info);
   static void OnLoadStarted(void* data, Evas_Object* obj, void* event_info);
@@ -128,12 +128,10 @@ class WebView : public PlatformView {
   std::unique_ptr<flutter::TextureVariant> texture_variant_;
   std::mutex mutex_;
   std::shared_ptr<BufferPool> tbm_pool_;
+  // Guarded by mutex_.
   bool disposed_ = false;
-  // Guarded by mutex_. Keeps the raster thread from being handed TBM surfaces
-  // during the deferred teardown.
-  bool is_disposing_ = false;
-  // Copied into pending async Dart replies so they can detect a WebView that
-  // was destroyed before the reply arrived.
+  // Outlives this WebView so a pending async Dart reply can tell it apart
+  // from a destroyed one.
   std::shared_ptr<bool> is_alive_ = std::make_shared<bool>(true);
   Ewk_Mouse_Button_Type mouse_button_type_ = (Ewk_Mouse_Button_Type)0;
   bool scrollbar_enabled_ = true;

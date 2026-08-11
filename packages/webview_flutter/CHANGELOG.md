@@ -4,7 +4,7 @@
 * Implement `onHttpError` for the navigation delegate.
 * Fix races and use-after-frees on WebView disposal, including a buffer-pool
   use-after-free on the raster thread.
-* Replace the Ecore main loop API with GLib.
+* Use GLib to schedule the deferred WebView teardown.
 * Drain all pending WebView teardowns before ewk_shutdown(), fixing a native
   crash on app exit and enabling simultaneous use of multiple WebViews.
 

@@ -51,8 +51,8 @@ std::string ConvertLogLevelToString(Ewk_Console_Message_Level level) {
 
 class NavigationRequestResult : public FlMethodResult {
  public:
-  // Dart resolves "navigationRequest" asynchronously, so completion can run
-  // after |webview| is destroyed; |alive| gates every dereference.
+  // |alive| gates every dereference below: Dart resolves this call
+  // asynchronously, so it can complete after |webview| is destroyed.
   NavigationRequestResult(WebView* webview, std::shared_ptr<bool> alive)
       : webview_(webview), alive_(std::move(alive)) {}
 
@@ -107,25 +107,25 @@ bool GetValueFromEncodableMap(const flutter::EncodableValue* arguments,
   return false;
 }
 
-// Deferred: the raster thread may still be reading TBM surfaces the engine
-// owns, and ewk_shutdown() fatally CHECKs if any Ewk_View is still alive.
-// FlushPendingTeardowns() drains this registry before that shutdown call.
+// Registry of WebViews whose evas_object_del() is still pending (see
+// Dispose()). FlushPendingTeardowns() drains it before ewk_shutdown(), which
+// fatally CHECKs if any Ewk_View is still alive.
 struct PendingTeardown {
   Evas_Object* instance = nullptr;
-  // Guards against the queued callback and a force-delete both deleting
-  // the same instance.
+  std::shared_ptr<BufferPool> pool;
   std::atomic<bool> completed{false};
 };
 
 std::mutex g_pending_teardown_mutex;
 std::vector<std::shared_ptr<PendingTeardown>> g_pending_teardowns;
 
-Ecore_Evas* g_shared_canvas = nullptr;
+Ecore_Evas* g_offscreen_host = nullptr;
 
 std::shared_ptr<PendingTeardown> RegisterPendingTeardown(
-    Evas_Object* instance) {
+    Evas_Object* instance, std::shared_ptr<BufferPool> pool) {
   auto pending = std::make_shared<PendingTeardown>();
   pending->instance = instance;
+  pending->pool = std::move(pool);
   std::lock_guard<std::mutex> lock(g_pending_teardown_mutex);
   g_pending_teardowns.push_back(pending);
   return pending;
@@ -229,10 +229,13 @@ std::string WebView::GetNavigationDelegateChannelName() {
 }
 
 void WebView::Dispose() {
-  if (disposed_) {
-    return;
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (disposed_) {
+      return;
+    }
+    disposed_ = true;
   }
-  disposed_ = true;
   *is_alive_ = false;
 
   Evas_Object* instance = webview_instance_;
@@ -275,7 +278,6 @@ void WebView::Dispose() {
   std::shared_ptr<BufferPool> pool;
   {
     std::lock_guard<std::mutex> lock(mutex_);
-    is_disposing_ = true;
     working_surface_ = nullptr;
     candidate_surface_ = nullptr;
     rendered_surface_ = nullptr;
@@ -284,44 +286,50 @@ void WebView::Dispose() {
 
   // UnregisterTexture()'s completion callback fires on the render thread, so
   // hop back to the main loop before completing the deferred delete.
-  struct TeardownContext {
-    std::shared_ptr<PendingTeardown> pending;
-    std::shared_ptr<BufferPool> pool;
-  };
-  auto* context =
-      new TeardownContext{RegisterPendingTeardown(instance), std::move(pool)};
-  texture_registrar_->UnregisterTexture(GetTextureId(), [context]() {
+  auto pending = RegisterPendingTeardown(instance, std::move(pool));
+  texture_registrar_->UnregisterTexture(GetTextureId(), [pending]() {
     // Must stay a high-priority timeout: g_idle_add() runs too late and the
     // delete then races the raster thread on the TV emulator.
     g_timeout_add_full(
         G_PRIORITY_HIGH, 0,
         [](gpointer data) -> gboolean {
-          auto* context = static_cast<TeardownContext*>(data);
-          CompletePendingTeardown(context->pending);
+          auto* pending = static_cast<std::shared_ptr<PendingTeardown>*>(data);
+          CompletePendingTeardown(*pending);
           return G_SOURCE_REMOVE;
         },
-        context,
-        [](gpointer data) { delete static_cast<TeardownContext*>(data); });
+        new std::shared_ptr<PendingTeardown>(pending),
+        [](gpointer data) {
+          delete static_cast<std::shared_ptr<PendingTeardown>*>(data);
+        });
   });
 }
 
 // static
-Ecore_Evas* WebView::GetSharedCanvas() {
-  if (!g_shared_canvas) {
-    // "wayland_shm", not "wayland_egl": this canvas only hosts the ewk_view
-    // smart object (content arrives via tbm_surface), and wayland_egl raced
-    // libtpl-egl's wl_egl_thread teardown on disposal.
-    g_shared_canvas = ecore_evas_new("wayland_shm", 0, 0, 1, 1, 0);
+Ecore_Evas* WebView::GetOffscreenHost() {
+  if (!g_offscreen_host) {
+    // wayland_shm, not wayland_egl: wayland_egl raced libtpl-egl's
+    // wl_egl_thread teardown on disposal.
+    g_offscreen_host = ecore_evas_new("wayland_shm", 0, 0, 1, 1, 0);
   }
-  return g_shared_canvas;
+  return g_offscreen_host;
 }
 
 // static
-void WebView::FreeSharedCanvas() {
-  if (g_shared_canvas) {
-    ecore_evas_free(g_shared_canvas);
-    g_shared_canvas = nullptr;
+void WebView::FreeOffscreenHost() {
+  if (g_offscreen_host) {
+    ecore_evas_free(g_offscreen_host);
+    g_offscreen_host = nullptr;
   }
+}
+
+// static
+void WebView::InitializeEngine() { ewk_init(); }
+
+// static
+void WebView::ShutdownEngine() {
+  FlushPendingTeardowns();
+  FreeOffscreenHost();
+  ewk_shutdown();
 }
 
 // static
@@ -338,18 +346,13 @@ void WebView::FlushPendingTeardowns() {
       pending = g_pending_teardowns.front();
     }
     if (g_get_monotonic_time() >= deadline) {
-      // Force stragglers through past the deadline instead of blocking
-      // forever.
       LOG_WARN(
           "Forcing WebView teardown past the deadline before ewk_shutdown()");
       CompletePendingTeardown(pending);
       continue;
     }
-    // Pump the same GLib context the queued g_timeout_add_full hop (see
-    // Dispose()) is scheduled on, so it gets a chance to run and remove
-    // this entry itself. Non-blocking: if that hop never arrives (e.g. the
-    // render thread already stalled), a blocking iteration here would never
-    // return to let the deadline check above fire.
+    // Non-blocking: pump the same context the queued g_timeout_add_full hop
+    // runs on, without stalling past the deadline check above.
     if (!g_main_context_iteration(g_main_context_default(), FALSE)) {
       g_usleep(1000);
     }
@@ -517,9 +520,7 @@ bool WebView::InitWebView() {
   EwkInternalApiBinding::GetInstance().main.SetArguments(chromium_argc,
                                                          chromium_argv);
 
-  // ewk_init() is called once for the process lifetime by
-  // WebviewFlutterTizenPlugin's constructor, not per WebView instance.
-  Ecore_Evas* evas = GetSharedCanvas();
+  Ecore_Evas* evas = GetOffscreenHost();
   if (!evas) {
     return false;
   }
@@ -612,10 +613,13 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
   const std::string& method_name = method_call.method_name();
   const flutter::EncodableValue* arguments = method_call.arguments();
 
-  if (disposed_) {
-    result->Error("Invalid operation",
-                  "The webview instance has been disposed.");
-    return;
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (disposed_) {
+      result->Error("Invalid operation",
+                    "The webview instance has been disposed.");
+      return;
+    }
   }
 
   if (method_name == "setEnginePolicy") {
@@ -915,7 +919,7 @@ void WebView::HandleCookieMethodCall(const FlMethodCall& method_call,
 FlutterDesktopGpuSurfaceDescriptor* WebView::ObtainGpuSurface(size_t width,
                                                               size_t height) {
   std::lock_guard<std::mutex> lock(mutex_);
-  if (is_disposing_ || !tbm_pool_) {
+  if (disposed_ || !tbm_pool_) {
     return nullptr;
   }
   if (!candidate_surface_) {
@@ -937,7 +941,7 @@ void WebView::OnFrameRendered(void* data, Evas_Object* obj, void* event_info) {
     WebView* webview = static_cast<WebView*>(data);
 
     std::lock_guard<std::mutex> lock(webview->mutex_);
-    if (webview->is_disposing_ || !webview->tbm_pool_) {
+    if (webview->disposed_ || !webview->tbm_pool_) {
       return;
     }
     if (!webview->working_surface_) {
