@@ -6,6 +6,7 @@
 * Add a 3-second delay in integration_test to support the media volume reset
   feature of the Tizen Volume app for hearing protection.
 * Add 2 integration test cases.
+* Update integration tests.
 
 ## 0.1.1
 
