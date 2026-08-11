@@ -1,3 +1,7 @@
+## NEXT
+
+* Update integration tests.
+
 ## 1.1.6
 
 * Update network_info_plus_platform_interface to 2.0.0.
