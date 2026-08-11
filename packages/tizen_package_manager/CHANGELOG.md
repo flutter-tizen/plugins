@@ -1,3 +1,7 @@
+## NEXT
+
+* Update integration tests.
+
 ## 0.4.3
 
 * Return a null icon path (instead of an empty string) when a package has no
