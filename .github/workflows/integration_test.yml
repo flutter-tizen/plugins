@@ -14,6 +14,9 @@ jobs:
   integration_test:
     runs-on: [self-hosted, linux]
     if: ${{ github.repository_owner == 'flutter-tizen' }}
+    # Backstop for hangs after the job has started. Time spent in queue is
+    # covered by the watchdog job below.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
         with:
@@ -44,3 +47,51 @@ jobs:
           ./tools/tools_runner.sh integration-test \
             --recipe ./.github/recipe.yaml \
             --generate-emulators
+
+  watchdog:
+    runs-on: ubuntu-latest
+    if: ${{ github.repository_owner == 'flutter-tizen' }}
+    timeout-minutes: 150
+    permissions:
+      actions: write
+    steps:
+      - name: Fail if integration_test stays queued for 15 minutes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Status of a run's job on the self-hosted runner (integration_test).
+          job_status() {
+            gh api "repos/$GITHUB_REPOSITORY/actions/runs/$1/jobs" \
+              --jq '.jobs[] | select(.labels | index("self-hosted")) | .status'
+          }
+          runner_busy() {
+            for id in $(gh api \
+                "repos/$GITHUB_REPOSITORY/actions/workflows/integration_test.yml/runs?status=in_progress&per_page=100" \
+                --jq '.workflow_runs | sort_by(.run_number) | .[].id'); do
+              if job_status "$id" | grep -qx in_progress; then
+                return 0
+              fi
+            done
+            return 1
+          }
+          stale=0
+          while [ "$stale" -lt 15 ]; do
+            sleep 60
+            case "$(job_status "$GITHUB_RUN_ID" || true)" in
+              in_progress | completed)
+                exit 0
+                ;;
+              queued)
+                # Queued behind a busy (alive) runner is not stuck.
+                if runner_busy; then stale=0; else stale=$((stale + 1)); fi
+                ;;
+              *)
+                stale=0
+                ;;
+            esac
+          done
+          echo "integration_test stayed queued for 15 minutes while the runner" \
+            "was idle. The host PC appears to be offline."
+          gh api -X POST \
+            "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/cancel" || true
+          exit 1
