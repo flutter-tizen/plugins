@@ -10,7 +10,7 @@ import 'package:tizen_window_manager/tizen_window_manager.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Can get window geometry info', (WidgetTester tester) async {
+  test('Can get window geometry info', () async {
     final Map<String, int> geometry = await WindowManager.getGeometry();
     expect(geometry['x'], 100);
     expect(geometry['y'], 100);
@@ -18,7 +18,7 @@ void main() {
     expect(geometry['height'], 700);
   });
 
-  testWidgets('Control lower/activate window', (WidgetTester tester) async {
+  test('Control lower/activate window', () async {
     await WindowManager.lower();
     await Future<void>.delayed(const Duration(seconds: 2));
 
