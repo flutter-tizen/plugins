@@ -43,7 +43,7 @@ void main() {
       controller = VideoPlayerController.asset(_videoAssetKey);
     });
 
-    testWidgets('can be initialized', (WidgetTester tester) async {
+    test('can be initialized', () async {
       await controller.initialize();
 
       expect(controller.value.isInitialized, true);
@@ -56,7 +56,7 @@ void main() {
       );
     });
 
-    testWidgets('live stream duration != 0', (WidgetTester tester) async {
+    test('live stream duration != 0', () async {
       final VideoPlayerController
       networkController = VideoPlayerController.networkUrl(
         Uri.parse(
@@ -90,7 +90,7 @@ void main() {
       );
     });
 
-    testWidgets('can seek', (WidgetTester tester) async {
+    test('can seek', () async {
       await controller.initialize();
 
       await controller.seekTo(const Duration(seconds: 3));
@@ -259,17 +259,19 @@ void main() {
       controller = VideoPlayerController.file(file);
     });
 
-    testWidgets('test video player using static file() method as constructor', (
-      WidgetTester tester,
-    ) async {
-      await controller.initialize();
+    test(
+      'test video player using static file() method as constructor',
+      () async {
+        await controller.initialize();
 
-      await controller.play();
-      expect(controller.value.isPlaying, true);
+        await controller.play();
+        expect(controller.value.isPlaying, true);
 
-      await controller.pause();
-      expect(controller.value.isPlaying, false);
-    }, skip: kIsWeb);
+        await controller.pause();
+        expect(controller.value.isPlaying, false);
+      },
+      skip: kIsWeb,
+    );
   });
 
   group('network videos', () {
@@ -324,7 +326,7 @@ void main() {
       controller = VideoPlayerController.asset('assets/Audio.mp3');
     });
 
-    testWidgets('can be initialized', (WidgetTester tester) async {
+    test('can be initialized', () async {
       await controller.initialize();
 
       expect(controller.value.isInitialized, true);
@@ -357,7 +359,7 @@ void main() {
       );
     });
 
-    testWidgets('can seek', (WidgetTester tester) async {
+    test('can seek', () async {
       await controller.initialize();
       await controller.seekTo(const Duration(seconds: 3));
 
