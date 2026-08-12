@@ -1,8 +1,8 @@
 name: sqflite_tizen
 description: Tizen implementation of the sqflite plugin.
 homepage: https://github.com/flutter-tizen/plugins
-repository: https://github.com/flutter-tizen/plugins/tree/master/packages/sqflite
-version: 0.1.4
+repository: https://github.com/flutter-tizen/plugins/tree/main/packages/sqflite
+version: 0.1.5
 
 environment:
   sdk: ">=3.7.0 <4.0.0"

@@ -1,3 +1,7 @@
+## 0.5.4
+
+* Update the repository URL to use the `main` branch.
+
 ## 0.5.3
 
 * Update lightweight web engine (1.5.1).

@@ -1,8 +1,8 @@
 name: wakelock_plus_tizen
 description: Tizen implementation of the wakelock_plus plugin.
 homepage: https://github.com/flutter-tizen/plugins
-repository: https://github.com/flutter-tizen/plugins/tree/master/packages/wakelock_plus
-version: 2.1.1
+repository: https://github.com/flutter-tizen/plugins/tree/main/packages/wakelock_plus
+version: 2.1.2
 
 environment:
   sdk: ">=3.11.0 <4.0.0"

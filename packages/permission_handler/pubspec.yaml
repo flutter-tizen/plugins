@@ -1,8 +1,8 @@
 name: permission_handler_tizen
 description: Tizen implementation of the permission_handler plugin.
 homepage: https://github.com/flutter-tizen/plugins
-repository: https://github.com/flutter-tizen/plugins/tree/master/packages/permission_handler
-version: 1.4.4
+repository: https://github.com/flutter-tizen/plugins/tree/main/packages/permission_handler
+version: 1.4.5
 
 environment:
   sdk: ^3.5.0

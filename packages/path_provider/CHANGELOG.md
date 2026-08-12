@@ -1,6 +1,7 @@
-## NEXT
+## 2.3.1
 
 * Update integration tests.
+* Update the repository URL to use the `main` branch.
 
 ## 2.3.0
 
