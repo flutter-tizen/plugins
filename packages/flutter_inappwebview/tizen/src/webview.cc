@@ -829,7 +829,7 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
         return ewk_view_url_request_set(
             webview_instance_, url.c_str(), ewk_method, ewk_headers,
             body.empty() ? nullptr
-                        : reinterpret_cast<const char*>(body.data()));
+                         : reinterpret_cast<const char*>(body.data()));
       });
       eina_hash_free(ewk_headers);
       if (!ret) {
@@ -857,8 +857,7 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
     const bool ret = NavigateProgrammatically([&] {
       return ewk_view_url_request_set(
           webview_instance_, url.c_str(), EWK_HTTP_METHOD_POST, nullptr,
-          body.empty() ? nullptr
-                      : reinterpret_cast<const char*>(body.data()));
+          body.empty() ? nullptr : reinterpret_cast<const char*>(body.data()));
     });
     if (ret) {
       result->Success();
@@ -980,7 +979,8 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
       int32_t base_y = (target_scroll_y_ >= 0) ? target_scroll_y_ : current_y;
       target_scroll_x_ = base_x + x;
       target_scroll_y_ = base_y + y;
-      ewk_view_scroll_set(webview_instance_, target_scroll_x_, target_scroll_y_);
+      ewk_view_scroll_set(webview_instance_, target_scroll_x_,
+                          target_scroll_y_);
     }
     int32_t new_x = target_scroll_x_;
     int32_t new_y = target_scroll_y_;
