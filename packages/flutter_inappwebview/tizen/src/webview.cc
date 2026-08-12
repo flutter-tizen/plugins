@@ -971,11 +971,19 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
     }
     if (method_name == "scrollTo") {
       ewk_view_scroll_set(webview_instance_, x, y);
+      target_scroll_x_ = x;
+      target_scroll_y_ = y;
     } else {
-      ewk_view_scroll_by(webview_instance_, x, y);
+      int32_t current_x = 0, current_y = 0;
+      ewk_view_scroll_pos_get(webview_instance_, &current_x, &current_y);
+      int32_t base_x = (target_scroll_x_ >= 0) ? target_scroll_x_ : current_x;
+      int32_t base_y = (target_scroll_y_ >= 0) ? target_scroll_y_ : current_y;
+      target_scroll_x_ = base_x + x;
+      target_scroll_y_ = base_y + y;
+      ewk_view_scroll_set(webview_instance_, target_scroll_x_, target_scroll_y_);
     }
-    int32_t new_x = 0, new_y = 0;
-    ewk_view_scroll_pos_get(webview_instance_, &new_x, &new_y);
+    int32_t new_x = target_scroll_x_;
+    int32_t new_y = target_scroll_y_;
     flutter::EncodableMap args = {
         {flutter::EncodableValue("x"), flutter::EncodableValue(new_x)},
         {flutter::EncodableValue("y"), flutter::EncodableValue(new_y)},
@@ -986,6 +994,20 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
   } else if (method_name == "getScrollX" || method_name == "getScrollY") {
     int32_t x = 0, y = 0;
     ewk_view_scroll_pos_get(webview_instance_, &x, &y);
+    if (target_scroll_x_ >= 0) {
+      if (x == target_scroll_x_) {
+        target_scroll_x_ = -1;
+      } else {
+        x = target_scroll_x_;
+      }
+    }
+    if (target_scroll_y_ >= 0) {
+      if (y == target_scroll_y_) {
+        target_scroll_y_ = -1;
+      } else {
+        y = target_scroll_y_;
+      }
+    }
     result->Success(
         flutter::EncodableValue(method_name == "getScrollX" ? x : y));
   } else if (method_name == "zoomBy") {
@@ -1089,6 +1111,8 @@ void WebView::OnFrameRendered(void* data, Evas_Object* obj, void* event_info) {
 void WebView::OnLoadStarted(void* data, Evas_Object* obj, void* event_info) {
   WebView* webview = static_cast<WebView*>(data);
   webview->is_programmatic_navigation_ = false;
+  webview->target_scroll_x_ = -1;
+  webview->target_scroll_y_ = -1;
   flutter::EncodableMap args = {
       {flutter::EncodableValue("url"),
        flutter::EncodableValue(GetViewUrl(webview->webview_instance_))}};
@@ -1128,6 +1152,8 @@ void WebView::OnProgress(void* data, Evas_Object* obj, void* event_info) {
 void WebView::OnLoadError(void* data, Evas_Object* obj, void* event_info) {
   WebView* webview = static_cast<WebView*>(data);
   webview->is_programmatic_navigation_ = false;
+  webview->target_scroll_x_ = -1;
+  webview->target_scroll_y_ = -1;
   Ewk_Error* error = static_cast<Ewk_Error*>(event_info);
   std::string url =
       ewk_error_url_get(error) ? std::string(ewk_error_url_get(error)) : "";
