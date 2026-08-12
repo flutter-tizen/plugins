@@ -18,7 +18,7 @@ void main() {
     expect(geometry['height'], 700);
   });
 
-  test('Control lower/activate window', () async {
+  testWidgets('Control lower/activate window', (WidgetTester tester) async {
     await WindowManager.lower();
     await Future<void>.delayed(const Duration(seconds: 2));
 
