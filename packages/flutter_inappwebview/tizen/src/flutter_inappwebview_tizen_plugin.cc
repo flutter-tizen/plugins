@@ -45,6 +45,7 @@ class FlutterInappwebviewTizenPlugin : public flutter::Plugin {
           cookie_channel)
       : manager_channel_(std::move(manager_channel)),
         cookie_channel_(std::move(cookie_channel)) {
+    WebView::InitializeEngine();
     manager_channel_->SetMethodCallHandler(
         [this](const auto& call, auto result) {
           HandleManagerMethodCall(call, std::move(result));
@@ -55,7 +56,7 @@ class FlutterInappwebviewTizenPlugin : public flutter::Plugin {
         });
   }
 
-  virtual ~FlutterInappwebviewTizenPlugin() {}
+  virtual ~FlutterInappwebviewTizenPlugin() { WebView::ShutdownEngine(); }
 
  private:
   void HandleManagerMethodCall(
