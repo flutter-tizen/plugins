@@ -1,3 +1,7 @@
+## NEXT
+
+* Update integration tests.
+
 ## 2.1.1
 
 * Remove Ecore API.

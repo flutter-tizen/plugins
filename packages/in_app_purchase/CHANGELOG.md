@@ -1,3 +1,7 @@
+## NEXT
+
+* Update integration tests.
+
 ## 0.1.5
 
 * Update in_app_purchase to 3.2.3

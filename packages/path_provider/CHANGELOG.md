@@ -1,3 +1,7 @@
+## NEXT
+
+* Update integration tests.
+
 ## 2.3.0
 
 * Update path_provider to 2.1.5.

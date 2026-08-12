@@ -13,30 +13,22 @@ void main() {
   // Bundle() — default constructor
   // ---------------------------------------------------------------------------
   group('Bundle() default constructor', () {
-    testWidgets('creates an empty bundle with length 0', (
-      WidgetTester _,
-    ) async {
+    test('creates an empty bundle with length 0', () async {
       final Bundle bundle = Bundle();
       expect(bundle.length, 0);
     });
 
-    testWidgets('isEmpty returns true for a newly created bundle', (
-      WidgetTester _,
-    ) async {
+    test('isEmpty returns true for a newly created bundle', () async {
       final Bundle bundle = Bundle();
       expect(bundle.isEmpty, true);
     });
 
-    testWidgets('isNotEmpty returns false for a newly created bundle', (
-      WidgetTester _,
-    ) async {
+    test('isNotEmpty returns false for a newly created bundle', () async {
       final Bundle bundle = Bundle();
       expect(bundle.isNotEmpty, false);
     });
 
-    testWidgets('keys returns empty iterable for an empty bundle', (
-      WidgetTester _,
-    ) async {
+    test('keys returns empty iterable for an empty bundle', () async {
       final Bundle bundle = Bundle();
       expect(bundle.keys, isEmpty);
     });
@@ -46,18 +38,14 @@ void main() {
   // Bundle.fromMap — factory constructor
   // ---------------------------------------------------------------------------
   group('Bundle.fromMap', () {
-    testWidgets('creates an empty bundle from an empty map', (
-      WidgetTester _,
-    ) async {
+    test('creates an empty bundle from an empty map', () async {
       final Bundle bundle = Bundle.fromMap(<String, Object>{});
       expect(bundle.length, 0);
       expect(bundle.isEmpty, true);
     });
 
-    testWidgets(
-        'creates a bundle with String, List<String>, and Uint8List entries', (
-      WidgetTester _,
-    ) async {
+    test('creates a bundle with String, List<String>, and Uint8List entries',
+        () async {
       final Bundle bundle = Bundle.fromMap(<String, Object>{
         'stringKey': 'stringValue',
         'stringsKey': <String>['value1', 'value2'],
@@ -74,9 +62,9 @@ void main() {
   // Bundle.fromBundle — copy constructor independence
   // ---------------------------------------------------------------------------
   group('Bundle.fromBundle copy independence', () {
-    testWidgets(
+    test(
       'mutating the original after copy does not affect the copy',
-      (WidgetTester _) async {
+      () async {
         final Bundle original = Bundle();
         original['key'] = 'originalValue';
 
@@ -88,11 +76,9 @@ void main() {
       },
     );
 
-    testWidgets(
+    test(
         'copy has independent entries — adding to copy does not affect original',
-        (
-      WidgetTester _,
-    ) async {
+        () async {
       final Bundle original = Bundle();
       original['key'] = 'value';
 
@@ -107,9 +93,7 @@ void main() {
   // Bundle.decode — constructor from encoded string
   // ---------------------------------------------------------------------------
   group('Bundle.decode', () {
-    testWidgets('round-trips a List<String> value through encode/decode', (
-      WidgetTester _,
-    ) async {
+    test('round-trips a List<String> value through encode/decode', () async {
       final Bundle bundle = Bundle();
       bundle['stringsKey'] = <String>['alpha', 'beta', 'gamma'];
       final String encoded = bundle.encode();
@@ -117,9 +101,7 @@ void main() {
       expect(decoded['stringsKey'], <String>['alpha', 'beta', 'gamma']);
     });
 
-    testWidgets('round-trips a Uint8List value through encode/decode', (
-      WidgetTester _,
-    ) async {
+    test('round-trips a Uint8List value through encode/decode', () async {
       final Bundle bundle = Bundle();
       bundle['bytesKey'] = Uint8List.fromList(<int>[0x00, 0x7f, 0xff]);
       final String encoded = bundle.encode();
@@ -127,9 +109,7 @@ void main() {
       expect(decoded['bytesKey'], Uint8List.fromList(<int>[0x00, 0x7f, 0xff]));
     });
 
-    testWidgets('round-trips multiple keys of mixed types', (
-      WidgetTester _,
-    ) async {
+    test('round-trips multiple keys of mixed types', () async {
       final Bundle bundle = Bundle();
       bundle['s'] = 'hello';
       bundle['ss'] = <String>['x', 'y'];
@@ -147,31 +127,27 @@ void main() {
   // operator[] — get
   // ---------------------------------------------------------------------------
   group('operator[] (get)', () {
-    testWidgets('returns null for a missing key', (WidgetTester _) async {
+    test('returns null for a missing key', () async {
       final Bundle bundle = Bundle();
       expect(bundle['nonExistentKey'], isNull);
     });
 
-    testWidgets('returns null when key is null', (WidgetTester _) async {
+    test('returns null when key is null', () async {
       final Bundle bundle = Bundle();
       bundle['someKey'] = 'someValue';
       // The implementation accepts Object? key and returns null for null.
       expect(bundle[null], isNull);
     });
 
-    testWidgets('returns the correct value after key is overwritten', (
-      WidgetTester _,
-    ) async {
+    test('returns the correct value after key is overwritten', () async {
       final Bundle bundle = Bundle();
       bundle['key'] = 'first';
       bundle['key'] = 'second';
       expect(bundle['key'], 'second');
     });
 
-    testWidgets(
-        'same read-only call twice returns identical results (idempotency)', (
-      WidgetTester _,
-    ) async {
+    test('same read-only call twice returns identical results (idempotency)',
+        () async {
       final Bundle bundle = Bundle();
       bundle['key'] = 'value';
       expect(bundle['key'], bundle['key']);
@@ -182,9 +158,7 @@ void main() {
   // operator[]= — set (error path)
   // ---------------------------------------------------------------------------
   group('operator[]= (set)', () {
-    testWidgets('throws ArgumentError for an unsupported value type', (
-      WidgetTester _,
-    ) async {
+    test('throws ArgumentError for an unsupported value type', () async {
       final Bundle bundle = Bundle();
       expect(
         () => bundle['key'] = 42,
@@ -192,28 +166,26 @@ void main() {
       );
     });
 
-    testWidgets('stores an empty string value', (WidgetTester _) async {
+    test('stores an empty string value', () async {
       final Bundle bundle = Bundle();
       bundle['emptyString'] = '';
       expect(bundle['emptyString'], '');
     });
 
-    testWidgets('stores a single-element List<String>', (WidgetTester _) async {
+    test('stores a single-element List<String>', () async {
       final Bundle bundle = Bundle();
       bundle['single'] = <String>['only'];
       expect(bundle['single'], <String>['only']);
     });
 
-    testWidgets('stores an empty Uint8List', (WidgetTester _) async {
+    test('stores an empty Uint8List', () async {
       final Bundle bundle = Bundle();
       bundle['emptyBytes'] = Uint8List(0);
       final Uint8List result = bundle['emptyBytes']! as Uint8List;
       expect(result.length, 0);
     });
 
-    testWidgets('preserves full byte range 0x00–0xff in Uint8List', (
-      WidgetTester _,
-    ) async {
+    test('preserves full byte range 0x00–0xff in Uint8List', () async {
       final Bundle bundle = Bundle();
       final Uint8List allBytes =
           Uint8List.fromList(List<int>.generate(256, (int i) => i));
@@ -227,25 +199,19 @@ void main() {
   // remove()
   // ---------------------------------------------------------------------------
   group('remove()', () {
-    testWidgets('remove(null) is a no-op and does not throw', (
-      WidgetTester _,
-    ) async {
+    test('remove(null) is a no-op and does not throw', () async {
       final Bundle bundle = Bundle();
       bundle['key'] = 'value';
       expect(() => bundle.remove(null), returnsNormally);
       expect(bundle.length, 1);
     });
 
-    testWidgets('removing a non-existent key is a no-op', (
-      WidgetTester _,
-    ) async {
+    test('removing a non-existent key is a no-op', () async {
       final Bundle bundle = Bundle();
       expect(() => bundle.remove('doesNotExist'), returnsNormally);
     });
 
-    testWidgets('add then remove then verify gone (state transition)', (
-      WidgetTester _,
-    ) async {
+    test('add then remove then verify gone (state transition)', () async {
       final Bundle bundle = Bundle();
       bundle['key'] = 'value';
       expect(bundle.containsKey('key'), true);
@@ -259,18 +225,14 @@ void main() {
   // clear()
   // ---------------------------------------------------------------------------
   group('clear()', () {
-    testWidgets('clear() on an already-empty bundle is idempotent', (
-      WidgetTester _,
-    ) async {
+    test('clear() on an already-empty bundle is idempotent', () async {
       final Bundle bundle = Bundle();
       bundle.clear();
       expect(bundle.length, 0);
       expect(bundle.isEmpty, true);
     });
 
-    testWidgets('clear() removes all entries including mixed types', (
-      WidgetTester _,
-    ) async {
+    test('clear() removes all entries including mixed types', () async {
       final Bundle bundle = Bundle();
       bundle['s'] = 'hello';
       bundle['ss'] = <String>['a', 'b'];
@@ -285,9 +247,7 @@ void main() {
   // length / isEmpty / isNotEmpty — state after modifications
   // ---------------------------------------------------------------------------
   group('length, isEmpty, isNotEmpty', () {
-    testWidgets('length reflects current entry count correctly', (
-      WidgetTester _,
-    ) async {
+    test('length reflects current entry count correctly', () async {
       final Bundle bundle = Bundle();
       expect(bundle.length, 0);
       bundle['k1'] = 'v1';
@@ -298,18 +258,14 @@ void main() {
       expect(bundle.length, 1);
     });
 
-    testWidgets('isNotEmpty becomes true after adding an entry', (
-      WidgetTester _,
-    ) async {
+    test('isNotEmpty becomes true after adding an entry', () async {
       final Bundle bundle = Bundle();
       expect(bundle.isNotEmpty, false);
       bundle['key'] = 'value';
       expect(bundle.isNotEmpty, true);
     });
 
-    testWidgets('isEmpty becomes true after removing the last entry', (
-      WidgetTester _,
-    ) async {
+    test('isEmpty becomes true after removing the last entry', () async {
       final Bundle bundle = Bundle();
       bundle['key'] = 'value';
       expect(bundle.isEmpty, false);
@@ -322,24 +278,18 @@ void main() {
   // Inherited MapMixin members
   // ---------------------------------------------------------------------------
   group('inherited MapMixin members', () {
-    testWidgets('containsKey returns true for existing key', (
-      WidgetTester _,
-    ) async {
+    test('containsKey returns true for existing key', () async {
       final Bundle bundle = Bundle();
       bundle['key'] = 'value';
       expect(bundle.containsKey('key'), true);
     });
 
-    testWidgets('containsKey returns false for missing key', (
-      WidgetTester _,
-    ) async {
+    test('containsKey returns false for missing key', () async {
       final Bundle bundle = Bundle();
       expect(bundle.containsKey('missing'), false);
     });
 
-    testWidgets('keys of different bundles are independent', (
-      WidgetTester _,
-    ) async {
+    test('keys of different bundles are independent', () async {
       final Bundle bundle1 = Bundle();
       bundle1['a'] = 'v1';
       final Iterable<String> keys1 = bundle1.keys;
@@ -351,9 +301,7 @@ void main() {
       expect(keys1, equals(<String>['a']));
     });
 
-    testWidgets('keys and values return all stored entries', (
-      WidgetTester _,
-    ) async {
+    test('keys and values return all stored entries', () async {
       final Bundle bundle = Bundle.fromMap(<String, String>{
         'key1': 'value1',
         'key2': 'value2',
@@ -366,25 +314,19 @@ void main() {
       );
     });
 
-    testWidgets('containsValue returns true for existing string value', (
-      WidgetTester _,
-    ) async {
+    test('containsValue returns true for existing string value', () async {
       final Bundle bundle = Bundle();
       bundle['key'] = 'needle';
       expect(bundle.containsValue('needle'), true);
     });
 
-    testWidgets('containsValue returns false for absent value', (
-      WidgetTester _,
-    ) async {
+    test('containsValue returns false for absent value', () async {
       final Bundle bundle = Bundle();
       bundle['key'] = 'value';
       expect(bundle.containsValue('absent'), false);
     });
 
-    testWidgets('entries exposes key-value pairs correctly', (
-      WidgetTester _,
-    ) async {
+    test('entries exposes key-value pairs correctly', () async {
       final Bundle bundle = Bundle();
       bundle['k'] = 'v';
       final MapEntry<String, Object> entry = bundle.entries.single;
@@ -392,7 +334,7 @@ void main() {
       expect(entry.value, 'v');
     });
 
-    testWidgets('forEach iterates over all entries', (WidgetTester _) async {
+    test('forEach iterates over all entries', () async {
       final Bundle bundle = Bundle();
       bundle['a'] = '1';
       bundle['b'] = '2';
@@ -405,7 +347,7 @@ void main() {
       expect(collected['b'], '2');
     });
 
-    testWidgets('addAll adds all entries from a map', (WidgetTester _) async {
+    test('addAll adds all entries from a map', () async {
       final Bundle bundle = Bundle();
       bundle.addAll(<String, Object>{
         'x': 'valueX',
@@ -416,9 +358,7 @@ void main() {
       expect(bundle['y'], 'valueY');
     });
 
-    testWidgets('putIfAbsent inserts only when key is absent', (
-      WidgetTester _,
-    ) async {
+    test('putIfAbsent inserts only when key is absent', () async {
       final Bundle bundle = Bundle();
       bundle['existing'] = 'original';
 

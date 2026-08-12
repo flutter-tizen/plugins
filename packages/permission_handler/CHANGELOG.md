@@ -1,6 +1,7 @@
 ## NEXT
 
 * Add 8 integration test cases.
+* Update integration tests.
 
 ## 1.4.4
 

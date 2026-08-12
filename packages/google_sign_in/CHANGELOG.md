@@ -1,3 +1,7 @@
+## NEXT
+
+* Update integration tests.
+
 ## 0.2.0
 
 * Update `google_sign_in_platform_interface` to 3.1.0.

@@ -4,6 +4,7 @@
 * Update minimum Flutter and Dart version to 3.13 and 3.1.
 * Fix new lint warnings.
 * Update code format.
+* Update integration tests.
 
 ## 0.1.2
 

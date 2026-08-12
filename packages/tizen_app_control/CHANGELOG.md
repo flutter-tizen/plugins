@@ -4,6 +4,7 @@
 * Update code format.
 * Add YouTube app launch to the example.
 * Update integration tests.
+* Update integration tests.
 
 ## 0.2.3
 
