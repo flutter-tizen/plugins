@@ -7,6 +7,8 @@
 #include <flutter/plugin_registrar.h>
 #include <flutter_tizen.h>
 
+#include <memory>
+
 #include "ffi_messages.h"
 #include "log.h"
 

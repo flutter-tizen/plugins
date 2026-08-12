@@ -169,7 +169,12 @@ void ffi_dispose_all_players() {
   // Also unregister the Dart port
   video_player_videohole_tizen::UnregisterDartPort();
 
-  LOG_INFO("[FFI] All players disposed, Dart port unregistered");
+  video_player_videohole_tizen::g_registrar_ref = nullptr;
+  video_player_videohole_tizen::g_plugin_registrar = nullptr;
+
+  LOG_INFO(
+      "[FFI] All players disposed, Dart port unregistered, registrar refs "
+      "cleared");
 }
 
 int64_t ffi_create(const char* create_message_json) {
