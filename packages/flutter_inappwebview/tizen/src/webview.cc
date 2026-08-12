@@ -8,6 +8,7 @@
 #include <app_common.h>
 #include <flutter/standard_method_codec.h>
 #include <flutter_texture_registrar.h>
+#include <glib.h>
 #include <tbm_surface.h>
 
 #include <atomic>
@@ -212,6 +213,35 @@ bool WebView::ClearAllCookies() {
   return false;
 }
 
+// static
+void WebView::InitializeEngine() { ewk_init(); }
+
+// static
+void WebView::ShutdownEngine() {
+  // WebView::Dispose() erases from instances_ synchronously, so by normal
+  // plugin teardown order (platform views destroyed before the plugin
+  // itself) this is already empty. Wait defensively anyway: ewk_shutdown()
+  // fatally CHECKs (SIGTRAP) if any Ewk_View is still alive.
+  constexpr gint64 kDeadlineUsec = 2 * G_USEC_PER_SEC;
+  const gint64 deadline = g_get_monotonic_time() + kDeadlineUsec;
+  for (;;) {
+    {
+      std::lock_guard<std::mutex> lock(instances_mutex_);
+      if (instances_.empty()) {
+        break;
+      }
+    }
+    if (g_get_monotonic_time() >= deadline) {
+      LOG_WARN(
+          "ShutdownEngine: WebView instance(s) still alive past the "
+          "deadline; calling ewk_shutdown() anyway.");
+      break;
+    }
+    g_usleep(1000);
+  }
+  ewk_shutdown();
+}
+
 std::string WebView::GetDefaultUserAgent() {
   std::lock_guard<std::mutex> lock(instances_mutex_);
   for (auto* instance : instances_) {
@@ -369,8 +399,6 @@ void WebView::Dispose() {
   }
 
   ecore_evas_ = nullptr;
-
-  // ewk_shutdown();
 }
 
 void WebView::Offset(double left, double top) {
@@ -530,15 +558,9 @@ bool WebView::InitWebView() {
                                                            chromium_argv);
   });
 
-  // TODO(jsuya): ewk_init() and ewk_shutdown() are designed to be called only
-  // once in a process.(If ewk_init() is called after ewk_shutdown() is
-  // called, SIGTRAP is called internally.) ewk_init() initializes the efl
-  // modules and web engine's arguments data. The efl modules are initialized
-  // by default in OS, and arguments data is also initialized through
-  // SetArguments() API, so calling ewk_init() is not necessary. Therefore,
-  // temporarily comment out ewk_init() and ewk_shutdown(). It can be reverted
-  // depending on updates to chromium-efl.
-  // ewk_init();
+  // ewk_init()/ewk_shutdown() are called once per process by
+  // WebView::InitializeEngine()/ShutdownEngine(), driven by the plugin's
+  // constructor/destructor.
   static Ecore_Evas* shared_ecore_evas = nullptr;
   if (!shared_ecore_evas) {
     shared_ecore_evas = ecore_evas_new("wayland_egl", 0, 0, 1, 1, 0);
