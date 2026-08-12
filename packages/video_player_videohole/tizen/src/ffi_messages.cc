@@ -384,8 +384,7 @@ int ffi_restore(int64_t player_id, const char* create_message_json,
     msg = video_player_videohole_tizen::ParseCreateMessage(
         std::string(create_message_json));
   }
-  bool success = player->Restore(&msg, resume_time);
-  return success ? 0 : -1;
+  return player->Restore(&msg, resume_time) ? 0 : -1;
 }
 
 int ffi_set_activate(int64_t player_id) {
