@@ -267,8 +267,8 @@ bool MediaPlayer::Pause() {
     return false;
   }
   if (state != PLAYER_STATE_PLAYING) {
-    LOG_INFO("[MediaPlayer] Player not playing.");
-    return false;
+    LOG_INFO("[MediaPlayer] Player already not playing (state=%d).", state);
+    return true;
   }
   ret = player_pause(player_);
   if (ret != PLAYER_ERROR_NONE) {
@@ -705,12 +705,15 @@ bool MediaPlayer::StopAndDestroy() {
     drm_manager_->StopDrmSession();
   }
 
-  if (player_state != PLAYER_STATE_NONE && player_state != PLAYER_STATE_IDLE) {
+  if (player_state == PLAYER_STATE_PLAYING ||
+      player_state == PLAYER_STATE_PAUSED) {
     if (player_stop(player_) != PLAYER_ERROR_NONE) {
       LOG_ERROR("[MediaPlayer] Player fail to stop.");
       return false;
     }
+  }
 
+  if (player_state != PLAYER_STATE_NONE && player_state != PLAYER_STATE_IDLE) {
     if (player_unprepare(player_) != PLAYER_ERROR_NONE) {
       LOG_ERROR("[MediaPlayer] Player fail to unprepare.");
       return false;
