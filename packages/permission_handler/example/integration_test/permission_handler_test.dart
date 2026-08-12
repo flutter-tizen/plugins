@@ -10,46 +10,45 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('Permission.status', () {
-    testWidgets('camera permission is granted', (tester) async {
+    test('camera permission is granted', () async {
       expect(await Permission.camera.status, PermissionStatus.granted);
     });
 
-    testWidgets('microphone permission is granted', (tester) async {
+    test('microphone permission is granted', () async {
       expect(await Permission.microphone.status, PermissionStatus.granted);
     });
 
-    testWidgets('location permission is granted', (tester) async {
+    test('location permission is granted', () async {
       expect(await Permission.location.status, PermissionStatus.granted);
     });
 
-    testWidgets('mediaLibrary permission is granted', (tester) async {
+    test('mediaLibrary permission is granted', () async {
       expect(await Permission.mediaLibrary.status, PermissionStatus.granted);
     });
 
-    testWidgets('storage permission is granted', (tester) async {
+    test('storage permission is granted', () async {
       expect(await Permission.storage.status, PermissionStatus.granted);
     });
 
-    testWidgets('contacts permission is granted', (tester) async {
+    test('contacts permission is granted', () async {
       expect(await Permission.contacts.status, PermissionStatus.granted);
     });
   });
 
   group('Permission.serviceStatus', () {
-    testWidgets('location service status is valid', (tester) async {
+    test('location service status is valid', () async {
       final status = await Permission.location.serviceStatus;
       expect(status.isEnabled || status.isDisabled, true);
     });
   });
 
   group('Permission.request', () {
-    testWidgets('requesting camera permission returns granted', (tester) async {
+    test('requesting camera permission returns granted', () async {
       final status = await Permission.camera.request();
       expect(status, PermissionStatus.granted);
     });
 
-    testWidgets('requesting multiple permissions returns granted',
-        (tester) async {
+    test('requesting multiple permissions returns granted', () async {
       final statuses = await [
         Permission.camera,
         Permission.microphone,
@@ -61,7 +60,7 @@ void main() {
     });
   });
 
-  testWidgets('open app settings', (tester) async {
+  test('open app settings', () async {
     expect(await openAppSettings(), true);
   }, skip: true);
 }

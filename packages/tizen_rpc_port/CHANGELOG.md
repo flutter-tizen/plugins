@@ -1,3 +1,7 @@
+## NEXT
+
+* Update integration tests.
+
 ## 0.1.7
 
 * Guard Tizen 10.0+ specific Parcel APIs (`reader`, `dataSize`, and `reserve`) to throw `UnsupportedError` on unsupported versions of Tizen instead of crashing.

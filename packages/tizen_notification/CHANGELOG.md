@@ -1,3 +1,7 @@
+## NEXT
+
+* Update integration tests.
+
 ## 0.2.1
 
 * Add regression integration tests.

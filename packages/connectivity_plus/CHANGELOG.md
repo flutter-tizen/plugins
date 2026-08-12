@@ -1,3 +1,7 @@
+## NEXT
+
+* Update integration tests.
+
 ## 1.3.0
 
 * Update minimum Dart version to 3.2.

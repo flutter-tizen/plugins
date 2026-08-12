@@ -1,3 +1,7 @@
+## NEXT
+
+* Update integration tests.
+
 ## 0.1.3
 
 * Update code format.

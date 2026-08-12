@@ -12,7 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('canLaunch', (WidgetTester _) async {
+  test('canLaunch', () async {
     expect(
       await canLaunchUrl(Uri(scheme: 'randomscheme', path: 'a_path')),
       false,

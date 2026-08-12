@@ -17,51 +17,43 @@ void main() {
     await flutterTts.stop();
   });
 
-  testWidgets('speak returns 1', (WidgetTester tester) async {
+  test('speak returns 1', () async {
     expect(await flutterTts.speak('Hello, world!'), 1);
   });
 
-  testWidgets('stop returns 1', (WidgetTester tester) async {
+  test('stop returns 1', () async {
     expect(await flutterTts.stop(), 1);
   });
 
-  testWidgets('getLanguages returns a non-empty list', (
-    WidgetTester tester,
-  ) async {
+  test('getLanguages returns a non-empty list', () async {
     final languages = await flutterTts.getLanguages;
     expect(languages, isNotNull);
     expect(languages, isNotEmpty);
   });
 
-  testWidgets('isLanguageAvailable is true for a supported language', (
-    WidgetTester tester,
-  ) async {
+  test('isLanguageAvailable is true for a supported language', () async {
     final languages = (await flutterTts.getLanguages as List).cast<String>();
     expect(languages, isNotEmpty);
     expect(await flutterTts.isLanguageAvailable(languages.first), isTrue);
   });
 
-  testWidgets('setLanguage returns 1 for a supported language', (
-    WidgetTester tester,
-  ) async {
+  test('setLanguage returns 1 for a supported language', () async {
     final languages = (await flutterTts.getLanguages as List).cast<String>();
     expect(languages, isNotEmpty);
     expect(await flutterTts.setLanguage(languages.first), 1);
   });
 
-  testWidgets('getVoices returns a non-empty list', (
-    WidgetTester tester,
-  ) async {
+  test('getVoices returns a non-empty list', () async {
     final voices = await flutterTts.getVoices;
     expect(voices, isNotNull);
     expect(voices, isNotEmpty);
   });
 
-  testWidgets('getDefaultVoice returns a voice', (WidgetTester tester) async {
+  test('getDefaultVoice returns a voice', () async {
     expect(await flutterTts.getDefaultVoice, isNotNull);
   });
 
-  testWidgets('setVoice returns 1', (WidgetTester tester) async {
+  test('setVoice returns 1', () async {
     final voices = (await flutterTts.getVoices as List).cast<Map>();
     expect(voices, isNotEmpty);
     final voice = voices.first;
@@ -74,17 +66,15 @@ void main() {
     );
   });
 
-  testWidgets('setSpeechRate returns 1', (WidgetTester tester) async {
+  test('setSpeechRate returns 1', () async {
     expect(await flutterTts.setSpeechRate(0.5), 1);
   });
 
-  testWidgets('setVolume returns 1', (WidgetTester tester) async {
+  test('setVolume returns 1', () async {
     expect(await flutterTts.setVolume(1), 1);
   });
 
-  testWidgets('getMaxSpeechInputLength is positive', (
-    WidgetTester tester,
-  ) async {
+  test('getMaxSpeechInputLength is positive', () async {
     // tts_get_max_text_size requires the ready state; stop() ensures it.
     await flutterTts.stop();
     final maxLength = await flutterTts.getMaxSpeechInputLength;
