@@ -70,6 +70,12 @@ class WebView : public PlatformView {
   static bool ClearAllCookies();
   static std::string GetDefaultUserAgent();
 
+  // Must be called exactly once, before any WebView is constructed.
+  static void InitializeEngine();
+  // Must be called exactly once, after every WebView has been destroyed.
+  // ewk_shutdown() fatally CHECKs if any Ewk_View is still alive.
+  static void ShutdownEngine();
+
  private:
   void HandleWebViewMethodCall(const FlMethodCall& method_call,
                                std::unique_ptr<FlMethodResult> result);
