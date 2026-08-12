@@ -1,3 +1,7 @@
+## 0.1.3
+
+- Fix a SIGTRAP crash on TV app teardown by calling `ewk_init()`/`ewk_shutdown()` exactly once per process.
+
 ## 0.1.2
 
 * Update analysis_options.yaml for Flutter 3.47.0.
