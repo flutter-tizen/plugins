@@ -12,6 +12,47 @@
 
 namespace video_player_videohole_tizen {
 
+// Plugin class that manages lifecycle and ensures proper cleanup
+// This fixes the issue where global resources (g_players, event port, etc.)
+// could outlive the Flutter engine if the host process isn't terminated.
+class VideoPlayerTizenPlugin : public flutter::Plugin {
+ public:
+  static void RegisterWithRegistrar(
+      FlutterDesktopPluginRegistrarRef registrar_ref,
+      flutter::PluginRegistrar* plugin_registrar) {
+    auto plugin = std::make_unique<VideoPlayerTizenPlugin>(registrar_ref);
+    plugin_registrar->AddPlugin(std::move(plugin));
+  }
+
+  explicit VideoPlayerTizenPlugin(
+      FlutterDesktopPluginRegistrarRef registrar_ref)
+      : registrar_ref_(registrar_ref) {
+    // Inject registrar reference into FFI layer
+    auto* plugin_registrar =
+        flutter::PluginRegistrarManager::GetInstance()
+            ->GetRegistrar<flutter::PluginRegistrar>(registrar_ref);
+    ffi_set_plugin_registrar(registrar_ref, plugin_registrar);
+
+    LOG_INFO("[VideoPlayerTizenPlugin] Registered with registrar");
+  }
+
+  ~VideoPlayerTizenPlugin() override {
+    LOG_INFO(
+        "[VideoPlayerTizenPlugin] Destroying plugin, cleaning up resources");
+    // Clean up all players when the plugin is destroyed
+    // This ensures g_players and associated resources are properly released
+    // when the Flutter engine is destroyed
+    ffi_dispose_all_players();
+  }
+
+  // Prevent copying
+  VideoPlayerTizenPlugin(const VideoPlayerTizenPlugin&) = delete;
+  VideoPlayerTizenPlugin& operator=(const VideoPlayerTizenPlugin&) = delete;
+
+ private:
+  FlutterDesktopPluginRegistrarRef registrar_ref_;
+};
+
 extern "C" {
 
 void VideoPlayerTizenPluginRegisterWithRegistrar(
@@ -20,10 +61,8 @@ void VideoPlayerTizenPluginRegisterWithRegistrar(
       flutter::PluginRegistrarManager::GetInstance()
           ->GetRegistrar<flutter::PluginRegistrar>(registrar_ref);
 
-  // Inject registrar reference into FFI layer
-  ffi_set_plugin_registrar(registrar_ref, plugin_registrar);
-
-  LOG_INFO("[VideoPlayerTizenPlugin] Registered with registrar");
+  VideoPlayerTizenPlugin::RegisterWithRegistrar(registrar_ref,
+                                                plugin_registrar);
 }
 
 }  // extern "C"

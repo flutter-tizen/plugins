@@ -7,6 +7,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:isolate' show RawReceivePort;
 
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../video_player_platform_interface.dart';
@@ -98,13 +99,17 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   /// Ensure the event port is registered before any events are sent
   void _ensureEventPortRegistered() {
+    // Always rebind the event port for this instance to ensure events
+    // are routed to the correct _eventControllers map.
+    // This fixes the issue where VideoPlayerPlatform.instance replacement
+    // would cause events to be routed to the old instance's controllers.
     if (_eventPort == null) {
       // Initialize Dart API DL before using Dart_PostCObject_DL
       ffiInitializeApiDL();
 
       _eventPort = RawReceivePort();
 
-      // Listen to FFI events and route them to the appropriate StreamController
+      // Listen to FFI events and route them to this instance's StreamControllers
       _eventPort!.handler = (dynamic message) {
         try {
           // Message format from C++: [player_id, event_json_string]
@@ -116,10 +121,18 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
             final Map<String, dynamic> eventMap =
                 jsonDecode(eventJson) as Map<String, dynamic>;
 
-            // Route to the correct StreamController
+            // Route to the correct StreamController for this instance
             final StreamController<VideoEvent>? controller =
                 _eventControllers[receivingPlayerId];
             if (controller != null && !controller.isClosed) {
+              // Handle error events by adding them as stream errors
+              if (eventMap['event'] == 'error') {
+                controller.addError(PlatformException(
+                  code: eventMap['code'] as String? ?? 'unknown',
+                  message: eventMap['message'] as String?,
+                ));
+                return;
+              }
               final VideoEvent videoEvent = _parseVideoEventFromMap(eventMap);
               controller.add(videoEvent);
             }
@@ -308,8 +321,11 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     return Duration(milliseconds: positionMs);
   }
 
-  // Static RawReceivePort for FFI event notifications
-  static RawReceivePort? _eventPort;
+  // Instance RawReceivePort for FFI event notifications (not static!)
+  // Using instance port ensures that when VideoPlayerPlatform.instance
+  // is replaced, the new instance has its own port that routes events
+  // to its own _eventControllers map.
+  RawReceivePort? _eventPort;
 
   // Map of playerId to StreamController for broadcasting events
   final Map<int, StreamController<VideoEvent>> _eventControllers =

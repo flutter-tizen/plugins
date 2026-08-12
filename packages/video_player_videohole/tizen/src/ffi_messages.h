@@ -55,6 +55,9 @@ int ffi_set_activate(int64_t player_id);
 int ffi_set_deactivate(int64_t player_id);
 int ffi_set_mix_with_others(bool mix_with_others);
 
+// Dispose all players (called when plugin is destroyed)
+void ffi_dispose_all_players();
+
 // FFI event port functions
 int ffi_initialize_api_dl(void* data);
 void ffi_register_event_port(int64_t port);

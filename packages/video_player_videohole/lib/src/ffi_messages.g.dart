@@ -657,15 +657,22 @@ void ffiInitializeApiDL() {
             'ffi_initialize_api_dl');
 
     if (_ffiInitializeApiDlPtr != null) {
-      _ffiInitializeApiDlPtr!
+      final int result = _ffiInitializeApiDlPtr!
               .cast<ffi.NativeFunction<_FFIInitializeApiDlNative>>()
               .asFunction<int Function(ffi.Pointer<ffi.Void>)>()(
           ffi.NativeApi.initializeApiDLData);
-      _apiDlInitialized = true;
-      debugPrint('Dart API DL initialized successfully');
+      // Only set _apiDlInitialized if native initialization succeeded
+      if (result == 0) {
+        _apiDlInitialized = true;
+        debugPrint('Dart API DL initialized successfully');
+      } else {
+        debugPrint('Dart API DL initialization failed with code: $result');
+        throw Exception('Dart API DL initialization failed');
+      }
     }
   } catch (e) {
     debugPrint('Failed to initialize Dart API DL: $e');
+    rethrow;
   }
 }
 

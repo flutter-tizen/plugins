@@ -157,6 +157,21 @@ int ffi_initialize() {
   return 0;
 }
 
+// Dispose all players - called when plugin is destroyed
+void ffi_dispose_all_players() {
+  std::unique_lock<std::shared_mutex> lock(
+      video_player_videohole_tizen::g_players_mutex);
+  for (auto& [id, player] : video_player_videohole_tizen::g_players) {
+    player->Dispose();
+  }
+  video_player_videohole_tizen::g_players.clear();
+
+  // Also unregister the Dart port
+  video_player_videohole_tizen::UnregisterDartPort();
+
+  LOG_INFO("[FFI] All players disposed, Dart port unregistered");
+}
+
 int64_t ffi_create(const char* create_message_json) {
   using namespace video_player_videohole_tizen;
   if (g_registrar_ref == nullptr || g_plugin_registrar == nullptr) {
@@ -236,8 +251,9 @@ int ffi_seek_to(int64_t player_id, int64_t position_ms) {
   if (!player) {
     return -1;
   }
-  player->SeekTo(position_ms, []() -> void {});
-  return 0;
+  // Propagate the seek result - return 0 on success, -1 on failure
+  // This ensures Dart side can detect seek failures
+  return player->SeekTo(position_ms, []() -> void {}) ? 0 : -1;
 }
 
 int64_t ffi_get_position(int64_t player_id) {
