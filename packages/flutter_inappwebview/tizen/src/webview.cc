@@ -342,7 +342,21 @@ void WebView::StopNavigation() {
   if (disposed_ || !webview_instance_) {
     return;
   }
+  is_navigation_cancelled_ = true;
+  if (!pending_navigation_revert_url_.empty()) {
+    committed_url_ = pending_navigation_revert_url_;
+  }
+  ewk_view_resume(webview_instance_);
   ewk_view_stop(webview_instance_);
+}
+
+bool WebView::NavigateProgrammatically(const std::function<bool()>& ewk_call) {
+  is_programmatic_navigation_ = true;
+  const bool started = ewk_call();
+  if (!started) {
+    is_programmatic_navigation_ = false;
+  }
+  return started;
 }
 
 void WebView::Dispose() {
@@ -524,7 +538,10 @@ bool WebView::SendKey(const char* key, const char* string, const char* compose,
 
   if (strcmp(key, "XF86Back") == 0 && !is_down) {
     if (ewk_view_back_possible(webview_instance_)) {
-      ewk_view_back(webview_instance_);
+      NavigateProgrammatically([this] {
+        ewk_view_back(webview_instance_);
+        return true;
+      });
       return true;
     }
     return false;
@@ -716,7 +733,10 @@ void WebView::ApplyInitialParams(const flutter::EncodableValue& params) {
       std::string url =
           std::string("file://") + res_path + "flutter_assets/" + initial_file;
       free(res_path);
-      ewk_view_url_set(webview_instance_, url.c_str());
+      NavigateProgrammatically([this, &url] {
+        ewk_view_url_set(webview_instance_, url.c_str());
+        return true;
+      });
       return;
     }
   }
@@ -728,8 +748,11 @@ void WebView::ApplyInitialParams(const flutter::EncodableValue& params) {
     std::string base_url = "about:blank";
     if (GetValueFromEncodableMap(initial_data, "data", &data)) {
       GetValueFromEncodableMap(initial_data, "baseUrl", &base_url);
-      ewk_view_html_string_load(webview_instance_, data.c_str(),
-                                base_url.c_str(), nullptr);
+      NavigateProgrammatically([this, &data, &base_url] {
+        ewk_view_html_string_load(webview_instance_, data.c_str(),
+                                  base_url.c_str(), nullptr);
+        return true;
+      });
       return;
     }
   }
@@ -739,7 +762,10 @@ void WebView::ApplyInitialParams(const flutter::EncodableValue& params) {
                                &url_request)) {
     std::string url;
     if (GetValueFromEncodableMap(url_request, "url", &url) && !url.empty()) {
-      ewk_view_url_set(webview_instance_, url.c_str());
+      NavigateProgrammatically([this, &url] {
+        ewk_view_url_set(webview_instance_, url.c_str());
+        return true;
+      });
     }
   }
 }
@@ -799,16 +825,22 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
       }
       const auto ewk_method =
           method == "POST" ? EWK_HTTP_METHOD_POST : EWK_HTTP_METHOD_GET;
-      bool ret = ewk_view_url_request_set(
-          webview_instance_, url.c_str(), ewk_method, ewk_headers,
-          body.empty() ? nullptr : reinterpret_cast<const char*>(body.data()));
+      const bool ret = NavigateProgrammatically([&] {
+        return ewk_view_url_request_set(
+            webview_instance_, url.c_str(), ewk_method, ewk_headers,
+            body.empty() ? nullptr
+                        : reinterpret_cast<const char*>(body.data()));
+      });
       eina_hash_free(ewk_headers);
       if (!ret) {
         result->Error("Operation failed", "Failed to load URL request.");
         return;
       }
     } else {
-      ewk_view_url_set(webview_instance_, url.c_str());
+      NavigateProgrammatically([this, &url] {
+        ewk_view_url_set(webview_instance_, url.c_str());
+        return true;
+      });
     }
     result->Success();
   } else if (method_name == "postUrl") {
@@ -822,9 +854,12 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
     if (!body.empty()) {
       body.push_back('\0');
     }
-    const bool ret = ewk_view_url_request_set(
-        webview_instance_, url.c_str(), EWK_HTTP_METHOD_POST, nullptr,
-        body.empty() ? nullptr : reinterpret_cast<const char*>(body.data()));
+    const bool ret = NavigateProgrammatically([&] {
+      return ewk_view_url_request_set(
+          webview_instance_, url.c_str(), EWK_HTTP_METHOD_POST, nullptr,
+          body.empty() ? nullptr
+                      : reinterpret_cast<const char*>(body.data()));
+    });
     if (ret) {
       result->Success();
     } else {
@@ -837,8 +872,11 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
       return;
     }
     GetValueFromEncodableMap(arguments, "baseUrl", &base_url);
-    ewk_view_html_string_load(webview_instance_, data.c_str(), base_url.c_str(),
-                              nullptr);
+    NavigateProgrammatically([this, &data, &base_url] {
+      ewk_view_html_string_load(webview_instance_, data.c_str(),
+                                base_url.c_str(), nullptr);
+      return true;
+    });
     result->Success();
   } else if (method_name == "loadFile") {
     std::string file_path;
@@ -858,7 +896,10 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
       url = std::string("file://") + res_path + "flutter_assets/" + file_path;
       free(res_path);
     }
-    ewk_view_url_set(webview_instance_, url.c_str());
+    NavigateProgrammatically([this, &url] {
+      ewk_view_url_set(webview_instance_, url.c_str());
+      return true;
+    });
     result->Success();
   } else if (method_name == "canGoBack") {
     result->Success(flutter::EncodableValue(
@@ -867,18 +908,31 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
     result->Success(flutter::EncodableValue(
         static_cast<bool>(ewk_view_forward_possible(webview_instance_))));
   } else if (method_name == "goBack") {
-    ewk_view_back(webview_instance_);
+    NavigateProgrammatically([this] {
+      ewk_view_back(webview_instance_);
+      return true;
+    });
     result->Success();
   } else if (method_name == "goForward") {
-    ewk_view_forward(webview_instance_);
+    NavigateProgrammatically([this] {
+      ewk_view_forward(webview_instance_);
+      return true;
+    });
     result->Success();
   } else if (method_name == "reload") {
-    ewk_view_reload(webview_instance_);
+    NavigateProgrammatically([this] {
+      ewk_view_reload(webview_instance_);
+      return true;
+    });
     result->Success();
   } else if (method_name == "getUrl") {
-    const char* url = ewk_view_url_get(webview_instance_);
-    result->Success(url ? flutter::EncodableValue(url)
-                        : flutter::EncodableValue());
+    if (is_navigation_cancelled_ && !committed_url_.empty()) {
+      result->Success(flutter::EncodableValue(committed_url_));
+    } else {
+      const char* url = ewk_view_url_get(webview_instance_);
+      result->Success(url ? flutter::EncodableValue(url)
+                          : flutter::EncodableValue());
+    }
   } else if (method_name == "getTitle") {
     const char* title = ewk_view_title_get(webview_instance_);
     result->Success(title ? flutter::EncodableValue(std::string(title))
@@ -1034,6 +1088,7 @@ void WebView::OnFrameRendered(void* data, Evas_Object* obj, void* event_info) {
 
 void WebView::OnLoadStarted(void* data, Evas_Object* obj, void* event_info) {
   WebView* webview = static_cast<WebView*>(data);
+  webview->is_programmatic_navigation_ = false;
   flutter::EncodableMap args = {
       {flutter::EncodableValue("url"),
        flutter::EncodableValue(GetViewUrl(webview->webview_instance_))}};
@@ -1043,6 +1098,7 @@ void WebView::OnLoadStarted(void* data, Evas_Object* obj, void* event_info) {
 
 void WebView::OnLoadFinished(void* data, Evas_Object* obj, void* event_info) {
   WebView* webview = static_cast<WebView*>(data);
+  webview->is_programmatic_navigation_ = false;
   flutter::EncodableMap args = {
       {flutter::EncodableValue("url"),
        flutter::EncodableValue(GetViewUrl(webview->webview_instance_))}};
@@ -1071,6 +1127,7 @@ void WebView::OnProgress(void* data, Evas_Object* obj, void* event_info) {
 
 void WebView::OnLoadError(void* data, Evas_Object* obj, void* event_info) {
   WebView* webview = static_cast<WebView*>(data);
+  webview->is_programmatic_navigation_ = false;
   Ewk_Error* error = static_cast<Ewk_Error*>(event_info);
   std::string url =
       ewk_error_url_get(error) ? std::string(ewk_error_url_get(error)) : "";
@@ -1111,6 +1168,26 @@ void WebView::OnNavigationPolicy(void* data, Evas_Object* obj,
   WebView* webview = static_cast<WebView*>(data);
   Ewk_Policy_Decision* policy_decision =
       static_cast<Ewk_Policy_Decision*>(event_info);
+
+  // A new navigation decision means any previous cancellation is stale:
+  // getUrl() should stop overriding with the old committed_url_ snapshot.
+  webview->is_navigation_cancelled_ = false;
+
+  if (webview->is_programmatic_navigation_) {
+    webview->is_programmatic_navigation_ = false;
+    ewk_policy_decision_use(policy_decision);
+    return;
+  }
+
+  // Snapshot the URL EWK is displaying before accepting the navigation
+  // below. EWK can fire "url,changed" for the new (possibly-to-be-cancelled)
+  // URL as soon as ewk_policy_decision_use() runs, racing with the async
+  // shouldOverrideUrlLoading round-trip. StopNavigation() reverts getUrl()
+  // using this snapshot rather than whatever "url,changed" reported last, so
+  // that race can't leave getUrl() stuck on a cancelled URL.
+  const std::string url_before_navigation =
+      GetViewUrl(webview->webview_instance_);
+
   // Always accept the navigation on its original frame so iframe loads stay
   // in their iframe. The view is then suspended while we wait for the Dart
   // shouldOverrideUrlLoading response and either resumed (allow) or stopped
@@ -1119,6 +1196,8 @@ void WebView::OnNavigationPolicy(void* data, Evas_Object* obj,
   if (!webview->has_navigation_delegate_) {
     return;
   }
+
+  webview->pending_navigation_revert_url_ = url_before_navigation;
 
   const char* url_cstr = ewk_policy_decision_url_get(policy_decision);
   const std::string url = url_cstr ? std::string(url_cstr) : std::string();
@@ -1134,9 +1213,16 @@ void WebView::OnNavigationPolicy(void* data, Evas_Object* obj,
 
 void WebView::OnUrlChange(void* data, Evas_Object* obj, void* event_info) {
   WebView* webview = static_cast<WebView*>(data);
+  if (webview->is_navigation_cancelled_) {
+    // Stale "url,changed" for the navigation we just cancelled (EWK can fire
+    // it before or after ewk_view_stop() takes effect); getUrl() is already
+    // pinned to committed_url_ and must not be overwritten with this URL.
+    return;
+  }
+  webview->committed_url_ = GetViewUrl(webview->webview_instance_);
   flutter::EncodableMap args = {
       {flutter::EncodableValue("url"),
-       flutter::EncodableValue(GetViewUrl(webview->webview_instance_))},
+       flutter::EncodableValue(webview->committed_url_)},
       {flutter::EncodableValue("isReload"), flutter::EncodableValue(false)}};
   webview->webview_channel_->InvokeMethod(
       "onUpdateVisitedHistory",
