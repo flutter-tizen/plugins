@@ -284,7 +284,7 @@ void VideoPlayer::ExecuteSinkEvents() {
       event_type = "completed";
     }
 
-    LOG_INFO(
+    LOG_DEBUG(
         "[VideoPlayer] Sending event #%d: type=%s, player_id=%lld, "
         "json_len=%zu",
         event_count, event_type.c_str(), static_cast<long long>(player_id_),
@@ -293,8 +293,6 @@ void VideoPlayer::ExecuteSinkEvents() {
     PostEventToDart(player_id_, event_json);
     event_count++;
   }
-
-  LOG_INFO("[VideoPlayer] ExecuteSinkEvents: sent %d events", event_count);
 
   // Step 3: Collect error events while holding the lock
   std::vector<std::pair<std::string, std::string>> error_events;

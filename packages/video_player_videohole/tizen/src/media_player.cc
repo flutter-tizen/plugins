@@ -408,6 +408,10 @@ bool MediaPlayer::SetDisplay() {
   }
 
   int x = 0, y = 0, width = 0, height = 0;
+  // TODO(JYY): ecore_wl2 APIs are not thread-safe. After the FFI migration,
+  // this display setup path may run on the flutter UI thread instead of the
+  // previous platform main thread. Revisit this when migrating the display
+  // handling from ecore to Glib.
   ecore_wl2_window_proxy_->ecore_wl2_window_geometry_get(native_window, &x, &y,
                                                          &width, &height);
   int ret = media_player_proxy_->player_set_ecore_wl_display(
