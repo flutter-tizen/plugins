@@ -4,6 +4,8 @@
 
 #include "media_player.h"
 
+#include <algorithm>
+#include <cctype>
 #include <dlfcn.h>
 
 #include <sstream>
@@ -231,13 +233,13 @@ bool MediaPlayer::Pause() {
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[MediaPlayer] Unable to get player state.");
   }
-  if (state == PLAYER_STATE_NONE || state == PLAYER_STATE_IDLE) {
-    LOG_ERROR("[MediaPlayer] Player not ready.");
-    return false;
-  }
-  if (state != PLAYER_STATE_PLAYING) {
-    LOG_INFO("[MediaPlayer] Player not playing.");
-    return false;
+  // Treat pause as success when not PLAYING (e.g. live init) so Dart
+  // does not see a PlatformException.
+  if (state == PLAYER_STATE_NONE || state == PLAYER_STATE_IDLE ||
+      state != PLAYER_STATE_PLAYING) {
+    LOG_INFO("[MediaPlayer] Player not playing; treat pause as no-op success.");
+    SendIsPlayingState(false);
+    return true;
   }
   ret = player_pause(player_);
   if (ret != PLAYER_ERROR_NONE) {
@@ -287,6 +289,16 @@ bool MediaPlayer::SetPlaybackSpeed(double speed) {
 bool MediaPlayer::SeekTo(int64_t position, SeekCompletedCallback callback) {
   LOG_INFO("[MediaPlayer] position: %lld.", position);
 
+  // Live streams (including progressive HTTP .ts) are typically not
+  // seekable; complete the callback without player_set_play_position.
+  if (IsProgressiveLiveUri() || IsAdaptiveLive()) {
+    LOG_INFO("[MediaPlayer] Skip seek on live stream.");
+    if (callback) {
+      callback();
+    }
+    return true;
+  }
+
   on_seek_completed_ = std::move(callback);
   int ret =
       player_set_play_position(player_, position, true, OnSeekCompleted, this);
@@ -311,18 +323,32 @@ int64_t MediaPlayer::GetPosition() {
 }
 
 std::pair<int64_t, int64_t> MediaPlayer::GetDuration() {
-  if (IsLive()) {
-    return GetLiveDuration();
-  } else {
-    int duration = 0;
-    int ret = player_get_duration(player_, &duration);
-    if (ret != PLAYER_ERROR_NONE) {
-      LOG_ERROR("[MediaPlayer] player_get_duration failed: %s.",
-                get_error_message(ret));
-    }
-    LOG_INFO("[MediaPlayer] Video duration: %d.", duration);
-    return std::make_pair(0, duration);
+  // Progressive (non-adaptive) live URIs must not call GetLiveDuration;
+  // the adaptive streaming API can SIGSEGV on plain MPEG-TS.
+  if (IsProgressiveLiveUri()) {
+    LOG_INFO("[MediaPlayer] Progressive live URI; use placeholder duration 1ms.");
+    return std::make_pair(0, 1);
   }
+  if (IsAdaptiveLive()) {
+    std::pair<int64_t, int64_t> live = GetLiveDuration();
+    if (live.second <= 0) {
+      LOG_INFO("[MediaPlayer] Live duration unavailable; use placeholder 1ms.");
+      return std::make_pair(0, 1);
+    }
+    return live;
+  }
+
+  int duration = 0;
+  int ret = player_get_duration(player_, &duration);
+  if (ret != PLAYER_ERROR_NONE) {
+    LOG_ERROR("[MediaPlayer] player_get_duration failed: %s.",
+              get_error_message(ret));
+  }
+  LOG_INFO("[MediaPlayer] Video duration: %d.", duration);
+  if (duration == 0) {
+    duration = 1;
+  }
+  return std::make_pair(0, duration);
 }
 
 void MediaPlayer::GetVideoSize(int32_t *width, int32_t *height) {
@@ -391,7 +417,17 @@ bool MediaPlayer::SetDisplay() {
   return true;
 }
 
-bool MediaPlayer::IsLive() {
+bool MediaPlayer::IsProgressiveLiveUri() const {
+  std::string lower = url_;
+  std::transform(lower.begin(), lower.end(), lower.begin(),
+                 [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+  if (lower.size() >= 3 && lower.compare(lower.size() - 3, 3, ".ts") == 0) {
+    return true;
+  }
+  return lower.find("/live/") != std::string::npos;
+}
+
+bool MediaPlayer::IsAdaptiveLive() {
   int is_live = 0;
   int ret = media_player_proxy_->player_get_adaptive_streaming_info(
       player_, &is_live, PLAYER_ADAPTIVE_INFO_IS_LIVE);
@@ -401,6 +437,10 @@ bool MediaPlayer::IsLive() {
     return false;
   }
   return is_live != 0;
+}
+
+bool MediaPlayer::IsLive() {
+  return IsProgressiveLiveUri() || IsAdaptiveLive();
 }
 
 static std::vector<std::string> split(const std::string &s, char delim) {

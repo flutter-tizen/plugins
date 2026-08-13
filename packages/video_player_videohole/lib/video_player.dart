@@ -469,19 +469,23 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           if (VideoEventType.restored == event.eventType &&
               _onRestoreDataSource != null) {
             play();
-          } else {
+          } else if (value.isPlaying) {
+            // Avoid pause before play; live/init can report Pause failed.
             _applyPlayPause();
           }
           _durationTimer?.cancel();
           _durationTimer = _createDurationTimer();
         case VideoEventType.completed:
-          // In this case we need to stop _timer, set isPlaying=false, and
-          // position=value.duration. Instead of setting the values directly,
-          // we use pause() and seekTo() to ensure the platform stops playing
-          // and seeks to the last frame of the video.
-          pause().then((void pauseResult) => seekTo(value.duration.end));
-          value = value.copyWith(isCompleted: true);
-          _durationTimer?.cancel();
+          // Live / placeholder duration: skip pause+seek (plain .ts fails).
+          if (_looksLikeLiveOrOpenEnded) {
+            value = value.copyWith(isPlaying: false, isCompleted: true);
+            _timer?.cancel();
+            _durationTimer?.cancel();
+          } else {
+            pause().then((void pauseResult) => seekTo(value.duration.end));
+            value = value.copyWith(isCompleted: true);
+            _durationTimer?.cancel();
+          }
         case VideoEventType.bufferingUpdate:
           value = value.copyWith(buffered: event.buffered);
         case VideoEventType.bufferingStart:
@@ -573,11 +577,26 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// has been sent to the platform, not when playback itself is totally
   /// finished.
   Future<void> play() async {
-    if (value.position == value.duration.end) {
+    // Do not seekTo(0) when duration is ~0 or at end; live MPEG-TS is
+    // often not seekable.
+    final Duration end = value.duration.end;
+    if (!_looksLikeLiveOrOpenEnded &&
+        end > Duration.zero &&
+        value.position >= end) {
       await seekTo(Duration.zero);
     }
     value = value.copyWith(isPlaying: true);
     await _applyPlayPause();
+  }
+
+  /// Heuristic for live / open-ended streams: tiny duration, or `.ts` / `/live/`.
+  bool get _looksLikeLiveOrOpenEnded {
+    final Duration end = value.duration.end;
+    if (end <= const Duration(milliseconds: 1)) {
+      return true;
+    }
+    final String uri = dataSource.toLowerCase();
+    return uri.endsWith('.ts') || uri.contains('/live/');
   }
 
   /// Sets the video activated. Use it if create two native players.
@@ -719,6 +738,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// and silently clamped.
   Future<void> seekTo(Duration position) async {
     if (_isDisposedOrNotInitialized) {
+      return;
+    }
+    if (_looksLikeLiveOrOpenEnded) {
       return;
     }
     if (position > value.duration.end) {

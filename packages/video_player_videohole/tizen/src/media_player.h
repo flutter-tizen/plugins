@@ -50,6 +50,8 @@ class MediaPlayer : public VideoPlayer {
  private:
   std::pair<int64_t, int64_t> GetLiveDuration();
   bool IsLive();
+  bool IsAdaptiveLive();
+  bool IsProgressiveLiveUri() const;
   bool SetDisplay();
   bool SetDrm(const std::string &uri, int drm_type,
               const std::string &license_server_url);

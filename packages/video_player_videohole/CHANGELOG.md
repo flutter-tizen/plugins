@@ -1,3 +1,7 @@
+## 0.5.10
+
+* Fix crash/seek failures on progressive HTTP MPEG-TS live streams.
+
 ## 0.5.9
 
 * Adds compatibility with `http` 1.0 in example.
