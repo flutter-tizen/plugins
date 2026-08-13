@@ -10,8 +10,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'page.dart';
 
 class GroundOverlayPage extends GoogleMapExampleAppPage {
-  const GroundOverlayPage({Key? key})
-      : super(const Icon(Icons.map), 'Ground overlay', key: key);
+  const GroundOverlayPage({super.key})
+      : super(const Icon(Icons.map), 'Ground overlay');
 
   @override
   Widget build(BuildContext context) {

@@ -17,11 +17,10 @@ const CameraPosition _kInitialPosition = CameraPosition(
 );
 
 class SnapshotPage extends GoogleMapExampleAppPage {
-  const SnapshotPage({Key? key})
+  const SnapshotPage({super.key})
       : super(
           const Icon(Icons.camera_alt),
           'Take a snapshot of the map',
-          key: key,
         );
 
   @override
