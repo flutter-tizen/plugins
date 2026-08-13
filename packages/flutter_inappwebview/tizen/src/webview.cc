@@ -880,15 +880,12 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
     result->Success(flutter::EncodableValue(
         static_cast<bool>(ewk_view_forward_possible(webview_instance_))));
   } else if (method_name == "goBack") {
-    NavigateProgrammatically([this] {
-      ewk_view_back(webview_instance_);
-      return true;
-    });
+    NavigateProgrammatically(
+        [this] { return static_cast<bool>(ewk_view_back(webview_instance_)); });
     result->Success();
   } else if (method_name == "goForward") {
     NavigateProgrammatically([this] {
-      ewk_view_forward(webview_instance_);
-      return true;
+      return static_cast<bool>(ewk_view_forward(webview_instance_));
     });
     result->Success();
   } else if (method_name == "reload") {
@@ -968,18 +965,12 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
     int32_t x = 0, y = 0;
     ewk_view_scroll_pos_get(webview_instance_, &x, &y);
     if (target_scroll_x_ >= 0) {
-      if (x == target_scroll_x_) {
-        target_scroll_x_ = -1;
-      } else {
-        x = target_scroll_x_;
-      }
+      x = target_scroll_x_;
+      target_scroll_x_ = -1;
     }
     if (target_scroll_y_ >= 0) {
-      if (y == target_scroll_y_) {
-        target_scroll_y_ = -1;
-      } else {
-        y = target_scroll_y_;
-      }
+      y = target_scroll_y_;
+      target_scroll_y_ = -1;
     }
     result->Success(
         flutter::EncodableValue(method_name == "getScrollX" ? x : y));
