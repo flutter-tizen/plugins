@@ -505,10 +505,10 @@ bool WebView::SendKey(const char* key, const char* string, const char* compose,
 
   if (strcmp(key, "XF86Back") == 0 && !is_down) {
     if (ewk_view_back_possible(webview_instance_)) {
-      NavigateProgrammatically([this] {
-        ewk_view_back(webview_instance_);
-        return true;
-      });
+      // Not wrapped in NavigateProgrammatically: this is a user-initiated
+      // navigation (remote Back key), so it must still reach
+      // shouldOverrideUrlLoading via OnNavigationPolicy.
+      ewk_view_back(webview_instance_);
       return true;
     }
     return false;
@@ -844,6 +844,10 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
       return;
     }
     GetValueFromEncodableMap(arguments, "baseUrl", &base_url);
+    // ewk_view_html_string_load() doesn't go through OnNavigationPolicy, so
+    // a stale cancellation from an earlier navigation would otherwise never
+    // clear and getUrl() would keep returning the pre-cancellation URL.
+    is_navigation_cancelled_ = false;
     NavigateProgrammatically([this, &data, &base_url] {
       ewk_view_html_string_load(webview_instance_, data.c_str(),
                                 base_url.c_str(), nullptr);
