@@ -1,6 +1,7 @@
 ## 0.5.10
 
 * Fix crash/seek failures on progressive HTTP MPEG-TS live streams.
+* Avoid treating all `.ts` URLs as live so finite MPEG-TS VOD stays seekable.
 
 ## 0.5.9
 

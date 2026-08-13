@@ -589,14 +589,17 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     await _applyPlayPause();
   }
 
-  /// Heuristic for live / open-ended streams: tiny duration, or `.ts` / `/live/`.
+  /// Live / open-ended heuristic: tiny/placeholder duration, or `/live/` in URI.
+  ///
+  /// Do not treat every `.ts` URL as live — finite MPEG-TS VOD must remain
+  /// seekable. Progressive live `.ts` typically reports a ~0/1ms duration from
+  /// the platform and is covered by the duration check.
   bool get _looksLikeLiveOrOpenEnded {
     final Duration end = value.duration.end;
     if (end <= const Duration(milliseconds: 1)) {
       return true;
     }
-    final String uri = dataSource.toLowerCase();
-    return uri.endsWith('.ts') || uri.contains('/live/');
+    return dataSource.toLowerCase().contains('/live/');
   }
 
   /// Sets the video activated. Use it if create two native players.

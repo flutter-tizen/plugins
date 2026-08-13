@@ -289,10 +289,18 @@ bool MediaPlayer::SetPlaybackSpeed(double speed) {
 bool MediaPlayer::SeekTo(int64_t position, SeekCompletedCallback callback) {
   LOG_INFO("[MediaPlayer] position: %lld.", position);
 
-  // Live streams (including progressive HTTP .ts) are typically not
-  // seekable; complete the callback without player_set_play_position.
-  if (IsProgressiveLiveUri() || IsAdaptiveLive()) {
+  // Live / open-ended streams are typically not seekable.
+  if (IsAdaptiveLive() || IsProgressiveLiveUri()) {
     LOG_INFO("[MediaPlayer] Skip seek on live stream.");
+    if (callback) {
+      callback();
+    }
+    return true;
+  }
+  int duration_ms = 0;
+  int duration_ret = player_get_duration(player_, &duration_ms);
+  if (duration_ret == PLAYER_ERROR_NONE && duration_ms <= 0) {
+    LOG_INFO("[MediaPlayer] Skip seek on open-ended stream (duration=0).");
     if (callback) {
       callback();
     }
@@ -323,12 +331,8 @@ int64_t MediaPlayer::GetPosition() {
 }
 
 std::pair<int64_t, int64_t> MediaPlayer::GetDuration() {
-  // Progressive (non-adaptive) live URIs must not call GetLiveDuration;
-  // the adaptive streaming API can SIGSEGV on plain MPEG-TS.
-  if (IsProgressiveLiveUri()) {
-    LOG_INFO("[MediaPlayer] Progressive live URI; use placeholder duration 1ms.");
-    return std::make_pair(0, 1);
-  }
+  // Only adaptive live may use GetLiveDuration. Calling that API on
+  // progressive MPEG-TS can SIGSEGV.
   if (IsAdaptiveLive()) {
     std::pair<int64_t, int64_t> live = GetLiveDuration();
     if (live.second <= 0) {
@@ -345,7 +349,9 @@ std::pair<int64_t, int64_t> MediaPlayer::GetDuration() {
               get_error_message(ret));
   }
   LOG_INFO("[MediaPlayer] Video duration: %d.", duration);
-  if (duration == 0) {
+  // Open-ended / progressive live often reports 0; use 1ms so Dart does not
+  // treat the stream as ended and call seekTo(0).
+  if (duration <= 0) {
     duration = 1;
   }
   return std::make_pair(0, duration);
@@ -418,12 +424,12 @@ bool MediaPlayer::SetDisplay() {
 }
 
 bool MediaPlayer::IsProgressiveLiveUri() const {
+  // Path hint only — do not treat every ".ts" URL as live (VOD MPEG-TS
+  // must remain seekable). Progressive live without "/live/" is handled via
+  // duration==0 in GetDuration/SeekTo.
   std::string lower = url_;
   std::transform(lower.begin(), lower.end(), lower.begin(),
                  [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
-  if (lower.size() >= 3 && lower.compare(lower.size() - 3, 3, ".ts") == 0) {
-    return true;
-  }
   return lower.find("/live/") != std::string::npos;
 }
 
