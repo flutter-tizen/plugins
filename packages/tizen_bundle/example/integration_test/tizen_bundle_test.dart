@@ -136,6 +136,7 @@ void main() {
       final Bundle bundle = Bundle();
       bundle['someKey'] = 'someValue';
       // The implementation accepts Object? key and returns null for null.
+      // ignore: collection_methods_unrelated_type
       expect(bundle[null], isNull);
     });
 
@@ -202,6 +203,7 @@ void main() {
     test('remove(null) is a no-op and does not throw', () async {
       final Bundle bundle = Bundle();
       bundle['key'] = 'value';
+      // ignore: collection_methods_unrelated_type
       expect(() => bundle.remove(null), returnsNormally);
       expect(bundle.length, 1);
     });
