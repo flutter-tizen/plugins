@@ -9,8 +9,10 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'main.dart';
 
 class WebAuthenticationSessionExampleScreen extends StatefulWidget {
+  const WebAuthenticationSessionExampleScreen({super.key});
+
   @override
-  _WebAuthenticationSessionExampleScreenState createState() =>
+  State<WebAuthenticationSessionExampleScreen> createState() =>
       _WebAuthenticationSessionExampleScreenState();
 }
 
@@ -33,14 +35,14 @@ class _WebAuthenticationSessionExampleScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("WebAuthenticationSession")),
+      appBar: AppBar(title: const Text("WebAuthenticationSession")),
       drawer: myDrawer(context: context),
       body: SafeArea(
         child: Column(
           children: <Widget>[
             Center(
               child: Container(
-                padding: EdgeInsets.all(20.0),
+                padding: const EdgeInsets.all(20.0),
                 child: Text("Token: $token"),
               ),
             ),
@@ -69,8 +71,9 @@ class _WebAuthenticationSessionExampleScreenState
                           );
                           setState(() {});
                         } else {
+                          if (!mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
+                            const SnackBar(
                               content: Text(
                                 'Cannot create Web Authentication Session!',
                               ),
@@ -78,7 +81,7 @@ class _WebAuthenticationSessionExampleScreenState
                           );
                         }
                       },
-                      child: Text("Create Web Auth Session"),
+                      child: const Text("Create Web Auth Session"),
                     ),
                   ),
             session == null
@@ -91,8 +94,9 @@ class _WebAuthenticationSessionExampleScreenState
                           started = await session?.start() ?? false;
                         }
                         if (!started) {
+                          if (!mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
+                            const SnackBar(
                               content: Text(
                                 'Cannot start Web Authentication Session!',
                               ),
@@ -100,7 +104,7 @@ class _WebAuthenticationSessionExampleScreenState
                           );
                         }
                       },
-                      child: Text("Start Web Auth Session"),
+                      child: const Text("Start Web Auth Session"),
                     ),
                   ),
             session == null
@@ -114,7 +118,7 @@ class _WebAuthenticationSessionExampleScreenState
                           session = null;
                         });
                       },
-                      child: Text("Dispose Web Auth Session"),
+                      child: const Text("Dispose Web Auth Session"),
                     ),
                   ),
           ],

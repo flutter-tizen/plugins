@@ -13,8 +13,10 @@ import 'package:url_launcher/url_launcher.dart';
 import 'main.dart';
 
 class InAppWebViewExampleScreen extends StatefulWidget {
+  const InAppWebViewExampleScreen({super.key});
+
   @override
-  _InAppWebViewExampleScreenState createState() =>
+  State<InAppWebViewExampleScreen> createState() =>
       _InAppWebViewExampleScreenState();
 }
 
@@ -47,28 +49,25 @@ class _InAppWebViewExampleScreenState extends State<InAppWebViewExampleScreen> {
           id: 1,
           title: "Special",
           action: () async {
-            print("Menu item Special clicked!");
-            print(await webViewController?.getSelectedText());
+            debugPrint("Menu item Special clicked!");
+            debugPrint(await webViewController?.getSelectedText());
             await webViewController?.clearFocus();
           },
         ),
       ],
       settings: ContextMenuSettings(hideDefaultSystemContextMenuItems: false),
       onCreateContextMenu: (hitTestResult) async {
-        print("onCreateContextMenu");
-        print(hitTestResult.extra);
-        print(await webViewController?.getSelectedText());
+        debugPrint("onCreateContextMenu");
+        debugPrint(hitTestResult.extra);
+        debugPrint(await webViewController?.getSelectedText());
       },
       onHideContextMenu: () {
-        print("onHideContextMenu");
+        debugPrint("onHideContextMenu");
       },
       onContextMenuActionItemClicked: (contextMenuItemClicked) async {
         var id = contextMenuItemClicked.id;
-        print(
-          "onContextMenuActionItemClicked: " +
-              id.toString() +
-              " " +
-              contextMenuItemClicked.title,
+        debugPrint(
+          "onContextMenuActionItemClicked: $id ${contextMenuItemClicked.title}",
         );
       },
     );
@@ -104,7 +103,7 @@ class _InAppWebViewExampleScreenState extends State<InAppWebViewExampleScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("InAppWebView")),
+      appBar: AppBar(title: const Text("InAppWebView")),
       backgroundColor: Colors
           .transparent, // for tizen - entire app transparent for WebView video buffer
       drawer: myDrawer(context: context),
@@ -114,7 +113,9 @@ class _InAppWebViewExampleScreenState extends State<InAppWebViewExampleScreen> {
             ColoredBox(
               color: Theme.of(context).scaffoldBackgroundColor, // for tizen
               child: TextField(
-                decoration: InputDecoration(prefixIcon: Icon(Icons.search)),
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.search),
+                ),
                 controller: urlController,
                 keyboardType: TextInputType.text,
                 onSubmitted: (value) {
@@ -207,7 +208,7 @@ class _InAppWebViewExampleScreenState extends State<InAppWebViewExampleScreen> {
                       }
                       setState(() {
                         this.progress = progress / 100;
-                        urlController.text = this.url;
+                        urlController.text = url;
                       });
                     },
                     onUpdateVisitedHistory: (controller, url, isReload) {
@@ -217,7 +218,7 @@ class _InAppWebViewExampleScreenState extends State<InAppWebViewExampleScreen> {
                       });
                     },
                     onConsoleMessage: (controller, consoleMessage) {
-                      print(consoleMessage);
+                      debugPrint(consoleMessage.toString());
                     },
                   ),
                   progress < 1.0
@@ -232,22 +233,22 @@ class _InAppWebViewExampleScreenState extends State<InAppWebViewExampleScreen> {
                 alignment: MainAxisAlignment.center,
                 children: <Widget>[
                   ElevatedButton(
-                    child: Icon(Icons.arrow_back),
                     onPressed: () {
                       webViewController?.goBack();
                     },
+                    child: const Icon(Icons.arrow_back),
                   ),
                   ElevatedButton(
-                    child: Icon(Icons.arrow_forward),
                     onPressed: () {
                       webViewController?.goForward();
                     },
+                    child: const Icon(Icons.arrow_forward),
                   ),
                   ElevatedButton(
-                    child: Icon(Icons.refresh),
                     onPressed: () {
                       webViewController?.reload();
                     },
+                    child: const Icon(Icons.refresh),
                   ),
                 ],
               ),

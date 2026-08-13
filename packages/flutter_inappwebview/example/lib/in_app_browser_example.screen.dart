@@ -3,7 +3,6 @@
 // Imported from https://pub.dev/packages/flutter_inappwebview.
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -15,19 +14,14 @@ import 'main.dart';
 
 class MyInAppBrowser extends InAppBrowser {
   MyInAppBrowser({
-    int? windowId,
-    UnmodifiableListView<UserScript>? initialUserScripts,
-    PullToRefreshController? pullToRefreshController,
-  }) : super(
-         windowId: windowId,
-         initialUserScripts: initialUserScripts,
-         pullToRefreshController: pullToRefreshController,
-         webViewEnvironment: webViewEnvironment,
-       );
+    super.windowId,
+    super.initialUserScripts,
+    super.pullToRefreshController,
+  }) : super(webViewEnvironment: webViewEnvironment);
 
   @override
   Future onBrowserCreated() async {
-    print("\n\nBrowser Created!\n\n");
+    debugPrint("\n\nBrowser Created!\n\n");
   }
 
   @override
@@ -39,9 +33,9 @@ class MyInAppBrowser extends InAppBrowser {
   }
 
   @override
-  Future<PermissionResponse> onPermissionRequest(request) async {
+  Future<PermissionResponse> onPermissionRequest(permissionRequest) async {
     return PermissionResponse(
-      resources: request.resources,
+      resources: permissionRequest.resources,
       action: PermissionResponseAction.GRANT,
     );
   }
@@ -60,25 +54,28 @@ class MyInAppBrowser extends InAppBrowser {
 
   @override
   void onExit() {
-    print("\n\nBrowser closed!\n\n");
+    debugPrint("\n\nBrowser closed!\n\n");
   }
 
   @override
   Future<NavigationActionPolicy> shouldOverrideUrlLoading(
     navigationAction,
   ) async {
-    print("\n\nOverride ${navigationAction.request.url}\n\n");
+    debugPrint("\n\nOverride ${navigationAction.request.url}\n\n");
     return NavigationActionPolicy.ALLOW;
   }
 
+  @override
   void onMainWindowWillClose() {
     close();
   }
 }
 
 class InAppBrowserExampleScreen extends StatefulWidget {
+  const InAppBrowserExampleScreen({super.key});
+
   @override
-  _InAppBrowserExampleScreenState createState() =>
+  State<InAppBrowserExampleScreen> createState() =>
       _InAppBrowserExampleScreenState();
 }
 
@@ -117,7 +114,7 @@ class _InAppBrowserExampleScreenState extends State<InAppBrowserExampleScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("InAppBrowser")),
+      appBar: AppBar(title: const Text("InAppBrowser")),
       drawer: myDrawer(context: context),
       body: Center(
         child: Column(
@@ -140,7 +137,7 @@ class _InAppBrowserExampleScreenState extends State<InAppBrowserExampleScreen> {
                   ),
                 );
               },
-              child: Text("Open In-App Browser"),
+              child: const Text("Open In-App Browser"),
             ),
             Container(height: 40),
             ElevatedButton(
@@ -149,7 +146,7 @@ class _InAppBrowserExampleScreenState extends State<InAppBrowserExampleScreen> {
                   url: WebUri("https://flutter.dev/"),
                 );
               },
-              child: Text("Open System Browser"),
+              child: const Text("Open System Browser"),
             ),
           ],
         ),

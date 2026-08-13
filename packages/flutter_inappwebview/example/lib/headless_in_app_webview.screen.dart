@@ -9,8 +9,10 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'main.dart';
 
 class HeadlessInAppWebViewExampleScreen extends StatefulWidget {
+  const HeadlessInAppWebViewExampleScreen({super.key});
+
   @override
-  _HeadlessInAppWebViewExampleScreenState createState() =>
+  State<HeadlessInAppWebViewExampleScreen> createState() =>
       _HeadlessInAppWebViewExampleScreenState();
 }
 
@@ -32,10 +34,10 @@ class _HeadlessInAppWebViewExampleScreenState
       initialUrlRequest: URLRequest(url: url),
       initialSettings: InAppWebViewSettings(isInspectable: kDebugMode),
       onWebViewCreated: (controller) {
-        print('HeadlessInAppWebView created!');
+        debugPrint('HeadlessInAppWebView created!');
       },
       onConsoleMessage: (controller, consoleMessage) {
-        print("CONSOLE MESSAGE: " + consoleMessage.message);
+        debugPrint("CONSOLE MESSAGE: ${consoleMessage.message}");
       },
       onLoadStart: (controller, url) async {
         setState(() {
@@ -64,15 +66,15 @@ class _HeadlessInAppWebViewExampleScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("HeadlessInAppWebView")),
+      appBar: AppBar(title: const Text("HeadlessInAppWebView")),
       drawer: myDrawer(context: context),
       body: SafeArea(
         child: Column(
           children: <Widget>[
             Container(
-              padding: EdgeInsets.all(20.0),
+              padding: const EdgeInsets.all(20.0),
               child: Text(
-                "CURRENT URL\n${(url.length > 50) ? url.substring(0, 50) + "..." : url}",
+                "CURRENT URL\n${(url.length > 50) ? '${url.substring(0, 50)}...' : url}",
               ),
             ),
             Center(
@@ -81,7 +83,7 @@ class _HeadlessInAppWebViewExampleScreenState
                   await headlessWebView?.dispose();
                   await headlessWebView?.run();
                 },
-                child: Text("Run HeadlessInAppWebView"),
+                child: const Text("Run HeadlessInAppWebView"),
               ),
             ),
             Container(height: 10),
@@ -95,7 +97,7 @@ class _HeadlessInAppWebViewExampleScreenState
                         );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text(
                           'HeadlessInAppWebView is not running. Click on "Run HeadlessInAppWebView"!',
                         ),
@@ -103,7 +105,7 @@ class _HeadlessInAppWebViewExampleScreenState
                     );
                   }
                 },
-                child: Text("Send console.log message"),
+                child: const Text("Send console.log message"),
               ),
             ),
             Container(height: 10),
@@ -112,10 +114,10 @@ class _HeadlessInAppWebViewExampleScreenState
                 onPressed: () {
                   headlessWebView?.dispose();
                   setState(() {
-                    this.url = "";
+                    url = "";
                   });
                 },
-                child: Text("Dispose HeadlessInAppWebView"),
+                child: const Text("Dispose HeadlessInAppWebView"),
               ),
             ),
           ],

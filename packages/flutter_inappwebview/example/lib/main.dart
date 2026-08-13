@@ -55,31 +55,31 @@ Future main() async {
 PointerInterceptor myDrawer({required BuildContext context}) {
   var children = [
     ListTile(
-      title: Text('InAppWebView'),
+      title: const Text('InAppWebView'),
       onTap: () {
         Navigator.pushReplacementNamed(context, '/');
       },
     ),
     ListTile(
-      title: Text('InAppBrowser'),
+      title: const Text('InAppBrowser'),
       onTap: () {
         Navigator.pushReplacementNamed(context, '/InAppBrowser');
       },
     ),
     ListTile(
-      title: Text('ChromeSafariBrowser'),
+      title: const Text('ChromeSafariBrowser'),
       onTap: () {
         Navigator.pushReplacementNamed(context, '/ChromeSafariBrowser');
       },
     ),
     ListTile(
-      title: Text('WebAuthenticationSession'),
+      title: const Text('WebAuthenticationSession'),
       onTap: () {
         Navigator.pushReplacementNamed(context, '/WebAuthenticationSession');
       },
     ),
     ListTile(
-      title: Text('HeadlessInAppWebView'),
+      title: const Text('HeadlessInAppWebView'),
       onTap: () {
         Navigator.pushReplacementNamed(context, '/HeadlessInAppWebView');
       },
@@ -88,7 +88,7 @@ PointerInterceptor myDrawer({required BuildContext context}) {
   if (kIsWeb) {
     children = [
       ListTile(
-        title: Text('InAppWebView'),
+        title: const Text('InAppWebView'),
         onTap: () {
           Navigator.pushReplacementNamed(context, '/');
         },
@@ -97,25 +97,25 @@ PointerInterceptor myDrawer({required BuildContext context}) {
   } else if (defaultTargetPlatform == TargetPlatform.macOS) {
     children = [
       ListTile(
-        title: Text('InAppWebView'),
+        title: const Text('InAppWebView'),
         onTap: () {
           Navigator.pushReplacementNamed(context, '/');
         },
       ),
       ListTile(
-        title: Text('InAppBrowser'),
+        title: const Text('InAppBrowser'),
         onTap: () {
           Navigator.pushReplacementNamed(context, '/InAppBrowser');
         },
       ),
       ListTile(
-        title: Text('WebAuthenticationSession'),
+        title: const Text('WebAuthenticationSession'),
         onTap: () {
           Navigator.pushReplacementNamed(context, '/WebAuthenticationSession');
         },
       ),
       ListTile(
-        title: Text('HeadlessInAppWebView'),
+        title: const Text('HeadlessInAppWebView'),
         onTap: () {
           Navigator.pushReplacementNamed(context, '/HeadlessInAppWebView');
         },
@@ -125,19 +125,19 @@ PointerInterceptor myDrawer({required BuildContext context}) {
       defaultTargetPlatform == TargetPlatform.linux) {
     children = [
       ListTile(
-        title: Text('InAppWebView'),
+        title: const Text('InAppWebView'),
         onTap: () {
           Navigator.pushReplacementNamed(context, '/');
         },
       ),
       ListTile(
-        title: Text('InAppBrowser'),
+        title: const Text('InAppBrowser'),
         onTap: () {
           Navigator.pushReplacementNamed(context, '/InAppBrowser');
         },
       ),
       ListTile(
-        title: Text('HeadlessInAppWebView'),
+        title: const Text('HeadlessInAppWebView'),
         onTap: () {
           Navigator.pushReplacementNamed(context, '/HeadlessInAppWebView');
         },
@@ -150,7 +150,7 @@ PointerInterceptor myDrawer({required BuildContext context}) {
   if (flutter_tizen.isTizen) {
     children = [
       ListTile(
-        title: Text('InAppWebView'),
+        title: const Text('InAppWebView'),
         onTap: () {
           Navigator.pushReplacementNamed(context, '/');
         },
@@ -163,8 +163,8 @@ PointerInterceptor myDrawer({required BuildContext context}) {
         padding: EdgeInsets.zero,
         children: <Widget>[
           DrawerHeader(
-            child: Text('flutter_inappwebview example'),
-            decoration: BoxDecoration(color: Colors.blue),
+            decoration: const BoxDecoration(color: Colors.blue),
+            child: const Text('flutter_inappwebview example'),
           ),
           ...children,
         ],
@@ -174,8 +174,10 @@ PointerInterceptor myDrawer({required BuildContext context}) {
 }
 
 class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
   @override
-  _MyAppState createState() => _MyAppState();
+  State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
@@ -194,7 +196,7 @@ class _MyAppState extends State<MyApp> {
     if (kIsWeb) {
       return MaterialApp(
         initialRoute: '/',
-        routes: {'/': (context) => InAppWebViewExampleScreen()},
+        routes: {'/': (context) => const InAppWebViewExampleScreen()},
       );
     }
     // TIZENFIX: Only register the InAppWebView route on Tizen. The other
@@ -203,19 +205,19 @@ class _MyAppState extends State<MyApp> {
     if (flutter_tizen.isTizen) {
       return MaterialApp(
         initialRoute: '/',
-        routes: {'/': (context) => InAppWebViewExampleScreen()},
+        routes: {'/': (context) => const InAppWebViewExampleScreen()},
       );
     }
     if (defaultTargetPlatform == TargetPlatform.macOS) {
       return MaterialApp(
         initialRoute: '/',
         routes: {
-          '/': (context) => InAppWebViewExampleScreen(),
-          '/InAppBrowser': (context) => InAppBrowserExampleScreen(),
+          '/': (context) => const InAppWebViewExampleScreen(),
+          '/InAppBrowser': (context) => const InAppBrowserExampleScreen(),
           '/HeadlessInAppWebView': (context) =>
-              HeadlessInAppWebViewExampleScreen(),
+              const HeadlessInAppWebViewExampleScreen(),
           '/WebAuthenticationSession': (context) =>
-              WebAuthenticationSessionExampleScreen(),
+              const WebAuthenticationSessionExampleScreen(),
         },
       );
     } else if (defaultTargetPlatform == TargetPlatform.windows ||
@@ -223,23 +225,23 @@ class _MyAppState extends State<MyApp> {
       return MaterialApp(
         initialRoute: '/',
         routes: {
-          '/': (context) => InAppWebViewExampleScreen(),
-          '/InAppBrowser': (context) => InAppBrowserExampleScreen(),
+          '/': (context) => const InAppWebViewExampleScreen(),
+          '/InAppBrowser': (context) => const InAppBrowserExampleScreen(),
           '/HeadlessInAppWebView': (context) =>
-              HeadlessInAppWebViewExampleScreen(),
+              const HeadlessInAppWebViewExampleScreen(),
         },
       );
     }
     return MaterialApp(
       initialRoute: '/',
       routes: {
-        '/': (context) => InAppWebViewExampleScreen(),
-        '/InAppBrowser': (context) => InAppBrowserExampleScreen(),
+        '/': (context) => const InAppWebViewExampleScreen(),
+        '/InAppBrowser': (context) => const InAppBrowserExampleScreen(),
         '/ChromeSafariBrowser': (context) => ChromeSafariBrowserExampleScreen(),
         '/HeadlessInAppWebView': (context) =>
-            HeadlessInAppWebViewExampleScreen(),
+            const HeadlessInAppWebViewExampleScreen(),
         '/WebAuthenticationSession': (context) =>
-            WebAuthenticationSessionExampleScreen(),
+            const WebAuthenticationSessionExampleScreen(),
       },
     );
   }

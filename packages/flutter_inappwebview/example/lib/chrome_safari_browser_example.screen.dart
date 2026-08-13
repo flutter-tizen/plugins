@@ -12,25 +12,27 @@ import 'main.dart';
 class MyChromeSafariBrowser extends ChromeSafariBrowser {
   @override
   void onOpened() async {
-    print("ChromeSafari browser opened");
+    debugPrint("ChromeSafari browser opened");
   }
 
   @override
   void onCompletedInitialLoad(didLoadSuccessfully) {
-    print("ChromeSafari browser initial load completed");
+    debugPrint("ChromeSafari browser initial load completed");
   }
 
   @override
   void onClosed() {
-    print("ChromeSafari browser closed");
+    debugPrint("ChromeSafari browser closed");
   }
 }
 
 class ChromeSafariBrowserExampleScreen extends StatefulWidget {
+  ChromeSafariBrowserExampleScreen({super.key});
+
   final ChromeSafariBrowser browser = MyChromeSafariBrowser();
 
   @override
-  _ChromeSafariBrowserExampleScreenState createState() =>
+  State<ChromeSafariBrowserExampleScreen> createState() =>
       _ChromeSafariBrowserExampleScreenState();
 }
 
@@ -46,9 +48,9 @@ class _ChromeSafariBrowserExampleScreenState
             description: 'Action Button description',
             icon: actionButtonIcon.buffer.asUint8List(),
             onClick: (url, title) {
-              print('Action Button 1 clicked!');
-              print(url);
-              print(title);
+              debugPrint('Action Button 1 clicked!');
+              debugPrint(url.toString());
+              debugPrint(title);
             },
           ),
         );
@@ -61,9 +63,9 @@ class _ChromeSafariBrowserExampleScreenState
         label: 'Custom item menu 1',
         image: UIImage(systemName: "sun.max"),
         onClick: (url, title) {
-          print('Custom item menu 1 clicked!');
-          print(url);
-          print(title);
+          debugPrint('Custom item menu 1 clicked!');
+          debugPrint(url.toString());
+          debugPrint(title);
         },
       ),
     );
@@ -73,9 +75,9 @@ class _ChromeSafariBrowserExampleScreenState
         label: 'Custom item menu 2',
         image: UIImage(systemName: "pencil"),
         onClick: (url, title) {
-          print('Custom item menu 2 clicked!');
-          print(url);
-          print(title);
+          debugPrint('Custom item menu 2 clicked!');
+          debugPrint(url.toString());
+          debugPrint(title);
         },
       ),
     );
@@ -85,7 +87,7 @@ class _ChromeSafariBrowserExampleScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("ChromeSafariBrowser")),
+      appBar: AppBar(title: const Text("ChromeSafariBrowser")),
       drawer: myDrawer(context: context),
       body: Center(
         child: ElevatedButton(
@@ -124,7 +126,7 @@ class _ChromeSafariBrowserExampleScreenState
               ),
             );
           },
-          child: Text("Open Chrome Safari Browser"),
+          child: const Text("Open Chrome Safari Browser"),
         ),
       ),
     );
