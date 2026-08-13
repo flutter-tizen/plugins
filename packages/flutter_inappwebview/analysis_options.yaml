@@ -5,3 +5,11 @@ analyzer:
     strict-casts: false
     strict-inference: false
     strict-raw-types: false
+  exclude:
+    - 'build/**'
+    - 'android/**'
+    - 'ios/**'
+    - 'web/**'
+    - 'windows/**'
+    - 'macos/**'
+    - 'linux/**'
