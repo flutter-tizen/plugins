@@ -253,6 +253,7 @@ class DataSource {
     this.drmConfigs,
     this.playerOptions,
     this.streamingProperty,
+    this.playerEngine = PlayerEngine.auto,
   });
 
   /// The way in which the video was originally loaded.
@@ -291,6 +292,11 @@ class DataSource {
 
   /// Sets specific feature values for HTTP, MMS, or specific streaming engine
   Map<StreamingPropertyType, String>? streamingProperty;
+
+  /// Selects which native playback engine drives the source.
+  ///
+  /// Only for [DataSourceType.network]; defaults to [PlayerEngine.auto].
+  final PlayerEngine playerEngine;
 }
 
 /// The way in which the video was originally loaded.
@@ -309,6 +315,29 @@ enum DataSourceType {
 
   /// The video is available via contentUri. Android only.
   contentUri,
+}
+
+/// The native playback engine used to play a source.
+///
+/// The plugin has two native engines with different capabilities. This selects
+/// which one drives playback, independently of the content format
+/// ([VideoFormat]).
+enum PlayerEngine {
+  /// Selects the engine automatically from the source (default; preserves the
+  /// historical behavior): `http(s)` URIs use the adaptive-streaming engine,
+  /// local/asset sources use the general-purpose engine.
+  auto,
+
+  /// Requests the engine specialized for adaptive streaming (DASH/HLS/Smooth
+  /// Streaming), DRM, and the full streaming-property control surface.
+  adaptiveStreaming,
+
+  /// Requests the general-purpose media engine. Use it when a source fails to
+  /// prepare on the adaptive-streaming engine — e.g. media served through a
+  /// localhost reverse-proxy. This selects the engine, not the content format:
+  /// the general-purpose engine can still play adaptive content such as a DASH
+  /// manifest.
+  general,
 }
 
 /// The file format of the given video.

@@ -38,7 +38,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
         message.formatHint = _videoFormatStringMap[dataSource.formatHint];
         message.httpHeaders = dataSource.httpHeaders;
         message.drmConfigs = dataSource.drmConfigs?.toMap();
-        message.playerOptions = dataSource.playerOptions;
+        message.playerOptions = _playerOptionsWithEngine(
+          dataSource.playerOptions,
+          dataSource.playerEngine,
+        );
         message.streamingProperty = dataSource.streamingProperty == null
             ? null
             : <String, String>{
@@ -275,7 +278,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
           message.formatHint = _videoFormatStringMap[dataSource.formatHint];
           message.httpHeaders = dataSource.httpHeaders;
           message.drmConfigs = dataSource.drmConfigs?.toMap();
-          message.playerOptions = dataSource.playerOptions;
+          message.playerOptions = _playerOptionsWithEngine(
+            dataSource.playerOptions,
+            dataSource.playerEngine,
+          );
           message.streamingProperty = dataSource.streamingProperty == null
               ? null
               : <String, String>{
@@ -495,6 +501,20 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   EventChannel _eventChannelFor(int playerId) {
     return EventChannel('tizen/video_player/video_events_$playerId');
+  }
+
+  /// Carries the abstract [PlayerEngine] selection to the native side by adding
+  /// a `playerEngine` key to the playerOptions map (read in the plugin's
+  /// `Create`). Omitted for [PlayerEngine.auto] so the wire is unchanged for
+  /// existing callers.
+  static Map<String, dynamic>? _playerOptionsWithEngine(
+    Map<String, dynamic>? options,
+    PlayerEngine engine,
+  ) {
+    if (engine == PlayerEngine.auto) {
+      return options;
+    }
+    return <String, dynamic>{...?options, 'playerEngine': engine.name};
   }
 
   static const Map<VideoFormat, String> _videoFormatStringMap =

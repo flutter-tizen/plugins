@@ -15,9 +15,11 @@
 #include <string>
 #include <variant>
 
+#include "log.h"
 #include "media_player.h"
 #include "messages.h"
 #include "plus_player.h"
+#include "video_player.h"
 #include "video_player_options.h"
 
 namespace video_player_avplay_tizen {
@@ -144,7 +146,25 @@ ErrorOr<PlayerMessage> VideoPlayerTizenPlugin::Create(
   }
 
   std::unique_ptr<VideoPlayer> player = nullptr;
-  if (uri.substr(0, 4) == "http") {
+  // The "playerEngine" option lets the app force a native playback engine:
+  // "adaptiveStreaming" (specialized for DASH/HLS/Smooth Streaming and DRM) or
+  // "general" (the general-purpose media engine). When it is unset or "auto",
+  // the historical heuristic is used: a URI beginning with "http" uses the
+  // adaptive-streaming engine, otherwise the general-purpose engine.
+  std::string player_engine = flutter_common::GetValue(
+      msg.player_options(), "playerEngine", std::string());
+  bool use_plus_player = uri.substr(0, 4) == "http";
+  if (player_engine == "adaptiveStreaming") {
+    use_plus_player = true;
+  } else if (player_engine == "general") {
+    use_plus_player = false;
+  } else if (!player_engine.empty() && player_engine != "auto") {
+    LOG_ERROR(
+        "[VideoPlayerTizenPlugin] Unknown playerEngine \"%s\"; using automatic "
+        "selection.",
+        player_engine.c_str());
+  }
+  if (use_plus_player) {
     player = std::make_unique<PlusPlayer>(
         plugin_registrar_->messenger(),
         FlutterDesktopPluginRegistrarGetView(registrar_ref_));
