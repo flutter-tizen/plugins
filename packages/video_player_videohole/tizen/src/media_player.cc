@@ -4,10 +4,10 @@
 
 #include "media_player.h"
 
-#include <algorithm>
-#include <cctype>
 #include <dlfcn.h>
 
+#include <algorithm>
+#include <cctype>
 #include <sstream>
 
 #include "log.h"
@@ -428,8 +428,9 @@ bool MediaPlayer::IsProgressiveLiveUri() const {
   // must remain seekable). Progressive live without "/live/" is handled via
   // duration==0 in GetDuration/SeekTo.
   std::string lower = url_;
-  std::transform(lower.begin(), lower.end(), lower.begin(),
-                 [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+  std::transform(
+      lower.begin(), lower.end(), lower.begin(),
+      [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
   return lower.find("/live/") != std::string::npos;
 }
 
