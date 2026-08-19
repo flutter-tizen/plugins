@@ -423,6 +423,16 @@ enum StreamingPropertyType {
   ///
   /// To control is force enable if can get manifest content callback. 'TRUE' or others.
   openManifest,
+
+  /// Controls adaptive bitrate switching for HLS stream.
+  /// * '0': Disables adaptive bitrate switching. Playback stays at the initially
+  ///        selected bitrate regardless of network conditions.
+  /// * '1': Enables adaptive bitrate switching (default). Player dynamically
+  ///        selects bitrate based on available network bandwidth.
+  ///
+  /// Typically used with adaptiveInfo-STARTBITRATE to lock playback at a specific bitrate.
+  /// Example: {adaptiveInfo: 'STARTBITRATE=460560', setAbr: '0'} locks playback at 460560 bps.
+  setAbr,
 }
 
 /// The different types of buffer configurations that can be set on the player.

@@ -1,3 +1,8 @@
+## 0.8.15
+
+* Added `setAbr` property to disable adaptive bitrate switching for HLS streams.
+* HLS fixed bitrate now supported via `STARTBITRATE + SET_ABR` combination.
+
 ## 0.8.14
 
 * Update plusplayer

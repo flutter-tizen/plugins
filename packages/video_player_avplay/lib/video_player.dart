@@ -1095,7 +1095,14 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       return <Track>[];
     }
 
-    return _videoPlayerPlatform.getActiveTrackInfo(playerId);
+    final Future<List<Track>> activeTracks =
+        _videoPlayerPlatform.getActiveTrackInfo(playerId);
+    await activeTracks.then((List<Track> result) {
+      // ignore: avoid_print
+      print('[getActiveTrackInfo()] result: $result');
+    });
+
+    return activeTracks;
   }
 
   /// Sets the playback speed of [this].

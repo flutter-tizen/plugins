@@ -69,12 +69,19 @@ class _HlsRomoteVideo extends StatefulWidget {
 
 class _HlsRomoteVideoState extends State<_HlsRomoteVideo> {
   late VideoPlayerController _controller;
+  // Optional
+  final Map<StreamingPropertyType, String> _streamingProperties =
+      <StreamingPropertyType, String>{
+    StreamingPropertyType.adaptiveInfo: 'STARTBITRATE=460560',
+    StreamingPropertyType.setAbr: '0',
+  };
 
   @override
   void initState() {
     super.initState();
     _controller = VideoPlayerController.network(
       'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
+      streamingProperty: _streamingProperties,
     );
 
     _controller.addListener(() {
@@ -84,7 +91,11 @@ class _HlsRomoteVideoState extends State<_HlsRomoteVideo> {
       setState(() {});
     });
     _controller.setLooping(true);
-    _controller.initialize().then((_) => setState(() {}));
+    _controller.initialize().then((_) {
+      setState(() {});
+      // Optional
+      _controller.getActiveTrackInfo();
+    });
     _controller.play();
   }
 
