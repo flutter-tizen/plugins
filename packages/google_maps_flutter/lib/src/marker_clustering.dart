@@ -104,11 +104,11 @@ class ClusterManagersController extends GeometryController {
 
   /// Returns list of clusters in [MarkerClusterer] with given
   /// [ClusterManagerId].
-  List<Cluster> getClusters(ClusterManagerId clusterManagerId) {
+  Future<List<Cluster>> getClusters(ClusterManagerId clusterManagerId) async {
     final util.GMarkerClusterer? markerClusterer =
         _clusterManagerIdToMarkerClusterer[clusterManagerId];
     if (markerClusterer != null) {
-      return markerClusterer.clusters
+      return (await markerClusterer.clusters)
           .map(
             (Map<String, dynamic> cluster) =>
                 _convertCluster(clusterManagerId, cluster),

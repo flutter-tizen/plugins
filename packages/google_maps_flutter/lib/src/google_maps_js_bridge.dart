@@ -102,13 +102,10 @@ typedef MapsJsEvent = ({MapsJsEventType type, String? message});
 /// events are dispatched, replacing ad hoc `runJavaScript` calls and
 /// hand-built JS strings scattered across the plugin.
 class GoogleMapsJsBridge {
-  /// Creates a bridge over [controller], or a fresh [WebViewController] if
-  /// none is provided.
-  GoogleMapsJsBridge({WebViewController? controller})
-    : controller = controller ?? WebViewController();
+  /// Creates a bridge over a fresh [WebViewController].
+  GoogleMapsJsBridge() : controller = WebViewController();
 
-  /// The JS-side channel name and payload-less-ness for each event type,
-  /// registered in [load].
+  /// The JS-side channel name for each event type, registered in [load].
   static const Map<String, MapsJsEventType> _channelEventTypes =
       <String, MapsJsEventType>{
         'BoundChanged': MapsJsEventType.boundsChanged,

@@ -680,10 +680,10 @@ class GMarkerClusterer {
   }
 
   /// Removes a list of markers from the [GMarkerClusterer].
-  bool removeMarkers(List<GMarker>? markers, bool? noDraw) {
+  Future<bool> removeMarkers(List<GMarker>? markers, bool? noDraw) async {
     final String command =
         'JSON.stringify($this.removeMarkers.call($this, $markers, $noDraw))';
-    return _bridge.runJavaScriptReturningResult(command) as bool;
+    return await _bridge.runJavaScriptReturningResult(command) as bool;
   }
 
   /// Clears all the markers from the [GMarkerClusterer].
@@ -692,11 +692,14 @@ class GMarkerClusterer {
   }
 
   /// Returns the list of clusters.
-  List<Map<String, dynamic>> get clusters {
-    final List<Map<String, dynamic>> results =
-        _bridge.runJavaScriptReturningResult('${toString()}.clusters')
-            as List<Map<String, dynamic>>;
-    return results;
+  Future<List<Map<String, dynamic>>> get clusters async {
+    final String value =
+        await _bridge.runJavaScriptReturningResult(
+              'JSON.stringify(${toString()}.clusters)',
+            )
+            as String;
+    final List<dynamic> results = json.decode(value) as List<dynamic>;
+    return results.cast<Map<String, dynamic>>();
   }
 
   /// Called when the [GMarkerClusterer] is added to the map.
