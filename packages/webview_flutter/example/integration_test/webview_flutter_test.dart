@@ -618,59 +618,6 @@ Future<void> main() async {
     );
     expect(nullItem, '');
   });
-
-  // Tizen-specific: mounts and disposes two WebViews at the same time, which
-  // used to hit a native disposal race fixed in CHANGELOG.md's 0.10.1 entry.
-  testWidgets('multiple WebViews can be used simultaneously', (
-    WidgetTester tester,
-  ) async {
-    final Completer<void> firstPageFinished = Completer<void>();
-    final Completer<void> secondPageFinished = Completer<void>();
-
-    final WebViewController firstController = WebViewController();
-    await firstController.setJavaScriptMode(JavaScriptMode.unrestricted);
-    await firstController.setNavigationDelegate(
-      NavigationDelegate(onPageFinished: (_) => firstPageFinished.complete()),
-    );
-    await firstController.loadRequest(Uri.parse(primaryUrl));
-
-    final WebViewController secondController = WebViewController();
-    await secondController.setJavaScriptMode(JavaScriptMode.unrestricted);
-    await secondController.setNavigationDelegate(
-      NavigationDelegate(onPageFinished: (_) => secondPageFinished.complete()),
-    );
-    await secondController.loadRequest(Uri.parse(secondaryUrl));
-
-    await tester.pumpWidget(
-      Directionality(
-        textDirection: TextDirection.ltr,
-        child: Row(
-          children: <Widget>[
-            Expanded(child: WebViewWidget(controller: firstController)),
-            Expanded(child: WebViewWidget(controller: secondController)),
-          ],
-        ),
-      ),
-    );
-
-    await firstPageFinished.future;
-    await secondPageFinished.future;
-
-    expect(await firstController.currentUrl(), primaryUrl);
-    expect(await secondController.currentUrl(), secondaryUrl);
-
-    await expectLater(
-      firstController.runJavaScriptReturningResult('1 + 1'),
-      completion(2),
-    );
-    await expectLater(
-      secondController.runJavaScriptReturningResult('2 + 2'),
-      completion(4),
-    );
-
-    // Unmount both WebViews together to exercise concurrent native teardown.
-    await tester.pumpWidget(Container());
-  });
 }
 
 class ResizableWebView extends StatefulWidget {

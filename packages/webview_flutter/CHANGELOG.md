@@ -6,7 +6,7 @@
   use-after-free on the raster thread.
 * Use GLib to schedule the deferred WebView teardown.
 * Drain all pending WebView teardowns before ewk_shutdown(), fixing a native
-  crash on app exit and enabling simultaneous use of multiple WebViews.
+  crash on app exit.
 
 ## 0.10.0
 

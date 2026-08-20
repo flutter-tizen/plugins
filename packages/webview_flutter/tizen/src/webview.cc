@@ -304,7 +304,6 @@ void WebView::Dispose() {
   });
 }
 
-// static
 Ecore_Evas* WebView::GetOffscreenHost() {
   if (!g_offscreen_host) {
     // wayland_shm, not wayland_egl: wayland_egl raced libtpl-egl's
@@ -314,7 +313,6 @@ Ecore_Evas* WebView::GetOffscreenHost() {
   return g_offscreen_host;
 }
 
-// static
 void WebView::FreeOffscreenHost() {
   if (g_offscreen_host) {
     ecore_evas_free(g_offscreen_host);
@@ -322,37 +320,39 @@ void WebView::FreeOffscreenHost() {
   }
 }
 
-// static
 void WebView::InitializeEngine() { ewk_init(); }
 
-// static
 void WebView::ShutdownEngine() {
   FlushPendingTeardowns();
   FreeOffscreenHost();
   ewk_shutdown();
 }
 
-// static
 void WebView::FlushPendingTeardowns() {
+  // One deadline for all pending teardowns; once it passes, force-complete
+  // them together, not just the oldest one.
   constexpr gint64 kDeadlineUsec = 2 * G_USEC_PER_SEC;
   const gint64 deadline = g_get_monotonic_time() + kDeadlineUsec;
   for (;;) {
-    std::shared_ptr<PendingTeardown> pending;
+    bool deadline_passed = g_get_monotonic_time() >= deadline;
+    std::vector<std::shared_ptr<PendingTeardown>> snapshot;
     {
       std::lock_guard<std::mutex> lock(g_pending_teardown_mutex);
       if (g_pending_teardowns.empty()) {
         return;
       }
-      pending = g_pending_teardowns.front();
+      if (deadline_passed) {
+        snapshot = g_pending_teardowns;
+      }
     }
-    if (g_get_monotonic_time() >= deadline) {
-      LOG_WARN(
-          "Forcing WebView teardown past the deadline before ewk_shutdown()");
-      CompletePendingTeardown(pending);
+    if (deadline_passed) {
+      LOG_WARN("Forcing %zu pending teardown(s) past deadline",
+               snapshot.size());
+      for (auto& pending : snapshot) {
+        CompletePendingTeardown(pending);
+      }
       continue;
     }
-    // Non-blocking: pump the same context the queued g_timeout_add_full hop
-    // runs on, without stalling past the deadline check above.
     if (!g_main_context_iteration(g_main_context_default(), FALSE)) {
       g_usleep(1000);
     }
