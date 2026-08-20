@@ -3,3 +3,13 @@ include: package:flame_lint/analysis_options.yaml
 linter:
   rules:
     do_not_use_environment: false
+
+analyzer:
+  exclude:
+    - 'build/**'
+    - 'android/**'
+    - 'ios/**'
+    - 'web/**'
+    - 'windows/**'
+    - 'macos/**'
+    - 'linux/**'

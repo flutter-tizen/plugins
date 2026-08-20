@@ -281,42 +281,38 @@ void main() {
       );
     });
 
-    testWidgets(
-      'reports buffering status',
-      (WidgetTester tester) async {
-        await controller.initialize();
-        // Mute to allow playing without DOM interaction on Web.
-        // See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
-        await controller.setVolume(0);
-        final Completer<void> started = Completer<void>();
-        final Completer<void> ended = Completer<void>();
-        controller.addListener(() {
-          if (!started.isCompleted && controller.value.isBuffering) {
-            started.complete();
-          }
-          if (started.isCompleted &&
-              !controller.value.isBuffering &&
-              !ended.isCompleted) {
-            ended.complete();
-          }
-        });
+    testWidgets('reports buffering status', (WidgetTester tester) async {
+      await controller.initialize();
+      // Mute to allow playing without DOM interaction on Web.
+      // See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
+      await controller.setVolume(0);
+      final Completer<void> started = Completer<void>();
+      final Completer<void> ended = Completer<void>();
+      controller.addListener(() {
+        if (!started.isCompleted && controller.value.isBuffering) {
+          started.complete();
+        }
+        if (started.isCompleted &&
+            !controller.value.isBuffering &&
+            !ended.isCompleted) {
+          ended.complete();
+        }
+      });
 
-        await controller.play();
-        await controller.seekTo(const Duration(seconds: 5));
-        await tester.pumpAndSettle(_playDuration);
-        await controller.pause();
+      await controller.play();
+      await controller.seekTo(const Duration(seconds: 5));
+      await tester.pumpAndSettle(_playDuration);
+      await controller.pause();
 
-        expect(controller.value.isPlaying, false);
-        expect(
-          controller.value.position,
-          (Duration position) => position > Duration.zero,
-        );
+      expect(controller.value.isPlaying, false);
+      expect(
+        controller.value.position,
+        (Duration position) => position > Duration.zero,
+      );
 
-        await expectLater(started.future, completes);
-        await expectLater(ended.future, completes);
-      },
-      skip: !(kIsWeb || defaultTargetPlatform == TargetPlatform.android),
-    );
+      await expectLater(started.future, completes);
+      await expectLater(ended.future, completes);
+    }, skip: !(kIsWeb || defaultTargetPlatform == TargetPlatform.android));
   });
 
   // Audio playback is tested to prevent accidental regression,

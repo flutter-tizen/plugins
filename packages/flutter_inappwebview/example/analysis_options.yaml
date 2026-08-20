@@ -10,8 +10,32 @@ linter:
   rules:
     constant_identifier_names: ignore
     deprecated_member_use_from_same_package: ignore
+    # TEMPORARY: The rules below are disabled only for flutter-tizen, which
+    # runs `dart analyze --fatal-infos` in CI unlike the upstream repo. They
+    # are violated by the example code copied from upstream, which should not
+    # be modified manually. Remove the rules that are no longer violated when
+    # the example is synced with a newer upstream version.
+    annotate_overrides: false
+    avoid_print: false
+    avoid_renaming_method_parameters: false
+    library_private_types_in_public_api: false
+    prefer_const_constructors: false
+    prefer_interpolation_to_compose_strings: false
+    sort_child_properties_last: false
+    unnecessary_this: false
+    use_build_context_synchronously: false
+    use_key_in_widget_constructors: false
+    use_super_parameters: false
 
 analyzer:
+  exclude:
+    - 'build/**'
+    - 'android/**'
+    - 'ios/**'
+    - 'web/**'
+    - 'windows/**'
+    - 'macos/**'
+    - 'linux/**'
   errors:
     deprecated_member_use: ignore
     deprecated_member_use_from_same_package: ignore

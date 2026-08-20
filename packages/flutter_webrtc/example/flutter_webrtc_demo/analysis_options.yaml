@@ -30,6 +30,14 @@ linter:
     - void_checks
   
 analyzer:
+  exclude:
+    - 'build/**'
+    - 'android/**'
+    - 'ios/**'
+    - 'web/**'
+    - 'windows/**'
+    - 'macos/**'
+    - 'linux/**'
   errors:
     # treat missing required parameters as a warning (not a hint)
     missing_required_param: warning
