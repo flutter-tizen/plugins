@@ -590,11 +590,11 @@ class GoogleMapsController {
   }
 
   Future<void> _setOptions(String options) async {
-    await _callMethod('setOptions', <String>[options]);
+    await _callMethod('setOptions', <Object?>[JsExpression(options)]);
   }
 
-  Future<void> _setZoom(String options) async {
-    await _callMethod('setZoom', <String>[options]);
+  Future<void> _setZoom(String zoom) async {
+    await _callMethod('setZoom', <Object?>[JsExpression(zoom)]);
   }
 
   // Attaches/detaches a Traffic Layer on the `map` if `attach` is true/false.
@@ -617,30 +617,28 @@ class GoogleMapsController {
   }
 
   Future<void> _setMoveCamera(String options) async {
-    await _callMethod('moveCamera', <String>[options]);
+    await _callMethod('moveCamera', <Object?>[JsExpression(options)]);
   }
 
   Future<void> _setPanTo(String options) async {
-    await _callMethod('panTo', <String>[options]);
+    await _callMethod('panTo', <Object?>[JsExpression(options)]);
   }
 
-  Future<void> _setPanBy(String options) async {
-    await _callMethod('panBy', <String>[options]);
+  Future<void> _setPanBy(num x, num y) async {
+    await _callMethod('panBy', <Object?>[x, y]);
   }
 
-  Future<void> _setFitBounds(String options) async {
-    await _callMethod('fitBounds', <String>[options]);
+  Future<void> _setFitBounds(String boundsJs, Object? padding) async {
+    await _callMethod('fitBounds', <Object?>[JsExpression(boundsJs), padding]);
   }
 
-  Future<Object> _callMethod(String method, List<String?> args) async {
-    return _bridge.runJavaScriptReturningResult(
-      'JSON.stringify(map.$method.apply(map, $args))',
-    );
+  Future<Object> _callMethod(String method, List<Object?> args) async {
+    return _bridge.callMethodReturningJson(JsRef('map'), method, args);
   }
 
   Future<double> _getZoom() async {
     try {
-      return (await _callMethod('getZoom', <String>[]) as num) + 0.0;
+      return (await _callMethod('getZoom', <Object?>[]) as num) + 0.0;
     } catch (e) {
       debugPrint('JavaScript Error: $e');
       return 0.0;
@@ -650,14 +648,14 @@ class GoogleMapsController {
   /// Returns the [LatLngBounds] of the current viewport.
   Future<LatLngBounds> getVisibleRegion() async {
     return _convertToBounds(
-      await _callMethod('getBounds', <String>[]) as String,
+      await _callMethod('getBounds', <Object?>[]) as String,
     );
   }
 
   /// Returns the [LatLng] at the center of the map.
   Future<LatLng> getCenter() async {
     return _convertToLatLng(
-      await _callMethod('getCenter', <String>[]) as String,
+      await _callMethod('getCenter', <Object?>[]) as String,
     );
   }
 
@@ -696,10 +694,11 @@ class GoogleMapsController {
         await _setPanTo('{lat:${json[1][0]}, lng: ${json[1][1]}}');
       case 'newLatLngBounds':
         await _setFitBounds(
-          '{south:${json[1][0][0]}, west:${json[1][0][1]}, north:${json[1][1][0]}, east:${json[1][1][1]}}, ${json[2]}',
+          '{south:${json[1][0][0]}, west:${json[1][0][1]}, north:${json[1][1][0]}, east:${json[1][1][1]}}',
+          json[2],
         );
       case 'scrollBy':
-        await _setPanBy('${json[1]}, ${json[2]}');
+        await _setPanBy(json[1] as num, json[2] as num);
       case 'zoomBy':
         String? focusLatLng;
         double zoomDelta = 0.0;

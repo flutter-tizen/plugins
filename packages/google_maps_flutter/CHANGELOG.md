@@ -1,15 +1,13 @@
 ## 0.2.0
 
 * Refactor the JavaScript interaction layer by introducing `GoogleMapsJsBridge`,
-  replacing direct `WebViewController` calls. This removes the public
-  `GoogleMapsController.controller` field; use the plugin's public API
-  instead of reaching into the WebView controller directly.
+  replacing direct `WebViewController` calls.
+* Remove the public `GoogleMapsController.controller` field.
 * Update `webview_flutter_lwe` to ^0.5.3.
-* Raise the SDK constraint to match `webview_flutter_lwe` 0.5.3
-  (Dart ^3.8.0, Flutter >=3.32.0).
-* Fix info window content being rendered with stray quote characters.
-* Cancel the bridge event subscription on dispose to avoid a late event
-  throwing a `StateError` on an already-closed stream.
+* Raise the SDK constraint to Dart ^3.8.0 and Flutter >=3.32.0.
+* Fix a JS string escaping bug that could break marker and overlay creation.
+* Fix event handling and dispose-safety issues in the JS bridge.
+* Fix a null-check bug in circle tap handling.
 * Verify integration tests pass against upstream google_maps_flutter v2.17.0.
 
 ## 0.1.14

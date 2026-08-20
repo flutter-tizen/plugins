@@ -173,7 +173,7 @@ class GInfoWindow {
   }
 
   Future<void> _callCloseInfoWindow() async {
-    await _bridge.runJavaScript('${toString()}.close();');
+    await _bridge.callMethod(JsRef(toString()), 'close', <Object?>[]);
   }
 
   /// Opens InfoWindow on the given map.
@@ -182,7 +182,9 @@ class GInfoWindow {
   }
 
   Future<void> _callOpenInfoWindow(GMarker? anchor) async {
-    await _bridge.runJavaScript('${toString()}.open({anchor: $anchor, map});');
+    await _bridge.callMethod(JsRef(toString()), 'open', <Object?>[
+      JsExpression('{anchor: $anchor, map}'),
+    ]);
   }
 
   @override
@@ -224,9 +226,11 @@ class GMarker {
   final GoogleMapsJsBridge _bridge;
 
   Future<void> _createMarker(GMarkerOptions? opts) async {
-    final String command =
-        'var ${toString()} = new google.maps.Marker($opts); ${toString()}.id = $id;';
-    await _bridge.runJavaScript(command);
+    final JsRef ref = await _bridge.createObject(
+      toString(),
+      'new google.maps.Marker($opts)',
+    );
+    await _bridge.setProperty(ref, 'id', id);
   }
 
   /// GMarker id.
@@ -641,58 +645,58 @@ class GMarkerClusterer {
   GMarkerClusterer(GoogleMapsJsBridge bridge, [GMarkerClustererOptions? opts])
     : _bridge = bridge,
       id = _gid++ {
-    _createMarkerClusterer(opts);
+    _ready = _createMarkerClusterer(opts);
   }
 
   final GoogleMapsJsBridge _bridge;
 
-  void _createMarkerClusterer(GMarkerClustererOptions? opts) {
-    final String command =
-        'var ${toString()} = new markerClusterer.MarkerClusterer($opts);';
-    _bridge.runJavaScript(command);
+  /// Completes once the JS-side clusterer exists. Every method awaits this so
+  /// the ordering is stated in code rather than relying on the method channel
+  /// happening to deliver the constructor's script first.
+  late final Future<void> _ready;
+
+  Future<void> _createMarkerClusterer(GMarkerClustererOptions? opts) async {
+    await _bridge.createObject(
+      toString(),
+      'new markerClusterer.MarkerClusterer($opts)',
+    );
   }
 
   /// GCircle id.
   final int id;
   static int _gid = 0;
 
+  JsRef get _ref => JsRef(toString());
+
   /// Adds a marker to be clustered by the [GMarkerClusterer].
-  void addMarker(GMarker marker, bool? noDraw) {
-    _bridge.runJavaScript('${toString()}.addMarker($marker, $noDraw);');
+  Future<void> addMarker(GMarker marker, bool? noDraw) async {
+    await _ready;
+    await _bridge.callMethod(_ref, 'addMarker', <Object?>[
+      JsRef(marker.toString()),
+      noDraw,
+    ]);
   }
 
   /// Removes a marker from the [GMarkerClusterer].
   Future<bool> removeMarker(GMarker marker, bool? noDraw) async {
-    final bool result =
-        await _bridge.runJavaScriptReturningResult(
-              '${toString()}.removeMarker($marker, $noDraw);',
-            )
-            as bool;
-
-    return result;
-  }
-
-  /// Adds a list of markers to be clustered by the [GMarkerClusterer].
-  void addMarkers(List<GMarker>? markers, bool? noDraw) {
-    final String command =
-        'JSON.stringify($this.addMarkers.call($this, $markers, $noDraw))';
-    _bridge.runJavaScript(command);
-  }
-
-  /// Removes a list of markers from the [GMarkerClusterer].
-  Future<bool> removeMarkers(List<GMarker>? markers, bool? noDraw) async {
-    final String command =
-        'JSON.stringify($this.removeMarkers.call($this, $markers, $noDraw))';
-    return await _bridge.runJavaScriptReturningResult(command) as bool;
+    await _ready;
+    final Object? result = await _bridge.callMethodReturning(
+      _ref,
+      'removeMarker',
+      <Object?>[JsRef(marker.toString()), noDraw],
+    );
+    return result! as bool;
   }
 
   /// Clears all the markers from the [GMarkerClusterer].
-  void clearMarkers(bool? noDraw) {
-    _bridge.runJavaScript('${toString()}.clearMarkers($noDraw);');
+  Future<void> clearMarkers(bool? noDraw) async {
+    await _ready;
+    await _bridge.callMethod(_ref, 'clearMarkers', <Object?>[noDraw]);
   }
 
   /// Returns the list of clusters.
   Future<List<Map<String, dynamic>>> get clusters async {
+    await _ready;
     final String value =
         await _bridge.runJavaScriptReturningResult(
               'JSON.stringify(${toString()}.clusters)',
@@ -703,18 +707,21 @@ class GMarkerClusterer {
   }
 
   /// Called when the [GMarkerClusterer] is added to the map.
-  void onAdd() {
-    _bridge.runJavaScript('${toString()}.onAdd();');
+  Future<void> onAdd() async {
+    await _ready;
+    await _bridge.callMethod(_ref, 'onAdd', <Object?>[]);
   }
 
   /// Called when the [MarkerClusterer] is removed from the map.
-  void onRemove() {
-    _bridge.runJavaScript('${toString()}.onRemove();');
+  Future<void> onRemove() async {
+    await _ready;
+    await _bridge.callMethod(_ref, 'onRemove', <Object?>[]);
   }
 
   /// Recalculates and draws all the marker clusters.
-  void render() {
-    _bridge.runJavaScript('${toString()}.render();');
+  Future<void> render() async {
+    await _ready;
+    await _bridge.callMethod(_ref, 'render', <Object?>[]);
   }
 
   @override
@@ -773,10 +780,11 @@ class GGroundOverlay {
   Future<void> _createGroundOverlay(GGroundOverlayOptions? opts) async {
     final String url = jsonEncode(opts?.url ?? '');
     final String bounds = opts?.bounds ?? '{}';
-    final String command =
-        'var ${toString()} = new google.maps.GroundOverlay($url, $bounds, $opts);'
-        ' ${toString()}.id = $id;';
-    await _bridge.runJavaScript(command);
+    final JsRef ref = await _bridge.createObject(
+      toString(),
+      'new google.maps.GroundOverlay($url, $bounds, $opts)',
+    );
+    await _bridge.setProperty(ref, 'id', id);
   }
 
   /// GGroundOverlay id.

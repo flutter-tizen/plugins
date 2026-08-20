@@ -268,15 +268,23 @@ class GoogleMapsJsBridge {
     );
   }
 
-  /// Reads `ref.property` from the JS side.
-  Future<Object?> getProperty(JsRef ref, String property) async {
-    return controller.runJavaScriptReturningResult('$ref.$property');
-  }
-
   /// Calls `ref.method(...args)` on the JS side, discarding the result.
   Future<void> callMethod(JsRef ref, String method, List<Object?> args) async {
     final String serializedArgs = '[${args.map(_serializeArg).join(', ')}]';
     await controller.runJavaScript(
+      'JSON.stringify($ref.$method.apply($ref, $serializedArgs))',
+    );
+  }
+
+  /// Calls `ref.method(...args)` on the JS side and returns the JSON-encoded
+  /// result.
+  Future<Object> callMethodReturningJson(
+    JsRef ref,
+    String method,
+    List<Object?> args,
+  ) async {
+    final String serializedArgs = '[${args.map(_serializeArg).join(', ')}]';
+    return controller.runJavaScriptReturningResult(
       'JSON.stringify($ref.$method.apply($ref, $serializedArgs))',
     );
   }

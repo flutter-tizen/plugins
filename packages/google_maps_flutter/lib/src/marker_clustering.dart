@@ -60,7 +60,13 @@ class ClusterManagersController extends GeometryController {
         markerClusterer;
     _idToClusterManagerId[clusterManager.clusterManagerId.value] =
         clusterManager.clusterManagerId;
-    markerClusterer.onAdd();
+    // The platform interface requires this to stay synchronous, so the JS
+    // call is fire-and-forget; only its errors need surfacing.
+    unawaited(
+      markerClusterer.onAdd().catchError(
+        (Object e) => debugPrint('JavaScript Error: $e'),
+      ),
+    );
   }
 
   /// Removes a set of [ClusterManagerId]s from the cache.
@@ -72,8 +78,16 @@ class ClusterManagersController extends GeometryController {
     final util.GMarkerClusterer? markerClusterer =
         _clusterManagerIdToMarkerClusterer[clusterManagerId];
     if (markerClusterer != null) {
-      markerClusterer.clearMarkers(true);
-      markerClusterer.onRemove();
+      unawaited(
+        markerClusterer
+            .clearMarkers(true)
+            .catchError((Object e) => debugPrint('JavaScript Error: $e')),
+      );
+      unawaited(
+        markerClusterer.onRemove().catchError(
+          (Object e) => debugPrint('JavaScript Error: $e'),
+        ),
+      );
     }
     _clusterManagerIdToMarkerClusterer.remove(clusterManagerId);
   }
@@ -84,8 +98,16 @@ class ClusterManagersController extends GeometryController {
     final util.GMarkerClusterer? markerClusterer =
         _clusterManagerIdToMarkerClusterer[clusterManagerId];
     if (markerClusterer != null) {
-      markerClusterer.addMarker(marker, true);
-      markerClusterer.render();
+      unawaited(
+        markerClusterer
+            .addMarker(marker, true)
+            .catchError((Object e) => debugPrint('JavaScript Error: $e')),
+      );
+      unawaited(
+        markerClusterer.render().catchError(
+          (Object e) => debugPrint('JavaScript Error: $e'),
+        ),
+      );
     }
   }
 
@@ -96,8 +118,17 @@ class ClusterManagersController extends GeometryController {
       final util.GMarkerClusterer? markerClusterer =
           _clusterManagerIdToMarkerClusterer[clusterManagerId];
       if (markerClusterer != null) {
-        markerClusterer.removeMarker(marker, true);
-        markerClusterer.render();
+        unawaited(
+          markerClusterer.removeMarker(marker, true).catchError((Object e) {
+            debugPrint('JavaScript Error: $e');
+            return false;
+          }),
+        );
+        unawaited(
+          markerClusterer.render().catchError(
+            (Object e) => debugPrint('JavaScript Error: $e'),
+          ),
+        );
       }
     }
   }
