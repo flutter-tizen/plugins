@@ -57,7 +57,7 @@ class GMarkerOptions {
   String toString() {
     return '{anchorPoint:$anchorPoint, draggable:$draggable, icon:$icon, map: map, '
         ' opacity:$opacity, position:new google.maps.LatLng(${position?.latitude}, ${position?.longitude}),'
-        ' title:"$title", visible:$visible, zIndex:$zIndex}';
+        ' title:${jsonEncode(title)}, visible:$visible, zIndex:$zIndex}';
   }
 }
 
@@ -77,7 +77,7 @@ class GIcon {
 
   @override
   String toString() {
-    return '{url: "$url", scaledSize:$scaledSize, size: $size}';
+    return '{url:${jsonEncode(url)}, scaledSize:$scaledSize, size: $size}';
   }
 }
 
@@ -424,7 +424,7 @@ class GPolylineOptions {
       }
     }
 
-    return '{geodesic:$geodesic, path:[$paths], strokeColor:"$strokeColor",'
+    return '{geodesic:$geodesic, path:[$paths], strokeColor:${jsonEncode(strokeColor)},'
         ' strokeOpacity:$strokeOpacity, map: map, strokeWeight:$strokeWeight, visible:$visible, zIndex:$zIndex}';
   }
 }
@@ -531,8 +531,8 @@ class GPolygonOptions {
       str.write('], ');
     }
 
-    return '{fillColor:"$fillColor", fillOpacity:$fillOpacity, geodesic:$geodesic, paths:[$str],'
-        ' strokeColor:"$strokeColor", strokeOpacity:$strokeOpacity, map: map,'
+    return '{fillColor:${jsonEncode(fillColor)}, fillOpacity:$fillOpacity, geodesic:$geodesic, paths:[$str],'
+        ' strokeColor:${jsonEncode(strokeColor)}, strokeOpacity:$strokeOpacity, map: map,'
         ' strokeWeight:$strokeWeight, visible:$visible, zIndex:$zIndex}';
   }
 }
@@ -629,8 +629,8 @@ class GCircleOptions {
 
   @override
   String toString() {
-    return '{center: new google.maps.LatLng(${center?.latitude}, ${center?.longitude}), fillColor:"$fillColor",'
-        ' fillOpacity:$fillOpacity, radius:$radius, strokeColor:"$strokeColor", strokeOpacity:$strokeOpacity,'
+    return '{center: new google.maps.LatLng(${center?.latitude}, ${center?.longitude}), fillColor:${jsonEncode(fillColor)},'
+        ' fillOpacity:$fillOpacity, radius:$radius, strokeColor:${jsonEncode(strokeColor)}, strokeOpacity:$strokeOpacity,'
         ' map: map, strokeWeight:$strokeWeight, visible:$visible, zIndex:$zIndex}';
   }
 }
@@ -771,7 +771,7 @@ class GGroundOverlay {
   final GoogleMapsJsBridge _bridge;
 
   Future<void> _createGroundOverlay(GGroundOverlayOptions? opts) async {
-    final String url = opts?.url ?? "''";
+    final String url = jsonEncode(opts?.url ?? '');
     final String bounds = opts?.bounds ?? '{}';
     final String command =
         'var ${toString()} = new google.maps.GroundOverlay($url, $bounds, $opts);'
@@ -831,8 +831,7 @@ class GGroundOverlayOptions {
   /// GGroundOverlayOptions Constructor.
   GGroundOverlayOptions();
 
-  /// The image URL passed to the JS GroundOverlay constructor, already quoted
-  /// as a JS string literal (e.g. `'data:image/png;base64,...'`).
+  /// The image URL passed to the JS GroundOverlay constructor.
   String? url;
 
   /// The bounds passed to the JS GroundOverlay constructor as a JS object

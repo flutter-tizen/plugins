@@ -509,7 +509,7 @@ util.GGroundOverlayOptions? _groundOverlayOptionsFromGroundOverlay(
     return null;
   }
   return util.GGroundOverlayOptions()
-    ..url = "'$imageUrl'"
+    ..url = imageUrl
     ..bounds =
         '{south:${bounds.southwest.latitude},'
         ' west:${bounds.southwest.longitude},'

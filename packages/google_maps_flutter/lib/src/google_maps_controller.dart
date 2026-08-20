@@ -147,36 +147,46 @@ class GoogleMapsController {
     _webview = WebViewWidget(controller: _bridge.controller);
   }
 
+  // Events already queued when dispose() runs can still be delivered, and the
+  // subscription discards the returned Future, so guard and catch here rather
+  // than in each handler.
   Future<void> _onJsEvent(MapsJsEvent event) async {
-    switch (event.type) {
-      case MapsJsEventType.boundsChanged:
-        await _onBoundsChanged();
-      case MapsJsEventType.idle:
-        _onIdle();
-      case MapsJsEventType.tilesLoaded:
-        _onTilesloaded();
-      case MapsJsEventType.click:
-        _onClick(event.message!);
-      case MapsJsEventType.longPress:
-        _onLongPress(event.message!);
-      case MapsJsEventType.markerClick:
-        _onMarkerClick(event.message!);
-      case MapsJsEventType.clusterClick:
-        _onClusterClick(event.message!);
-      case MapsJsEventType.markerDragStart:
-        _onMarkerDragStart(event.message!);
-      case MapsJsEventType.markerDrag:
-        _onMarkerDrag(event.message!);
-      case MapsJsEventType.markerDragEnd:
-        _onMarkerDragEnd(event.message!);
-      case MapsJsEventType.polylineClick:
-        _onPolylineClick(event.message!);
-      case MapsJsEventType.polygonClick:
-        _onPolygonClick(event.message!);
-      case MapsJsEventType.circleClick:
-        _onCircleClick(event.message!);
-      case MapsJsEventType.groundOverlayClick:
-        _onGroundOverlayClick(event.message!);
+    if (_streamController.isClosed) {
+      return;
+    }
+    try {
+      switch (event.type) {
+        case MapsJsEventType.boundsChanged:
+          await _onBoundsChanged();
+        case MapsJsEventType.idle:
+          _onIdle();
+        case MapsJsEventType.tilesLoaded:
+          _onTilesloaded();
+        case MapsJsEventType.click:
+          _onClick(event.message!);
+        case MapsJsEventType.longPress:
+          _onLongPress(event.message!);
+        case MapsJsEventType.markerClick:
+          _onMarkerClick(event.message!);
+        case MapsJsEventType.clusterClick:
+          _onClusterClick(event.message!);
+        case MapsJsEventType.markerDragStart:
+          _onMarkerDragStart(event.message!);
+        case MapsJsEventType.markerDrag:
+          _onMarkerDrag(event.message!);
+        case MapsJsEventType.markerDragEnd:
+          _onMarkerDragEnd(event.message!);
+        case MapsJsEventType.polylineClick:
+          _onPolylineClick(event.message!);
+        case MapsJsEventType.polygonClick:
+          _onPolygonClick(event.message!);
+        case MapsJsEventType.circleClick:
+          _onCircleClick(event.message!);
+        case MapsJsEventType.groundOverlayClick:
+          _onGroundOverlayClick(event.message!);
+      }
+    } catch (e) {
+      debugPrint('JavaScript Error: $e');
     }
   }
 
@@ -470,7 +480,12 @@ class GoogleMapsController {
   Future<void> init() async {
     if (_webview == null && !_streamController.isClosed) {
       _getWebview();
-      await _bridge.load();
+      if (!await _bridge.load()) {
+        return;
+      }
+      if (_streamController.isClosed) {
+        return;
+      }
       await _createMap();
     }
     await _attachGeometryControllers();

@@ -157,8 +157,9 @@ class GoogleMapsJsBridge {
 
   /// Loads the map HTML shell and wires up the JS→Dart event channels.
   ///
-  /// Completes once the page has finished loading.
-  Future<void> load() {
+  /// Completes with `true` once the page has finished loading, or with
+  /// `false` if this bridge was disposed before that happened.
+  Future<bool> load() {
     String path = Platform.environment['AUL_ROOT_PATH'] ?? '';
     path += '/res/flutter_assets/assets/map.html';
     controller
@@ -319,6 +320,11 @@ class GoogleMapsJsBridge {
 
   /// Releases the resources held by this bridge.
   void dispose() {
+    // Unblocks a `load()` awaiting a page-finished callback that will never
+    // arrive, which would otherwise hang forever and leak the controller graph.
+    if (!_pageFinished.isCompleted) {
+      _pageFinished.complete(false);
+    }
     _events.close();
   }
 }
