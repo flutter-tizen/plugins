@@ -10,8 +10,8 @@ import 'src/maps_controller.dart' as maps_controller;
 
 /// Recombine all test files in `src` into a single test app.
 ///
-/// This is done to ensure that all the integration tests run in the same FTL app,
-/// rather than spinning multiple different tasks.
+/// This is done to ensure that all the integration tests run in the same FTL
+/// app, rather than spinning multiple different tasks.
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
