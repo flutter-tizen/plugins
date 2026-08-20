@@ -91,10 +91,11 @@ class _HlsRomoteVideoState extends State<_HlsRomoteVideo> {
       setState(() {});
     });
     _controller.setLooping(true);
-    _controller.initialize().then((_) {
+    _controller.initialize().then((_) async {
       setState(() {});
       // Optional
-      _controller.getActiveTrackInfo();
+      final List<Track> activateTracks = await _controller.getActiveTrackInfo();
+      print('[getActivateTrackInfo()] result: $activateTracks');
     });
     _controller.play();
   }
@@ -184,6 +185,7 @@ class _DashRomoteVideoState extends State<_DashRomoteVideo> {
       _controller
           .getStreamingProperty(StreamingPropertyType.subtitleStreamInfo);
       _controller.getStreamingProperty(StreamingPropertyType.videoStreamInfo);
+
       _controller.getData(<DashPlayerProperty>{DashPlayerProperty.httpHeader});
     });
     _controller.play();

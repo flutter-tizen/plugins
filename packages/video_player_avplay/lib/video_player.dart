@@ -921,14 +921,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       return '';
     }
 
-    final Future<String> streamingProperty =
-        _videoPlayerPlatform.getStreamingProperty(_playerId, type);
-    await streamingProperty.then((String result) {
-      // ignore: avoid_print
-      print('[getStreamingProperty()] type: $type, result: $result');
-    });
-
-    return streamingProperty;
+    return _videoPlayerPlatform.getStreamingProperty(_playerId, type);
   }
 
   /// Sets specific feature values for HTTP, MMS, or specific streaming engine (Smooth Streaming, HLS, DASH, DivX Plus Streaming, or Widevine).
@@ -1049,14 +1042,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       return <DashPlayerProperty, Object>{};
     }
 
-    final Future<Map<DashPlayerProperty, Object>> data =
-        _videoPlayerPlatform.getData(playerId, keys);
-    await data.then((Object result) {
-      // ignore: avoid_print
-      print('[getData()] result: \n$result');
-    });
-
-    return data;
+    return _videoPlayerPlatform.getData(playerId, keys);
   }
 
   /// Updates the authentication token for the current DASH video stream.
@@ -1095,14 +1081,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       return <Track>[];
     }
 
-    final Future<List<Track>> activeTracks =
-        _videoPlayerPlatform.getActiveTrackInfo(playerId);
-    await activeTracks.then((List<Track> result) {
-      // ignore: avoid_print
-      print('[getActiveTrackInfo()] result: $result');
-    });
-
-    return activeTracks;
+    return _videoPlayerPlatform.getActiveTrackInfo(playerId);
   }
 
   /// Sets the playback speed of [this].
@@ -1634,10 +1613,13 @@ class ClosedCaption extends StatelessWidget {
           width: pictureCaption.pictureWidth,
           height: pictureCaption.pictureHeight, errorBuilder:
               (BuildContext context, Object error, StackTrace? stackTrace) {
-        // ignore: avoid_print
-        print('[ClosedCaption] Image.memory error: $error');
-        // ignore: avoid_print
-        print('[ClosedCaption] StackTrace: $stackTrace');
+        FlutterError.reportError(
+          FlutterErrorDetails(
+            exception: error,
+            stack: stackTrace,
+            context: ErrorDescription('while decoding a closed caption image'),
+          ),
+        );
 
         return const Text('');
       });
