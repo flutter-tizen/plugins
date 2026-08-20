@@ -485,7 +485,10 @@ class VideoPlayerVideoholeFFIApi {
     }
     final ptr = bindings._ffiGetDuration(playerId);
     if (ptr == ffi.nullptr) {
-      throw Exception('FFI getDuration failed - returned null pointer');
+      throw PlatformException(
+        code: 'FFI_GET_DURATION_FAILED',
+        message: 'FFI getDuration failed - returned null pointer',
+      );
     }
     try {
       final bytes = ptr.cast<ffi.Uint8>();
@@ -495,7 +498,10 @@ class VideoPlayerVideoholeFFIApi {
       }
       final jsonString = utf8.decode(bytes.asTypedList(length));
       if (jsonString == '-1') {
-        throw Exception('FFI getDuration failed');
+        throw PlatformException(
+          code: 'FFI_GET_DURATION_FAILED',
+          message: 'FFI getDuration failed',
+        );
       }
       return DurationMessage.fromJson(jsonString);
     } finally {
@@ -577,7 +583,10 @@ class VideoPlayerVideoholeFFIApi {
     try {
       ptr = bindings._ffiGetTrackInfo(playerId, trackTypePtr);
       if (ptr == ffi.nullptr) {
-        throw Exception('FFI getTrackInfo failed - returned null pointer');
+        throw PlatformException(
+          code: 'FFI_GET_TRACK_INFO_FAILED',
+          message: 'FFI getTrackInfo failed - returned null pointer',
+        );
       }
       final bytes = ptr.cast<ffi.Uint8>();
       int length = 0;
@@ -586,7 +595,10 @@ class VideoPlayerVideoholeFFIApi {
       }
       final jsonString = utf8.decode(bytes.asTypedList(length));
       if (jsonString == '-1') {
-        throw Exception('FFI getTrackInfo failed');
+        throw PlatformException(
+          code: 'FFI_GET_TRACK_INFO_FAILED',
+          message: 'FFI getTrackInfo failed',
+        );
       }
       return TrackMessage.fromJson(jsonString);
     } finally {
@@ -667,7 +679,10 @@ void ffiInitializeApiDL() {
         debugPrint('Dart API DL initialized successfully');
       } else {
         debugPrint('Dart API DL initialization failed with code: $result');
-        throw Exception('Dart API DL initialization failed');
+        throw PlatformException(
+          code: 'FFI_API_DL_INITIALIZATION_FAILED',
+          message: 'Dart API DL initialization failed',
+        );
       }
     }
   } catch (e) {

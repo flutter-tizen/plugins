@@ -1,4 +1,4 @@
-// Copyright 2023 Samsung Electronics Co., Ltd. All rights reserved.
+// Copyright 2026 Samsung Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -23,47 +23,53 @@
 #include <variant>
 
 #include "video_player_options.h"
+#include "video_player_tizen_plugin.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// ===== FFI function declarations =====
-
-int ffi_initialize();
-int64_t ffi_create(const char* create_message_json);
-int ffi_prepare(int64_t player_id);
-int ffi_dispose(int64_t player_id);
-int ffi_play(int64_t player_id);
-int ffi_pause(int64_t player_id);
-int ffi_seek_to(int64_t player_id, int64_t position_ms);
-int64_t ffi_get_position(int64_t player_id);
-const char* ffi_get_duration(int64_t player_id);
-int ffi_set_volume(int64_t player_id, double volume);
-int ffi_set_playback_speed(int64_t player_id, double speed);
-int ffi_set_looping(int64_t player_id, bool is_looping);
-const char* ffi_get_track_info(int64_t player_id, const char* track_type);
-int ffi_set_track_selection(int64_t player_id, int64_t track_id,
-                            const char* track_type);
-int ffi_set_display_geometry(int64_t player_id, int32_t x, int32_t y,
-                             int32_t width, int32_t height);
-int ffi_set_display_rotate(int64_t player_id, int32_t rotation);
-int ffi_suspend(int64_t player_id);
-int ffi_restore(int64_t player_id, const char* create_message_json,
-                int64_t resume_time);
-int ffi_set_activate(int64_t player_id);
-int ffi_set_deactivate(int64_t player_id);
-int ffi_set_mix_with_others(bool mix_with_others);
+FLUTTER_PLUGIN_EXPORT int ffi_initialize();
+FLUTTER_PLUGIN_EXPORT int64_t ffi_create(const char* create_message_json);
+FLUTTER_PLUGIN_EXPORT int ffi_prepare(int64_t player_id);
+FLUTTER_PLUGIN_EXPORT int ffi_dispose(int64_t player_id);
+FLUTTER_PLUGIN_EXPORT int ffi_play(int64_t player_id);
+FLUTTER_PLUGIN_EXPORT int ffi_pause(int64_t player_id);
+FLUTTER_PLUGIN_EXPORT int ffi_seek_to(int64_t player_id, int64_t position_ms);
+FLUTTER_PLUGIN_EXPORT int64_t ffi_get_position(int64_t player_id);
+FLUTTER_PLUGIN_EXPORT const char* ffi_get_duration(int64_t player_id);
+FLUTTER_PLUGIN_EXPORT int ffi_set_volume(int64_t player_id, double volume);
+FLUTTER_PLUGIN_EXPORT int ffi_set_playback_speed(int64_t player_id,
+                                                 double speed);
+FLUTTER_PLUGIN_EXPORT int ffi_set_looping(int64_t player_id, bool is_looping);
+FLUTTER_PLUGIN_EXPORT const char* ffi_get_track_info(int64_t player_id,
+                                                     const char* track_type);
+FLUTTER_PLUGIN_EXPORT int ffi_set_track_selection(int64_t player_id,
+                                                  int64_t track_id,
+                                                  const char* track_type);
+FLUTTER_PLUGIN_EXPORT int ffi_set_display_geometry(int64_t player_id, int32_t x,
+                                                   int32_t y, int32_t width,
+                                                   int32_t height);
+FLUTTER_PLUGIN_EXPORT int ffi_set_display_rotate(int64_t player_id,
+                                                 int32_t rotation);
+FLUTTER_PLUGIN_EXPORT int ffi_suspend(int64_t player_id);
+FLUTTER_PLUGIN_EXPORT int ffi_restore(int64_t player_id,
+                                      const char* create_message_json,
+                                      int64_t resume_time);
+FLUTTER_PLUGIN_EXPORT int ffi_set_activate(int64_t player_id);
+FLUTTER_PLUGIN_EXPORT int ffi_set_deactivate(int64_t player_id);
+FLUTTER_PLUGIN_EXPORT int ffi_set_mix_with_others(bool mix_with_others);
 
 // Dispose all players (called when plugin is destroyed)
+// Internal function - called from C++ plugin destructor, not exported
 void ffi_dispose_all_players();
 
 // FFI event port functions
-int ffi_initialize_api_dl(void* data);
-void ffi_register_event_port(int64_t port);
-void ffi_unregister_event_port();
+FLUTTER_PLUGIN_EXPORT int ffi_initialize_api_dl(void* data);
+FLUTTER_PLUGIN_EXPORT void ffi_register_dart_port(int64_t port);
+FLUTTER_PLUGIN_EXPORT void ffi_unregister_dart_port();
 
-void ffi_free_string(char* ptr);
+FLUTTER_PLUGIN_EXPORT void ffi_free_string(char* ptr);
 
 #ifdef __cplusplus
 }  // extern "C"
@@ -72,7 +78,6 @@ void ffi_free_string(char* ptr);
 
 namespace video_player_videohole_tizen {
 
-// CreateMessage - player creation parameters (used by FFI create/restore)
 class CreateMessage {
  public:
   CreateMessage() = default;

@@ -1,4 +1,4 @@
-// Copyright 2023 Samsung Electronics Co., Ltd. All rights reserved.
+// Copyright 2026 Samsung Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -159,18 +159,25 @@ int ffi_initialize() {
 
 // Dispose all players - called when plugin is destroyed
 void ffi_dispose_all_players() {
-  std::unique_lock<std::shared_mutex> lock(
-      video_player_videohole_tizen::g_players_mutex);
-  for (auto& [id, player] : video_player_videohole_tizen::g_players) {
+  using namespace video_player_videohole_tizen;
+
+  std::vector<std::shared_ptr<VideoPlayer>> players_to_dispose;
+  {
+    std::unique_lock<std::shared_mutex> lock(g_players_mutex);
+    for (auto& [id, player] : g_players) {
+      players_to_dispose.push_back(player);
+    }
+    g_players.clear();
+  }
+
+  for (auto& player : players_to_dispose) {
     player->Dispose();
   }
-  video_player_videohole_tizen::g_players.clear();
 
-  // Also unregister the Dart port
-  video_player_videohole_tizen::UnregisterDartPort();
+  UnregisterDartPort();
 
-  video_player_videohole_tizen::g_registrar_ref = nullptr;
-  video_player_videohole_tizen::g_plugin_registrar = nullptr;
+  g_registrar_ref = nullptr;
+  g_plugin_registrar = nullptr;
 
   LOG_INFO(
       "[FFI] All players disposed, Dart port unregistered, registrar refs "
@@ -226,12 +233,21 @@ int ffi_prepare(int64_t player_id) {
 
 int ffi_dispose(int64_t player_id) {
   using namespace video_player_videohole_tizen;
-  std::unique_lock<std::shared_mutex> lock(g_players_mutex);
-  auto iter = g_players.find(player_id);
-  if (iter != g_players.end()) {
-    iter->second->Dispose();
-    g_players.erase(iter);
+  std::shared_ptr<VideoPlayer> player;
+
+  {
+    std::unique_lock<std::shared_mutex> lock(g_players_mutex);
+    auto iter = g_players.find(player_id);
+    if (iter != g_players.end()) {
+      player = iter->second;
+      g_players.erase(iter);
+    }
   }
+
+  if (player) {
+    player->Dispose();
+  }
+
   return 0;
 }
 
@@ -417,19 +433,6 @@ int ffi_initialize_api_dl(void* data) {
     return -1;
   }
   return 0;
-}
-
-static int64_t g_legacy_dart_port = -1;
-static std::mutex g_legacy_dart_port_mutex;
-
-void ffi_register_event_port(int64_t port) {
-  std::lock_guard<std::mutex> lock(g_legacy_dart_port_mutex);
-  g_legacy_dart_port = port;
-}
-
-void ffi_unregister_event_port() {
-  std::lock_guard<std::mutex> lock(g_legacy_dart_port_mutex);
-  g_legacy_dart_port = -1;
 }
 
 void ffi_free_string(char* ptr) {

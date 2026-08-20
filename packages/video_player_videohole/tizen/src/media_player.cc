@@ -198,6 +198,8 @@ int MediaPlayer::Prepare() {
 }
 
 void MediaPlayer::Dispose() {
+  MarkDisposed();
+
   if (!player_) {
     return;
   }
@@ -692,13 +694,16 @@ bool MediaPlayer::StopAndDestroy() {
     return false;
   }
 
+  bool success = true;
   is_buffering_ = false;
+  on_seek_completed_ = nullptr;
+
   player_state_e player_state = PLAYER_STATE_NONE;
   int ret = player_get_state(player_, &player_state);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[MediaPlayer] player_get_state failed: %s.",
               get_error_message(ret));
-    return false;
+    success = false;
   }
 
   if (drm_manager_) {
@@ -709,14 +714,14 @@ bool MediaPlayer::StopAndDestroy() {
       player_state == PLAYER_STATE_PAUSED) {
     if (player_stop(player_) != PLAYER_ERROR_NONE) {
       LOG_ERROR("[MediaPlayer] Player fail to stop.");
-      return false;
+      success = false;
     }
   }
 
   if (player_state != PLAYER_STATE_NONE && player_state != PLAYER_STATE_IDLE) {
     if (player_unprepare(player_) != PLAYER_ERROR_NONE) {
       LOG_ERROR("[MediaPlayer] Player fail to unprepare.");
-      return false;
+      success = false;
     }
   }
 
@@ -727,11 +732,11 @@ bool MediaPlayer::StopAndDestroy() {
 
   if (player_destroy(player_) != PLAYER_ERROR_NONE) {
     LOG_ERROR("[MediaPlayer] Player fail to destroy.");
-    return false;
+    success = false;
   }
   player_ = nullptr;
 
-  return true;
+  return success;
 }
 
 bool MediaPlayer::Suspend() {
@@ -919,6 +924,11 @@ void MediaPlayer::OnPrepared(void *user_data) {
   LOG_INFO("[MediaPlayer] Player prepared.");
 
   MediaPlayer *self = static_cast<MediaPlayer *>(user_data);
+
+  if (self->IsDisposed()) {
+    LOG_DEBUG("[MediaPlayer] OnPrepared: player disposed, dropping callback");
+    return;
+  }
 
   // Reset event dispatch state for restored player
   if (self->is_restored_) {

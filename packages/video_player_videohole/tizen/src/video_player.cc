@@ -207,19 +207,27 @@ VideoPlayer::VideoPlayer(flutter::BinaryMessenger* messenger,
 }
 
 VideoPlayer::~VideoPlayer() {
-  // Mark event dispatch state as disposed and cancel pending event source
-  if (event_dispatch_state_) {
+  MarkDisposed();
+  main_context_.reset();
+}
+
+void VideoPlayer::MarkDisposed() {
+  if (!event_dispatch_state_) {
+    return;
+  }
+
+  guint pending_source_id = 0;
+  {
     std::lock_guard<std::mutex> lock(event_dispatch_state_->mutex);
     event_dispatch_state_->disposed = true;
     event_dispatch_state_->player = nullptr;
-
-    if (event_dispatch_state_->pending_source_id != 0) {
-      g_source_remove(event_dispatch_state_->pending_source_id);
-      event_dispatch_state_->pending_source_id = 0;
-    }
+    pending_source_id = event_dispatch_state_->pending_source_id;
+    event_dispatch_state_->pending_source_id = 0;
   }
 
-  main_context_.reset();
+  if (pending_source_id != 0) {
+    g_source_remove(pending_source_id);
+  }
 }
 
 void VideoPlayer::ResetEventDispatchState() {

@@ -26,15 +26,19 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     // Use FFI for initialization (synchronous call)
     final int result = _ffiApi.initialize();
     if (result != 0) {
-      throw Exception('FFI initialize failed with code: $result');
+      throw PlatformException(
+        code: 'FFI_INITIALIZE_FAILED',
+        message: 'FFI initialize failed with code: $result',
+      );
     }
   }
 
   @override
   Future<void> dispose(int playerId) async {
     // Close the StreamController for this player
-    final StreamController<VideoEvent>? controller =
-        _eventControllers.remove(playerId);
+    final StreamController<VideoEvent>? controller = _eventControllers.remove(
+      playerId,
+    );
     if (controller != null && !controller.isClosed) {
       await controller.close();
     }
@@ -79,7 +83,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     final int playerId = _ffiApi.create(message);
 
     if (playerId < 0) {
-      throw Exception('FFI create failed with code: $playerId');
+      throw PlatformException(
+        code: 'FFI_CREATE_FAILED',
+        message: 'FFI create failed with code: $playerId',
+      );
     }
 
     // Phase 2: Register global Dart port (only needs to be done once)
@@ -93,7 +100,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   Future<void> prepare(int playerId) async {
     final int result = _ffiApi.prepare(playerId);
     if (result < 0) {
-      throw Exception('FFI prepare failed with code: $result');
+      throw PlatformException(
+        code: 'FFI_PREPARE_FAILED',
+        message: 'FFI prepare failed with code: $result',
+      );
     }
   }
 
@@ -127,10 +137,12 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
             if (controller != null && !controller.isClosed) {
               // Handle error events by adding them as stream errors
               if (eventMap['event'] == 'error') {
-                controller.addError(PlatformException(
-                  code: eventMap['code'] as String? ?? 'unknown',
-                  message: eventMap['message'] as String?,
-                ));
+                controller.addError(
+                  PlatformException(
+                    code: eventMap['code'] as String? ?? 'unknown',
+                    message: eventMap['message'] as String?,
+                  ),
+                );
                 return;
               }
               final VideoEvent videoEvent = _parseVideoEventFromMap(eventMap);
@@ -154,7 +166,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     // Use FFI for setLooping (synchronous call)
     final int result = _ffiApi.setLooping(playerId, looping);
     if (result != 0) {
-      throw Exception('FFI setLooping failed with code: $result');
+      throw PlatformException(
+        code: 'FFI_SET_LOOPING_FAILED',
+        message: 'FFI setLooping failed with code: $result',
+      );
     }
   }
 
@@ -163,7 +178,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     // Use FFI for play (synchronous call)
     final int result = _ffiApi.play(playerId);
     if (result != 0) {
-      throw Exception('FFI play failed with code: $result');
+      throw PlatformException(
+        code: 'FFI_PLAY_FAILED',
+        message: 'FFI play failed with code: $result',
+      );
     }
   }
 
@@ -172,7 +190,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     // Use FFI for setActivate (synchronous call)
     final int result = _ffiApi.setActivate(playerId);
     if (result != 0) {
-      throw Exception('FFI setActivate failed with code: $result');
+      throw PlatformException(
+        code: 'FFI_SET_ACTIVATE_FAILED',
+        message: 'FFI setActivate failed with code: $result',
+      );
     }
     return true;
   }
@@ -182,7 +203,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     // Use FFI for setDeactivate (synchronous call)
     final int result = _ffiApi.setDeactivate(playerId);
     if (result != 0) {
-      throw Exception('FFI setDeactivate failed with code: $result');
+      throw PlatformException(
+        code: 'FFI_SET_DEACTIVATE_FAILED',
+        message: 'FFI setDeactivate failed with code: $result',
+      );
     }
     return true;
   }
@@ -192,7 +216,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     // Use FFI for pause (synchronous call)
     final int result = _ffiApi.pause(playerId);
     if (result != 0) {
-      throw Exception('FFI pause failed with code: $result');
+      throw PlatformException(
+        code: 'FFI_PAUSE_FAILED',
+        message: 'FFI pause failed with code: $result',
+      );
     }
   }
 
@@ -201,7 +228,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     // Use FFI for setVolume (synchronous call)
     final int result = _ffiApi.setVolume(playerId, volume);
     if (result != 0) {
-      throw Exception('FFI setVolume failed with code: $result');
+      throw PlatformException(
+        code: 'FFI_SET_VOLUME_FAILED',
+        message: 'FFI setVolume failed with code: $result',
+      );
     }
   }
 
@@ -211,7 +241,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     assert(speed > 0);
     final int result = _ffiApi.setPlaybackSpeed(playerId, speed);
     if (result != 0) {
-      throw Exception('FFI setPlaybackSpeed failed with code: $result');
+      throw PlatformException(
+        code: 'FFI_SET_PLAYBACK_SPEED_FAILED',
+        message: 'FFI setPlaybackSpeed failed with code: $result',
+      );
     }
   }
 
@@ -220,7 +253,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     // Use FFI for seekTo (synchronous call)
     final int result = _ffiApi.seekTo(playerId, position.inMilliseconds);
     if (result != 0) {
-      throw Exception('FFI seekTo failed with code: $result');
+      throw PlatformException(
+        code: 'FFI_SEEK_TO_FAILED',
+        message: 'FFI seekTo failed with code: $result',
+      );
     }
   }
 
@@ -296,7 +332,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       track.trackType.name,
     );
     if (result != 0) {
-      throw Exception('FFI setTrackSelection failed with code: $result');
+      throw PlatformException(
+        code: 'FFI_SET_TRACK_SELECTION_FAILED',
+        message: 'FFI setTrackSelection failed with code: $result',
+      );
     }
     return true;
   }
@@ -316,7 +355,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     // Use FFI for getPosition (synchronous call)
     final int positionMs = _ffiApi.getPosition(playerId);
     if (positionMs < 0) {
-      throw Exception('FFI getPosition failed with code: $positionMs');
+      throw PlatformException(
+        code: 'FFI_GET_POSITION_FAILED',
+        message: 'FFI getPosition failed with code: $positionMs',
+      );
     }
     return Duration(milliseconds: positionMs);
   }
@@ -337,10 +379,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
     // Return the stream for this specific player
     return _eventControllers
-        .putIfAbsent(
-          playerId,
-          () => StreamController<VideoEvent>.broadcast(),
-        )
+        .putIfAbsent(playerId, () => StreamController<VideoEvent>.broadcast())
         .stream;
   }
 
@@ -403,7 +442,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     // Use FFI for setMixWithOthers (synchronous call)
     final int result = _ffiApi.setMixWithOthers(mixWithOthers);
     if (result != 0) {
-      throw Exception('FFI setMixWithOthers failed with code: $result');
+      throw PlatformException(
+        code: 'FFI_SET_MIX_WITH_OTHERS_FAILED',
+        message: 'FFI setMixWithOthers failed with code: $result',
+      );
     }
   }
 
@@ -416,10 +458,18 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     int height,
   ) async {
     // Use FFI for setDisplayGeometry (synchronous call)
-    final int result =
-        _ffiApi.setDisplayGeometry(playerId, x, y, width, height);
+    final int result = _ffiApi.setDisplayGeometry(
+      playerId,
+      x,
+      y,
+      width,
+      height,
+    );
     if (result != 0) {
-      throw Exception('FFI setDisplayGeometry failed with code: $result');
+      throw PlatformException(
+        code: 'FFI_SET_DISPLAY_GEOMETRY_FAILED',
+        message: 'FFI setDisplayGeometry failed with code: $result',
+      );
     }
   }
 
@@ -428,7 +478,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     // Use FFI for suspend (synchronous call)
     final int result = _ffiApi.suspend(playerId);
     if (result != 0) {
-      throw Exception('FFI suspend failed with code: $result');
+      throw PlatformException(
+        code: 'FFI_SUSPEND_FAILED',
+        message: 'FFI suspend failed with code: $result',
+      );
     }
   }
 
@@ -464,7 +517,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     // FFI restore returns 0 on success, -1 on failure
     final int result = _ffiApi.restore(playerId, message, resumeTime);
     if (result != 0) {
-      throw Exception('FFI restore failed with code: $result');
+      throw PlatformException(
+        code: 'FFI_RESTORE_FAILED',
+        message: 'FFI restore failed with code: $result',
+      );
     }
     // Player ID remains unchanged, no StreamController update needed
   }
@@ -474,16 +530,19 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     // Use FFI for setDisplayRotate (synchronous call)
     final int result = _ffiApi.setDisplayRotate(playerId, rotation.index);
     if (result != 0) {
-      throw Exception('FFI setDisplayRotate failed with code: $result');
+      throw PlatformException(
+        code: 'FFI_SET_DISPLAY_ROTATE_FAILED',
+        message: 'FFI setDisplayRotate failed with code: $result',
+      );
     }
     return true;
   }
 
   static const Map<VideoFormat, String> _videoFormatStringMap =
       <VideoFormat, String>{
-    VideoFormat.ss: 'ss',
-    VideoFormat.hls: 'hls',
-    VideoFormat.dash: 'dash',
-    VideoFormat.other: 'other',
-  };
+        VideoFormat.ss: 'ss',
+        VideoFormat.hls: 'hls',
+        VideoFormat.dash: 'dash',
+        VideoFormat.other: 'other',
+      };
 }

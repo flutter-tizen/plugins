@@ -92,6 +92,9 @@ class VideoPlayer {
   // Check if player is disposed (for use in callbacks)
   bool IsDisposed() const;
 
+  // Mark player as disposed (called from Dispose() and destructor)
+  void MarkDisposed();
+
   int64_t player_id_;  // Store player ID for event routing
   std::mutex queue_mutex_;
   std::unique_ptr<EcoreWl2WindowProxy> ecore_wl2_window_proxy_ = nullptr;
