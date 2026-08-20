@@ -1,5 +1,6 @@
 ## NEXT
 
+* Update analysis_options.yaml for Flutter 3.47.0.
 * Update integration tests.
 
 ## 1.3.0

@@ -1,3 +1,7 @@
+## NEXT
+
+* Update analysis_options.yaml for Flutter 3.47.0.
+
 ## 3.1.5
 
 * Reset the play position to 0 after `stop` (best-effort) to match other platforms.

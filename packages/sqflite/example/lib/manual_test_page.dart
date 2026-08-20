@@ -128,13 +128,9 @@ class _ManualTestPageState extends State<ManualTestPage> {
       SqfMenuItem('transaction add and query', () async {
         await _addAndQuery();
       }, summary: 'open/create table/add/query'),
-      SqfMenuItem(
-        'transaction add and query and pause',
-        () async {
-          await _addAndQuery(msDelay: 5000);
-        },
-        summary: 'open/create table/add/query/pause',
-      ),
+      SqfMenuItem('transaction add and query and pause', () async {
+        await _addAndQuery(msDelay: 5000);
+      }, summary: 'open/create table/add/query/pause'),
       SqfMenuItem(
         'transaction add and query and pause no synchronized',
         () async {
@@ -391,13 +387,9 @@ class _SimpleDbTestPageState extends State<SimpleDbTestPage> {
               await db.insert('test', {'value': 'some_value'});
               await countRecord();
             }, summary: 'Add one record. Open the database if needed'),
-            menuItem(
-              'Count record',
-              () async {
-                await countRecord();
-              },
-              summary: 'Count records. Open the database if needed',
-            ),
+            menuItem('Count record', () async {
+              await countRecord();
+            }, summary: 'Count records. Open the database if needed'),
             menuItem('Close Database', () async {
               await _closeDatabase();
             }),

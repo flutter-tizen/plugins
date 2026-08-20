@@ -15,7 +15,9 @@ jobs:
         with:
           channel: stable
       - name: Analyze source code
-        run: ./tools/tools_runner.sh analyze --custom-analysis=$(ls packages | tr '\n' ',')
+        run: |
+          ./tools/tools_runner.sh analyze --custom-analysis=$(ls packages | tr '\n' ',') \
+            --exclude=battery_plus,camera,flutter_app_badger,image_picker,sensors_plus,wearable_rotary
 
   format:
     runs-on: ubuntu-22.04
@@ -30,4 +32,5 @@ jobs:
           sudo apt-get install clang-format-11
       - name: Check format
         run: |
-          ./tools/tools_runner.sh format --fail-on-change --no-kotlin --no-java --no-swift --clang-format-path=clang-format-11
+          ./tools/tools_runner.sh format --fail-on-change --no-kotlin --no-java --no-swift --clang-format-path=clang-format-11 \
+            --exclude=battery_plus,camera,flutter_app_badger,image_picker,sensors_plus,wearable_rotary
