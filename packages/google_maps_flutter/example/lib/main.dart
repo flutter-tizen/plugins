@@ -55,8 +55,10 @@ class MapsDemo extends StatelessWidget {
   void _pushPage(BuildContext context, GoogleMapExampleAppPage page) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) =>
-            Scaffold(appBar: AppBar(title: Text(page.title)), body: page),
+        builder: (_) => Scaffold(
+          appBar: AppBar(title: Text(page.title)),
+          body: page,
+        ),
       ),
     );
   }

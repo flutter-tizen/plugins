@@ -440,7 +440,7 @@ class GoogleMapsController {
   void _onCircleClick(String message) {
     try {
       final dynamic id = json.decode(message);
-      if (_polygonsController != null && id is int) {
+      if (_circlesController != null && id is int) {
         final CircleId? circleId = _circlesController!._idToCircleId[id];
         final CircleController? circle =
             _circlesController!._circleIdToController[circleId];

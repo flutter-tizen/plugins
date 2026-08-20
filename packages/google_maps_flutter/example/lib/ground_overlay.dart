@@ -11,7 +11,7 @@ import 'page.dart';
 
 class GroundOverlayPage extends GoogleMapExampleAppPage {
   const GroundOverlayPage({Key? key})
-      : super(const Icon(Icons.map), 'Ground overlay', key: key);
+    : super(const Icon(Icons.map), 'Ground overlay', key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -81,10 +81,12 @@ class GroundOverlayBodyState extends State<GroundOverlayBody> {
       return;
     }
     setState(() {
-      final double transparency =
-          _groundOverlay!.transparency == 0.0 ? 0.5 : 0.0;
-      _groundOverlay =
-          _groundOverlay!.copyWith(transparencyParam: transparency);
+      final double transparency = _groundOverlay!.transparency == 0.0
+          ? 0.5
+          : 0.0;
+      _groundOverlay = _groundOverlay!.copyWith(
+        transparencyParam: transparency,
+      );
     });
   }
 
@@ -93,8 +95,9 @@ class GroundOverlayBodyState extends State<GroundOverlayBody> {
       return;
     }
     setState(() {
-      _groundOverlay =
-          _groundOverlay!.copyWith(visibleParam: !_groundOverlay!.visible);
+      _groundOverlay = _groundOverlay!.copyWith(
+        visibleParam: !_groundOverlay!.visible,
+      );
     });
   }
 
