@@ -1,3 +1,9 @@
+## 2.5.13
+
+* Update video_player to 2.14.0.
+* Update video_player_platform_interface to 6.9.0.
+* Updates minimum supported SDK version to Flutter 3.44/Dart 3.12.
+
 ## 2.5.12
 
 * Remove Ecore API.
