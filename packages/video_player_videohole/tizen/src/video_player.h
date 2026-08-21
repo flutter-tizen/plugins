@@ -6,20 +6,31 @@
 #define FLUTTER_PLUGIN_VIDEO_PLAYER_H_
 
 #include <flutter/encodable_value.h>
-#include <flutter/event_channel.h>
 #include <flutter_tizen.h>
 #include <glib.h>
 
+#include <cstdint>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <queue>
 #include <string>
 #include <utility>
 
+// Dart API for sending messages from native code to Dart isolate
+#include <dart_api_dl.h>
+
 #include "ecore_wl2_window_proxy.h"
-#include "messages.h"
+#include "ffi_messages.h"
 
 namespace video_player_videohole_tizen {
+
+// Global Dart port for all player events.
+void RegisterDartPort(int64_t dart_port);
+void UnregisterDartPort();
+
+// Post event to Dart using global port.
+void PostEventToDart(int64_t player_id, const std::string &event_json);
 
 class VideoPlayer {
  public:
@@ -32,7 +43,10 @@ class VideoPlayer {
   virtual ~VideoPlayer();
 
   virtual int64_t Create(const std::string &uri,
-                         const CreateMessage &create_message) = 0;
+                         const CreateMessage &create_message,
+                         bool reuse_existing_id = false) = 0;
+  virtual int
+  Prepare() = 0;  // Two-phase: start player_prepare_async separately
   virtual void Dispose() = 0;
 
   virtual void SetDisplayRoi(int32_t x, int32_t y, int32_t width,
@@ -47,10 +61,13 @@ class VideoPlayer {
   virtual bool SeekTo(int64_t position, SeekCompletedCallback callback) = 0;
   virtual int64_t GetPosition() = 0;
   virtual std::pair<int64_t, int64_t> GetDuration() = 0;
+  virtual bool IsLive() = 0;
   virtual bool IsReady() = 0;
   virtual flutter::EncodableList GetTrackInfo(std::string track_type) = 0;
   virtual bool SetTrackSelection(int32_t track_id, std::string track_type) = 0;
   virtual bool Suspend() = 0;
+  // Restore player state (returns true on success, false on failure)
+  // Player ID remains unchanged after restore
   virtual bool Restore(const CreateMessage *restore_message,
                        int64_t resume_time) = 0;
   virtual bool SetDisplayRotate(int64_t rotation) = 0;
@@ -58,8 +75,6 @@ class VideoPlayer {
  protected:
   virtual void GetVideoSize(int32_t *width, int32_t *height) = 0;
   void *GetWindowHandle();
-  int64_t SetUpEventChannel();
-  void ClearUpEventChannel();
   void SendInitialized();
   void SendBufferingStart();
   void SendBufferingUpdate(int32_t value);
@@ -71,6 +86,16 @@ class VideoPlayer {
   void SendError(const std::string &error_code,
                  const std::string &error_message);
 
+  // Reset event dispatch state for restored player
+  void ResetEventDispatchState();
+
+  // Check if player is disposed (for use in callbacks)
+  bool IsDisposed() const;
+
+  // Mark player as disposed (called from Dispose() and destructor)
+  void MarkDisposed();
+
+  int64_t player_id_;  // Store player ID for event routing
   std::mutex queue_mutex_;
   std::unique_ptr<EcoreWl2WindowProxy> ecore_wl2_window_proxy_ = nullptr;
   flutter::BinaryMessenger *binary_messenger_;
@@ -102,9 +127,6 @@ class VideoPlayer {
 
   std::queue<flutter::EncodableValue> encodable_event_queue_;
   std::queue<std::pair<std::string, std::string>> error_event_queue_;
-  std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
-      event_channel_;
-  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
 };
 
 }  // namespace video_player_videohole_tizen

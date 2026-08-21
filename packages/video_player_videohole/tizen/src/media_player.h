@@ -24,8 +24,9 @@ class MediaPlayer : public VideoPlayer {
                        FlutterDesktopViewRef flutter_view);
   ~MediaPlayer();
 
-  int64_t Create(const std::string &uri,
-                 const CreateMessage &create_message) override;
+  int64_t Create(const std::string &uri, const CreateMessage &create_message,
+                 bool reuse_existing_id = false) override;
+  int Prepare() override;  // Two-phase: start player_prepare_async separately
   void Dispose() override;
 
   void SetDisplayRoi(int32_t x, int32_t y, int32_t width,
