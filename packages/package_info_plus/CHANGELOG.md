@@ -1,6 +1,7 @@
-## NEXT
+## 1.1.1
 
 * Update analysis_options.yaml for Flutter 3.47.0.
+* Update the repository URL to use the `main` branch.
 
 ## 1.1.0
 

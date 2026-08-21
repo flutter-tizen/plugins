@@ -10,7 +10,7 @@ To use this package, add `tizen_log` as a dependency in your `pubspec.yaml` file
 
 ```yaml
 dependencies:
-  tizen_log: ^0.1.2
+  tizen_log: ^0.1.3
 ```
 
 Then you can import `tizen_log` in your Dart code:

@@ -1,6 +1,7 @@
-## NEXT
+## 0.1.4
 
 * Update analysis_options.yaml for Flutter 3.47.0.
+* Update the repository URL to use the `main` branch.
 * Update integration tests based on upstream flutter_secure_storage v10.2.0 (12 test cases).
 * Update integration tests.
 

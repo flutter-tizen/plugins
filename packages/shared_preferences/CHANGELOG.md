@@ -1,5 +1,6 @@
-## NEXT
+## 2.3.4
 
+* Update the repository URL to use the `main` branch.
 * Add 12 integration test cases for the legacy-to-async migration utility.
 * Update integration tests.
 

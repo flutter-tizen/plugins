@@ -21,7 +21,7 @@ This package is not an _endorsed_ implementation of `google_maps_flutter`. There
 ```yaml
 dependencies:
   google_maps_flutter: ^2.16.0
-  google_maps_flutter_tizen: ^0.2.0
+  google_maps_flutter_tizen: ^0.2.1
 ```
 
 For detailed usage, see https://pub.dev/packages/google_maps_flutter#sample-usage.
