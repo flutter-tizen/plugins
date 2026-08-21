@@ -1,3 +1,7 @@
+## 3.1.7
+
+* Add an `implements` entry to the pubspec to improve discoverability on pub.dev.
+
 ## 3.1.6
 
 * Update analysis_options.yaml for Flutter 3.47.0.
