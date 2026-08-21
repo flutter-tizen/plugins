@@ -2,7 +2,7 @@ name: url_launcher_tizen
 description: Tizen implementation of the url_launcher plugin.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/main/packages/url_launcher
-version: 2.1.6
+version: 2.1.7
 
 environment:
   sdk: ^3.6.0
@@ -10,6 +10,7 @@ environment:
 
 flutter:
   plugin:
+    implements: url_launcher
     platforms:
       tizen:
         dartPluginClass: UrlLauncherPlugin

@@ -1,3 +1,7 @@
+## 0.1.7
+
+* Add an `implements` entry to the pubspec to improve discoverability on pub.dev.
+
 ## 0.1.6
 
 * Update integration tests.
