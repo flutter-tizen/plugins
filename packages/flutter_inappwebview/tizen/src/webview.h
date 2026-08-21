@@ -15,6 +15,7 @@
 #include <flutter_platform_view.h>
 
 #include <cstddef>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -83,6 +84,14 @@ class WebView : public PlatformView {
 
   bool InitWebView();
 
+  // Runs an EWK call that starts a navigation the app itself requested
+  // (loadUrl, goBack, reload, ...), marking it as programmatic first so the
+  // next OnNavigationPolicy skips the shouldOverrideUrlLoading round-trip for
+  // it. If `ewk_call` reports the navigation never started, the flag is
+  // cleared immediately instead of leaking into some later, unrelated
+  // navigation. Returns whatever `ewk_call` returned.
+  bool NavigateProgrammatically(const std::function<bool()>& ewk_call);
+
   static void OnFrameRendered(void* data, Evas_Object* obj, void* event_info);
   static void OnLoadStarted(void* data, Evas_Object* obj, void* event_info);
   static void OnLoadFinished(void* data, Evas_Object* obj, void* event_info);
@@ -92,6 +101,7 @@ class WebView : public PlatformView {
   static void OnNavigationPolicy(void* data, Evas_Object* obj,
                                  void* event_info);
   static void OnUrlChange(void* data, Evas_Object* obj, void* event_info);
+  static void OnTitleChange(void* data, Evas_Object* obj, void* event_info);
   static void OnEvaluateJavaScript(Evas_Object* obj, const char* result_value,
                                    void* user_data);
   static Eina_Bool OnJavaScriptAlertDialog(Evas_Object* o, const char* message,
@@ -127,6 +137,12 @@ class WebView : public PlatformView {
   bool texture_registered_ = false;
   bool disposed_ = false;
   Ewk_Mouse_Button_Type mouse_button_type_ = (Ewk_Mouse_Button_Type)0;
+  bool is_programmatic_navigation_ = false;
+  bool is_navigation_cancelled_ = false;
+  std::string committed_url_;
+  std::string url_before_navigation_;
+  int32_t target_scroll_x_ = -1;
+  int32_t target_scroll_y_ = -1;
 
   static std::set<WebView*> instances_;
   static std::mutex instances_mutex_;

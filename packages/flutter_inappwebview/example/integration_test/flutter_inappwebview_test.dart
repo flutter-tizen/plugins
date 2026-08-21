@@ -3,7 +3,9 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -44,11 +46,13 @@ void main() {
   late String firstUrl;
   late String secondUrl;
   late String blockedUrl;
+  late String echoPostUrl;
+  late String slowUrl;
 
   setUpAll(() async {
     server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     unawaited(
-      server.forEach((HttpRequest request) {
+      server.forEach((HttpRequest request) async {
         request.response.headers.contentType = ContentType.html;
         switch (request.uri.path) {
           case '/first':
@@ -57,18 +61,26 @@ void main() {
             request.response.write(_htmlPage('Second page'));
           case '/blocked':
             request.response.write(_htmlPage('Blocked page'));
+          case '/echo-post':
+            final String body = await utf8.decoder.bind(request).join();
+            request.response.write('<html><body><p>$body</p></body></html>');
+          case '/slow':
+            await Future<void>.delayed(const Duration(seconds: 5));
+            request.response.write(_htmlPage('Slow page'));
           case '/favicon.ico':
             request.response.statusCode = HttpStatus.notFound;
           default:
             fail('unexpected request: ${request.method} ${request.uri}');
         }
-        request.response.close();
+        await request.response.close();
       }),
     );
     final String baseUrl = 'http://${server.address.address}:${server.port}';
     firstUrl = '$baseUrl/first';
     secondUrl = '$baseUrl/second';
     blockedUrl = '$baseUrl/blocked';
+    echoPostUrl = '$baseUrl/echo-post';
+    slowUrl = '$baseUrl/slow';
   });
 
   tearDownAll(() => server.close(force: true));
@@ -286,16 +298,378 @@ document.cookie;
     );
     expect(cookieAfter.toString(), isNot(contains('tizen_inappwebview=1')));
   });
+
+  testWidgets('getProgress reports 100 once the page finishes loading', (
+    WidgetTester tester,
+  ) async {
+    final StreamController<String> loadStops =
+        StreamController<String>.broadcast();
+    addTearDown(loadStops.close);
+
+    final InAppWebViewController controller = await _pumpWebView(
+      tester,
+      initialUrl: firstUrl,
+      onLoadStop: (_, WebUri? url) {
+        if (url != null) {
+          loadStops.add(url.toString());
+        }
+      },
+    );
+    await _waitForValue(loadStops.stream, firstUrl);
+
+    expect(await controller.getProgress(), 100);
+  });
+
+  testWidgets('reload reloads the currently displayed page', (
+    WidgetTester tester,
+  ) async {
+    final StreamController<String> loadStops =
+        StreamController<String>.broadcast();
+    addTearDown(loadStops.close);
+
+    final InAppWebViewController controller = await _pumpWebView(
+      tester,
+      initialUrl: firstUrl,
+      onLoadStop: (_, WebUri? url) {
+        if (url != null) {
+          loadStops.add(url.toString());
+        }
+      },
+    );
+    await _waitForValue(loadStops.stream, firstUrl);
+
+    final Future<String> reloaded = loadStops.stream.first.timeout(
+      const Duration(seconds: 10),
+    );
+    await controller.reload();
+    expect(await reloaded, firstUrl);
+  });
+
+  testWidgets('loadUrl navigates to a new URL', (WidgetTester tester) async {
+    final StreamController<String> loadStops =
+        StreamController<String>.broadcast();
+    addTearDown(loadStops.close);
+
+    final InAppWebViewController controller = await _pumpWebView(
+      tester,
+      initialUrl: firstUrl,
+      onLoadStop: (_, WebUri? url) {
+        if (url != null) {
+          loadStops.add(url.toString());
+        }
+      },
+    );
+    await _waitForValue(loadStops.stream, firstUrl);
+
+    final Future<String> secondLoad = _waitForValue(
+      loadStops.stream,
+      secondUrl,
+    );
+    await controller.loadUrl(urlRequest: URLRequest(url: WebUri(secondUrl)));
+    expect(await secondLoad, secondUrl);
+    expect((await controller.getUrl()).toString(), secondUrl);
+  });
+
+  testWidgets('postUrl and loadUrl submit an HTTP POST request body', (
+    WidgetTester tester,
+  ) async {
+    final StreamController<String> loadStops =
+        StreamController<String>.broadcast();
+    addTearDown(loadStops.close);
+
+    final InAppWebViewController controller = await _pumpWebView(
+      tester,
+      onLoadStop: (_, WebUri? url) {
+        if (url != null) {
+          loadStops.add(url.toString());
+        }
+      },
+    );
+
+    final Future<String> firstPost = _waitForValue(
+      loadStops.stream,
+      echoPostUrl,
+    );
+    await controller.postUrl(
+      url: WebUri(echoPostUrl),
+      postData: Uint8List.fromList(utf8.encode('name=postUrl')),
+    );
+    await firstPost;
+    expect(
+      await _waitForCondition(
+        () => controller.evaluateJavascript(
+          source: "document.querySelector('p')?.textContent",
+        ),
+        (Object? value) => value == 'name=postUrl',
+      ),
+      'name=postUrl',
+    );
+
+    final Future<String> secondPost = loadStops.stream.first.timeout(
+      const Duration(seconds: 10),
+    );
+    await controller.loadUrl(
+      urlRequest: URLRequest(
+        url: WebUri(echoPostUrl),
+        method: 'POST',
+        body: Uint8List.fromList(utf8.encode('name=loadUrl')),
+        headers: <String, String>{
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      ),
+    );
+    expect(await secondPost, echoPostUrl);
+    expect(
+      await _waitForCondition(
+        () => controller.evaluateJavascript(
+          source: "document.querySelector('p')?.textContent",
+        ),
+        (Object? value) => value == 'name=loadUrl',
+      ),
+      'name=loadUrl',
+    );
+  });
+
+  testWidgets('loadFile loads a bundled asset file', (
+    WidgetTester tester,
+  ) async {
+    final StreamController<String> loadStops =
+        StreamController<String>.broadcast();
+    addTearDown(loadStops.close);
+
+    final InAppWebViewController controller = await _pumpWebView(
+      tester,
+      onLoadStop: (_, WebUri? url) {
+        if (url != null) {
+          loadStops.add(url.toString());
+        }
+      },
+    );
+
+    final Future<String> fileLoaded = loadStops.stream.firstWhere(
+      (String url) => url.endsWith('load_file_test.html'),
+    );
+    await controller.loadFile(
+      assetFilePath: 'assets/test_assets/load_file_test.html',
+    );
+    await fileLoaded.timeout(const Duration(seconds: 10));
+
+    expect(
+      await _waitForCondition(
+        () => controller.evaluateJavascript(source: "document.title"),
+        (Object? value) => value == 'Load file test',
+      ),
+      'Load file test',
+    );
+    expect(
+      await controller.evaluateJavascript(
+        source: "document.querySelector('h1').textContent",
+      ),
+      'Loaded from asset',
+    );
+  });
+
+  testWidgets('programmatic scroll updates and reports the scroll position', (
+    WidgetTester tester,
+  ) async {
+    final InAppWebViewController controller = await _pumpWebView(tester);
+    await _loadFixture(controller);
+
+    await controller.scrollTo(x: 0, y: 0);
+
+    const int scrollX = 30;
+    const int scrollY = 40;
+    await controller.scrollTo(x: scrollX, y: scrollY);
+    expect(await controller.getScrollX(), scrollX);
+    expect(await controller.getScrollY(), scrollY);
+
+    await controller.scrollBy(x: scrollX, y: scrollY);
+    expect(await controller.getScrollX(), scrollX * 2);
+    expect(await controller.getScrollY(), scrollY * 2);
+  });
+
+  testWidgets('onScrollChanged fires when the scroll position changes', (
+    WidgetTester tester,
+  ) async {
+    final Completer<void> scrollChanged = Completer<void>();
+    final InAppWebViewController controller = await _pumpWebView(
+      tester,
+      onScrollChanged: (_, int x, int y) {
+        if (x == 50 && y == 60 && !scrollChanged.isCompleted) {
+          scrollChanged.complete();
+        }
+      },
+    );
+    await _loadFixture(controller);
+
+    await controller.scrollTo(x: 50, y: 60);
+    await scrollChanged.future.timeout(const Duration(seconds: 10));
+  });
+
+  testWidgets('onTitleChanged fires when document.title changes', (
+    WidgetTester tester,
+  ) async {
+    final Completer<void> titleChanged = Completer<void>();
+    final InAppWebViewController controller = await _pumpWebView(
+      tester,
+      onTitleChanged: (_, String? title) {
+        if (title == 'updated title' && !titleChanged.isCompleted) {
+          titleChanged.complete();
+        }
+      },
+    );
+    await _loadFixture(controller);
+
+    await controller.evaluateJavascript(
+      source: "document.title = 'updated title';",
+    );
+    await titleChanged.future.timeout(const Duration(seconds: 10));
+  });
+
+  testWidgets('stopLoading interrupts an in-flight page load', (
+    WidgetTester tester,
+  ) async {
+    final StreamController<String> loadStops =
+        StreamController<String>.broadcast();
+    addTearDown(loadStops.close);
+
+    await _pumpWebView(
+      tester,
+      initialUrl: slowUrl,
+      onLoadStart: (InAppWebViewController controller, WebUri? url) {
+        controller.stopLoading();
+      },
+      onLoadStop: (_, WebUri? url) {
+        if (url != null) {
+          loadStops.add(url.toString());
+        }
+      },
+    );
+
+    final Future<String> slowLoad = _waitForValue(
+      loadStops.stream,
+      slowUrl,
+      timeout: const Duration(seconds: 2),
+    );
+    await expectLater(slowLoad, throwsA(isA<TimeoutException>()));
+  });
+
+  testWidgets('clearAllCache completes without throwing', (
+    WidgetTester tester,
+  ) async {
+    await expectLater(
+      InAppWebViewController.clearAllCache(includeDiskFiles: true),
+      completes,
+    );
+  });
+
+  testWidgets('zoomBy triggers onZoomScaleChanged', (
+    WidgetTester tester,
+  ) async {
+    final Completer<double> zoomRatio = Completer<double>();
+    final InAppWebViewController controller = await _pumpWebView(
+      tester,
+      onZoomScaleChanged: (_, double oldScale, double newScale) {
+        if (!zoomRatio.isCompleted) {
+          zoomRatio.complete(newScale / oldScale);
+        }
+      },
+    );
+    await _loadFixture(controller);
+
+    await controller.zoomBy(zoomFactor: 2);
+    expect(await zoomRatio.future.timeout(const Duration(seconds: 10)), 2);
+  });
+
+  testWidgets(
+    'onReceivedError reports a host lookup failure for an unresolvable URL',
+    (WidgetTester tester) async {
+      final Completer<WebResourceError> receivedError =
+          Completer<WebResourceError>();
+
+      await _pumpWebView(
+        tester,
+        initialUrl: 'http://this-domain-does-not-exist.invalid/',
+        onReceivedError: (_, WebResourceRequest __, WebResourceError error) {
+          if (!receivedError.isCompleted) {
+            receivedError.complete(error);
+          }
+        },
+      );
+
+      final WebResourceError error = await receivedError.future.timeout(
+        const Duration(seconds: 10),
+      );
+      expect(error.type, WebResourceErrorType.HOST_LOOKUP);
+    },
+  );
+
+  testWidgets('onReceivedError is not raised for a successful page load', (
+    WidgetTester tester,
+  ) async {
+    final StreamController<String> loadStops =
+        StreamController<String>.broadcast();
+    final Completer<void> receivedError = Completer<void>();
+    addTearDown(loadStops.close);
+
+    await _pumpWebView(
+      tester,
+      initialUrl: firstUrl,
+      onLoadStop: (_, WebUri? url) {
+        if (url != null) {
+          loadStops.add(url.toString());
+        }
+      },
+      onReceivedError: (_, WebResourceRequest __, WebResourceError ___) {
+        receivedError.complete();
+      },
+    );
+    await _waitForValue(loadStops.stream, firstUrl);
+
+    await expectLater(
+      receivedError.future.timeout(const Duration(seconds: 1)),
+      throwsA(isA<TimeoutException>()),
+    );
+  });
+
+  testWidgets('setSettings applies updated webview settings', (
+    WidgetTester tester,
+  ) async {
+    final InAppWebViewController controller = await _pumpWebView(tester);
+    await _loadFixture(controller);
+
+    await expectLater(
+      controller.setSettings(
+        settings: InAppWebViewSettings(
+          javaScriptEnabled: true,
+          supportZoom: true,
+        ),
+      ),
+      completes,
+    );
+    expect(
+      await controller.evaluateJavascript(
+        source: "document.querySelector('h1').textContent",
+      ),
+      'Fixture Page',
+    );
+  });
 }
 
 Future<InAppWebViewController> _pumpWebView(
   WidgetTester tester, {
   String initialUrl = 'about:blank',
   InAppWebViewSettings? initialSettings,
+  void Function(InAppWebViewController, WebUri?)? onLoadStart,
   void Function(InAppWebViewController, WebUri?)? onLoadStop,
   void Function(InAppWebViewController, int)? onProgressChanged,
   void Function(InAppWebViewController, ConsoleMessage)? onConsoleMessage,
   void Function(InAppWebViewController, WebUri?, bool?)? onUpdateVisitedHistory,
+  void Function(InAppWebViewController, int, int)? onScrollChanged,
+  void Function(InAppWebViewController, String?)? onTitleChanged,
+  void Function(InAppWebViewController, double, double)? onZoomScaleChanged,
+  void Function(InAppWebViewController, WebResourceRequest, WebResourceError)?
+  onReceivedError,
   Future<JsAlertResponse?> Function(InAppWebViewController, JsAlertRequest)?
   onJsAlert,
   Future<JsConfirmResponse?> Function(InAppWebViewController, JsConfirmRequest)?
@@ -319,10 +693,15 @@ Future<InAppWebViewController> _pumpWebView(
             initialSettings: initialSettings,
             initialUrlRequest: URLRequest(url: WebUri(initialUrl)),
             onWebViewCreated: controllerCompleter.complete,
+            onLoadStart: onLoadStart,
             onLoadStop: onLoadStop,
             onProgressChanged: onProgressChanged,
             onConsoleMessage: onConsoleMessage,
             onUpdateVisitedHistory: onUpdateVisitedHistory,
+            onScrollChanged: onScrollChanged,
+            onTitleChanged: onTitleChanged,
+            onZoomScaleChanged: onZoomScaleChanged,
+            onReceivedError: onReceivedError,
             onJsAlert: onJsAlert,
             onJsConfirm: onJsConfirm,
             onJsPrompt: onJsPrompt,
@@ -381,6 +760,25 @@ Future<T> _waitForValue<T>(
   Duration timeout = const Duration(seconds: 10),
 }) {
   return stream.firstWhere((T event) => event == value).timeout(timeout);
+}
+
+Future<Object?> _waitForCondition(
+  Future<Object?> Function() poll,
+  bool Function(Object? value) isReady, {
+  Duration timeout = const Duration(seconds: 10),
+}) async {
+  Object? lastResult;
+  final DateTime end = DateTime.now().add(timeout);
+
+  while (DateTime.now().isBefore(end)) {
+    lastResult = await poll();
+    if (isReady(lastResult)) {
+      return lastResult;
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+  }
+
+  throw TimeoutException('Condition not met. Last result: $lastResult');
 }
 
 String _htmlPage(String title) {
