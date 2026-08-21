@@ -1,17 +1,14 @@
 ## 0.2.0
 
+- Fix `onTitleChanged` to fire on title changes after the initial load, not just once at load finish.
+- Fix `getUrl()` returning a cancelled navigation's URL, and skip `shouldOverrideUrlLoading` for app-initiated navigations.
+- Fix `scrollBy`/`getScrollX`/`getScrollY` occasionally returning a stale scroll position.
+
+## 0.1.2
+
 - Update analysis_options.yaml for Flutter 3.47.0.
 - Temporarily suppress new analyze issues via analysis_options.yaml rules after the Flutter 3.47.0 upgrade.
 - Update the repository URL to use the `main` branch.
-- Fix `onTitleChanged` to also fire when the page's title changes after the
-  initial load (e.g. when JavaScript updates `document.title`), instead of
-  only once when loading finishes.
-- Fix a race where `getUrl()` could return the URL of a navigation that was
-  cancelled via `shouldOverrideUrlLoading`, and skip the
-  `shouldOverrideUrlLoading` round-trip for app-initiated navigations
-  (`loadUrl`, `goBack`, `reload`, etc.).
-- Fix `scrollBy`/`getScrollX`/`getScrollY` occasionally returning a stale
-  scroll position right after `scrollTo`/`scrollBy`.
 
 ## 0.1.1
 

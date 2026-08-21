@@ -308,9 +308,11 @@ void WebView::StopNavigation() {
     return;
   }
   is_navigation_cancelled_ = true;
-  if (!pending_navigation_revert_url_.empty()) {
-    committed_url_ = pending_navigation_revert_url_;
+  if (!url_before_navigation_.empty()) {
+    committed_url_ = url_before_navigation_;
   }
+  // OnNavigationPolicy suspended the view while awaiting this decision;
+  // ewk_view_stop() has no effect on a suspended view, so resume first.
   ewk_view_resume(webview_instance_);
   ewk_view_stop(webview_instance_);
 }
@@ -968,13 +970,16 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
   } else if (method_name == "getScrollX" || method_name == "getScrollY") {
     int32_t x = 0, y = 0;
     ewk_view_scroll_pos_get(webview_instance_, &x, &y);
-    if (target_scroll_x_ >= 0) {
-      x = target_scroll_x_;
-      target_scroll_x_ = -1;
-    }
-    if (target_scroll_y_ >= 0) {
-      y = target_scroll_y_;
-      target_scroll_y_ = -1;
+    if (method_name == "getScrollX") {
+      if (target_scroll_x_ >= 0) {
+        x = target_scroll_x_;
+        target_scroll_x_ = -1;
+      }
+    } else {
+      if (target_scroll_y_ >= 0) {
+        y = target_scroll_y_;
+        target_scroll_y_ = -1;
+      }
     }
     result->Success(
         flutter::EncodableValue(method_name == "getScrollX" ? x : y));
@@ -1096,15 +1101,6 @@ void WebView::OnLoadFinished(void* data, Evas_Object* obj, void* event_info) {
        flutter::EncodableValue(GetViewUrl(webview->webview_instance_))}};
   webview->webview_channel_->InvokeMethod(
       "onLoadStop", std::make_unique<flutter::EncodableValue>(args));
-
-  const char* title = ewk_view_title_get(webview->webview_instance_);
-  if (title) {
-    flutter::EncodableMap title_args = {
-        {flutter::EncodableValue("title"), flutter::EncodableValue(title)}};
-    webview->webview_channel_->InvokeMethod(
-        "onTitleChanged",
-        std::make_unique<flutter::EncodableValue>(title_args));
-  }
 }
 
 void WebView::OnProgress(void* data, Evas_Object* obj, void* event_info) {
@@ -1168,31 +1164,32 @@ void WebView::OnNavigationPolicy(void* data, Evas_Object* obj,
   webview->is_navigation_cancelled_ = false;
 
   if (webview->is_programmatic_navigation_) {
+    // Calls the app made directly (loadUrl/goBack/reload/etc.) don't go
+    // through shouldOverrideUrlLoading; only navigations the page itself
+    // initiates (link clicks, redirects, hardware Back) do.
     webview->is_programmatic_navigation_ = false;
     ewk_policy_decision_use(policy_decision);
     return;
   }
 
-  // Snapshot the URL EWK is displaying before accepting the navigation
-  // below. EWK can fire "url,changed" for the new (possibly-to-be-cancelled)
-  // URL as soon as ewk_policy_decision_use() runs, racing with the async
-  // shouldOverrideUrlLoading round-trip. StopNavigation() reverts getUrl()
-  // using this snapshot rather than whatever "url,changed" reported last, so
-  // that race can't leave getUrl() stuck on a cancelled URL.
-  const std::string url_before_navigation =
-      GetViewUrl(webview->webview_instance_);
-
   // Always accept the navigation on its original frame so iframe loads stay
-  // in their iframe. The view is then suspended while we wait for the Dart
-  // shouldOverrideUrlLoading response and either resumed (allow) or stopped
-  // (cancel) by NavigationRequestResult.
-  ewk_policy_decision_use(policy_decision);
+  // in their iframe.
   if (!webview->has_navigation_delegate_) {
+    ewk_policy_decision_use(policy_decision);
     return;
   }
 
-  webview->pending_navigation_revert_url_ = url_before_navigation;
+  // Snapshot the URL EWK is displaying before accepting, since EWK can fire
+  // "url,changed" for the new (possibly-to-be-cancelled) URL as soon as
+  // ewk_policy_decision_use() runs below.
+  const std::string url_before_navigation =
+      GetViewUrl(webview->webview_instance_);
+  ewk_policy_decision_use(policy_decision);
+  webview->url_before_navigation_ = url_before_navigation;
 
+  // The view is then suspended while we wait for the Dart
+  // shouldOverrideUrlLoading response and either resumed (allow) or stopped
+  // (cancel) by NavigationRequestResult.
   const char* url_cstr = ewk_policy_decision_url_get(policy_decision);
   const std::string url = url_cstr ? std::string(url_cstr) : std::string();
   ewk_view_suspend(webview->webview_instance_);
