@@ -11,7 +11,7 @@ This package is not an _endorsed_ implementation of `package_info_plus`. Therefo
 ```yaml
 dependencies:
   package_info_plus: ^9.0.1
-  package_info_plus_tizen: ^1.1.1
+  package_info_plus_tizen: ^1.1.2
 ```
 
 Then you can import `package_info_plus` in your Dart code.

@@ -1,8 +1,12 @@
-## 2.5.14
+## 2.5.15
 
 * Update video_player to 2.14.0.
 * Update video_player_platform_interface to 6.9.0.
 * Updates minimum supported SDK version to Flutter 3.44/Dart 3.12.
+
+## 2.5.14
+
+* Add an `implements` entry to the pubspec to improve discoverability on pub.dev.
 
 ## 2.5.13
 

@@ -1,3 +1,7 @@
+## 0.2.2
+
+* Add an `implements` entry to the pubspec to improve discoverability on pub.dev.
+
 ## 0.2.1
 
 * Update the repository URL to use the `main` branch.
