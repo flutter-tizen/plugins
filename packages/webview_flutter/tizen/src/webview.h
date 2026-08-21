@@ -27,6 +27,7 @@ typedef flutter::MethodChannel<flutter::EncodableValue> FlMethodChannel;
 
 class BufferPool;
 class BufferUnit;
+typedef struct _Ecore_Evas Ecore_Evas;
 
 class WebView : public PlatformView {
  public:
@@ -58,6 +59,12 @@ class WebView : public PlatformView {
   FlutterDesktopGpuSurfaceDescriptor* ObtainGpuSurface(size_t width,
                                                        size_t height);
 
+  // Must be called exactly once, before any WebView is constructed.
+  static void InitializeEngine();
+
+  // Must be called exactly once, after every WebView has been destroyed.
+  static void ShutdownEngine();
+
  private:
   void HandleWebViewMethodCall(const FlMethodCall& method_call,
                                std::unique_ptr<FlMethodResult> result);
@@ -74,6 +81,10 @@ class WebView : public PlatformView {
 
   bool InitWebView();
 
+  static Ecore_Evas* GetOffscreenHost();
+  static void FreeOffscreenHost();
+  static void FlushPendingTeardowns();
+
   static void OnFrameRendered(void* data, Evas_Object* obj, void* event_info);
   static void OnLoadStarted(void* data, Evas_Object* obj, void* event_info);
   static void OnLoadFinished(void* data, Evas_Object* obj, void* event_info);
@@ -82,6 +93,7 @@ class WebView : public PlatformView {
   static void OnConsoleMessage(void* data, Evas_Object* obj, void* event_info);
   static void OnNavigationPolicy(void* data, Evas_Object* obj,
                                  void* event_info);
+  static void OnResponsePolicy(void* data, Evas_Object* obj, void* event_info);
   static void OnUrlChange(void* data, Evas_Object* obj, void* event_info);
   static void OnEvaluateJavaScript(Evas_Object* obj, const char* result_value,
                                    void* user_data);
@@ -115,8 +127,12 @@ class WebView : public PlatformView {
   std::unique_ptr<FlMethodChannel> navigation_delegate_channel_;
   std::unique_ptr<flutter::TextureVariant> texture_variant_;
   std::mutex mutex_;
-  std::unique_ptr<BufferPool> tbm_pool_;
+  std::shared_ptr<BufferPool> tbm_pool_;
+  // Guarded by mutex_.
   bool disposed_ = false;
+  // Outlives this WebView so a pending async Dart reply can tell it apart
+  // from a destroyed one.
+  std::shared_ptr<bool> is_alive_ = std::make_shared<bool>(true);
   Ewk_Mouse_Button_Type mouse_button_type_ = (Ewk_Mouse_Button_Type)0;
   bool scrollbar_enabled_ = true;
 };
