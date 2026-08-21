@@ -1,3 +1,7 @@
+## 0.8.15
+
+* Update the repository URL to use the `main` branch.
+
 ## 0.8.14
 
 * Update plusplayer

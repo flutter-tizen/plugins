@@ -24,7 +24,7 @@ The sso.partner privilege is required by the [Sso API](https://developer.samsung
 
 Follow these steps before setting up in-app purchases for your application:
 
-1. [Register your application](https://github.com/flutter-tizen/flutter-tizen/blob/master/doc/publish-app.md) at the [Samsung Apps TV Seller Office](https://seller.samsungapps.com/tv) if you haven't registered yet. You do not need to complete the registration process at this point. Go to the **Billing Info** page of the app and set the **Samsung Checkout** checkbox to ON. You can return back to this page and finish the registration process when the final version of your app is ready.
+1. [Register your application](https://github.com/flutter-tizen/flutter-tizen/blob/main/doc/publish-app.md) at the [Samsung Apps TV Seller Office](https://seller.samsungapps.com/tv) if you haven't registered yet. You do not need to complete the registration process at this point. Go to the **Billing Info** page of the app and set the **Samsung Checkout** checkbox to ON. You can return back to this page and finish the registration process when the final version of your app is ready.
 
 2. Log in to the [Samsung Checkout DPI Portal](https://dpi.samsungcheckout.com) and register your in-app items. You can find your **App ID** and **Security Key** in the [**App Details Setting**](https://dpi.samsungcheckout.com/settings/appdetails) page. These values will be used as request parameters in your app code.
 
@@ -35,7 +35,7 @@ This package is not an _endorsed_ implementation of `in_app_purchase`. Therefore
 ```yaml
 dependencies:
   in_app_purchase: ^3.2.3
-  in_app_purchase_tizen: ^0.1.5
+  in_app_purchase_tizen: ^0.1.6
 ```
 
 Then you can import `in_app_purchase` and `in_app_purchase_tizen` in your Dart code:

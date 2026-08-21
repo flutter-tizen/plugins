@@ -1,6 +1,7 @@
-## NEXT
+## 0.4.4
 
 * Update integration tests.
+* Update the repository URL to use the `main` branch.
 
 ## 0.4.3
 

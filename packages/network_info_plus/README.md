@@ -11,7 +11,7 @@ This package is not an _endorsed_ implementation of `network_info_plus`. Therefo
 ```yaml
 dependencies:
   network_info_plus: ^7.0.0
-  network_info_plus_tizen: ^1.1.6
+  network_info_plus_tizen: ^1.1.7
 ```
 
 Then you can import `network_info_plus` in your Dart code:

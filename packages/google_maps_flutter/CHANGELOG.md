@@ -1,3 +1,7 @@
+## 0.2.1
+
+* Update the repository URL to use the `main` branch.
+
 ## 0.2.0
 
 * Refactor the JavaScript interaction layer by introducing `GoogleMapsJsBridge`,

@@ -12,7 +12,7 @@ To use this package, add `video_player_avplay` as a dependency in your `pubspec.
 
 ```yaml
 dependencies:
-  video_player_avplay: ^0.8.14
+  video_player_avplay: ^0.8.15
 ```
 
 Then you can import `video_player_avplay` in your Dart code:
@@ -42,7 +42,7 @@ Note that `video_player_avplay` uses a compiled dynamic library, change the api-
 > |9.0|9.0|
 > |10.0|10.0|
 >
-> When you build an application with this plugin, version-specific [dynamic libraries](https://github.com/flutter-tizen/plugins/tree/master/packages/video_player_avplay/tizen/lib/armel) are packaged together based on the api-version information in tizen-manifest.xml. 
+> When you build an application with this plugin, version-specific [dynamic libraries](https://github.com/flutter-tizen/plugins/tree/main/packages/video_player_avplay/tizen/lib/armel) are packaged together based on the api-version information in tizen-manifest.xml.
 > If you are planning to distribute an application that includes this plugin, you will need to build a TPK package for each TizenOS version (api-version in tizen-manifest.xml). Please refer to the [Samsung Developers](https://developer.samsung.com/smarttv/develop) for information on TizenOS versions by [TV model groups](https://developer.samsung.com/smarttv/develop/specifications/tv-model-groups.html).
 > 
 > If you plan to distribute from TizenOS version 6.0 to 10.0, it should be packaged as follows.
