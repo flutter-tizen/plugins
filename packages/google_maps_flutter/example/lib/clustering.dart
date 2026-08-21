@@ -13,7 +13,7 @@ import 'page.dart';
 class ClusteringPage extends GoogleMapExampleAppPage {
   /// Default Constructor.
   const ClusteringPage({Key? key})
-      : super(const Icon(Icons.place), 'Manage clustering', key: key);
+    : super(const Icon(Icons.place), 'Manage clustering', key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -156,8 +156,8 @@ class ClusteringBodyState extends State<ClusteringBody> {
       final MarkerId markerId = MarkerId(markerIdVal);
 
       final int clusterManagerIndex = clusterManagers.values.toList().indexOf(
-            clusterManager,
-          );
+        clusterManager,
+      );
 
       // Add additional offset to longitude for each cluster manager to space
       // out markers in different cluster managers.
@@ -236,9 +236,8 @@ class ClusteringBodyState extends State<ClusteringBody> {
                 TextButton(
                   onPressed: clusterManagers.isEmpty
                       ? null
-                      : () => _removeClusterManager(
-                            clusterManagers.values.last,
-                          ),
+                      : () =>
+                            _removeClusterManager(clusterManagers.values.last),
                   child: const Text('Remove cluster manager'),
                 ),
               ],
@@ -246,8 +245,9 @@ class ClusteringBodyState extends State<ClusteringBody> {
             Wrap(
               alignment: WrapAlignment.spaceEvenly,
               children: <Widget>[
-                for (final MapEntry<ClusterManagerId,
-                    ClusterManager> clusterEntry in clusterManagers.entries)
+                for (final MapEntry<ClusterManagerId, ClusterManager>
+                    clusterEntry
+                    in clusterManagers.entries)
                   TextButton(
                     onPressed: () => _addMarkersToCluster(clusterEntry.value),
                     child: Text('Add markers to ${clusterEntry.key.value}'),
@@ -269,8 +269,9 @@ class ClusteringBodyState extends State<ClusteringBody> {
                   child: const Text('Remove selected marker'),
                 ),
                 TextButton(
-                  onPressed:
-                      markers.isEmpty ? null : () => _changeMarkersAlpha(),
+                  onPressed: markers.isEmpty
+                      ? null
+                      : () => _changeMarkersAlpha(),
                   child: const Text('Change all markers alpha'),
                 ),
               ],

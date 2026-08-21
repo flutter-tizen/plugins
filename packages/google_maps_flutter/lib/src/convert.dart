@@ -216,23 +216,24 @@ String _mapStyles(String? mapStyleJson) {
   if (mapStyleJson != null) {
     try {
       json
-          .decode(
-            mapStyleJson,
-            reviver: (Object? key, Object? value) {
-              if (value is Map &&
-                  _isJsonMapStyle(value as Map<String, Object?>)) {
-                return MapTypeStyle()
-                  ..elementType = value['elementType'] as String?
-                  ..featureType = value['featureType'] as String?
-                  ..stylers = (value['stylers']! as List<dynamic>)
-                      .map<dynamic>((dynamic e) => e)
-                      .toList();
-              }
-              return value;
-            },
-          )
-          .cast<MapTypeStyle>()
-          .toList() as List<MapTypeStyle>;
+              .decode(
+                mapStyleJson,
+                reviver: (Object? key, Object? value) {
+                  if (value is Map &&
+                      _isJsonMapStyle(value as Map<String, Object?>)) {
+                    return MapTypeStyle()
+                      ..elementType = value['elementType'] as String?
+                      ..featureType = value['featureType'] as String?
+                      ..stylers = (value['stylers']! as List<dynamic>)
+                          .map<dynamic>((dynamic e) => e)
+                          .toList();
+                  }
+                  return value;
+                },
+              )
+              .cast<MapTypeStyle>()
+              .toList()
+          as List<MapTypeStyle>;
     } catch (e) {
       throw MapStyleException('Invalid Map Style JSON: $e');
     }
@@ -306,9 +307,11 @@ util.GInfoWindowOptions? _infoWindowOptionsFromMarker(Marker marker) {
     return null;
   }
 
-  // Add an outer wrapper to the contents of the infowindow
+  // Add an outer wrapper to the contents of the infowindow. The content is
+  // JSON-encoded by its consumers (GInfoWindowOptions.toString and
+  // GInfoWindow._setContent), so it must be raw, unquoted HTML here.
   final StringBuffer buffer = StringBuffer();
-  buffer.write('\'<div id="marker-${marker.markerId.value}-infowindow">');
+  buffer.write('<div id="marker-${marker.markerId.value}-infowindow">');
   if (markerTitle.isNotEmpty) {
     buffer.write('<h3 class="infowindow-title">');
     buffer.write(markerTitle);
@@ -319,7 +322,7 @@ util.GInfoWindowOptions? _infoWindowOptionsFromMarker(Marker marker) {
     buffer.write(markerSnippet);
     buffer.write('</div>');
   }
-  buffer.write("</div>'");
+  buffer.write('</div>');
 
   // Need to add Click Event to infoWindow's content
   return util.GInfoWindowOptions()
@@ -461,7 +464,8 @@ util.GPolygonOptions _polygonOptionsFromPolygon(Polygon polygon) {
 bool _isPolygonClockwise(List<LatLng> path) {
   double direction = 0.0;
   for (int i = 0; i < path.length; i++) {
-    direction = direction +
+    direction =
+        direction +
         ((path[(i + 1) % path.length].latitude - path[i].latitude) *
             (path[(i + 1) % path.length].longitude + path[i].longitude));
   }
@@ -505,8 +509,9 @@ util.GGroundOverlayOptions? _groundOverlayOptionsFromGroundOverlay(
     return null;
   }
   return util.GGroundOverlayOptions()
-    ..url = "'$imageUrl'"
-    ..bounds = '{south:${bounds.southwest.latitude},'
+    ..url = imageUrl
+    ..bounds =
+        '{south:${bounds.southwest.latitude},'
         ' west:${bounds.southwest.longitude},'
         ' north:${bounds.northeast.latitude},'
         ' east:${bounds.northeast.longitude}}'

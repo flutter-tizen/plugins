@@ -7,9 +7,6 @@
 
 part of '../google_maps_flutter_tizen.dart';
 
-/// The duration of MapLongPressEvent.
-const int kGoogleMapsControllerLongPressDuration = 1000;
-
 /// This class implements a Map Controller and its events
 class GoogleMapsController {
   /// Initializes the GoogleMapsController.
@@ -24,28 +21,40 @@ class GoogleMapsController {
     Set<ClusterManager> clusterManagers = const <ClusterManager>{},
     Set<GroundOverlay> groundOverlays = const <GroundOverlay>{},
     Map<String, dynamic> mapOptions = const <String, dynamic>{},
-  })  : _mapId = mapId,
-        _streamController = streamController,
-        _initialCameraPosition = initialCameraPosition,
-        _markers = markers,
-        _polygons = polygons,
-        _polylines = polylines,
-        _circles = circles,
-        _clusterManagers = clusterManagers,
-        _groundOverlays = groundOverlays,
-        _rawMapOptions = mapOptions {
-    _circlesController = CirclesController(stream: _streamController);
-    _polygonsController = PolygonsController(stream: _streamController);
-    _polylinesController = PolylinesController(stream: _streamController);
+  }) : _mapId = mapId,
+       _streamController = streamController,
+       _initialCameraPosition = initialCameraPosition,
+       _markers = markers,
+       _polygons = polygons,
+       _polylines = polylines,
+       _circles = circles,
+       _clusterManagers = clusterManagers,
+       _groundOverlays = groundOverlays,
+       _rawMapOptions = mapOptions {
+    _circlesController = CirclesController(
+      stream: _streamController,
+      bridge: _bridge,
+    );
+    _polygonsController = PolygonsController(
+      stream: _streamController,
+      bridge: _bridge,
+    );
+    _polylinesController = PolylinesController(
+      stream: _streamController,
+      bridge: _bridge,
+    );
     _clusterManagersController = ClusterManagersController(
       stream: _streamController,
+      bridge: _bridge,
     );
     _markersController = MarkersController(
       stream: _streamController,
       clusterManagersController: _clusterManagersController!,
+      bridge: _bridge,
     );
     _groundOverlaysController = GroundOverlaysController(
       stream: _streamController,
+      bridge: _bridge,
     );
   }
 
@@ -61,14 +70,14 @@ class GoogleMapsController {
   final Set<Circle> _circles;
   final Set<ClusterManager> _clusterManagers;
   final Set<GroundOverlay> _groundOverlays;
-  final Completer<bool> _pageFinishedCompleter = Completer<bool>();
   WebViewWidget? _webview;
   // The raw options passed by the user, before converting to maps.
   // Caching this allows us to re-create the map faithfully when needed.
   Map<String, dynamic> _rawMapOptions = <String, dynamic>{};
 
-  /// Webview controller instance.
-  final WebViewController controller = WebViewController();
+  /// The bridge mediating all interaction with the Google Maps JavaScript
+  /// API running inside the WebView.
+  final GoogleMapsJsBridge _bridge = GoogleMapsJsBridge();
 
   /// The Flutter widget that will contain the rendered Map. Used for caching.
   WebViewWidget? get webview => _webview;
@@ -76,9 +85,11 @@ class GoogleMapsController {
   /// Returns min-max zoom levels. Test only.
   @visibleForTesting
   Future<MinMaxZoomPreference> getMinMaxZoomLevels() async {
-    final String value = await controller.runJavaScriptReturningResult(
-      'JSON.stringify([map.minZoom, map.maxZoom])',
-    ) as String;
+    final String value =
+        await _bridge.runJavaScriptReturningResult(
+              'JSON.stringify([map.minZoom, map.maxZoom])',
+            )
+            as String;
     final dynamic bound = json.decode(value);
     double min = 0, max = 0;
     if (bound is List<dynamic>) {
@@ -100,24 +111,26 @@ class GoogleMapsController {
   /// Returns if zoomGestures property is enabled. Test only.
   @visibleForTesting
   Future<bool> isZoomGesturesEnabled() async {
-    final String value = await controller
-        .runJavaScriptReturningResult('map.gestureHandling') as String;
+    final String value =
+        await _bridge.runJavaScriptReturningResult('map.gestureHandling')
+            as String;
     return value != 'none';
   }
 
   /// Returns if zoomControls property is enabled. Test only.
   @visibleForTesting
   Future<bool> isZoomControlsEnabled() async {
-    final String value = await controller
-        .runJavaScriptReturningResult('map.zoomControl') as String;
+    final String value =
+        await _bridge.runJavaScriptReturningResult('map.zoomControl') as String;
     return value != 'false';
   }
 
   /// Returns if scrollGestures property is enabled. Test only.
   @visibleForTesting
   Future<bool> isScrollGesturesEnabled() async {
-    final String value = await controller
-        .runJavaScriptReturningResult('map.gestureHandling') as String;
+    final String value =
+        await _bridge.runJavaScriptReturningResult('map.gestureHandling')
+            as String;
     return value != 'none';
   }
 
@@ -127,89 +140,58 @@ class GoogleMapsController {
     return _isTrafficLayerEnabled(_rawMapOptions);
   }
 
-  void _getWebview() {
-    // If the variable does not exist, we must find other alternatives.
-    String path = Platform.environment['AUL_ROOT_PATH'] ?? '';
-    path += '/res/flutter_assets/assets/map.html';
-    controller
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onPageFinished: (String url) {
-            _pageFinishedCompleter.complete(true);
-          },
-        ),
-      )
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..addJavaScriptChannel(
-        'BoundChanged',
-        onMessageReceived: _onBoundsChanged,
-      )
-      ..addJavaScriptChannel('Idle', onMessageReceived: _onIdle)
-      ..addJavaScriptChannel('Tilesloaded', onMessageReceived: _onTilesloaded)
-      ..addJavaScriptChannel('Click', onMessageReceived: _onClick)
-      ..addJavaScriptChannel('LongPress', onMessageReceived: _onLongPress)
-      ..addJavaScriptChannel('MarkerClick', onMessageReceived: _onMarkerClick)
-      ..addJavaScriptChannel('ClusterClick', onMessageReceived: _onClusterClick)
-      ..addJavaScriptChannel(
-        'MarkerDragStart',
-        onMessageReceived: _onMarkerDragStart,
-      )
-      ..addJavaScriptChannel('MarkerDrag', onMessageReceived: _onMarkerDrag)
-      ..addJavaScriptChannel(
-        'MarkerDragEnd',
-        onMessageReceived: _onMarkerDragEnd,
-      )
-      ..addJavaScriptChannel(
-        'PolylineClick',
-        onMessageReceived: _onPolylineClick,
-      )
-      ..addJavaScriptChannel('PolygonClick', onMessageReceived: _onPolygonClick)
-      ..addJavaScriptChannel('CircleClick', onMessageReceived: _onCircleClick)
-      ..addJavaScriptChannel(
-        'GroundOverlayClick',
-        onMessageReceived: _onGroundOverlayClick,
-      )
-      ..loadFile(path);
+  StreamSubscription<MapsJsEvent>? _bridgeEventsSubscription;
 
-    _webview = WebViewWidget(controller: controller);
+  void _getWebview() {
+    _bridgeEventsSubscription = _bridge.events.listen(_onJsEvent);
+    _webview = WebViewWidget(controller: _bridge.controller);
+  }
+
+  // Events already queued when dispose() runs can still be delivered, and the
+  // subscription discards the returned Future, so guard and catch here rather
+  // than in each handler.
+  Future<void> _onJsEvent(MapsJsEvent event) async {
+    if (_streamController.isClosed) {
+      return;
+    }
+    try {
+      switch (event.type) {
+        case MapsJsEventType.boundsChanged:
+          await _onBoundsChanged();
+        case MapsJsEventType.idle:
+          _onIdle();
+        case MapsJsEventType.tilesLoaded:
+          _onTilesloaded();
+        case MapsJsEventType.click:
+          _onClick(event.message!);
+        case MapsJsEventType.longPress:
+          _onLongPress(event.message!);
+        case MapsJsEventType.markerClick:
+          _onMarkerClick(event.message!);
+        case MapsJsEventType.clusterClick:
+          _onClusterClick(event.message!);
+        case MapsJsEventType.markerDragStart:
+          _onMarkerDragStart(event.message!);
+        case MapsJsEventType.markerDrag:
+          _onMarkerDrag(event.message!);
+        case MapsJsEventType.markerDragEnd:
+          _onMarkerDragEnd(event.message!);
+        case MapsJsEventType.polylineClick:
+          _onPolylineClick(event.message!);
+        case MapsJsEventType.polygonClick:
+          _onPolygonClick(event.message!);
+        case MapsJsEventType.circleClick:
+          _onCircleClick(event.message!);
+        case MapsJsEventType.groundOverlayClick:
+          _onGroundOverlayClick(event.message!);
+      }
+    } catch (e) {
+      debugPrint('JavaScript Error: $e');
+    }
   }
 
   Future<void> _createMap() async {
-    final String options = _createOptions();
-    final String command = '''
-      map = new google.maps.Map(document.getElementById('map'), $options);
-      map.addListener('bounds_changed', (event) => { BoundChanged.postMessage(''); });
-      map.addListener('idle', (event) => { Idle.postMessage(''); });
-      map.addListener('click', (event) => { Click.postMessage(JSON.stringify(event)); });
-      map.addListener('tilesloaded', (evnet) => { Tilesloaded.postMessage(''); });
-
-      let longPressTimeout;
-      map.addListener('mousedown', (e) => {
-                longPressTimeout = setTimeout(() => {
-                    LongPress.postMessage(JSON.stringify(e));
-                }, $kGoogleMapsControllerLongPressDuration);
-            });
-      map.addListener('mouseup', () => { clearTimeout(longPressTimeout); });
-      map.addListener('mouseout', () => { clearTimeout(longPressTimeout); });
-
-      const makeClusterEvent = function(clusterManagerId, event, cluster) {
-          var result = '{"id": "' + clusterManagerId +'"';
-          result += ', "cluster": {"count":' + cluster.count
-          result += ', "position":' + JSON.stringify(cluster.position)
-          result += ', "bounds":' + JSON.stringify(cluster.bounds);
-          result += ', "markers": [';
-          var i = 0;
-          for (; i < cluster.markers.length - 1; i++) {
-            result += cluster.markers[i].id;
-            result += ', ';
-          }
-          result += cluster.markers[i].id;
-          result += ']}}';
-
-          return result;
-        }
-    ''';
-    await controller.runJavaScript(command);
+    await _bridge.createMap(_createOptions());
   }
 
   String _createOptions() {
@@ -237,7 +219,7 @@ class GoogleMapsController {
   // Keeps track if the map is moving or not.
   bool _mapIsMoving = false;
 
-  Future<void> _onBoundsChanged(JavaScriptMessage message) async {
+  Future<void> _onBoundsChanged() async {
     final LatLng center = await getCenter();
     final num zoom = await getZoomLevel();
 
@@ -256,12 +238,12 @@ class GoogleMapsController {
     }
   }
 
-  void _onIdle(JavaScriptMessage message) {
+  void _onIdle() {
     _mapIsMoving = false;
     _streamController.add(CameraIdleEvent(_mapId));
   }
 
-  void _onTilesloaded(JavaScriptMessage message) {
+  void _onTilesloaded() {
     try {
       if (_isFirst) {
         return;
@@ -273,9 +255,9 @@ class GoogleMapsController {
     }
   }
 
-  void _onClick(JavaScriptMessage message) {
+  void _onClick(String message) {
     try {
-      final dynamic event = json.decode(message.message);
+      final dynamic event = json.decode(message);
       if (event is Map<String, dynamic>) {
         assert(event['latLng'] != null);
         final LatLng position = LatLng(
@@ -289,9 +271,9 @@ class GoogleMapsController {
     }
   }
 
-  void _onLongPress(JavaScriptMessage message) {
+  void _onLongPress(String message) {
     try {
-      final dynamic event = json.decode(message.message);
+      final dynamic event = json.decode(message);
       if (event is Map<String, dynamic>) {
         assert(event['latLng'] != null);
         final LatLng position = LatLng(
@@ -305,9 +287,9 @@ class GoogleMapsController {
     }
   }
 
-  void _onClusterClick(JavaScriptMessage message) {
+  void _onClusterClick(String message) {
     try {
-      final dynamic result = json.decode(message.message);
+      final dynamic result = json.decode(message);
 
       final String id = result['id'] as String;
       final ClusterManagerId? clusterManagerId =
@@ -328,9 +310,9 @@ class GoogleMapsController {
     }
   }
 
-  void _onMarkerClick(JavaScriptMessage message) {
+  void _onMarkerClick(String message) {
     try {
-      final dynamic id = json.decode(message.message);
+      final dynamic id = json.decode(message);
       if (_markersController != null && id is int) {
         final MarkerId? markerId = _markersController!._idToMarkerId[id];
         final MarkerController? marker =
@@ -344,9 +326,9 @@ class GoogleMapsController {
     }
   }
 
-  void _onMarkerDragStart(JavaScriptMessage message) {
+  void _onMarkerDragStart(String message) {
     try {
-      final dynamic result = json.decode(message.message);
+      final dynamic result = json.decode(message);
       if (result is Map<String, dynamic>) {
         assert(result['id'] != null && result['event'] != null);
         if (_markersController != null && result['id'] is int) {
@@ -370,9 +352,9 @@ class GoogleMapsController {
     }
   }
 
-  void _onMarkerDrag(JavaScriptMessage message) {
+  void _onMarkerDrag(String message) {
     try {
-      final dynamic result = json.decode(message.message);
+      final dynamic result = json.decode(message);
       if (result is Map<String, dynamic>) {
         assert(result['id'] != null && result['event'] != null);
         if (_markersController != null && result['id'] is int) {
@@ -396,9 +378,9 @@ class GoogleMapsController {
     }
   }
 
-  void _onMarkerDragEnd(JavaScriptMessage message) {
+  void _onMarkerDragEnd(String message) {
     try {
-      final dynamic result = json.decode(message.message);
+      final dynamic result = json.decode(message);
       if (result is Map<String, dynamic>) {
         assert(result['id'] != null && result['event'] != null);
         if (_markersController != null && result['id'] is int) {
@@ -422,9 +404,9 @@ class GoogleMapsController {
     }
   }
 
-  void _onPolylineClick(JavaScriptMessage message) {
+  void _onPolylineClick(String message) {
     try {
-      final dynamic id = json.decode(message.message);
+      final dynamic id = json.decode(message);
       if (_polylinesController != null && id is int) {
         final PolylineId? polylineId =
             _polylinesController!._idToPolylineId[id];
@@ -439,9 +421,9 @@ class GoogleMapsController {
     }
   }
 
-  void _onPolygonClick(JavaScriptMessage message) {
+  void _onPolygonClick(String message) {
     try {
-      final dynamic id = json.decode(message.message);
+      final dynamic id = json.decode(message);
       if (_polygonsController != null && id is int) {
         final PolygonId? polygonId = _polygonsController!._idToPolygonId[id];
         final PolygonController? polygon =
@@ -455,10 +437,10 @@ class GoogleMapsController {
     }
   }
 
-  void _onCircleClick(JavaScriptMessage message) {
+  void _onCircleClick(String message) {
     try {
-      final dynamic id = json.decode(message.message);
-      if (_polygonsController != null && id is int) {
+      final dynamic id = json.decode(message);
+      if (_circlesController != null && id is int) {
         final CircleId? circleId = _circlesController!._idToCircleId[id];
         final CircleController? circle =
             _circlesController!._circleIdToController[circleId];
@@ -471,9 +453,9 @@ class GoogleMapsController {
     }
   }
 
-  void _onGroundOverlayClick(JavaScriptMessage message) {
+  void _onGroundOverlayClick(String message) {
     try {
-      final dynamic id = json.decode(message.message);
+      final dynamic id = json.decode(message);
       if (_groundOverlaysController != null && id is int) {
         final GroundOverlayId? groundOverlayId =
             _groundOverlaysController!._idToGroundOverlayId[id];
@@ -498,7 +480,12 @@ class GoogleMapsController {
   Future<void> init() async {
     if (_webview == null && !_streamController.isClosed) {
       _getWebview();
-      await _pageFinishedCompleter.future;
+      if (!await _bridge.load()) {
+        return;
+      }
+      if (_streamController.isClosed) {
+        return;
+      }
       await _createMap();
     }
     await _attachGeometryControllers();
@@ -551,7 +538,6 @@ class GoogleMapsController {
     _clusterManagersController!.bindToMap(_mapId, _webview!);
     _groundOverlaysController!.bindToMap(_mapId, _webview!);
 
-    util.webController = controller;
     _controllersBoundToMap = true;
   }
 
@@ -604,16 +590,17 @@ class GoogleMapsController {
   }
 
   Future<void> _setOptions(String options) async {
-    await _callMethod(controller, 'setOptions', <String>[options]);
+    await _callMethod('setOptions', <Object?>[JsExpression(options)]);
   }
 
-  Future<void> _setZoom(String options) async {
-    await _callMethod(controller, 'setZoom', <String>[options]);
+  Future<void> _setZoom(String zoom) async {
+    await _callMethod('setZoom', <Object?>[JsExpression(zoom)]);
   }
 
   // Attaches/detaches a Traffic Layer on the `map` if `attach` is true/false.
   Future<void> _setTrafficLayer(bool attach) async {
-    final String command = '''
+    final String command =
+        '''
       var trafficLayer;
       if ($attach == true && trafficLayer == null) {
         trafficLayer = new google.maps.TrafficLayer();
@@ -626,39 +613,32 @@ class GoogleMapsController {
         console.log('trafficLayer detached!!');
       }
     ''';
-    await controller.runJavaScript(command);
+    await _bridge.runJavaScript(command);
   }
 
   Future<void> _setMoveCamera(String options) async {
-    await _callMethod(controller, 'moveCamera', <String>[options]);
+    await _callMethod('moveCamera', <Object?>[JsExpression(options)]);
   }
 
   Future<void> _setPanTo(String options) async {
-    await _callMethod(controller, 'panTo', <String>[options]);
+    await _callMethod('panTo', <Object?>[JsExpression(options)]);
   }
 
-  Future<void> _setPanBy(String options) async {
-    await _callMethod(controller, 'panBy', <String>[options]);
+  Future<void> _setPanBy(num x, num y) async {
+    await _callMethod('panBy', <Object?>[x, y]);
   }
 
-  Future<void> _setFitBounds(String options) async {
-    await _callMethod(controller, 'fitBounds', <String>[options]);
+  Future<void> _setFitBounds(String boundsJs, Object? padding) async {
+    await _callMethod('fitBounds', <Object?>[JsExpression(boundsJs), padding]);
   }
 
-  Future<Object> _callMethod(
-    WebViewController controller,
-    String method,
-    List<String?> args,
-  ) async {
-    return controller.runJavaScriptReturningResult(
-      'JSON.stringify(map.$method.apply(map, $args))',
-    );
+  Future<Object> _callMethod(String method, List<Object?> args) async {
+    return _bridge.callMethodReturningJson(JsRef('map'), method, args);
   }
 
-  Future<double> _getZoom(WebViewController controller) async {
+  Future<double> _getZoom() async {
     try {
-      return (await _callMethod(controller, 'getZoom', <String>[]) as num) +
-          0.0;
+      return (await _callMethod('getZoom', <Object?>[]) as num) + 0.0;
     } catch (e) {
       debugPrint('JavaScript Error: $e');
       return 0.0;
@@ -668,14 +648,14 @@ class GoogleMapsController {
   /// Returns the [LatLngBounds] of the current viewport.
   Future<LatLngBounds> getVisibleRegion() async {
     return _convertToBounds(
-      await _callMethod(controller, 'getBounds', <String>[]) as String,
+      await _callMethod('getBounds', <Object?>[]) as String,
     );
   }
 
   /// Returns the [LatLng] at the center of the map.
   Future<LatLng> getCenter() async {
     return _convertToLatLng(
-      await _callMethod(controller, 'getCenter', <String>[]) as String,
+      await _callMethod('getCenter', <Object?>[]) as String,
     );
   }
 
@@ -714,10 +694,11 @@ class GoogleMapsController {
         await _setPanTo('{lat:${json[1][0]}, lng: ${json[1][1]}}');
       case 'newLatLngBounds':
         await _setFitBounds(
-          '{south:${json[1][0][0]}, west:${json[1][0][1]}, north:${json[1][1][0]}, east:${json[1][1][1]}}, ${json[2]}',
+          '{south:${json[1][0][0]}, west:${json[1][0][1]}, north:${json[1][1][0]}, east:${json[1][1][1]}}',
+          json[2],
         );
       case 'scrollBy':
-        await _setPanBy('${json[1]}, ${json[2]}');
+        await _setPanBy(json[1] as num, json[2] as num);
       case 'zoomBy':
         String? focusLatLng;
         double zoomDelta = 0.0;
@@ -725,8 +706,9 @@ class GoogleMapsController {
           zoomDelta = (json[1] as num) + 0.0;
         }
         // Web only supports integer changes...
-        final int newZoomDelta =
-            zoomDelta < 0 ? zoomDelta.floor() : zoomDelta.ceil();
+        final int newZoomDelta = zoomDelta < 0
+            ? zoomDelta.floor()
+            : zoomDelta.ceil();
         if (json.length == 3) {
           // With focus
           try {
@@ -754,7 +736,8 @@ class GoogleMapsController {
   }
 
   Future<String> _pixelToLatLng(double x, double y) async {
-    final String command = '''
+    final String command =
+        '''
       function getPixelToLatLng() {
         var projection = map.getProjection();
         var ne = map.getBounds().getNorthEast();
@@ -768,11 +751,12 @@ class GoogleMapsController {
       JSON.stringify(getPixelToLatLng());
     ''';
 
-    return await controller.runJavaScriptReturningResult(command) as String;
+    return await _bridge.runJavaScriptReturningResult(command) as String;
   }
 
   Future<String> _latLngToPoint(LatLng latLng) async {
-    final String command = '''
+    final String command =
+        '''
       function getLatLngToPixel() {
         var ne = map.getBounds().getNorthEast();
         var sw = map.getBounds().getSouthWest();
@@ -788,12 +772,12 @@ class GoogleMapsController {
       JSON.stringify(getLatLngToPixel());
     ''';
 
-    return await controller.runJavaScriptReturningResult(command) as String;
+    return await _bridge.runJavaScriptReturningResult(command) as String;
   }
 
   /// Returns the zoom level of the current viewport.
   Future<double> getZoomLevel() async {
-    return _getZoom(controller);
+    return _getZoom();
   }
 
   // Geometry manipulation
@@ -901,6 +885,8 @@ class GoogleMapsController {
   /// You won't be able to call many of the methods on this controller after
   /// calling `dispose`!
   void dispose() {
+    unawaited(_bridgeEventsSubscription?.cancel());
+    _bridge.dispose();
     _webview = null;
     _circlesController = null;
     _polygonsController = null;
