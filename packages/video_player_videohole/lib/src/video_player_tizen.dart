@@ -35,6 +35,16 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<void> dispose(int playerId) async {
+    final Completer<void>? seekCompleter = _seekCompleters.remove(playerId);
+    if (seekCompleter != null && !seekCompleter.isCompleted) {
+      seekCompleter.completeError(
+        PlatformException(
+          code: 'FFI_SEEK_TO_CANCELLED',
+          message: 'seekTo was cancelled because player $playerId was disposed',
+        ),
+      );
+    }
+
     // Close the StreamController for this player
     final StreamController<VideoEvent>? controller = _eventControllers.remove(
       playerId,
@@ -121,18 +131,36 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
             final Map<String, dynamic> eventMap =
                 jsonDecode(eventJson) as Map<String, dynamic>;
 
+            // Handle seekCompleted event first (before controller check)
+            if (eventMap['event'] == 'seekCompleted') {
+              final Completer<void>? completer = _seekCompleters.remove(
+                receivingPlayerId,
+              );
+              if (completer != null && !completer.isCompleted) {
+                completer.complete();
+              }
+              return;
+            }
+
             // Route to the correct StreamController for this instance
             final StreamController<VideoEvent>? controller =
                 _eventControllers[receivingPlayerId];
             if (controller != null && !controller.isClosed) {
               // Handle error events by adding them as stream errors
               if (eventMap['event'] == 'error') {
-                controller.addError(
-                  PlatformException(
-                    code: eventMap['code'] as String? ?? 'unknown',
-                    message: eventMap['message'] as String?,
-                  ),
+                final PlatformException exception = PlatformException(
+                  code: eventMap['code'] as String? ?? 'unknown',
+                  message: eventMap['message'] as String?,
                 );
+
+                final Completer<void>? seekCompleter = _seekCompleters.remove(
+                  receivingPlayerId,
+                );
+                if (seekCompleter != null && !seekCompleter.isCompleted) {
+                  seekCompleter.completeError(exception);
+                }
+
+                controller.addError(exception);
                 return;
               }
               final VideoEvent videoEvent = _parseVideoEventFromMap(eventMap);
@@ -140,14 +168,20 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
             }
           }
         } catch (e, stackTrace) {
-          // Log error but don't crash
-          debugPrint('Error processing FFI event: $e\n$stackTrace');
+          FlutterError.reportError(
+            FlutterErrorDetails(
+              exception: PlatformException(
+                code: 'FFI_EVENT_PROCESSING_FAILED',
+                message: 'Failed to process FFI event',
+              ),
+              stack: stackTrace,
+            ),
+          );
         }
       };
 
       // Register the port with C++ side using FFI
       ffiRegisterEventPort(_eventPort!.nativePort);
-      debugPrint('Event port registered: ${_eventPort!.nativePort}');
     }
   }
 
@@ -240,14 +274,21 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<void> seekTo(int playerId, Duration position) async {
-    // Use FFI for seekTo (synchronous call)
+    _ensureEventPortRegistered();
+
+    final Completer<void> completer = Completer<void>();
+    _seekCompleters[playerId] = completer;
+
     final int result = _ffiApi.seekTo(playerId, position.inMilliseconds);
     if (result != 0) {
+      _seekCompleters.remove(playerId);
       throw PlatformException(
         code: 'FFI_SEEK_TO_FAILED',
         message: 'FFI seekTo failed with code: $result',
       );
     }
+
+    await completer.future;
   }
 
   @override
@@ -362,6 +403,9 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   // Map of playerId to StreamController for broadcasting events
   final Map<int, StreamController<VideoEvent>> _eventControllers =
       <int, StreamController<VideoEvent>>{};
+
+  // Map of playerId to Completer for pending seek operations
+  final Map<int, Completer<void>> _seekCompleters = <int, Completer<void>>{};
 
   @override
   Stream<VideoEvent> videoEventsFor(int playerId) {

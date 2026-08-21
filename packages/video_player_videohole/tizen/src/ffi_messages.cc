@@ -272,9 +272,11 @@ int ffi_seek_to(int64_t player_id, int64_t position_ms) {
   if (!player) {
     return -1;
   }
-  // Propagate the seek result - return 0 on success, -1 on failure
-  // This ensures Dart side can detect seek failures
-  return player->SeekTo(position_ms, []() -> void {}) ? 0 : -1;
+  return player->SeekTo(
+             position_ms,
+             video_player_videohole_tizen::VideoPlayer::SeekCompletedCallback())
+             ? 0
+             : -1;
 }
 
 int64_t ffi_get_position(int64_t player_id) {

@@ -974,10 +974,14 @@ void MediaPlayer::OnSeekCompleted(void *user_data) {
     return;
   }
 
-  if (self->on_seek_completed_) {
-    self->on_seek_completed_();
-    self->on_seek_completed_ = nullptr;
+  auto on_seek_completed = std::move(self->on_seek_completed_);
+  self->on_seek_completed_ = nullptr;
+
+  if (on_seek_completed) {
+    on_seek_completed();
   }
+
+  self->SendSeekCompleted();
 }
 
 void MediaPlayer::OnPlayCompleted(void *user_data) {

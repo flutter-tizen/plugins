@@ -6,14 +6,11 @@
 // This file contains FFI bindings and message types for synchronous native calls
 
 import 'dart:ffi' as ffi;
-import 'dart:ffi' show NativeCallable;
 import 'dart:isolate' show RawReceivePort, ReceivePort;
 import 'package:ffi/ffi.dart' show calloc;
 import 'dart:typed_data' show Float64List, Int32List, Int64List, Uint8List;
 import 'dart:convert' show utf8, jsonEncode, jsonDecode;
 
-import 'package:flutter/foundation.dart'
-    show ReadBuffer, WriteBuffer, debugPrint;
 import 'package:flutter/services.dart';
 
 class TrackMessage {
