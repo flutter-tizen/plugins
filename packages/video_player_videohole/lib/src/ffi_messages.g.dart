@@ -1,4 +1,4 @@
-// Copyright 2023 Samsung Electronics Co., Ltd. All rights reserved.
+// Copyright 2026 Samsung Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -362,7 +362,6 @@ class VideoPlayerFFIBindings {
               'ffi_set_mix_with_others')
           .asFunction<_FFISetMixWithOthersDart>();
 
-      // P0-1 fix: FFI string memory management
       _ffiFreeString = _lib!
           .lookup<ffi.NativeFunction<_FFIFreeStringNative>>('ffi_free_string')
           .asFunction<_FFIFreeStringDart>();
@@ -376,11 +375,12 @@ class VideoPlayerFFIBindings {
           .lookup<ffi.NativeFunction<_FFIUnregisterEventPortNative>>(
               'ffi_unregister_dart_port')
           .asFunction<_FFIUnregisterEventPortDart>();
-
-      debugPrint('FFI bindings loaded successfully');
     } catch (e) {
-      debugPrint('Failed to load FFI bindings: $e');
-      rethrow;
+      _lib = null;
+      throw PlatformException(
+        code: 'FFI_LIBRARY_LOAD_FAILED',
+        message: 'Failed to load FFI bindings',
+      );
     }
   }
 
@@ -629,29 +629,18 @@ class VideoPlayerVideoholeFFIApi {
     }
     return bindings._ffiSetMixWithOthers(mixWithOthers);
   }
-
-  // Global Dart port registration
-  void registerDartPort(int port) {
-    final bindings = VideoPlayerFFIBindings.instance;
-    if (!bindings.isLoaded) {
-      bindings.load();
-    }
-    bindings._ffiRegisterDartPort(port);
-  }
-
-  void unregisterDartPort() {
-    final bindings = VideoPlayerFFIBindings.instance;
-    if (!bindings.isLoaded) {
-      bindings.load();
-    }
-    bindings._ffiUnregisterDartPort();
-  }
 }
 
 // ===== FFI Event Port Section - Using Dart_PostCObject_DL =====
 
 typedef _FFIInitializeApiDlNative = ffi.Int32 Function(ffi.Pointer<ffi.Void>);
 typedef _FFIInitializeApiDlDart = int Function(ffi.Pointer<ffi.Void>);
+
+typedef _FFIRegisterEventPortNative = ffi.Void Function(ffi.Int64);
+typedef _FFIRegisterEventPortDart = void Function(int);
+
+typedef _FFIUnregisterEventPortNative = ffi.Void Function();
+typedef _FFIUnregisterEventPortDart = void Function();
 
 ffi.Pointer<ffi.NativeFunction<_FFIInitializeApiDlNative>>?
     _ffiInitializeApiDlPtr;
@@ -660,35 +649,39 @@ bool _apiDlInitialized = false;
 void ffiInitializeApiDL() {
   if (_apiDlInitialized) return;
 
-  final lib = VideoPlayerFFIBindings.instance._lib;
-  if (lib == null) return;
+  final bindings = VideoPlayerFFIBindings.instance;
+  if (!bindings.isLoaded) {
+    bindings.load();
+  }
+  final lib = bindings._lib;
+  if (lib == null) {
+    throw PlatformException(
+      code: 'FFI_LIBRARY_NOT_LOADED',
+      message: 'FFI library is not loaded',
+    );
+  }
 
   try {
     _ffiInitializeApiDlPtr =
         lib.lookup<ffi.NativeFunction<_FFIInitializeApiDlNative>>(
             'ffi_initialize_api_dl');
-
-    if (_ffiInitializeApiDlPtr != null) {
-      final int result = _ffiInitializeApiDlPtr!
-              .cast<ffi.NativeFunction<_FFIInitializeApiDlNative>>()
-              .asFunction<int Function(ffi.Pointer<ffi.Void>)>()(
-          ffi.NativeApi.initializeApiDLData);
-      // Only set _apiDlInitialized if native initialization succeeded
-      if (result == 0) {
-        _apiDlInitialized = true;
-        debugPrint('Dart API DL initialized successfully');
-      } else {
-        debugPrint('Dart API DL initialization failed with code: $result');
-        throw PlatformException(
-          code: 'FFI_API_DL_INITIALIZATION_FAILED',
-          message: 'Dart API DL initialization failed',
-        );
-      }
-    }
   } catch (e) {
-    debugPrint('Failed to initialize Dart API DL: $e');
-    rethrow;
+    throw PlatformException(
+      code: 'FFI_API_DL_LOOKUP_FAILED',
+      message: 'Failed to lookup ffi_initialize_api_dl',
+    );
   }
+
+  final int result = _ffiInitializeApiDlPtr!
+      .asFunction<_FFIInitializeApiDlDart>()(ffi.NativeApi.initializeApiDLData);
+  if (result != 0) {
+    throw PlatformException(
+      code: 'FFI_API_DL_INITIALIZATION_FAILED',
+      message: 'Dart API DL initialization failed with code: $result',
+    );
+  }
+
+  _apiDlInitialized = true;
 }
 
 extension RawReceivePortNativePort on RawReceivePort {
@@ -709,52 +702,18 @@ int _receivePortNativePort(ReceivePort port) {
   return port.sendPort.nativePort;
 }
 
-typedef _FFIRegisterEventPortNative = ffi.Void Function(ffi.Int64);
-typedef _FFIRegisterEventPortDart = void Function(int);
-
-typedef _FFIUnregisterEventPortNative = ffi.Void Function();
-typedef _FFIUnregisterEventPortDart = void Function();
-
-ffi.Pointer<ffi.NativeFunction<_FFIRegisterEventPortNative>>?
-    _ffiRegisterEventPortPtr;
-ffi.Pointer<ffi.NativeFunction<_FFIUnregisterEventPortNative>>?
-    _ffiUnregisterEventPortPtr;
-bool _eventPortLoaded = false;
-
-void _loadEventPortBindings(ffi.DynamicLibrary? lib) {
-  if (lib == null || _eventPortLoaded) return;
-
-  try {
-    _ffiRegisterEventPortPtr =
-        lib.lookup<ffi.NativeFunction<_FFIRegisterEventPortNative>>(
-            'ffi_register_dart_port');
-
-    _ffiUnregisterEventPortPtr =
-        lib.lookup<ffi.NativeFunction<_FFIUnregisterEventPortNative>>(
-            'ffi_unregister_dart_port');
-
-    _eventPortLoaded = true;
-    debugPrint('FFI event port bindings loaded successfully');
-  } catch (e) {
-    debugPrint('Failed to load FFI event port bindings: $e');
-  }
-}
-
 void ffiRegisterEventPort(int port) {
-  if (!_eventPortLoaded) {
-    _loadEventPortBindings(VideoPlayerFFIBindings.instance._lib);
+  final bindings = VideoPlayerFFIBindings.instance;
+  if (!bindings.isLoaded) {
+    bindings.load();
   }
-  if (_eventPortLoaded && _ffiRegisterEventPortPtr != null) {
-    _ffiRegisterEventPortPtr!
-        .cast<ffi.NativeFunction<ffi.Void Function(ffi.Int64)>>()
-        .asFunction<void Function(int)>()(port);
-  }
+  bindings._ffiRegisterDartPort(port);
 }
 
 void ffiUnregisterEventPort() {
-  if (_eventPortLoaded && _ffiUnregisterEventPortPtr != null) {
-    _ffiUnregisterEventPortPtr!
-        .cast<ffi.NativeFunction<ffi.Void Function()>>()
-        .asFunction<void Function()>()();
+  final bindings = VideoPlayerFFIBindings.instance;
+  if (!bindings.isLoaded) {
+    bindings.load();
   }
+  bindings._ffiUnregisterDartPort();
 }

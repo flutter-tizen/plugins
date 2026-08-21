@@ -54,14 +54,9 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<int?> create(DataSource dataSource) async {
-    // Two-phase initialization:
-    // Phase 1: Create player without starting prepare
-    // Phase 2: Register event port and start listening BEFORE calling prepare()
-
     // Ensure the global event port is registered
     _ensureEventPortRegistered();
 
-    // Use CreateMessage class for FFI create (synchronous call)
     final CreateMessage message = CreateMessage();
 
     switch (dataSource.sourceType) {
@@ -79,7 +74,6 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
         message.uri = dataSource.uri;
     }
 
-    // Phase 1: Create player (does NOT start prepare_async)
     final int playerId = _ffiApi.create(message);
 
     if (playerId < 0) {
@@ -88,10 +82,6 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
         message: 'FFI create failed with code: $playerId',
       );
     }
-
-    // Phase 2: Register global Dart port (only needs to be done once)
-    // Note: registerDartPort is now a no-op since we use global port
-    // The port is already registered in _ensureEventPortRegistered()
 
     return playerId;
   }
