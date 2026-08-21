@@ -1,14 +1,9 @@
 ## 0.2.0
 
-- Fix `onTitleChanged` to also fire when the page's title changes after the
-  initial load (e.g. when JavaScript updates `document.title`), instead of
-  only once when loading finishes.
-- Fix a race where `getUrl()` could return the URL of a navigation that was
-  cancelled via `shouldOverrideUrlLoading`, and skip the
-  `shouldOverrideUrlLoading` round-trip for app-initiated navigations
-  (`loadUrl`, `goBack`, `reload`, etc.).
-- Fix `scrollBy`/`getScrollX`/`getScrollY` occasionally returning a stale
-  scroll position right after `scrollTo`/`scrollBy`.
+- Fix `onTitleChanged` to fire on title changes after the initial load, not just once at load finish.
+- Fix `getUrl()` returning a cancelled navigation's URL, and skip `shouldOverrideUrlLoading` for app-initiated navigations.
+- Fix `shouldOverrideUrlLoading` not being invoked for a hardware/remote Back-key navigation.
+- Fix `scrollBy`/`getScrollX`/`getScrollY` occasionally returning a stale scroll position.
 
 ## 0.1.4
 

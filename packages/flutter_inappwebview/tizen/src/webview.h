@@ -146,7 +146,7 @@ class WebView : public PlatformView {
   bool is_programmatic_navigation_ = false;
   bool is_navigation_cancelled_ = false;
   std::string committed_url_;
-  std::string pending_navigation_revert_url_;
+  std::string url_before_navigation_;
   int32_t target_scroll_x_ = -1;
   int32_t target_scroll_y_ = -1;
 
