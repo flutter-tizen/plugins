@@ -527,6 +527,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     StreamingPropertyType.dashToken: 'TOKEN',
     StreamingPropertyType.openHttpHeader: 'OPEN_HTTP_HEADER',
     StreamingPropertyType.openManifest: 'OPEN_MANIFEST',
+    StreamingPropertyType.setAbr: 'SET_ABR',
   };
 
   static const Map<BufferConfigType, String> _bufferConfigTypeMap =
