@@ -16,14 +16,14 @@ const Timeout kTimeout = Timeout(Duration(seconds: 10));
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Can receive request from platform', (WidgetTester _) async {
+  test('Can receive request from platform', () async {
     // The very first message is a launch request from the platform.
     final ReceivedAppControl received = await AppControl.onAppControl.first;
     expect(received.appId, kAppId);
     expect(received.operation, 'http://tizen.org/appcontrol/operation/default');
   }, timeout: kTimeout);
 
-  testWidgets('Can find matching applications', (WidgetTester _) async {
+  test('Can find matching applications', () async {
     final AppControl request = AppControl(
       operation: 'http://tizen.org/appcontrol/operation/view',
       uri: 'file:///opt/usr/globalapps/$kAppId/shared/res/ic_launcher.png',
@@ -33,7 +33,7 @@ void main() {
     expect(matches.length, greaterThanOrEqualTo(0));
   }, timeout: kTimeout);
 
-  testWidgets('Can send and receive request', (WidgetTester _) async {
+  test('Can send and receive request', () async {
     // Send a request to this app (the test runner itself).
     final AppControl request = AppControl(
       appId: kAppId,
@@ -52,8 +52,7 @@ void main() {
     expect(received.shouldReply, isFalse);
   }, timeout: kTimeout);
 
-  testWidgets('Can send and receive request with uri and mime',
-      (WidgetTester _) async {
+  test('Can send and receive request with uri and mime', () async {
     final AppControl request = AppControl(
       appId: kAppId,
       operation: 'operation_3',
@@ -67,7 +66,7 @@ void main() {
     expect(received.mime, 'text/plain');
   }, timeout: kTimeout);
 
-  testWidgets('Omit invalid extra data', (WidgetTester _) async {
+  test('Omit invalid extra data', () async {
     final AppControl request = AppControl(
       appId: kAppId,
       extraData: <String, Object?>{
@@ -84,7 +83,7 @@ void main() {
     expect(received.extraData['STRING_LIST_DATA'], <String>['string', 'list']);
   }, timeout: kTimeout);
 
-  testWidgets('Can send and receive reply', (WidgetTester _) async {
+  test('Can send and receive reply', () async {
     // This time, the request is sent to the service app instead of the test
     // runner, because the platform doesn't allow sending a reply back when
     // caller = callee.
@@ -93,18 +92,15 @@ void main() {
       operation: 'operation_2',
     );
     await request.sendLaunchRequest(
-      replyCallback: (
-        AppControl request,
-        AppControl reply,
-        AppControlReplyResult result,
-      ) {
+      replyCallback:
+          (AppControl request, AppControl reply, AppControlReplyResult result) {
         expect(result, AppControlReplyResult.canceled);
         expect(reply.extraData['STRING_DATA'], 'string');
       },
     );
   }, timeout: kTimeout);
 
-  testWidgets('Cannot find target applications', (WidgetTester _) async {
+  test('Cannot find target applications', () async {
     final AppControl request1 = AppControl(appId: 'unknown_app');
     expect(
       request1.sendLaunchRequest,

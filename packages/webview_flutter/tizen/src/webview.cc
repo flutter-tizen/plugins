@@ -8,7 +8,14 @@
 #include <app_common.h>
 #include <flutter/standard_method_codec.h>
 #include <flutter_texture_registrar.h>
+#include <glib.h>
 #include <tbm_surface.h>
+
+#include <algorithm>
+#include <atomic>
+#include <cstdlib>
+#include <cstring>
+#include <vector>
 
 #include "buffer_pool.h"
 #include "log.h"
@@ -44,9 +51,15 @@ std::string ConvertLogLevelToString(Ewk_Console_Message_Level level) {
 
 class NavigationRequestResult : public FlMethodResult {
  public:
-  NavigationRequestResult(WebView* webview) : webview_(webview) {}
+  // |alive| gates every dereference below: Dart resolves this call
+  // asynchronously, so it can complete after |webview| is destroyed.
+  NavigationRequestResult(WebView* webview, std::shared_ptr<bool> alive)
+      : webview_(webview), alive_(std::move(alive)) {}
 
   void SuccessInternal(const flutter::EncodableValue* should_load) override {
+    if (!*alive_) {
+      return;
+    }
     if (std::holds_alternative<bool>(*should_load)) {
       if (std::get<bool>(*should_load)) {
         webview_->Resume();
@@ -60,16 +73,23 @@ class NavigationRequestResult : public FlMethodResult {
                      const std::string& error_message,
                      const flutter::EncodableValue* error_details) override {
     LOG_ERROR("The request unexpectedly completed with an error.");
+    if (!*alive_) {
+      return;
+    }
     webview_->Stop();
   }
 
   void NotImplementedInternal() override {
     LOG_ERROR("The target method was unexpectedly unimplemented.");
+    if (!*alive_) {
+      return;
+    }
     webview_->Stop();
   }
 
  private:
   WebView* webview_;
+  std::shared_ptr<bool> alive_;
 };
 
 template <typename T>
@@ -85,6 +105,45 @@ bool GetValueFromEncodableMap(const flutter::EncodableValue* arguments,
     }
   }
   return false;
+}
+
+// Registry of WebViews whose evas_object_del() is still pending (see
+// Dispose()). FlushPendingTeardowns() drains it before ewk_shutdown(), which
+// fatally CHECKs if any Ewk_View is still alive.
+struct PendingTeardown {
+  Evas_Object* instance = nullptr;
+  std::shared_ptr<BufferPool> pool;
+  std::atomic<bool> completed{false};
+};
+
+std::mutex g_pending_teardown_mutex;
+std::vector<std::shared_ptr<PendingTeardown>> g_pending_teardowns;
+
+Ecore_Evas* g_offscreen_host = nullptr;
+
+std::shared_ptr<PendingTeardown> RegisterPendingTeardown(
+    Evas_Object* instance, std::shared_ptr<BufferPool> pool) {
+  auto pending = std::make_shared<PendingTeardown>();
+  pending->instance = instance;
+  pending->pool = std::move(pool);
+  std::lock_guard<std::mutex> lock(g_pending_teardown_mutex);
+  g_pending_teardowns.push_back(pending);
+  return pending;
+}
+
+// Idempotent: safe to call more than once for the same |pending|.
+void CompletePendingTeardown(const std::shared_ptr<PendingTeardown>& pending) {
+  bool expected = false;
+  if (pending->completed.compare_exchange_strong(expected, true) &&
+      pending->instance) {
+    evas_object_del(pending->instance);
+  }
+  std::lock_guard<std::mutex> lock(g_pending_teardown_mutex);
+  auto it = std::find(g_pending_teardowns.begin(), g_pending_teardowns.end(),
+                      pending);
+  if (it != g_pending_teardowns.end()) {
+    g_pending_teardowns.erase(it);
+  }
 }
 
 }  // namespace
@@ -103,7 +162,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
     return;
   }
 
-  tbm_pool_ = std::make_unique<SingleBufferPool>(width, height);
+  tbm_pool_ = std::make_shared<SingleBufferPool>(width, height);
 
   texture_variant_ =
       std::make_unique<flutter::TextureVariant>(flutter::GpuSurfaceTexture(
@@ -170,36 +229,134 @@ std::string WebView::GetNavigationDelegateChannelName() {
 }
 
 void WebView::Dispose() {
-  if (disposed_) {
-    return;
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (disposed_) {
+      return;
+    }
+    disposed_ = true;
   }
+  *is_alive_ = false;
 
-  texture_registrar_->UnregisterTexture(GetTextureId(), nullptr);
+  Evas_Object* instance = webview_instance_;
+  webview_instance_ = nullptr;
 
-  if (webview_instance_) {
-    evas_object_smart_callback_del(webview_instance_,
-                                   "offscreen,frame,rendered",
+  if (instance) {
+    // |instance| outlives this WebView until its deferred delete runs (see
+    // PendingTeardown), so every callback bound to it must be detached now.
+    evas_object_smart_callback_del(instance, "offscreen,frame,rendered",
                                    &WebView::OnFrameRendered);
-    evas_object_smart_callback_del(webview_instance_, "load,started",
+    evas_object_smart_callback_del(instance, "load,started",
                                    &WebView::OnLoadStarted);
-    evas_object_smart_callback_del(webview_instance_, "load,finished",
+    evas_object_smart_callback_del(instance, "load,finished",
                                    &WebView::OnLoadFinished);
-    evas_object_smart_callback_del(webview_instance_, "load,progress",
+    evas_object_smart_callback_del(instance, "load,progress",
                                    &WebView::OnProgress);
-    evas_object_smart_callback_del(webview_instance_, "load,error",
+    evas_object_smart_callback_del(instance, "load,error",
                                    &WebView::OnLoadError);
-    evas_object_smart_callback_del(webview_instance_, "console,message",
+    evas_object_smart_callback_del(instance, "console,message",
                                    &WebView::OnConsoleMessage);
-    evas_object_smart_callback_del(webview_instance_,
-                                   "policy,navigation,decide",
+    evas_object_smart_callback_del(instance, "policy,navigation,decide",
                                    &WebView::OnNavigationPolicy);
-    evas_object_smart_callback_del(webview_instance_, "url,changed",
+    evas_object_smart_callback_del(instance, "policy,response,decide",
+                                   &WebView::OnResponsePolicy);
+    evas_object_smart_callback_del(instance, "url,changed",
                                    &WebView::OnUrlChange);
-    evas_object_del(webview_instance_);
+    EwkInternalApiBinding::GetInstance().view.OnJavaScriptAlert(
+        instance, nullptr, nullptr);
+    EwkInternalApiBinding::GetInstance().view.OnJavaScriptConfirm(
+        instance, nullptr, nullptr);
+    EwkInternalApiBinding::GetInstance().view.OnJavaScriptPrompt(
+        instance, nullptr, nullptr);
+    evas_object_data_del(instance, kEwkInstance);
+
+    // Stop the page so it cannot run while the deferred teardown is pending.
+    ewk_view_stop(instance);
+    ewk_view_suspend(instance);
   }
 
-  // ewk_shutdown();
-  disposed_ = true;
+  std::shared_ptr<BufferPool> pool;
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    working_surface_ = nullptr;
+    candidate_surface_ = nullptr;
+    rendered_surface_ = nullptr;
+    pool = std::move(tbm_pool_);
+  }
+
+  // UnregisterTexture()'s completion callback fires on the render thread, so
+  // hop back to the main loop before completing the deferred delete.
+  auto pending = RegisterPendingTeardown(instance, std::move(pool));
+  texture_registrar_->UnregisterTexture(GetTextureId(), [pending]() {
+    // Must stay a high-priority timeout: g_idle_add() runs too late and the
+    // delete then races the raster thread on the TV emulator.
+    g_timeout_add_full(
+        G_PRIORITY_HIGH, 0,
+        [](gpointer data) -> gboolean {
+          auto* pending = static_cast<std::shared_ptr<PendingTeardown>*>(data);
+          CompletePendingTeardown(*pending);
+          return G_SOURCE_REMOVE;
+        },
+        new std::shared_ptr<PendingTeardown>(pending),
+        [](gpointer data) {
+          delete static_cast<std::shared_ptr<PendingTeardown>*>(data);
+        });
+  });
+}
+
+Ecore_Evas* WebView::GetOffscreenHost() {
+  if (!g_offscreen_host) {
+    // wayland_shm, not wayland_egl: wayland_egl raced libtpl-egl's
+    // wl_egl_thread teardown on disposal.
+    g_offscreen_host = ecore_evas_new("wayland_shm", 0, 0, 1, 1, 0);
+  }
+  return g_offscreen_host;
+}
+
+void WebView::FreeOffscreenHost() {
+  if (g_offscreen_host) {
+    ecore_evas_free(g_offscreen_host);
+    g_offscreen_host = nullptr;
+  }
+}
+
+void WebView::InitializeEngine() { ewk_init(); }
+
+void WebView::ShutdownEngine() {
+  FlushPendingTeardowns();
+  FreeOffscreenHost();
+  ewk_shutdown();
+}
+
+void WebView::FlushPendingTeardowns() {
+  // One deadline for all pending teardowns; once it passes, force-complete
+  // them together, not just the oldest one.
+  constexpr gint64 kDeadlineUsec = 2 * G_USEC_PER_SEC;
+  const gint64 deadline = g_get_monotonic_time() + kDeadlineUsec;
+  for (;;) {
+    bool deadline_passed = g_get_monotonic_time() >= deadline;
+    std::vector<std::shared_ptr<PendingTeardown>> snapshot;
+    {
+      std::lock_guard<std::mutex> lock(g_pending_teardown_mutex);
+      if (g_pending_teardowns.empty()) {
+        return;
+      }
+      if (deadline_passed) {
+        snapshot = g_pending_teardowns;
+      }
+    }
+    if (deadline_passed) {
+      LOG_WARN("Forcing %zu pending teardown(s) past deadline",
+               snapshot.size());
+      for (auto& pending : snapshot) {
+        CompletePendingTeardown(pending);
+      }
+      continue;
+    }
+    if (!g_main_context_iteration(g_main_context_default(), FALSE)) {
+      g_usleep(1000);
+    }
+  }
 }
 
 void WebView::Offset(double left, double top) {
@@ -331,9 +488,17 @@ bool WebView::SendKey(const char* key, const char* string, const char* compose,
   return true;
 }
 
-void WebView::Resume() { ewk_view_resume(webview_instance_); }
+void WebView::Resume() {
+  if (webview_instance_) {
+    ewk_view_resume(webview_instance_);
+  }
+}
 
-void WebView::Stop() { ewk_view_stop(webview_instance_); }
+void WebView::Stop() {
+  if (webview_instance_) {
+    ewk_view_stop(webview_instance_);
+  }
+}
 
 void WebView::SetDirection(int direction) {
   // TODO: Implement if necessary.
@@ -355,16 +520,10 @@ bool WebView::InitWebView() {
   EwkInternalApiBinding::GetInstance().main.SetArguments(chromium_argc,
                                                          chromium_argv);
 
-  // TODO(jsuya): ewk_init() and ewk_shutdown() are designed to be called only
-  // once in a process.(If ewk_init() is called after ewk_shutdown() is
-  // called, SIGTRAP is called internally.) ewk_init() initializes the efl
-  // modules and web engine's arguments data. The efl modules are initialized
-  // by default in OS, and arguments data is also initialized through
-  // SetArguments() API, so calling ewk_init() is not necessary. Therefore,
-  // temporarily comment out ewk_init() and ewk_shutdown(). It can be reverted
-  // depending on updates to chromium-efl.
-  // ewk_init();
-  Ecore_Evas* evas = ecore_evas_new("wayland_egl", 0, 0, 1, 1, 0);
+  Ecore_Evas* evas = GetOffscreenHost();
+  if (!evas) {
+    return false;
+  }
 
   webview_instance_ = ewk_view_add(ecore_evas_get(evas));
   if (!webview_instance_) {
@@ -429,6 +588,8 @@ bool WebView::InitWebView() {
                                  &WebView::OnConsoleMessage, this);
   evas_object_smart_callback_add(webview_instance_, "policy,navigation,decide",
                                  &WebView::OnNavigationPolicy, this);
+  evas_object_smart_callback_add(webview_instance_, "policy,response,decide",
+                                 &WebView::OnResponsePolicy, this);
   evas_object_smart_callback_add(webview_instance_, "url,changed",
                                  &WebView::OnUrlChange, this);
 
@@ -451,6 +612,15 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
                                       std::unique_ptr<FlMethodResult> result) {
   const std::string& method_name = method_call.method_name();
   const flutter::EncodableValue* arguments = method_call.arguments();
+
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (disposed_) {
+      result->Error("Invalid operation",
+                    "The webview instance has been disposed.");
+      return;
+    }
+  }
 
   if (method_name == "setEnginePolicy") {
     const auto* engine_policy = std::get_if<bool>(arguments);
@@ -579,6 +749,10 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
   } else if (method_name == "clearCache") {
     Ewk_Context* context = ewk_view_context_get(webview_instance_);
     ewk_context_resource_cache_clear(context);
+    result->Success();
+  } else if (method_name == "clearLocalStorage") {
+    Ewk_Context* context = ewk_view_context_get(webview_instance_);
+    ewk_context_web_storage_delete_all(context);
     result->Success();
   } else if (method_name == "getTitle") {
     result->Success(flutter::EncodableValue(
@@ -745,6 +919,9 @@ void WebView::HandleCookieMethodCall(const FlMethodCall& method_call,
 FlutterDesktopGpuSurfaceDescriptor* WebView::ObtainGpuSurface(size_t width,
                                                               size_t height) {
   std::lock_guard<std::mutex> lock(mutex_);
+  if (disposed_ || !tbm_pool_) {
+    return nullptr;
+  }
   if (!candidate_surface_) {
     if (rendered_surface_) {
       return rendered_surface_->GpuSurface();
@@ -764,6 +941,9 @@ void WebView::OnFrameRendered(void* data, Evas_Object* obj, void* event_info) {
     WebView* webview = static_cast<WebView*>(data);
 
     std::lock_guard<std::mutex> lock(webview->mutex_);
+    if (webview->disposed_ || !webview->tbm_pool_) {
+      return;
+    }
     if (!webview->working_surface_) {
       webview->working_surface_ = webview->tbm_pool_->GetAvailableBuffer();
       webview->working_surface_->UseExternalBuffer();
@@ -865,10 +1045,33 @@ void WebView::OnNavigationPolicy(void* data, Evas_Object* obj,
       {flutter::EncodableValue("isForMainFrame"),
        flutter::EncodableValue(true)},
   };
-  auto result = std::make_unique<NavigationRequestResult>(webview);
+  auto result =
+      std::make_unique<NavigationRequestResult>(webview, webview->is_alive_);
   webview->navigation_delegate_channel_->InvokeMethod(
       "navigationRequest", std::make_unique<flutter::EncodableValue>(args),
       std::move(result));
+}
+
+void WebView::OnResponsePolicy(void* data, Evas_Object* obj, void* event_info) {
+  WebView* webview = static_cast<WebView*>(data);
+  Ewk_Policy_Decision* policy_decision =
+      static_cast<Ewk_Policy_Decision*>(event_info);
+  int status_code =
+      ewk_policy_decision_response_status_code_get(policy_decision);
+  const char* url = ewk_policy_decision_url_get(policy_decision);
+  ewk_policy_decision_use(policy_decision);
+
+  // HTTP error status codes (4xx, 5xx) are reported to the navigation delegate.
+  if (!webview->has_navigation_delegate_ || status_code < 400) {
+    return;
+  }
+  flutter::EncodableMap args = {
+      {flutter::EncodableValue("url"), flutter::EncodableValue(url ? url : "")},
+      {flutter::EncodableValue("statusCode"),
+       flutter::EncodableValue(status_code)},
+  };
+  webview->navigation_delegate_channel_->InvokeMethod(
+      "onHttpError", std::make_unique<flutter::EncodableValue>(args));
 }
 
 void WebView::OnUrlChange(void* data, Evas_Object* obj, void* event_info) {
@@ -896,7 +1099,9 @@ void WebView::OnJavaScriptMessage(Evas_Object* obj,
   if (obj) {
     WebView* webview =
         static_cast<WebView*>(evas_object_data_get(obj, kEwkInstance));
-    if (webview->webview_channel_) {
+    // The data key is removed in Dispose(), so a message arriving during the
+    // deferred teardown yields nullptr here rather than a dangling pointer.
+    if (webview && webview->webview_channel_) {
       std::string channel_name(message.name);
       std::string message_body(static_cast<char*>(message.body));
 

@@ -1,6 +1,8 @@
 ## NEXT
 
+* Update analysis_options.yaml for Flutter 3.47.0.
 * Update integration tests based on upstream flutter_secure_storage v10.2.0 (12 test cases).
+* Update integration tests.
 
 ## 0.1.3
 

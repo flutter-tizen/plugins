@@ -13,27 +13,27 @@ import 'package:integration_test/integration_test.dart';
 Future<void> main() async {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('request permission', (WidgetTester tester) async {
+  test('request permission', () async {
     expect(await Geolocator.requestPermission(), LocationPermission.always);
   }, timeout: const Timeout(Duration(seconds: 10)));
 
-  testWidgets('check permission', (WidgetTester tester) async {
+  test('check permission', () async {
     expect(await Geolocator.checkPermission(), LocationPermission.always);
   }, timeout: const Timeout(Duration(seconds: 10)));
 
-  testWidgets('is location service enabled', (WidgetTester tester) async {
+  test('is location service enabled', () async {
     expect(await Geolocator.isLocationServiceEnabled(), true);
   }, timeout: const Timeout(Duration(seconds: 10)));
 
-  testWidgets('get current position', (WidgetTester tester) async {
+  test('get current position', () async {
     expect(await Geolocator.getCurrentPosition(), isA<Position>());
   }, timeout: const Timeout(Duration(seconds: 10)));
 
-  testWidgets('get last known position', (WidgetTester tester) async {
+  test('get last known position', () async {
     expect(await Geolocator.getLastKnownPosition(), isA<Position>());
   }, timeout: const Timeout(Duration(seconds: 10)));
 
-  testWidgets('listen location', (WidgetTester tester) async {
+  test('listen location', () async {
     final Completer<Object> completer = Completer<Object>();
     final StreamSubscription<Position> subscription =
         Geolocator.getPositionStream().listen(

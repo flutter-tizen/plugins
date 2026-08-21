@@ -1,3 +1,7 @@
+## NEXT
+
+* Update analysis_options.yaml for Flutter 3.47.0.
+
 ## 1.1.0
 
 * Update package_info_plus to 9.0.1.

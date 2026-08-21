@@ -1,3 +1,8 @@
+## NEXT
+
+* Update analysis_options.yaml for Flutter 3.47.0.
+* Update integration tests.
+
 ## 0.2.3
 
 * Fix `RTCPeerConnection.close()` to be idempotent; calling it more than once no longer throws an error.

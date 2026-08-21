@@ -18,13 +18,11 @@ void main() {
     tizenInfo = await deviceInfoPlugin.tizenInfo;
   });
 
-  testWidgets('Can get non-null device model', (WidgetTester tester) async {
+  test('Can get non-null device model', () async {
     expect(tizenInfo.modelName, isNotNull);
   });
 
-  testWidgets('Check all Tizen info values are available', (
-    WidgetTester tester,
-  ) async {
+  test('Check all Tizen info values are available', () async {
     expect(tizenInfo.modelName, isNotNull);
     expect(tizenInfo.cpuArch, isNotNull);
     expect(tizenInfo.nativeApiVersion, isNotNull);
@@ -56,9 +54,7 @@ void main() {
     );
   }, skip: !Platform.isLinux);
 
-  testWidgets('tizenInfo is consistent across repeated calls', (
-    WidgetTester tester,
-  ) async {
+  test('tizenInfo is consistent across repeated calls', () async {
     // Repeated calls on the same instance return the cached instance.
     final plugin1 = DeviceInfoPluginTizen();
     final first = await plugin1.tizenInfo;
@@ -71,9 +67,7 @@ void main() {
     expect(third.modelName, first.modelName);
   }, skip: !Platform.isLinux);
 
-  testWidgets('TizenDeviceInfo.fromMap round-trips through data', (
-    WidgetTester tester,
-  ) async {
+  test('TizenDeviceInfo.fromMap round-trips through data', () async {
     final data = tizenInfo.data;
     expect(data, isNotEmpty);
 

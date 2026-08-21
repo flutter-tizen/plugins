@@ -1,3 +1,8 @@
+## NEXT
+
+* Update analysis_options.yaml for Flutter 3.47.0.
+* Update integration tests.
+
 ## 1.7.0
 
 * Return a boolean from `isLanguageAvailable` to match the behavior of other platforms.

@@ -39,22 +39,18 @@ void main() {
   // ---------------------------------------------------------------------------
 
   group('StubBase', () {
-    testWidgets('portName is set from constructor', (WidgetTester _) async {
+    test('portName is set from constructor', () async {
       final _TestStub stub = _TestStub();
       expect(stub.portName, 'TestStubPort');
     });
 
-    testWidgets('setTrusted can be called without listen', (
-      WidgetTester _,
-    ) async {
+    test('setTrusted can be called without listen', () async {
       final _TestStub stub = _TestStub();
       stub.setTrusted(true);
       stub.setTrusted(false);
     });
 
-    testWidgets('addPrivilege can be called without listen', (
-      WidgetTester _,
-    ) async {
+    test('addPrivilege can be called without listen', () async {
       final _TestStub stub = _TestStub();
       stub.addPrivilege('http://tizen.org/privilege/datasharing');
     });
@@ -65,7 +61,7 @@ void main() {
   // ---------------------------------------------------------------------------
 
   group('Message', () {
-    testWidgets('portName is Message', (WidgetTester _) async {
+    test('portName is Message', () async {
       final Message server = Message(
         serviceBuilder: (String sender, String instance) =>
             _NoopService(sender, instance),
@@ -73,7 +69,7 @@ void main() {
       expect(server.portName, 'Message');
     });
 
-    testWidgets('services list is initially empty', (WidgetTester _) async {
+    test('services list is initially empty', () async {
       final Message server = Message(
         serviceBuilder: (String sender, String instance) =>
             _NoopService(sender, instance),

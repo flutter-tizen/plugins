@@ -13,10 +13,10 @@ class GroundOverlayController {
   GroundOverlayController({
     required util.GGroundOverlay groundOverlay,
     ui.VoidCallback? onTap,
-    WebViewController? controller,
-  })  : _groundOverlay = groundOverlay,
-        tapEvent = onTap {
-    _addGroundOverlayEvent(controller);
+    required GoogleMapsJsBridge bridge,
+  }) : _groundOverlay = groundOverlay,
+       tapEvent = onTap {
+    _addGroundOverlayEvent(bridge);
   }
 
   util.GGroundOverlay? _groundOverlay;
@@ -24,10 +24,13 @@ class GroundOverlayController {
   /// Ground overlay component's tap event.
   ui.VoidCallback? tapEvent;
 
-  Future<void> _addGroundOverlayEvent(WebViewController? controller) async {
-    final String command =
-        "$_groundOverlay.addListener('click', (event) => GroundOverlayClick.postMessage(JSON.stringify(${_groundOverlay?.id})));";
-    await controller!.runJavaScript(command);
+  Future<void> _addGroundOverlayEvent(GoogleMapsJsBridge bridge) async {
+    await bridge.addListener(
+      JsRef(_groundOverlay.toString()),
+      'click',
+      'GroundOverlayClick',
+      'JSON.stringify(${_groundOverlay?.id})',
+    );
   }
 
   /// Updates the options of the wrapped [GGroundOverlay] object.

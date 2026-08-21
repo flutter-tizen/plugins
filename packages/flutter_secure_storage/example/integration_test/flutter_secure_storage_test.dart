@@ -20,43 +20,43 @@ void main() {
   });
 
   group('Basic CRUD', () {
-    testWidgets('write and read round trip', (_) async {
+    test('write and read round trip', () async {
       await _storage.write(key: 'key1', value: 'value1');
       expect(await _storage.read(key: 'key1'), 'value1');
     });
 
-    testWidgets('read missing key returns null', (_) async {
+    test('read missing key returns null', () async {
       expect(await _storage.read(key: 'nonexistent'), isNull);
     });
 
-    testWidgets('overwrite returns new value', (_) async {
+    test('overwrite returns new value', () async {
       await _storage.write(key: 'k', value: 'first');
       await _storage.write(key: 'k', value: 'second');
       expect(await _storage.read(key: 'k'), 'second');
     });
 
-    testWidgets('containsKey true after write', (_) async {
+    test('containsKey true after write', () async {
       await _storage.write(key: 'k', value: 'v');
       expect(await _storage.containsKey(key: 'k'), isTrue);
     });
 
-    testWidgets('containsKey false for missing key', (_) async {
+    test('containsKey false for missing key', () async {
       expect(await _storage.containsKey(key: 'nonexistent'), isFalse);
     });
 
-    testWidgets('delete removes key', (_) async {
+    test('delete removes key', () async {
       await _storage.write(key: 'k', value: 'v');
       await _storage.delete(key: 'k');
       expect(await _storage.containsKey(key: 'k'), isFalse);
       expect(await _storage.read(key: 'k'), isNull);
     });
 
-    testWidgets('delete nonexistent key is no-op', (_) async {
+    test('delete nonexistent key is no-op', () async {
       await _storage.delete(key: 'never_written');
       expect(await _storage.containsKey(key: 'never_written'), isFalse);
     });
 
-    testWidgets('readAll returns all written entries', (_) async {
+    test('readAll returns all written entries', () async {
       await _storage.write(key: 'k1', value: 'v1');
       await _storage.write(key: 'k2', value: 'v2');
       final all = await _storage.readAll();
@@ -64,7 +64,7 @@ void main() {
       expect(all, containsPair('k2', 'v2'));
     });
 
-    testWidgets('deleteAll clears every key', (_) async {
+    test('deleteAll clears every key', () async {
       await _storage.write(key: 'a', value: '1');
       await _storage.write(key: 'b', value: '2');
       await _storage.deleteAll();
@@ -73,7 +73,7 @@ void main() {
   });
 
   group('Special-character keys', () {
-    testWidgets('URL key', (_) async {
+    test('URL key', () async {
       const key = 'http://example.com';
       await _storage.write(key: key, value: 'url-value');
       expect(await _storage.read(key: key), 'url-value');
@@ -82,7 +82,7 @@ void main() {
       expect(await _storage.containsKey(key: key), isFalse);
     });
 
-    testWidgets('Non-ASCII key (Latin-1)', (_) async {
+    test('Non-ASCII key (Latin-1)', () async {
       const key = 'clé';
       await _storage.write(key: key, value: key);
       expect(await _storage.read(key: key), key);
@@ -90,7 +90,7 @@ void main() {
       expect(await _storage.containsKey(key: key), isFalse);
     });
 
-    testWidgets('Case-sensitive keys', (_) async {
+    test('Case-sensitive keys', () async {
       await _storage.write(key: 'key', value: 'lower');
       await _storage.write(key: 'KEY', value: 'upper');
       expect(await _storage.read(key: 'key'), 'lower');

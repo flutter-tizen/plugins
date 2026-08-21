@@ -1,3 +1,8 @@
+## NEXT
+
+* Update analysis_options.yaml for Flutter 3.47.0.
+* Update integration tests.
+
 ## 1.1.6
 
 * Update network_info_plus_platform_interface to 2.0.0.

@@ -190,10 +190,9 @@ Page resource error:
             debugPrint('allowing navigation to ${request.url}');
             return NavigationDecision.navigate;
           },
-          // Note: onHttpError is not implemented by TizenWebview.
-          // onHttpError: (HttpResponseError error) {
-          //   debugPrint('Error occurred on page: ${error.response?.statusCode}');
-          // },
+          onHttpError: (HttpResponseError error) {
+            debugPrint('Error occurred on page: ${error.response?.statusCode}');
+          },
           onUrlChange: (UrlChange change) {
             debugPrint('url change to ${change.url}');
           },
@@ -491,8 +490,7 @@ class SampleMenu extends StatelessWidget {
 
   Future<void> _onClearCache(BuildContext context) async {
     await webViewController.clearCache();
-    // This is unimplemented in webview_flutter_tizen.
-    // await webViewController.clearLocalStorage();
+    await webViewController.clearLocalStorage();
     if (context.mounted) {
       ScaffoldMessenger.of(
         context,

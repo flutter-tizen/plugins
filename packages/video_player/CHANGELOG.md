@@ -3,6 +3,9 @@
 * Update video_player to 2.14.0.
 * Update video_player_platform_interface to 6.9.0.
 * Updates minimum supported SDK version to Flutter 3.44/Dart 3.12.
+* Update integration tests.
+* Update code format with `dart format` from Flutter 3.47.0 (Dart 3.13.0).
+* Remove unused flutter_driver test files, in sync with flutter/packages#4347.
 
 ## 2.5.12
 
