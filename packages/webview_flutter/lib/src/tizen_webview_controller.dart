@@ -218,12 +218,7 @@ class TizenWebViewController extends PlatformWebViewController {
   Future<void> clearCache() => _webview.clearCache();
 
   @override
-  Future<void> clearLocalStorage() {
-    throw UnimplementedError(
-      'This version of `TizenWebViewController` currently has no '
-      'implementation.',
-    );
-  }
+  Future<void> clearLocalStorage() => _webview.clearLocalStorage();
 
   @override
   Future<void> setPlatformNavigationDelegate(
@@ -477,6 +472,7 @@ class TizenNavigationDelegate extends PlatformNavigationDelegate {
   WebResourceErrorCallback? _onWebResourceError;
   NavigationRequestCallback? _onNavigationRequest;
   UrlChangeCallback? _onUrlChange;
+  HttpResponseErrorCallback? _onHttpError;
 
   /// Called when [TizenView] is created.
   void createNavigationDelegateChannel(int viewId) {
@@ -523,6 +519,20 @@ class TizenNavigationDelegate extends PlatformNavigationDelegate {
         case 'onUrlChange':
           if (_onUrlChange != null) {
             _onUrlChange!(UrlChange(url: arguments['url']! as String));
+          }
+          return null;
+        case 'onHttpError':
+          if (_onHttpError != null) {
+            final Uri uri = Uri.parse(arguments['url']! as String);
+            _onHttpError!(
+              HttpResponseError(
+                request: WebResourceRequest(uri: uri),
+                response: WebResourceResponse(
+                  uri: uri,
+                  statusCode: arguments['statusCode']! as int,
+                ),
+              ),
+            );
           }
           return null;
       }
@@ -580,10 +590,7 @@ class TizenNavigationDelegate extends PlatformNavigationDelegate {
 
   @override
   Future<void> setOnHttpError(HttpResponseErrorCallback onHttpError) async {
-    throw UnimplementedError(
-      'This version of `TizenNavigationDelegate` currently has no '
-      'implementation for `setOnHttpError`',
-    );
+    _onHttpError = onHttpError;
   }
 
   @override

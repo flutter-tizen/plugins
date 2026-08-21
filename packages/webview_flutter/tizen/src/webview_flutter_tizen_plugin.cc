@@ -9,12 +9,15 @@
 
 #include <memory>
 
+#include "webview.h"
 #include "webview_factory.h"
 
 namespace {
 
 constexpr char kViewType[] = "plugins.flutter.io/webview";
 
+// Constructed/destroyed exactly once by flutter-tizen's engine start/stop,
+// not per-WebView.
 class WebviewFlutterTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar* registrar) {
@@ -22,9 +25,9 @@ class WebviewFlutterTizenPlugin : public flutter::Plugin {
     registrar->AddPlugin(std::move(plugin));
   }
 
-  WebviewFlutterTizenPlugin() {}
+  WebviewFlutterTizenPlugin() { WebView::InitializeEngine(); }
 
-  virtual ~WebviewFlutterTizenPlugin() {}
+  virtual ~WebviewFlutterTizenPlugin() { WebView::ShutdownEngine(); }
 };
 
 }  // namespace

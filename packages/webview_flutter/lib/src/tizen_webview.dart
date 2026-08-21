@@ -151,6 +151,10 @@ class TizenWebView {
   /// Clears all caches used by the [WebView].
   Future<void> clearCache() => _invokeChannelMethod<void>('clearCache');
 
+  /// Clears the local storage used by the [WebView].
+  Future<void> clearLocalStorage() =>
+      _invokeChannelMethod<void>('clearLocalStorage');
+
   /// Sets the JavaScript execution mode to be used by the webview.
   Future<void> setJavaScriptMode(int javaScriptMode) =>
       _invokeChannelMethod<void>('javaScriptMode', javaScriptMode);

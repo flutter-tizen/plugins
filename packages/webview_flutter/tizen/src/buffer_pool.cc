@@ -4,11 +4,31 @@
 
 #include "buffer_pool.h"
 
+#include <mutex>
+#include <set>
+
 #include "log.h"
 
-BufferUnit::BufferUnit(int32_t width, int32_t height) { Reset(width, height); }
+namespace {
+// Tracks live BufferUnits so the engine's release_callback (below) can detect
+// one that was already destroyed instead of dereferencing freed memory.
+std::set<BufferUnit*> active_buffers;
+std::mutex active_buffers_mutex;
+}  // namespace
+
+BufferUnit::BufferUnit(int32_t width, int32_t height) {
+  {
+    std::lock_guard<std::mutex> lock(active_buffers_mutex);
+    active_buffers.insert(this);
+  }
+  Reset(width, height);
+}
 
 BufferUnit::~BufferUnit() {
+  {
+    std::lock_guard<std::mutex> lock(active_buffers_mutex);
+    active_buffers.erase(this);
+  }
   if (tbm_surface_ && !use_external_buffer_) {
     tbm_surface_destroy(tbm_surface_);
     tbm_surface_ = nullptr;
@@ -76,7 +96,10 @@ void BufferUnit::Reset(int32_t width, int32_t height) {
   gpu_surface_->handle = tbm_surface_;
   gpu_surface_->release_callback = [](void* release_context) {
     BufferUnit* buffer = reinterpret_cast<BufferUnit*>(release_context);
-    buffer->UnmarkInUse();
+    std::lock_guard<std::mutex> lock(active_buffers_mutex);
+    if (active_buffers.find(buffer) != active_buffers.end()) {
+      buffer->UnmarkInUse();
+    }
   };
   gpu_surface_->release_context = this;
 }
