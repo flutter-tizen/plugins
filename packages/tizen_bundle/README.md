@@ -10,7 +10,7 @@ To use this package, add `tizen_bundle` as a dependency in your `pubspec.yaml` f
 
 ```yaml
 depenedencies:
-  tizen_bundle: ^0.1.3
+  tizen_bundle: ^0.1.4
 ```
 
 ### Adding content to a bundle

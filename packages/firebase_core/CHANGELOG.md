@@ -1,5 +1,6 @@
-## NEXT
+## 0.1.2
 
+* Update the repository URL to use the `main` branch.
 * Add integration tests based on upstream firebase_core v2.17.0.
 * Update minimum Flutter and Dart version to 3.13 and 3.1.
 * Fix new lint warnings.

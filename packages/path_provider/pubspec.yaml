@@ -1,8 +1,8 @@
 name: path_provider_tizen
 description: Tizen implementation of the path_provider plugin.
 homepage: https://github.com/flutter-tizen/plugins
-repository: https://github.com/flutter-tizen/plugins/tree/master/packages/path_provider
-version: 2.3.0
+repository: https://github.com/flutter-tizen/plugins/tree/main/packages/path_provider
+version: 2.3.1
 
 environment:
   sdk: ^3.3.0

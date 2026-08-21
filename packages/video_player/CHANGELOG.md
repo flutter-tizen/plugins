@@ -1,8 +1,9 @@
-## NEXT
+## 2.5.13
 
 * Update integration tests.
 * Update code format with `dart format` from Flutter 3.47.0 (Dart 3.13.0).
 * Remove unused flutter_driver test files, in sync with flutter/packages#4347.
+* Update the repository URL to use the `main` branch.
 
 ## 2.5.12
 

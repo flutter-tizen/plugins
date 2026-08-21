@@ -1,3 +1,7 @@
+## 0.10.2
+
+* Update the repository URL to use the `main` branch.
+
 ## 0.10.1
 
 * Implement `clearLocalStorage`.

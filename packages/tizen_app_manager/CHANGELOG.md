@@ -1,3 +1,7 @@
+## 0.2.6
+
+* Update the repository URL to use the `main` branch.
+
 ## 0.2.5
 
 * Fix memory leak in `AppRunningContext.packageId` by freeing the native string

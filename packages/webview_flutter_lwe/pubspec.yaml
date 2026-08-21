@@ -1,8 +1,8 @@
 name: webview_flutter_lwe
 description: Tizen implementation of the webview_flutter plugin backed by Lightweight Web Engine.
 homepage: https://github.com/flutter-tizen/plugins
-repository: https://github.com/flutter-tizen/plugins/tree/master/packages/webview_flutter_lwe
-version: 0.5.3
+repository: https://github.com/flutter-tizen/plugins/tree/main/packages/webview_flutter_lwe
+version: 0.5.4
 
 environment:
   sdk: ^3.8.0
