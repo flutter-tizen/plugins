@@ -1,8 +1,9 @@
 ## 0.6.0
 
-* Migrated from Platform Channels to Dart FFI.
-* Replaced EventChannel with FFI port for event callbacks.
-* Added JSON serialization for complex parameters.
+* Migrate from Platform Channels to Dart FFI.
+* Replace EventChannel with FFI port for event callbacks.
+* Add JSON serialization for complex parameters.
+* Add pending seekTo handling.
 
 ## 0.5.9
 
