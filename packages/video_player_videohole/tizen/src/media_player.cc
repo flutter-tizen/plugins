@@ -320,11 +320,19 @@ bool MediaPlayer::SetPlaybackSpeed(double speed) {
 bool MediaPlayer::SeekTo(int64_t position, SeekCompletedCallback callback) {
   LOG_INFO("[MediaPlayer] position: %lld.", position);
 
+  if (is_seeking_) {
+    LOG_ERROR("[MediaPlayer] Seek is already in progress.");
+    return false;
+  }
+
   on_seek_completed_ = std::move(callback);
+  is_seeking_ = true;
+
   int ret =
       player_set_play_position(player_, position, true, OnSeekCompleted, this);
   if (ret != PLAYER_ERROR_NONE) {
     on_seek_completed_ = nullptr;
+    is_seeking_ = false;
     LOG_ERROR("[MediaPlayer] player_set_play_position failed: %s.",
               get_error_message(ret));
     return false;
@@ -697,6 +705,7 @@ bool MediaPlayer::StopAndDestroy() {
   bool success = true;
   is_buffering_ = false;
   on_seek_completed_ = nullptr;
+  is_seeking_ = false;
 
   player_state_e player_state = PLAYER_STATE_NONE;
   int ret = player_get_state(player_, &player_state);
@@ -976,6 +985,7 @@ void MediaPlayer::OnSeekCompleted(void *user_data) {
 
   auto on_seek_completed = std::move(self->on_seek_completed_);
   self->on_seek_completed_ = nullptr;
+  self->is_seeking_ = false;
 
   if (on_seek_completed) {
     on_seek_completed();

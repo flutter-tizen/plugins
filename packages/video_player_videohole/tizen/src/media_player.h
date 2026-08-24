@@ -77,6 +77,7 @@ class MediaPlayer : public VideoPlayer {
   std::unique_ptr<DrmManager> drm_manager_;
   bool is_buffering_ = false;
   SeekCompletedCallback on_seek_completed_;
+  bool is_seeking_ = false;
   std::unique_ptr<DeviceProxy> device_proxy_ = nullptr;
   std::string url_;
   CreateMessage create_message_;
