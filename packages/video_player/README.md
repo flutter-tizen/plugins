@@ -59,6 +59,9 @@ The following methods are not currently supported.
 - `VideoPlayerPlatform.getAudioTracks()`
 - `VideoPlayerPlatform.selectAudioTrack()`
 - `VideoPlayerPlatform.isAudioTrackSupportAvailable()`
+- `VideoPlayerPlatform.getVideoTracks()`
+- `VideoPlayerPlatform.selectVideoTrack()`
+- `VideoPlayerPlatform.isVideoTrackSupportAvailable()`
 
 This plugin has the following limitations.
 
