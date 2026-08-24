@@ -14,6 +14,13 @@ import '../video_player_platform_interface.dart';
 import 'ffi_messages.g.dart';
 import 'tracks.dart';
 
+class _SeekOperation {
+  _SeekOperation({required this.position, required this.completers});
+
+  Duration position;
+  final List<Completer<void>> completers;
+}
+
 /// An implementation of [VideoPlayerPlatform] that uses FFI for all methods.
 class VideoPlayerTizen extends VideoPlayerPlatform {
   /// Create a new VideoPlayerTizen instance.
@@ -35,15 +42,13 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<void> dispose(int playerId) async {
-    final Completer<void>? seekCompleter = _seekCompleters.remove(playerId);
-    if (seekCompleter != null && !seekCompleter.isCompleted) {
-      seekCompleter.completeError(
-        PlatformException(
-          code: 'FFI_SEEK_TO_CANCELLED',
-          message: 'seekTo was cancelled because player $playerId was disposed',
-        ),
-      );
-    }
+    _completeSeeksWithError(
+      playerId,
+      PlatformException(
+        code: 'FFI_SEEK_TO_CANCELLED',
+        message: 'seekTo was cancelled because player $playerId was disposed',
+      ),
+    );
 
     // Close the StreamController for this player
     final StreamController<VideoEvent>? controller = _eventControllers.remove(
@@ -122,47 +127,38 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       // Listen to FFI events and route them to this instance's StreamControllers
       _eventPort!.handler = (dynamic message) {
         try {
-          // Message format from C++: [player_id, event_json_string]
           if (message is List && message.length == 2) {
             final int receivingPlayerId = message[0] as int;
             final String eventJson = message[1] as String;
 
-            // Parse JSON to Map
             final Map<String, dynamic> eventMap =
                 jsonDecode(eventJson) as Map<String, dynamic>;
 
             // Handle seekCompleted event first (before controller check)
             if (eventMap['event'] == 'seekCompleted') {
-              final Completer<void>? completer = _seekCompleters.remove(
-                receivingPlayerId,
+              _handleSeekCompleted(receivingPlayerId);
+              return;
+            }
+
+            final StreamController<VideoEvent>? controller =
+                _eventControllers[receivingPlayerId];
+
+            // Handle error events by adding them as stream errors
+            if (eventMap['event'] == 'error') {
+              final PlatformException exception = PlatformException(
+                code: eventMap['code'] as String? ?? 'unknown',
+                message: eventMap['message'] as String?,
               );
-              if (completer != null && !completer.isCompleted) {
-                completer.complete();
+
+              _completeSeeksWithError(receivingPlayerId, exception);
+
+              if (controller != null && !controller.isClosed) {
+                controller.addError(exception);
               }
               return;
             }
 
-            // Route to the correct StreamController for this instance
-            final StreamController<VideoEvent>? controller =
-                _eventControllers[receivingPlayerId];
             if (controller != null && !controller.isClosed) {
-              // Handle error events by adding them as stream errors
-              if (eventMap['event'] == 'error') {
-                final PlatformException exception = PlatformException(
-                  code: eventMap['code'] as String? ?? 'unknown',
-                  message: eventMap['message'] as String?,
-                );
-
-                final Completer<void>? seekCompleter = _seekCompleters.remove(
-                  receivingPlayerId,
-                );
-                if (seekCompleter != null && !seekCompleter.isCompleted) {
-                  seekCompleter.completeError(exception);
-                }
-
-                controller.addError(exception);
-                return;
-              }
               final VideoEvent videoEvent = _parseVideoEventFromMap(eventMap);
               controller.add(videoEvent);
             }
@@ -277,18 +273,21 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     _ensureEventPortRegistered();
 
     final Completer<void> completer = Completer<void>();
-    _seekCompleters[playerId] = completer;
 
-    final int result = _ffiApi.seekTo(playerId, position.inMilliseconds);
-    if (result != 0) {
-      _seekCompleters.remove(playerId);
-      throw PlatformException(
-        code: 'FFI_SEEK_TO_FAILED',
-        message: 'FFI seekTo failed with code: $result',
+    if (_activeSeeks.containsKey(playerId)) {
+      // There's an active seek, update pending seek
+      final _SeekOperation pendingSeek = _pendingSeeks.putIfAbsent(
+        playerId,
+        () =>
+            _SeekOperation(position: position, completers: <Completer<void>>[]),
       );
+      pendingSeek.position = position;
+      pendingSeek.completers.add(completer);
+      return completer.future;
     }
 
-    await completer.future;
+    _startSeek(playerId, position, <Completer<void>>[completer]);
+    return completer.future;
   }
 
   @override
@@ -404,8 +403,8 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   final Map<int, StreamController<VideoEvent>> _eventControllers =
       <int, StreamController<VideoEvent>>{};
 
-  // Map of playerId to Completer for pending seek operations
-  final Map<int, Completer<void>> _seekCompleters = <int, Completer<void>>{};
+  final Map<int, _SeekOperation> _activeSeeks = <int, _SeekOperation>{};
+  final Map<int, _SeekOperation> _pendingSeeks = <int, _SeekOperation>{};
 
   @override
   Stream<VideoEvent> videoEventsFor(int playerId) {
@@ -570,6 +569,114 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       );
     }
     return true;
+  }
+
+  void _startSeek(
+    int playerId,
+    Duration position,
+    List<Completer<void>> completers,
+  ) {
+    final _SeekOperation seek = _SeekOperation(
+      position: position,
+      completers: completers,
+    );
+
+    _activeSeeks[playerId] = seek;
+
+    try {
+      final int result = _ffiApi.seekTo(playerId, position.inMilliseconds);
+      if (result != 0) {
+        if (identical(_activeSeeks[playerId], seek)) {
+          _activeSeeks.remove(playerId);
+        }
+
+        _completeSeekWithError(
+          seek,
+          PlatformException(
+            code: 'FFI_SEEK_TO_FAILED',
+            message: 'FFI seekTo failed with code: $result',
+          ),
+        );
+
+        _startPendingSeekIfAny(playerId);
+        return;
+      }
+    } catch (e, stackTrace) {
+      if (identical(_activeSeeks[playerId], seek)) {
+        _activeSeeks.remove(playerId);
+      }
+
+      _completeSeekWithError(
+        seek,
+        e is PlatformException
+            ? e
+            : PlatformException(
+                code: 'FFI_SEEK_TO_FAILED',
+                message: 'FFI seekTo failed',
+                details: e.toString(),
+              ),
+        stackTrace,
+      );
+
+      _startPendingSeekIfAny(playerId);
+    }
+  }
+
+  void _handleSeekCompleted(int playerId) {
+    final _SeekOperation? completedSeek = _activeSeeks.remove(playerId);
+    if (completedSeek == null) {
+      return;
+    }
+
+    _completeSeek(completedSeek);
+    _startPendingSeekIfAny(playerId);
+  }
+
+  void _completeSeek(_SeekOperation seek) {
+    for (final Completer<void> completer in seek.completers) {
+      if (!completer.isCompleted) {
+        completer.complete();
+      }
+    }
+  }
+
+  void _completeSeekWithError(
+    _SeekOperation seek,
+    Object error, [
+    StackTrace? stackTrace,
+  ]) {
+    for (final Completer<void> completer in seek.completers) {
+      if (!completer.isCompleted) {
+        completer.completeError(error, stackTrace);
+      }
+    }
+  }
+
+  void _completeSeeksWithError(
+    int playerId,
+    Object error, [
+    StackTrace? stackTrace,
+  ]) {
+    final _SeekOperation? activeSeek = _activeSeeks.remove(playerId);
+    if (activeSeek != null) {
+      _completeSeekWithError(activeSeek, error, stackTrace);
+    }
+
+    final _SeekOperation? pendingSeek = _pendingSeeks.remove(playerId);
+    if (pendingSeek != null) {
+      _completeSeekWithError(pendingSeek, error, stackTrace);
+    }
+  }
+
+  void _startPendingSeekIfAny(int playerId) {
+    if (_activeSeeks.containsKey(playerId)) {
+      return;
+    }
+
+    final _SeekOperation? pendingSeek = _pendingSeeks.remove(playerId);
+    if (pendingSeek != null) {
+      _startSeek(playerId, pendingSeek.position, pendingSeek.completers);
+    }
   }
 
   static const Map<VideoFormat, String> _videoFormatStringMap =
