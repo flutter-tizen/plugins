@@ -26,7 +26,7 @@ Add the internet privilege to the app manifest:
 ```yaml
 dependencies:
   flutter_inappwebview: ^6.1.5
-  flutter_inappwebview_tizen: ^0.1.3
+  flutter_inappwebview_tizen: ^0.1.4
 ```
 
 ```dart
