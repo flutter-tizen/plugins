@@ -346,8 +346,7 @@ void WebView::StopNavigation() {
   if (!url_before_navigation_.empty()) {
     committed_url_ = url_before_navigation_;
   }
-  // OnNavigationPolicy suspended the view while awaiting this decision;
-  // ewk_view_stop() has no effect on a suspended view, so resume first.
+  // ewk_view_stop() has no effect while the view is suspended.
   ewk_view_resume(webview_instance_);
   ewk_view_stop(webview_instance_);
 }
@@ -540,9 +539,7 @@ bool WebView::SendKey(const char* key, const char* string, const char* compose,
 
   if (strcmp(key, "XF86Back") == 0 && !is_down) {
     if (ewk_view_back_possible(webview_instance_)) {
-      // Not wrapped in NavigateProgrammatically: this is a user-initiated
-      // navigation (remote Back key), so it must still reach
-      // shouldOverrideUrlLoading via OnNavigationPolicy.
+      // Not programmatic: must still reach shouldOverrideUrlLoading.
       ewk_view_back(webview_instance_);
       return true;
     }
@@ -873,9 +870,7 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
       return;
     }
     GetValueFromEncodableMap(arguments, "baseUrl", &base_url);
-    // ewk_view_html_string_load() doesn't go through OnNavigationPolicy, so
-    // a stale cancellation from an earlier navigation would otherwise never
-    // clear and getUrl() would keep returning the pre-cancellation URL.
+    // Bypasses OnNavigationPolicy, so clear any stale cancellation here.
     is_navigation_cancelled_ = false;
     NavigateProgrammatically([this, &data, &base_url] {
       ewk_view_html_string_load(webview_instance_, data.c_str(),
@@ -975,13 +970,25 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
       ewk_view_scroll_set(webview_instance_, x, y);
       target_scroll_x_ = x;
       target_scroll_y_ = y;
+      target_scroll_set_time_ = std::chrono::steady_clock::now();
     } else {
       int32_t current_x = 0, current_y = 0;
       ewk_view_scroll_pos_get(webview_instance_, &current_x, &current_y);
-      int32_t base_x = (target_scroll_x_ >= 0) ? target_scroll_x_ : current_x;
-      int32_t base_y = (target_scroll_y_ >= 0) ? target_scroll_y_ : current_y;
+      // Only trust a pending target briefly; it can go stale (manual
+      // scroll, EWK clamping) since scroll_set() applies asynchronously.
+      constexpr auto kTargetTtl = std::chrono::milliseconds(100);
+      const bool target_fresh =
+          std::chrono::steady_clock::now() - target_scroll_set_time_ <
+          kTargetTtl;
+      int32_t base_x = (target_fresh && target_scroll_x_ >= 0)
+                           ? target_scroll_x_
+                           : current_x;
+      int32_t base_y = (target_fresh && target_scroll_y_ >= 0)
+                           ? target_scroll_y_
+                           : current_y;
       target_scroll_x_ = base_x + x;
       target_scroll_y_ = base_y + y;
+      target_scroll_set_time_ = std::chrono::steady_clock::now();
       ewk_view_scroll_set(webview_instance_, target_scroll_x_,
                           target_scroll_y_);
     }
@@ -1186,37 +1193,29 @@ void WebView::OnNavigationPolicy(void* data, Evas_Object* obj,
   Ewk_Policy_Decision* policy_decision =
       static_cast<Ewk_Policy_Decision*>(event_info);
 
-  // A new navigation decision means any previous cancellation is stale:
-  // getUrl() should stop overriding with the old committed_url_ snapshot.
+  // A new decision means any prior cancellation is now stale.
   webview->is_navigation_cancelled_ = false;
 
   if (webview->is_programmatic_navigation_) {
-    // Calls the app made directly (loadUrl/goBack/reload/etc.) don't go
-    // through shouldOverrideUrlLoading; only navigations the page itself
-    // initiates (link clicks, redirects, hardware Back) do.
+    // App-initiated navigations skip shouldOverrideUrlLoading.
     webview->is_programmatic_navigation_ = false;
     ewk_policy_decision_use(policy_decision);
     return;
   }
 
-  // Always accept the navigation on its original frame so iframe loads stay
-  // in their iframe.
   if (!webview->has_navigation_delegate_) {
     ewk_policy_decision_use(policy_decision);
     return;
   }
 
-  // Snapshot the URL EWK is displaying before accepting, since EWK can fire
-  // "url,changed" for the new (possibly-to-be-cancelled) URL as soon as
-  // ewk_policy_decision_use() runs below.
+  // Snapshot before accepting: ewk_policy_decision_use() can trigger
+  // "url,changed" for the new URL immediately.
   const std::string url_before_navigation =
       GetViewUrl(webview->webview_instance_);
   ewk_policy_decision_use(policy_decision);
   webview->url_before_navigation_ = url_before_navigation;
 
-  // The view is then suspended while we wait for the Dart
-  // shouldOverrideUrlLoading response and either resumed (allow) or stopped
-  // (cancel) by NavigationRequestResult.
+  // Suspended until NavigationRequestResult resumes or stops it.
   const char* url_cstr = ewk_policy_decision_url_get(policy_decision);
   const std::string url = url_cstr ? std::string(url_cstr) : std::string();
   ewk_view_suspend(webview->webview_instance_);
@@ -1232,9 +1231,9 @@ void WebView::OnNavigationPolicy(void* data, Evas_Object* obj,
 void WebView::OnUrlChange(void* data, Evas_Object* obj, void* event_info) {
   WebView* webview = static_cast<WebView*>(data);
   if (webview->is_navigation_cancelled_) {
-    // Stale "url,changed" for the navigation we just cancelled (EWK can fire
-    // it before or after ewk_view_stop() takes effect); getUrl() is already
-    // pinned to committed_url_ and must not be overwritten with this URL.
+    // Drop only this one stale event, then clear the flag, or a later
+    // same-document change (pushState/replaceState) would be ignored too.
+    webview->is_navigation_cancelled_ = false;
     return;
   }
   webview->committed_url_ = GetViewUrl(webview->webview_instance_);

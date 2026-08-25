@@ -4,6 +4,7 @@
 - Fix `getUrl()` returning a cancelled navigation's URL, and skip `shouldOverrideUrlLoading` for app-initiated navigations.
 - Fix `shouldOverrideUrlLoading` not being invoked for a hardware/remote Back-key navigation.
 - Fix `scrollBy`/`getScrollX`/`getScrollY` occasionally returning a stale scroll position.
+- Fix `onUpdateVisitedHistory`/`getUrl()` staying pinned to a cancelled navigation's URL after a later same-document URL change, and bound how long a pending `scrollTo`/`scrollBy` target is trusted.
 
 ## 0.1.4
 

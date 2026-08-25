@@ -14,6 +14,7 @@
 #include <flutter/texture_registrar.h>
 #include <flutter_platform_view.h>
 
+#include <chrono>
 #include <cstddef>
 #include <functional>
 #include <memory>
@@ -90,12 +91,8 @@ class WebView : public PlatformView {
 
   bool InitWebView();
 
-  // Runs an EWK call that starts a navigation the app itself requested
-  // (loadUrl, goBack, reload, ...), marking it as programmatic first so the
-  // next OnNavigationPolicy skips the shouldOverrideUrlLoading round-trip for
-  // it. If `ewk_call` reports the navigation never started, the flag is
-  // cleared immediately instead of leaking into some later, unrelated
-  // navigation. Returns whatever `ewk_call` returned.
+  // Marks an app-initiated navigation so OnNavigationPolicy skips
+  // shouldOverrideUrlLoading; cleared immediately if it never started.
   bool NavigateProgrammatically(const std::function<bool()>& ewk_call);
 
   static void OnFrameRendered(void* data, Evas_Object* obj, void* event_info);
@@ -149,6 +146,7 @@ class WebView : public PlatformView {
   std::string url_before_navigation_;
   int32_t target_scroll_x_ = -1;
   int32_t target_scroll_y_ = -1;
+  std::chrono::steady_clock::time_point target_scroll_set_time_;
 
   static std::set<WebView*> instances_;
   static std::mutex instances_mutex_;
