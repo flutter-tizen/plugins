@@ -1,3 +1,7 @@
+## 0.1.4
+
+- Fix a SIGTRAP crash on TV app teardown by calling `ewk_init()`/`ewk_shutdown()` exactly once per process.
+
 ## 0.1.3
 
 * Add an `implements` entry to the pubspec to improve discoverability on pub.dev.
