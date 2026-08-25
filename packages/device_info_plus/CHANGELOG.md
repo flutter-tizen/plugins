@@ -1,3 +1,8 @@
+## 1.4.3
+
+* Add `DeviceInfoPluginTizen.duid` to retrieve the device's DUID (Device Unique ID).
+* Add 2 integration test cases.
+
 ## 1.4.2
 
 * Add an `implements` entry to the pubspec to improve discoverability on pub.dev.

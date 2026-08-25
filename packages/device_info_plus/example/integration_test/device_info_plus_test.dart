@@ -77,4 +77,25 @@ void main() {
     expect(rebuilt.screenWidth, tizenInfo.screenWidth);
     expect(rebuilt.totalDiskSize, tizenInfo.totalDiskSize);
   }, skip: !Platform.isLinux);
+
+  // Tizen-only: duid has no upstream counterpart in device_info_plus.
+  test('duid does not throw and is a nullable string', () async {
+    final deviceInfoPlugin = DeviceInfoPluginTizen();
+    final duid = await deviceInfoPlugin.duid;
+    expect(duid, anyOf(isNull, isA<String>()));
+  }, skip: !Platform.isLinux);
+
+  test('duid is consistent and cached across repeated calls', () async {
+    final plugin1 = DeviceInfoPluginTizen();
+    final first = await plugin1.duid;
+    final second = await plugin1.duid;
+    expect(second, first);
+    if (first != null) {
+      expect(second, same(first));
+    }
+
+    final plugin2 = DeviceInfoPluginTizen();
+    final third = await plugin2.duid;
+    expect(third, first);
+  }, skip: !Platform.isLinux);
 }

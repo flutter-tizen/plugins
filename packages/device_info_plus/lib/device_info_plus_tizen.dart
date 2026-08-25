@@ -165,6 +165,11 @@ class _MethodChannelDeviceInfo {
       )).cast<String, dynamic>(),
     );
   }
+
+  /// The DUID (Device Unique ID) of this device.
+  Future<String?> getDuid() async {
+    return channel.invokeMethod<String>('getDuid');
+  }
 }
 
 /// Provides device and operating system information of a Tizen device.
@@ -183,4 +188,13 @@ class DeviceInfoPluginTizen {
   /// See: https://docs.tizen.org/application/native/guides/device/system
   Future<TizenDeviceInfo> get tizenInfo async =>
       _cachedTizenDeviceInfo ??= await _platform.tizenInfo();
+
+  /// This information does not change from call to call. Cache it.
+  String? _cachedDuid;
+
+  /// The DUID (Device Unique ID) that uniquely identifies this device.
+  ///
+  /// Returns `null` if the DUID is unavailable, for example because the
+  /// underlying `db/comss/duid` vconf key could not be read.
+  Future<String?> get duid async => _cachedDuid ??= await _platform.getDuid();
 }

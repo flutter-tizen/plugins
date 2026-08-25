@@ -4,6 +4,7 @@
 
 #include "device_info_plus_tizen_plugin.h"
 
+#include <dlfcn.h>
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
@@ -22,6 +23,30 @@
 namespace {
 
 constexpr int64_t kUnknownMetric = -1;
+
+std::string GetDuid() {
+  using FuncVconfGetStr = char *(*)(const char *);
+
+  void *handle = dlopen("libvconf.so.0.3.1", RTLD_LAZY);
+  if (!handle) {
+    LOG_ERROR("Failed to open libvconf.so.0.3.1.");
+    return "";
+  }
+
+  std::string duid;
+  auto vconf_get_str =
+      reinterpret_cast<FuncVconfGetStr>(dlsym(handle, "vconf_get_str"));
+  if (vconf_get_str) {
+    if (char *value = vconf_get_str("db/comss/duid")) {
+      duid = value;
+      free(value);
+    }
+  } else {
+    LOG_ERROR("Failed to find the vconf_get_str symbol.");
+  }
+  dlclose(handle);
+  return duid;
+}
 
 class DeviceInfoPlusTizenPlugin : public flutter::Plugin {
  public:
@@ -53,6 +78,13 @@ class DeviceInfoPlusTizenPlugin : public flutter::Plugin {
 
     if (method_name == "getTizenDeviceInfo") {
       result->Success(flutter::EncodableValue(GetTizenDeviceInfo()));
+    } else if (method_name == "getDuid") {
+      std::string duid = GetDuid();
+      if (duid.empty()) {
+        result->Success(flutter::EncodableValue());
+      } else {
+        result->Success(flutter::EncodableValue(duid));
+      }
     } else {
       result->NotImplemented();
     }
