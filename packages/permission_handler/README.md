@@ -20,8 +20,8 @@ You can use this plugin to ask the user for runtime permissions if your app perf
 
    ```yaml
    dependencies:
-     permission_handler: ^12.0.1
-     permission_handler_tizen: ^1.4.6
+     permission_handler: ^13.0.1
+     permission_handler_tizen: ^1.4.7
    ```
 
    Then you can import `permission_handler` in your Dart code:
@@ -38,7 +38,7 @@ You can use this plugin to ask the user for runtime permissions if your app perf
 |-|-|-|
 | `Permission.calendar` | Calendar | `http://tizen.org/privilege/calendar.read`<br>`http://tizen.org/privilege/calendar.write` |
 | `Permission.camera` | Camera | `http://tizen.org/privilege/camera` |
-| `Permission.contact` | Contacts | `http://tizen.org/privilege/contact.read`<br>`http://tizen.org/privilege/contact.write` |
+| `Permission.contacts` | Contacts | `http://tizen.org/privilege/contact.read`<br>`http://tizen.org/privilege/contact.write` |
 | `Permission.location`<br>`Permission.locationAlways`<br>`Permission.locationWhenInUse` | Location | `http://tizen.org/privilege/location`<br>`http://tizen.org/privilege/location.coarse` |
 | `Permission.mediaLibrary` | Storage | `http://tizen.org/privilege/mediastorage` |
 | `Permission.microphone` | Microphone | `http://tizen.org/privilege/recorder` |
@@ -49,8 +49,14 @@ You can use this plugin to ask the user for runtime permissions if your app perf
 
 The following permissions are not applicable for Tizen:
 
-- Android-only: `accessMediaLocation`, `accessNotificationPolicy`, `activityRecognition`, `audio`, `bluetoothAdvertise`, `bluetoothConnect`, `bluetoothScan`, `ignoreBatteryOptimizations`, `manageExternalStorage`, `nearbyWifiDevices`, `requestInstallPackages`, `scheduleExactAlarm`, `systemAlertWindow`, `videos`
-- iOS-only: `appTrackingTransparency`, `criticalAlerts`, `photosAddOnly`, `reminders`, `speech`
+- Android-only: `accessLocalNetwork`, `accessMediaLocation`, `accessNotificationPolicy`, `activityRecognition`, `audio`, `bluetoothAdvertise`, `bluetoothConnect`, `bluetoothScan`, `ignoreBatteryOptimizations`, `manageExternalStorage`, `nearbyWifiDevices`, `requestInstallPackages`, `scheduleExactAlarm`, `systemAlertWindow`, `videos`
+- iOS-only: `appTrackingTransparency`, `assistant`, `backgroundRefresh`, `criticalAlerts`, `photosAddOnly`, `reminders`, `speech`
+
+The following permissions are applicable for Tizen but not supported by this plugin yet. They are always reported as granted:
+
+- `calendarFullAccess`, `calendarWriteOnly`: use the deprecated `Permission.calendar` instead.
+- `notification`
+- `photos`
 
 On Tizen, your app can use some security-sensitive features (such as bluetooth) without explicitly acquiring permissions. However, you might need to declare relevant privileges in its `tizen-manifest.xml` file. For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](https://docs.tizen.org/application/dotnet/get-started/api-privileges).
 

@@ -44,7 +44,12 @@ enum class Permission {
   kVideos = 32,
   kAudio = 33,
   kScheduleExactAlarm = 34,
-  kSensorsAlways = 35
+  kSensorsAlways = 35,
+  kCalendarWriteOnly = 36,
+  kCalendarFullAccess = 37,
+  kAssistant = 38,
+  kBackgroundRefresh = 39,
+  kAccessLocalNetwork = 40
 };
 
 #endif  // FLUTTER_PLUGIN_PERMISSIONS_H_
