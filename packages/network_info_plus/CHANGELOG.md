@@ -1,3 +1,10 @@
+## 1.2.0
+
+* Update network_info_plus to 8.2.1.
+* Update network_info_plus_platform_interface to 3.1.0.
+* Update minimum Flutter and Dart version to 3.38.1 and 3.10.
+* Update code format.
+
 ## 1.1.8
 
 * Add an `implements` entry to the pubspec to improve discoverability on pub.dev.
