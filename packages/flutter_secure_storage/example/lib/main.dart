@@ -27,8 +27,9 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> {
   late FlutterSecureStorage _storage;
 
-  final TextEditingController _accountNameController =
-      TextEditingController(text: AppleOptions.defaultAccountName);
+  final TextEditingController _accountNameController = TextEditingController(
+    text: AppleOptions.defaultAccountName,
+  );
 
   final List<_SecItem> _items = [];
   String _errorMessage = '';
@@ -92,8 +93,9 @@ class HomePageState extends State<HomePage> {
           ..clear()
           ..addAll(all.entries.map((e) => _SecItem(e.key, e.value)))
           ..sort(
-            (a, b) => (int.tryParse(a.key) ?? 10)
-                .compareTo(int.tryParse(b.key) ?? 11),
+            (a, b) => (int.tryParse(a.key) ?? 10).compareTo(
+              int.tryParse(b.key) ?? 11,
+            ),
           );
       });
     } on PlatformException catch (e) {
@@ -146,16 +148,20 @@ class HomePageState extends State<HomePage> {
     if (technicalDetails.contains('BIOMETRIC_UNAVAILABLE')) {
       // Parse specific biometric error
       if (technicalDetails.contains('No biometric hardware')) {
-        userMessage = 'Your device does not have biometric hardware '
+        userMessage =
+            'Your device does not have biometric hardware '
             '(fingerprint or face scanner).';
       } else if (technicalDetails.contains('No fingerprint or face enrolled')) {
-        userMessage = 'No biometric enrolled. Please add a fingerprint or '
+        userMessage =
+            'No biometric enrolled. Please add a fingerprint or '
             'face in your device Settings.';
       } else if (technicalDetails.contains('no PIN, pattern, password')) {
-        userMessage = 'No device security set up. Please set a PIN, '
+        userMessage =
+            'No device security set up. Please set a PIN, '
             'pattern, or password in Settings → Security.';
       } else if (technicalDetails.contains('Android 9')) {
-        userMessage = 'Biometric authentication requires Android 9 or '
+        userMessage =
+            'Biometric authentication requires Android 9 or '
             'higher. Your device is not supported.';
       } else if (technicalDetails.contains('temporarily unavailable')) {
         userMessage =
@@ -311,49 +317,34 @@ class HomePageState extends State<HomePage> {
                       _performAction(action, _items[index], context),
                   itemBuilder: (BuildContext context) =>
                       <PopupMenuEntry<_ItemActions>>[
-                    PopupMenuItem(
-                      value: _ItemActions.delete,
-                      child: Text(
-                        'Delete',
-                        key: Key('delete_row_$index'),
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: _ItemActions.edit,
-                      child: Text(
-                        'Edit',
-                        key: Key('edit_row_$index'),
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: _ItemActions.containsKey,
-                      child: Text(
-                        'Contains Key',
-                        key: Key('contains_row_$index'),
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: _ItemActions.read,
-                      child: Text(
-                        'Read',
-                        key: Key('read_row_$index'),
-                      ),
-                    ),
-                  ],
+                        PopupMenuItem(
+                          value: _ItemActions.delete,
+                          child: Text('Delete', key: Key('delete_row_$index')),
+                        ),
+                        PopupMenuItem(
+                          value: _ItemActions.edit,
+                          child: Text('Edit', key: Key('edit_row_$index')),
+                        ),
+                        PopupMenuItem(
+                          value: _ItemActions.containsKey,
+                          child: Text(
+                            'Contains Key',
+                            key: Key('contains_row_$index'),
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: _ItemActions.read,
+                          child: Text('Read', key: Key('read_row_$index')),
+                        ),
+                      ],
                 ),
                 leading: const Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [Text('Value'), Text('Key')],
                 ),
-                title: Text(
-                  _items[index].value,
-                  key: Key('value_row_$index'),
-                ),
-                subtitle: Text(
-                  _items[index].key,
-                  key: Key('key_row_$index'),
-                ),
+                title: Text(_items[index].value, key: Key('value_row_$index')),
+                subtitle: Text(_items[index].key, key: Key('key_row_$index')),
               ),
             ),
           ),
@@ -370,9 +361,7 @@ class HomePageState extends State<HomePage> {
     try {
       switch (action) {
         case _ItemActions.delete:
-          await _storage.delete(
-            key: item.key,
-          );
+          await _storage.delete(key: item.key);
           await _readAll();
         case _ItemActions.edit:
           if (!context.mounted) return;
@@ -381,10 +370,7 @@ class HomePageState extends State<HomePage> {
             builder: (_) => _EditItemWidget(item.value),
           );
           if (result != null) {
-            await _storage.write(
-              key: item.key,
-              value: result,
-            );
+            await _storage.write(key: item.key, value: result);
             await _readAll();
           }
         case _ItemActions.containsKey:
@@ -401,11 +387,9 @@ class HomePageState extends State<HomePage> {
           final key = await _displayTextInputDialog(context, item.key);
           final result = await _storage.read(key: key);
           if (!context.mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('value: $result'),
-            ),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('value: $result')));
       }
     } on PlatformException catch (e) {
       _handleInitializationError(e);
@@ -427,10 +411,7 @@ class HomePageState extends State<HomePage> {
             child: const Text('OK'),
           ),
         ],
-        content: TextField(
-          controller: controller,
-          key: const Key('key_field'),
-        ),
+        content: TextField(controller: controller, key: const Key('key_field')),
       ),
     );
     return controller.text;
@@ -438,8 +419,11 @@ class HomePageState extends State<HomePage> {
 
   String _randomValue() {
     final rand = Random();
-    final codeUnits =
-        List<int>.generate(20, (_) => rand.nextInt(26) + 65, growable: false);
+    final codeUnits = List<int>.generate(
+      20,
+      (_) => rand.nextInt(26) + 65,
+      growable: false,
+    );
 
     return String.fromCharCodes(codeUnits);
   }
@@ -447,7 +431,7 @@ class HomePageState extends State<HomePage> {
 
 class _EditItemWidget extends StatelessWidget {
   _EditItemWidget(String text)
-      : _controller = TextEditingController(text: text);
+    : _controller = TextEditingController(text: text);
 
   final TextEditingController _controller;
 
