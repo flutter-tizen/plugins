@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 
 #include "log.h"
@@ -24,27 +25,52 @@ namespace {
 
 constexpr int64_t kUnknownMetric = -1;
 
-std::string GetDuid() {
+bool IsTvProfile() {
+  char *profile = nullptr;
+  int ret = system_info_get_platform_string("http://tizen.org/feature/profile",
+                                            &profile);
+  if (ret != SYSTEM_INFO_ERROR_NONE) {
+    LOG_ERROR("Failed to get the platform profile: %s", get_error_message(ret));
+    return false;
+  }
+  std::string profile_str(profile);
+  free(profile);
+  return profile_str == "tv";
+}
+
+// Returns nullopt only for a transient vconf read failure; a non-TV profile
+// (permanent, not transient) returns an empty string instead.
+std::optional<std::string> GetDuid() {
+  if (!IsTvProfile()) {
+    return std::string();
+  }
+
   using FuncVconfGetStr = char *(*)(const char *);
 
-  void *handle = dlopen("libvconf.so.0.3.1", RTLD_LAZY);
+  void *handle = dlopen("libvconf.so.0", RTLD_LAZY);
   if (!handle) {
-    LOG_ERROR("Failed to open libvconf.so.0.3.1.");
-    return "";
+    LOG_ERROR("Failed to open libvconf.so.0.");
+    return std::nullopt;
   }
 
-  std::string duid;
   auto vconf_get_str =
       reinterpret_cast<FuncVconfGetStr>(dlsym(handle, "vconf_get_str"));
-  if (vconf_get_str) {
-    if (char *value = vconf_get_str("db/comss/duid")) {
-      duid = value;
-      free(value);
-    }
-  } else {
+  if (!vconf_get_str) {
     LOG_ERROR("Failed to find the vconf_get_str symbol.");
+    dlclose(handle);
+    return std::nullopt;
   }
+
+  char *value = vconf_get_str("db/comss/duid");
   dlclose(handle);
+  if (!value) {
+    LOG_ERROR("Failed to read db/comss/duid.");
+    return std::nullopt;
+  }
+  std::string duid = value;
+  free(value);
+
+  LOG_ERROR("##### duid: %s", duid.data());
   return duid;
 }
 
@@ -79,11 +105,11 @@ class DeviceInfoPlusTizenPlugin : public flutter::Plugin {
     if (method_name == "getTizenDeviceInfo") {
       result->Success(flutter::EncodableValue(GetTizenDeviceInfo()));
     } else if (method_name == "getDuid") {
-      std::string duid = GetDuid();
-      if (duid.empty()) {
-        result->Success(flutter::EncodableValue());
+      std::optional<std::string> duid = GetDuid();
+      if (duid.has_value()) {
+        result->Success(flutter::EncodableValue(*duid));
       } else {
-        result->Success(flutter::EncodableValue(duid));
+        result->Success(flutter::EncodableValue());
       }
     } else {
       result->NotImplemented();

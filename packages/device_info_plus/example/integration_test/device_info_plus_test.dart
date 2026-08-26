@@ -79,10 +79,9 @@ void main() {
   }, skip: !Platform.isLinux);
 
   // Tizen-only: duid has no upstream counterpart in device_info_plus.
-  test('duid does not throw and is a nullable string', () async {
+  test('duid does not throw', () async {
     final deviceInfoPlugin = DeviceInfoPluginTizen();
-    final duid = await deviceInfoPlugin.duid;
-    expect(duid, anyOf(isNull, isA<String>()));
+    await deviceInfoPlugin.duid;
   }, skip: !Platform.isLinux);
 
   test('duid is consistent and cached across repeated calls', () async {

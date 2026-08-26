@@ -190,11 +190,11 @@ class DeviceInfoPluginTizen {
       _cachedTizenDeviceInfo ??= await _platform.tizenInfo();
 
   /// This information does not change from call to call. Cache it.
-  Future<String?>? _cachedDuid;
+  String? _cachedDuid;
 
   /// The DUID (Device Unique ID) that uniquely identifies this device.
   ///
-  /// Returns `null` if the DUID is unavailable, for example because the
-  /// underlying `db/comss/duid` vconf key could not be read.
-  Future<String?> get duid => _cachedDuid ??= _platform.getDuid();
+  /// Empty if the device isn't running the TV profile. Null if the
+  /// underlying vconf key couldn't be read (retrying may succeed).
+  Future<String?> get duid async => _cachedDuid ??= await _platform.getDuid();
 }
