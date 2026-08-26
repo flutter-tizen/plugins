@@ -4,7 +4,9 @@
 
 #include "device_info_plus_tizen_plugin.h"
 
+#ifdef TV_PROFILE
 #include <dlfcn.h>
+#endif
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
@@ -25,26 +27,12 @@ namespace {
 
 constexpr int64_t kUnknownMetric = -1;
 
-bool IsTvProfile() {
-  char *profile = nullptr;
-  int ret = system_info_get_platform_string("http://tizen.org/feature/profile",
-                                            &profile);
-  if (ret != SYSTEM_INFO_ERROR_NONE) {
-    LOG_ERROR("Failed to get the platform profile: %s", get_error_message(ret));
-    return false;
-  }
-  std::string profile_str(profile);
-  free(profile);
-  return profile_str == "tv";
-}
-
 // Returns nullopt only for a transient vconf read failure; a non-TV profile
 // (permanent, not transient) returns an empty string instead.
 std::optional<std::string> GetDuid() {
-  if (!IsTvProfile()) {
-    return std::string();
-  }
-
+#ifndef TV_PROFILE
+  return std::string();
+#else
   using FuncVconfGetStr = char *(*)(const char *);
 
   void *handle = dlopen("libvconf.so.0", RTLD_LAZY);
@@ -69,9 +57,8 @@ std::optional<std::string> GetDuid() {
   }
   std::string duid = value;
   free(value);
-
-  LOG_ERROR("##### duid: %s", duid.data());
   return duid;
+#endif
 }
 
 class DeviceInfoPlusTizenPlugin : public flutter::Plugin {

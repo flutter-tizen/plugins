@@ -85,6 +85,7 @@ void main() {
   }, skip: !Platform.isLinux);
 
   test('duid is consistent and cached across repeated calls', () async {
+    // Repeated calls on the same instance return the cached instance.
     final plugin1 = DeviceInfoPluginTizen();
     final first = await plugin1.duid;
     final second = await plugin1.duid;
@@ -93,6 +94,7 @@ void main() {
       expect(second, same(first));
     }
 
+    // A new instance triggers a fresh native call that must yield the same data.
     final plugin2 = DeviceInfoPluginTizen();
     final third = await plugin2.duid;
     expect(third, first);
