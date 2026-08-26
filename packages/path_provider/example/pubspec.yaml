@@ -3,13 +3,13 @@ description: Demonstrates how to use the path_provider_tizen plugin.
 publish_to: "none"
 
 environment:
-  sdk: ^3.3.0
-  flutter: ">=3.19.0"
+  sdk: ^3.10.0
+  flutter: ">=3.38.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  path_provider: ^2.1.5
+  path_provider: ^2.1.6
   path_provider_tizen:
     path: ../
 
