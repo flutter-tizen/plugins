@@ -32,7 +32,7 @@ For detailed usage, see https://pub.dev/packages/path_provider#usage.
 - [x] `getExternalStorageDirectory` (requires an SD card)
 - [x] `getExternalCacheDirectories` (requires an SD card)
 - [x] `getExternalStorageDirectories` (returns shared media library paths such as `/home/owner/media/Music`)
-- [x] `getDownloadsDirectory` (returns the shared downloads directory path)
+- [x] `getDownloadsDirectory` (returns the shared downloads directory path, or `null` if the directory is unavailable on the device)
 
 ## Required privileges
 
