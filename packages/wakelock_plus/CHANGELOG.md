@@ -1,3 +1,8 @@
+## 2.1.4
+
+* Update wakelock_plus to 1.7.0.
+* Update wakelock_plus_platform_interface to 1.6.0.
+
 ## 2.1.3
 
 * Add an `implements` entry to the pubspec to improve discoverability on pub.dev.
