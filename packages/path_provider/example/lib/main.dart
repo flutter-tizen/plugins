@@ -77,8 +77,9 @@ class _MyHomePageState extends State<MyHomePage> {
       if (snapshot.hasError) {
         text = Text('Error: ${snapshot.error}');
       } else if (snapshot.hasData) {
-        final String combined =
-            snapshot.data!.map((Directory d) => d.path).join(', ');
+        final String combined = snapshot.data!
+            .map((Directory d) => d.path)
+            .join(', ');
         text = Text('paths: $combined');
       } else {
         text = const Text('path unavailable');
@@ -192,8 +193,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: ElevatedButton(
-                    onPressed:
-                        Platform.isAndroid ? null : _requestAppLibraryDirectory,
+                    onPressed: Platform.isAndroid
+                        ? null
+                        : _requestAppLibraryDirectory,
                     child: Text(
                       Platform.isAndroid
                           ? 'Application Library Directory unavailable'
