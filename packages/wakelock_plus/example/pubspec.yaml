@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  wakelock_plus: ^1.6.0
+  wakelock_plus: ^1.7.0
   wakelock_plus_tizen:
     path: ../
 
