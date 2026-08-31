@@ -1,3 +1,9 @@
+## 0.1.6
+
+* Update flutter_secure_storage to 11.0.0.
+* Update flutter_secure_storage_platform_interface to 2.0.3.
+* Update minimum Flutter and Dart version to 3.32 and 3.8.
+
 ## 0.1.5
 
 * Add an `implements` entry to the pubspec to improve discoverability on pub.dev.
