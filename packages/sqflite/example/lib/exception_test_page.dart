@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite/utils/utils.dart';
 import 'package:sqflite_common/sql.dart';
@@ -10,7 +9,7 @@ import 'test_page.dart';
 /// Exception test page.
 class ExceptionTestPage extends TestPage {
   /// Exception test page.
-  ExceptionTestPage({Key? key}) : super('Exception tests', key: key) {
+  ExceptionTestPage({super.key}) : super('Exception tests') {
     test('Transaction failed', () async {
       //await Sqflite.devSetDebugModeOn(true);
       final path = await initDeleteDb('transaction_failed.db');
