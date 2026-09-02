@@ -10,8 +10,8 @@ This package is not an _endorsed_ implementation of `firebase_core`. Therefore, 
 
 ```yaml
 dependencies:
-  firebase_core: ^2.4.0
-  firebase_core_tizen: ^0.1.3
+  firebase_core: ^4.14.0
+  firebase_core_tizen: ^0.2.0
 ```
 
 Then you can import `firebase_core` in your Dart code:

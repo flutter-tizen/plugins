@@ -1,3 +1,11 @@
+## 0.2.0
+
+* Update firebase_core to 4.14.0.
+* Update firebase_core_platform_interface to 8.1.1.
+* Update minimum Flutter and Dart version to 3.27 and 3.6.
+* Sync the example and integration test.
+* Fix `androidClientId`, `iosClientId`, and `iosBundleId` being dropped from app options.
+
 ## 0.1.3
 
 * Add an `implements` entry to the pubspec to improve discoverability on pub.dev.

@@ -5,7 +5,6 @@
 // ignore_for_file: public_member_api_docs, avoid_print
 
 import 'dart:async';
-import 'dart:developer';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
@@ -18,42 +17,36 @@ class MyApp extends StatelessWidget {
 
   String get name => 'foo';
 
-  FirebaseOptions get firebaseOptions => DefaultFirebaseOptions.currentPlatform;
-
   Future<void> initializeDefault() async {
     final FirebaseApp app = await Firebase.initializeApp(
-      options: firebaseOptions,
+      options: DefaultFirebaseOptions.currentPlatform,
     );
-    log('Initialized default app $app');
     print('Initialized default app $app');
   }
 
   Future<void> initializeSecondary() async {
     final FirebaseApp app = await Firebase.initializeApp(
       name: name,
-      options: firebaseOptions,
+      options: DefaultFirebaseOptions.currentPlatform,
     );
 
-    log('Initialized $app');
     print('Initialized $app');
   }
 
   void apps() {
-    log('Currently initialized apps: ${Firebase.apps}');
-    print('Currently initialized apps: ${Firebase.apps}');
+    final List<FirebaseApp> apps = Firebase.apps;
+    print('Currently initialized apps: $apps');
   }
 
   void options() {
-    final FirebaseApp app = Firebase.app(name);
+    final FirebaseApp app = Firebase.app();
     final FirebaseOptions options = app.options;
-    log('Current options for app $name: $options');
-    print('Current options for app $name: $options');
+    print('Current options for app ${app.name}: $options');
   }
 
   Future<void> delete() async {
     final FirebaseApp app = Firebase.app(name);
     await app.delete();
-    log('App $name deleted');
     print('App $name deleted');
   }
 
@@ -76,14 +69,14 @@ class MyApp extends StatelessWidget {
                 onPressed: initializeSecondary,
                 child: const Text('Initialize secondary app'),
               ),
-              ElevatedButton(onPressed: apps, child: const Text('Get apps')),
+              ElevatedButton(onPressed: apps, child: const Text('List apps')),
               ElevatedButton(
                 onPressed: options,
-                child: const Text('List options'),
+                child: const Text('List default options'),
               ),
               ElevatedButton(
                 onPressed: delete,
-                child: const Text('Delete app'),
+                child: const Text('Delete secondary app'),
               ),
             ],
           ),
