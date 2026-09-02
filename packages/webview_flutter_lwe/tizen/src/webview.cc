@@ -147,15 +147,6 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
       GetPluginRegistrar()->messenger(), GetNavigationDelegateChannelName(),
       &flutter::StandardMethodCodec::GetInstance());
 
-  auto cookie_channel = std::make_unique<FlMethodChannel>(
-      GetPluginRegistrar()->messenger(),
-      "plugins.flutter.io/lwe_cookie_manager",
-      &flutter::StandardMethodCodec::GetInstance());
-  cookie_channel->SetMethodCallHandler(
-      [webview = this](const auto& call, auto result) {
-        webview->HandleCookieMethodCall(call, std::move(result));
-      });
-
   webview_instance_->RegisterOnPageStartedHandler(
       [this](LWE::WebContainer* container, const std::string& url) {
         flutter::EncodableMap args = {
@@ -827,33 +818,6 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
       webview_instance_->SetSettings(settings);
     }
     result->Success();
-  } else {
-    result->NotImplemented();
-  }
-}
-
-void WebView::HandleCookieMethodCall(const FlMethodCall& method_call,
-                                     std::unique_ptr<FlMethodResult> result) {
-  if (!webview_instance_) {
-    result->Error("Invalid operation",
-                  "The webview instance has not been initialized.");
-    return;
-  }
-
-  const std::string& method_name = method_call.method_name();
-
-  if (method_name == "clearCookies") {
-    LWE::CookieManager* cookie = LWE::CookieManager::GetInstance();
-    cookie->ClearCookies();
-    result->Success(flutter::EncodableValue(true));
-  } else if (method_name == "getCookies") {
-    const auto* url = std::get_if<std::string>(method_call.arguments());
-    if (!url) {
-      result->Error("Invalid argument", "The argument must be a string.");
-      return;
-    }
-    LWE::CookieManager* cookie = LWE::CookieManager::GetInstance();
-    result->Success(flutter::EncodableValue(cookie->GetCookie(*url)));
   } else {
     result->NotImplemented();
   }

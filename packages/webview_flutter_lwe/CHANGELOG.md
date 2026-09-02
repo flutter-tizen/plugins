@@ -4,6 +4,7 @@
 * Update webview_flutter_platform_interface to 2.15.1.
 * Update minimum Flutter and Dart version to 3.38 and 3.10.
 * Implement `getCookies` for the cookie manager.
+* Register the cookie manager channel at the plugin level so that it works before a WebView is created or after the last one is disposed.
 * Update limitations in README.
 
 ## 0.5.5
