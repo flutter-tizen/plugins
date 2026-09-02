@@ -27,6 +27,9 @@ Future<void> main() async {
         request.response.writeln('How are you today?');
       } else if (request.uri.path == '/headers') {
         request.response.writeln('${request.headers}');
+      } else if (request.uri.path == '/cookie') {
+        request.response.headers.set(HttpHeaders.setCookieHeader, 'foo=bar');
+        request.response.writeln('Cookie set.');
       } else if (request.uri.path == '/favicon.ico') {
         request.response.statusCode = HttpStatus.notFound;
       } else {
@@ -38,6 +41,7 @@ Future<void> main() async {
   final String prefixUrl = 'http://${server.address.address}:${server.port}';
   final String primaryUrl = '$prefixUrl/hello.txt';
   final String secondaryUrl = '$prefixUrl/secondary.txt';
+  final String cookieUrl = '$prefixUrl/cookie';
 
   testWidgets('loadRequest', (WidgetTester tester) async {
     final Completer<void> pageFinished = Completer<void>();
@@ -56,6 +60,30 @@ Future<void> main() async {
 
     final String? currentUrl = await controller.currentUrl();
     expect(currentUrl, primaryUrl);
+  });
+
+  testWidgets('getCookies', (WidgetTester tester) async {
+    final Completer<void> pageFinished = Completer<void>();
+
+    final WebViewController controller = WebViewController();
+    unawaited(
+      controller.setNavigationDelegate(
+        NavigationDelegate(onPageFinished: (_) => pageFinished.complete()),
+      ),
+    );
+    unawaited(controller.loadRequest(Uri.parse(cookieUrl)));
+
+    await tester.pumpWidget(WebViewWidget(controller: controller));
+
+    await pageFinished.future;
+
+    final List<WebViewCookie> cookies = await WebViewCookieManager().getCookies(
+      domain: Uri.parse(cookieUrl),
+    );
+    expect(
+      cookies.map((WebViewCookie cookie) => '${cookie.name}=${cookie.value}'),
+      contains('foo=bar'),
+    );
   });
 
   testWidgets('runJavaScriptReturningResult', (WidgetTester tester) async {

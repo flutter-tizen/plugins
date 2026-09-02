@@ -846,6 +846,14 @@ void WebView::HandleCookieMethodCall(const FlMethodCall& method_call,
     LWE::CookieManager* cookie = LWE::CookieManager::GetInstance();
     cookie->ClearCookies();
     result->Success(flutter::EncodableValue(true));
+  } else if (method_name == "getCookies") {
+    const auto* url = std::get_if<std::string>(method_call.arguments());
+    if (!url) {
+      result->Error("Invalid argument", "The argument must be a string.");
+      return;
+    }
+    LWE::CookieManager* cookie = LWE::CookieManager::GetInstance();
+    result->Success(flutter::EncodableValue(cookie->GetCookie(*url)));
   } else {
     result->NotImplemented();
   }

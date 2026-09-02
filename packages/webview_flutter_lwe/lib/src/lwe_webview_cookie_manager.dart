@@ -23,6 +23,30 @@ class LweWebViewCookieManager extends PlatformWebViewCookieManager {
   }
 
   @override
+  Future<List<WebViewCookie>> getCookies(Uri url) async {
+    final String? cookies = await _cookieManagerChannel.invokeMethod<String>(
+      'getCookies',
+      url.toString(),
+    );
+    if (cookies == null || cookies.isEmpty) {
+      return <WebViewCookie>[];
+    }
+    return cookies
+        .split(';')
+        .map((String cookie) => cookie.trim())
+        .where((String cookie) => cookie.isNotEmpty)
+        .map((String cookie) {
+          final int separator = cookie.indexOf('=');
+          return WebViewCookie(
+            name: separator < 0 ? cookie : cookie.substring(0, separator),
+            value: separator < 0 ? '' : cookie.substring(separator + 1),
+            domain: url.host,
+          );
+        })
+        .toList();
+  }
+
+  @override
   Future<void> setCookie(WebViewCookie cookie) async {
     if (!_isValidPath(cookie.path)) {
       throw ArgumentError(

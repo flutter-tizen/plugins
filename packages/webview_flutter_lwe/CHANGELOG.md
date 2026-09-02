@@ -1,3 +1,11 @@
+## 0.5.6
+
+* Update webview_flutter to 4.14.1.
+* Update webview_flutter_platform_interface to 2.15.1.
+* Update minimum Flutter and Dart version to 3.38 and 3.10.
+* Implement `getCookies` for the cookie manager.
+* Update limitations in README.
+
 ## 0.5.5
 
 * Add an `implements` entry to the pubspec to improve discoverability on pub.dev.
