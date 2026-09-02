@@ -84,7 +84,6 @@ linter:
     #
     - annotate_overrides
     - avoid_init_to_null
-    - avoid_null_checks_in_equality_operators
     - avoid_return_types_on_setters
     - empty_constructor_bodies
     - library_names

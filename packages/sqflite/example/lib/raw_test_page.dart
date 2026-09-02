@@ -13,7 +13,7 @@ import 'test_page.dart';
 /// Raw test page.
 class RawTestPage extends TestPage {
   /// Raw test page.
-  RawTestPage({Key? key}) : super('Raw tests', key: key) {
+  RawTestPage({super.key}) : super('Raw tests') {
     test('Simple', () async {
       // await databaseFactory.setLogLevel(sqfliteLogLevelVerbose);
 
@@ -104,8 +104,9 @@ class RawTestPage extends TestPage {
 
         Future testItem(int i) async {
           await db.transaction((txn) async {
-            final count =
-                firstIntValue(await txn.rawQuery('SELECT COUNT(*) FROM Test'))!;
+            final count = firstIntValue(
+              await txn.rawQuery('SELECT COUNT(*) FROM Test'),
+            )!;
             await Future<void>.delayed(const Duration(milliseconds: 40));
             await txn.rawInsert('INSERT INTO Test (name) VALUES (?)', [
               'item $i',
@@ -444,10 +445,9 @@ class RawTestPage extends TestPage {
       expect(list, expectedList);
 
       // Count the records
-      count =
-          (firstIntValue(
-            await database.rawQuery('SELECT COUNT(*) FROM Test'),
-          ))!;
+      count = (firstIntValue(
+        await database.rawQuery('SELECT COUNT(*) FROM Test'),
+      ))!;
       expect(count, 2);
 
       // Delete a record
