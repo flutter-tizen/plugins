@@ -1,3 +1,9 @@
+## 2.1.5
+
+* Update wakelock_plus to 1.8.0.
+* Update wakelock_plus_platform_interface to 1.7.0.
+* Update minimum Flutter and Dart version to 3.44 and 3.12.
+
 ## 2.1.4
 
 * Update wakelock_plus to 1.7.0.

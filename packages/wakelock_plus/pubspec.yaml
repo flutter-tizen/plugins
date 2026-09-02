@@ -2,11 +2,11 @@ name: wakelock_plus_tizen
 description: Tizen implementation of the wakelock_plus plugin.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/main/packages/wakelock_plus
-version: 2.1.4
+version: 2.1.5
 
 environment:
-  sdk: ">=3.11.0 <4.0.0"
-  flutter: ">=3.41.0"
+  sdk: ">=3.12.0 <4.0.0"
+  flutter: ">=3.44.0"
 
 flutter:
   plugin:
@@ -20,7 +20,7 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-  wakelock_plus_platform_interface: ^1.6.0
+  wakelock_plus_platform_interface: ^1.7.0
 
 dev_dependencies:
   flutter_lints: ^3.0.2
