@@ -308,7 +308,7 @@ Ecore_Evas* WebView::GetOffscreenHost() {
   if (!g_offscreen_host) {
     // wayland_shm, not wayland_egl: wayland_egl raced libtpl-egl's
     // wl_egl_thread teardown on disposal.
-    g_offscreen_host = ecore_evas_new("wayland_shm", 0, 0, 1, 1, 0);
+    g_offscreen_host = ecore_evas_new("wayland_egl", 0, 0, 1, 1, 0);
   }
   return g_offscreen_host;
 }
