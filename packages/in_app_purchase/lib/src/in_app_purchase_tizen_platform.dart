@@ -66,7 +66,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
     _ => ItemType.none,
   };
 
-  /// Converts Map<Object?, Object?>? to the list of [ItemDetails].
+  /// Converts `Map<Object?, Object?>?` to the list of [ItemDetails].
   List<ItemDetails> _getItemDetails(ProductsListApiResult response) {
     final List<ItemDetails> itemDetails = <ItemDetails>[];
     for (final Map<Object?, Object?>? detail in response.itemDetails) {
@@ -144,7 +144,7 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
     return productDetailsResponse;
   }
 
-  /// Converts Map<Object?, Object?>? to the list of [InvoiceDetails].
+  /// Converts `Map<Object?, Object?>?` to the list of [InvoiceDetails].
   List<InvoiceDetails> _getInvoiceDetails(
     GetUserPurchaseListAPIResult response,
   ) {
