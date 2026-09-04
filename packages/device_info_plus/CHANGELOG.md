@@ -2,7 +2,6 @@
 
 * Add `DeviceInfoPluginTizen.duid` to retrieve the device's DUID (Device Unique ID).
 * Add 2 integration test cases.
-* Update integration tests.
 
 ## 1.4.2
 

@@ -185,7 +185,6 @@ class _DashRomoteVideoState extends State<_DashRomoteVideo> {
       _controller
           .getStreamingProperty(StreamingPropertyType.subtitleStreamInfo);
       _controller.getStreamingProperty(StreamingPropertyType.videoStreamInfo);
-
       _controller.getData(<DashPlayerProperty>{DashPlayerProperty.httpHeader});
     });
     _controller.play();
