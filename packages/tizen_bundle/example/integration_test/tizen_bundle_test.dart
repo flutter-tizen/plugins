@@ -132,11 +132,13 @@ void main() {
       expect(bundle['nonExistentKey'], isNull);
     });
 
-    test('returns null when key is null', () async {
+    test('returns null when the key is not a String', () async {
       final Bundle bundle = Bundle();
       bundle['someKey'] = 'someValue';
-      // The implementation accepts Object? key and returns null for null.
-      expect(bundle[null], isNull);
+      // operator[] takes an Object?, so it must accept any key.
+      for (final Object? key in <Object?>[null, 42, true]) {
+        expect(bundle[key], isNull);
+      }
     });
 
     test('returns the correct value after key is overwritten', () async {
@@ -199,10 +201,13 @@ void main() {
   // remove()
   // ---------------------------------------------------------------------------
   group('remove()', () {
-    test('remove(null) is a no-op and does not throw', () async {
+    test('removing a key that is not a String is a no-op', () async {
       final Bundle bundle = Bundle();
       bundle['key'] = 'value';
-      expect(() => bundle.remove(null), returnsNormally);
+      // remove() takes an Object?, so it must accept any key.
+      for (final Object? key in <Object?>[null, 42, true]) {
+        expect(() => bundle.remove(key), returnsNormally);
+      }
       expect(bundle.length, 1);
     });
 
