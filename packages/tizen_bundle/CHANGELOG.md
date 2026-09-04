@@ -1,3 +1,7 @@
+## 0.1.5
+
+* Fix `operator []` and `remove()` to not throw on non-String keys.
+
 ## 0.1.4
 
 * Update integration tests.

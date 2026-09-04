@@ -88,12 +88,12 @@ class Bundle extends MapMixin<String, Object> {
   /// The value for the given [key], or null if [key] is not in the bundle.
   @override
   Object? operator [](Object? key) {
-    if (key == null) {
+    if (key is! String) {
       return null;
     }
 
     Object? value;
-    final int type = _getType(key as String);
+    final int type = _getType(key);
     if (type == bundle_type.BUNDLE_TYPE_STR) {
       value = _getString(key);
     } else if (type == bundle_type.BUNDLE_TYPE_STR_ARRAY) {
@@ -131,13 +131,12 @@ class Bundle extends MapMixin<String, Object> {
   /// Removes [key] and its associated value, if present, from the bundle.
   @override
   void remove(Object? key) {
-    if (key == null) {
+    if (key is! String) {
       return;
     }
 
     final int ret = using((Arena arena) {
-      final String keyName = key as String;
-      return tizen.bundle_del(_handle, keyName.toNativeChar(allocator: arena));
+      return tizen.bundle_del(_handle, key.toNativeChar(allocator: arena));
     });
     if (ret != bundle_error_e.BUNDLE_ERROR_NONE &&
         ret != bundle_error_e.BUNDLE_ERROR_KEY_NOT_AVAILABLE) {
