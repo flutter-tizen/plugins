@@ -1,3 +1,7 @@
+## NEXT
+
+* Resolve `unintended_html_in_doc_comment` lint.
+
 ## 0.1.8
 
 * Update in_app_purchase to 3.3.0
