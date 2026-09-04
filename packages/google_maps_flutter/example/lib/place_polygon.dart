@@ -11,7 +11,7 @@ import 'page.dart';
 
 class PlacePolygonPage extends GoogleMapExampleAppPage {
   const PlacePolygonPage({Key? key})
-      : super(const Icon(Icons.linear_scale), 'Place polygon', key: key);
+    : super(const Icon(Icons.linear_scale), 'Place polygon', key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -218,16 +218,16 @@ class PlacePolygonBodyState extends State<PlacePolygonBody> {
                           onPressed: (selectedId == null)
                               ? null
                               : (polygons[selectedId]!.holes.isNotEmpty
-                                  ? null
-                                  : () => _addHoles(selectedId)),
+                                    ? null
+                                    : () => _addHoles(selectedId)),
                           child: const Text('add holes'),
                         ),
                         TextButton(
                           onPressed: (selectedId == null)
                               ? null
                               : (polygons[selectedId]!.holes.isEmpty
-                                  ? null
-                                  : () => _removeHoles(selectedId)),
+                                    ? null
+                                    : () => _removeHoles(selectedId)),
                           child: const Text('remove holes'),
                         ),
                         TextButton(

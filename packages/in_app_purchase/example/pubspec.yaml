@@ -3,13 +3,13 @@ description: Demonstrates how to use the in_app_purchase_tizen plugin.
 publish_to: "none"
 
 environment:
-  sdk: ^3.5.0
-  flutter: ">=3.24.0"
+  sdk: ^3.10.0
+  flutter: ">=3.38.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  in_app_purchase: ^3.2.3
+  in_app_purchase: ^3.3.0
   in_app_purchase_tizen:
     path: ../
 

@@ -85,8 +85,8 @@ class _MyAppState extends State<_MyApp> {
 
     // The `identifiers` argument is not used on Tizen.
     // Use `InAppPurchaseTizenPlatformAddition.setRequestParameters` instead.
-    final ProductDetailsResponse productDetailResponse =
-        await _inAppPurchase.queryProductDetails(<String>{});
+    final ProductDetailsResponse productDetailResponse = await _inAppPurchase
+        .queryProductDetails(<String>{});
     if (productDetailResponse.error != null) {
       setState(() {
         _queryProductError = productDetailResponse.error!.message;
@@ -173,8 +173,9 @@ class _MyAppState extends State<_MyApp> {
     final Widget storeHeader = ListTile(
       leading: Icon(
         _isAvailable ? Icons.check : Icons.block,
-        color:
-            _isAvailable ? Colors.green : ThemeData.light().colorScheme.error,
+        color: _isAvailable
+            ? Colors.green
+            : ThemeData.light().colorScheme.error,
       ),
       title: Text(
         'The store is ${_isAvailable ? 'available' : 'unavailable'}.',

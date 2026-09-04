@@ -1,3 +1,29 @@
+## 0.2.3
+
+* Update google_maps_flutter to 2.18.0.
+* Update google_maps_flutter_platform_interface to 2.16.0.
+* Updates minimum supported SDK version to Flutter 3.38/Dart 3.10.
+
+## 0.2.2
+
+* Add an `implements` entry to the pubspec to improve discoverability on pub.dev.
+
+## 0.2.1
+
+* Update the repository URL to use the `main` branch.
+
+## 0.2.0
+
+* Refactor the JavaScript interaction layer by introducing `GoogleMapsJsBridge`,
+  replacing direct `WebViewController` calls.
+* Remove the public `GoogleMapsController.controller` field.
+* Update `webview_flutter_lwe` to ^0.5.3.
+* Raise the SDK constraint to Dart ^3.8.0 and Flutter >=3.32.0.
+* Fix a JS string escaping bug that could break marker and overlay creation.
+* Fix event handling and dispose-safety issues in the JS bridge.
+* Fix a null-check bug in circle tap handling.
+* Verify integration tests pass against upstream google_maps_flutter v2.17.0.
+
 ## 0.1.14
 
 * Update google_maps_flutter to 2.16.0.

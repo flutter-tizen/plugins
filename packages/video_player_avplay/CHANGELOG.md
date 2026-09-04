@@ -1,8 +1,12 @@
-## 0.8.15
+## 0.8.16
 
 * Added `setAbr` property to disable adaptive bitrate switching for HLS streams.
 * HLS fixed bitrate now supported via `STARTBITRATE + SET_ABR` combination.
 * Removed logging from the Dart public API.
+
+## 0.8.15
+
+* Update the repository URL to use the `main` branch.
 
 ## 0.8.14
 

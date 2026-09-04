@@ -1,1 +1,11 @@
 include: ../../analysis_options_plus.yaml
+
+analyzer:
+  exclude:
+    - 'build/**'
+    - 'android/**'
+    - 'ios/**'
+    - 'web/**'
+    - 'windows/**'
+    - 'macos/**'
+    - 'linux/**'

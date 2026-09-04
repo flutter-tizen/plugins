@@ -12,11 +12,11 @@ class PolylineController {
     required util.GPolyline polyline,
     bool consumeTapEvents = false,
     ui.VoidCallback? onTap,
-    WebViewController? controller,
-  })  : _polyline = polyline,
-        _consumeTapEvents = consumeTapEvents,
-        tapEvent = onTap {
-    _addPolylineEvent(controller);
+    required GoogleMapsJsBridge bridge,
+  }) : _polyline = polyline,
+       _consumeTapEvents = consumeTapEvents,
+       tapEvent = onTap {
+    _addPolylineEvent(bridge);
   }
 
   util.GPolyline? _polyline;
@@ -25,10 +25,13 @@ class PolylineController {
   /// Polyline component's tap event.
   ui.VoidCallback? tapEvent;
 
-  Future<void> _addPolylineEvent(WebViewController? controller) async {
-    final String command =
-        "$_polyline.addListener('click', (event) => PolylineClick.postMessage(JSON.stringify(${_polyline?.id})));";
-    await controller!.runJavaScript(command);
+  Future<void> _addPolylineEvent(GoogleMapsJsBridge bridge) async {
+    await bridge.addListener(
+      JsRef(_polyline.toString()),
+      'click',
+      'PolylineClick',
+      'JSON.stringify(${_polyline?.id})',
+    );
   }
 
   /// Returns `true` if this Controller will use its own `onTap` handler to consume events.

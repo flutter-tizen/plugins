@@ -4,6 +4,9 @@
 
 #include "device_info_plus_tizen_plugin.h"
 
+#ifdef TV_PROFILE
+#include <dlfcn.h>
+#endif
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
@@ -15,6 +18,7 @@
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 
 #include "log.h"
@@ -22,6 +26,40 @@
 namespace {
 
 constexpr int64_t kUnknownMetric = -1;
+
+// Returns nullopt only for a transient vconf read failure; a non-TV profile
+// (permanent, not transient) returns an empty string instead.
+std::optional<std::string> GetDuid() {
+#ifndef TV_PROFILE
+  return std::string();
+#else
+  using FuncVconfGetStr = char *(*)(const char *);
+
+  void *handle = dlopen("libvconf.so.0", RTLD_LAZY);
+  if (!handle) {
+    LOG_ERROR("Failed to open libvconf.so.0.");
+    return std::nullopt;
+  }
+
+  auto vconf_get_str =
+      reinterpret_cast<FuncVconfGetStr>(dlsym(handle, "vconf_get_str"));
+  if (!vconf_get_str) {
+    LOG_ERROR("Failed to find the vconf_get_str symbol.");
+    dlclose(handle);
+    return std::nullopt;
+  }
+
+  char *value = vconf_get_str("db/comss/duid");
+  dlclose(handle);
+  if (!value) {
+    LOG_ERROR("Failed to read db/comss/duid.");
+    return std::nullopt;
+  }
+  std::string duid = value;
+  free(value);
+  return duid;
+#endif
+}
 
 class DeviceInfoPlusTizenPlugin : public flutter::Plugin {
  public:
@@ -53,6 +91,13 @@ class DeviceInfoPlusTizenPlugin : public flutter::Plugin {
 
     if (method_name == "getTizenDeviceInfo") {
       result->Success(flutter::EncodableValue(GetTizenDeviceInfo()));
+    } else if (method_name == "getDuid") {
+      std::optional<std::string> duid = GetDuid();
+      if (duid.has_value()) {
+        result->Success(flutter::EncodableValue(*duid));
+      } else {
+        result->Success(flutter::EncodableValue());
+      }
     } else {
       result->NotImplemented();
     }

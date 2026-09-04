@@ -6,7 +6,7 @@ This repo contains Flutter plugins maintained by the flutter-tizen team. We're i
 
 To build Flutter applications with plugins, use the [flutter-tizen](https://github.com/flutter-tizen/flutter-tizen) tool.
 
-Every plugin in this repo is written in either C++, C#, or Dart. For how to write a new plugin or extend existing plugins for Tizen, see [this page](https://github.com/flutter-tizen/flutter-tizen/blob/master/doc/develop-plugin.md).
+Every plugin in this repo is written in either C++, C#, or Dart. For how to write a new plugin or extend existing plugins for Tizen, see [this page](https://github.com/flutter-tizen/flutter-tizen/blob/main/doc/develop-plugin.md).
 
 ## List of packages
 

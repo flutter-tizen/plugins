@@ -11,7 +11,7 @@ This package is not an _endorsed_ implementation of `url_launcher`. Therefore, y
 ```yaml
 dependencies:
   url_launcher: ^6.3.2
-  url_launcher_tizen: ^2.1.5
+  url_launcher_tizen: ^2.1.7
 ```
 
 Then you can import `url_launcher` in your Dart code:

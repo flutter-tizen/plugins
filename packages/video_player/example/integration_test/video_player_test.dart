@@ -17,8 +17,9 @@ import 'package:video_player/video_player.dart';
 const Duration _playDuration = Duration(seconds: 1);
 
 // Use WebM for web to allow CI to use Chromium.
-const String _videoAssetKey =
-    kIsWeb ? 'assets/Butterfly-209.webm' : 'assets/Butterfly-209.mp4';
+const String _videoAssetKey = kIsWeb
+    ? 'assets/Butterfly-209.webm'
+    : 'assets/Butterfly-209.mp4';
 
 // Returns the URL to load an asset from this example app as a network source.
 //
@@ -217,19 +218,17 @@ void main() {
               child: Center(
                 child: FutureBuilder<bool>(
                   future: started(),
-                  builder: (
-                    BuildContext context,
-                    AsyncSnapshot<bool> snapshot,
-                  ) {
-                    if (snapshot.data ?? false) {
-                      return AspectRatio(
-                        aspectRatio: controller.value.aspectRatio,
-                        child: VideoPlayer(controller),
-                      );
-                    } else {
-                      return const Text('waiting for video to load');
-                    }
-                  },
+                  builder:
+                      (BuildContext context, AsyncSnapshot<bool> snapshot) {
+                        if (snapshot.data ?? false) {
+                          return AspectRatio(
+                            aspectRatio: controller.value.aspectRatio,
+                            child: VideoPlayer(controller),
+                          );
+                        } else {
+                          return const Text('waiting for video to load');
+                        }
+                      },
                 ),
               ),
             ),
@@ -281,42 +280,38 @@ void main() {
       );
     });
 
-    testWidgets(
-      'reports buffering status',
-      (WidgetTester tester) async {
-        await controller.initialize();
-        // Mute to allow playing without DOM interaction on Web.
-        // See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
-        await controller.setVolume(0);
-        final Completer<void> started = Completer<void>();
-        final Completer<void> ended = Completer<void>();
-        controller.addListener(() {
-          if (!started.isCompleted && controller.value.isBuffering) {
-            started.complete();
-          }
-          if (started.isCompleted &&
-              !controller.value.isBuffering &&
-              !ended.isCompleted) {
-            ended.complete();
-          }
-        });
+    testWidgets('reports buffering status', (WidgetTester tester) async {
+      await controller.initialize();
+      // Mute to allow playing without DOM interaction on Web.
+      // See https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
+      await controller.setVolume(0);
+      final Completer<void> started = Completer<void>();
+      final Completer<void> ended = Completer<void>();
+      controller.addListener(() {
+        if (!started.isCompleted && controller.value.isBuffering) {
+          started.complete();
+        }
+        if (started.isCompleted &&
+            !controller.value.isBuffering &&
+            !ended.isCompleted) {
+          ended.complete();
+        }
+      });
 
-        await controller.play();
-        await controller.seekTo(const Duration(seconds: 5));
-        await tester.pumpAndSettle(_playDuration);
-        await controller.pause();
+      await controller.play();
+      await controller.seekTo(const Duration(seconds: 5));
+      await tester.pumpAndSettle(_playDuration);
+      await controller.pause();
 
-        expect(controller.value.isPlaying, false);
-        expect(
-          controller.value.position,
-          (Duration position) => position > Duration.zero,
-        );
+      expect(controller.value.isPlaying, false);
+      expect(
+        controller.value.position,
+        (Duration position) => position > Duration.zero,
+      );
 
-        await expectLater(started.future, completes);
-        await expectLater(ended.future, completes);
-      },
-      skip: !(kIsWeb || defaultTargetPlatform == TargetPlatform.android),
-    );
+      await expectLater(started.future, completes);
+      await expectLater(ended.future, completes);
+    }, skip: !(kIsWeb || defaultTargetPlatform == TargetPlatform.android));
   });
 
   // Audio playback is tested to prevent accidental regression,

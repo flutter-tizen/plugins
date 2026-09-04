@@ -27,7 +27,7 @@ class FirebaseApp extends FirebaseAppPlatform {
   }
 
   /// Sets whether automatic resource management is enabled or disabled.
-  /// This has no affect on Da.
+  /// This has no effect on Dart.
   @override
   Future<void> setAutomaticResourceManagementEnabled(bool enabled) {
     return Future<void>.value();

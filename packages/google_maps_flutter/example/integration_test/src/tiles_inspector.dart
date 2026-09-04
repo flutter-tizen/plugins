@@ -351,10 +351,14 @@ void runTests() {
         GoogleMapsInspectorPlatform.instance!;
 
     if (inspector.supportsGettingHeatmapInfo()) {
-      final Heatmap heatmapInfo1 =
-          (await inspector.getHeatmapInfo(heatmap1.mapsId, mapId: mapId))!;
-      final Heatmap heatmapInfo2 =
-          (await inspector.getHeatmapInfo(heatmap2.mapsId, mapId: mapId))!;
+      final Heatmap heatmapInfo1 = (await inspector.getHeatmapInfo(
+        heatmap1.mapsId,
+        mapId: mapId,
+      ))!;
+      final Heatmap heatmapInfo2 = (await inspector.getHeatmapInfo(
+        heatmap2.mapsId,
+        mapId: mapId,
+      ))!;
 
       expectHeatmapEquals(heatmap1, heatmapInfo1);
       expectHeatmapEquals(heatmap2, heatmapInfo2);
@@ -411,8 +415,10 @@ void runTests() {
     await tester.pumpAndSettle(const Duration(seconds: 3));
 
     if (inspector.supportsGettingHeatmapInfo()) {
-      final Heatmap heatmapInfo1 =
-          (await inspector.getHeatmapInfo(heatmap1.mapsId, mapId: mapId))!;
+      final Heatmap heatmapInfo1 = (await inspector.getHeatmapInfo(
+        heatmap1.mapsId,
+        mapId: mapId,
+      ))!;
 
       expectHeatmapEquals(heatmap1New, heatmapInfo1);
     }

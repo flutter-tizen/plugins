@@ -1,3 +1,14 @@
+## 0.1.6
+
+* Update minimum Flutter and Dart version to 3.44 and 3.12.
+* Update sqflite to 2.4.3.
+
+## 0.1.5
+
+* Update analysis_options.yaml for Flutter 3.47.0.
+* Update code format with `dart format` from Flutter 3.47.0 (Dart 3.13.0).
+* Update the repository URL to use the `main` branch.
+
 ## 0.1.4
 
 * Update sqflite to 2.4.2.

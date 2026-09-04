@@ -11,10 +11,12 @@ class MarkersController extends GeometryController {
   MarkersController({
     required StreamController<MapEvent<Object?>> stream,
     required ClusterManagersController clusterManagersController,
-  })  : _streamController = stream,
-        _clusterManagersController = clusterManagersController,
-        _idToMarkerId = <int, MarkerId>{},
-        _markerIdToController = <MarkerId, MarkerController>{};
+    required GoogleMapsJsBridge bridge,
+  }) : _streamController = stream,
+       _clusterManagersController = clusterManagersController,
+       _bridge = bridge,
+       _idToMarkerId = <int, MarkerId>{},
+       _markerIdToController = <MarkerId, MarkerController>{};
 
   // A cache of [MarkerController]s indexed by their [MarkerId].
   final Map<MarkerId, MarkerController> _markerIdToController;
@@ -24,6 +26,8 @@ class MarkersController extends GeometryController {
   final StreamController<MapEvent<Object?>> _streamController;
 
   final ClusterManagersController _clusterManagersController;
+
+  final GoogleMapsJsBridge _bridge;
 
   /// Adds a set of [Marker] objects to the cache.
   ///
@@ -42,14 +46,14 @@ class MarkersController extends GeometryController {
     util.GInfoWindow? infoWindow;
 
     if (infoWindowOptions != null) {
-      infoWindow = util.GInfoWindow(infoWindowOptions);
+      infoWindow = util.GInfoWindow(_bridge, infoWindowOptions);
     }
 
     final util.GMarkerOptions populationOptions = _markerOptionsFromMarker(
       marker,
       _markerIdToController[marker.markerId]?.marker,
     );
-    final util.GMarker gMarker = util.GMarker(populationOptions);
+    final util.GMarker gMarker = util.GMarker(_bridge, populationOptions);
 
     if (marker.clusterManagerId != null) {
       _clusterManagersController.addItem(marker.clusterManagerId!, gMarker);
@@ -73,7 +77,7 @@ class MarkersController extends GeometryController {
       onDragEnd: (LatLng latLng) {
         _onMarkerDragEnd(marker.markerId, latLng);
       },
-      controller: util.webController,
+      bridge: _bridge,
     );
     _idToMarkerId[gMarker.id] = marker.markerId;
     _markerIdToController[marker.markerId] = markerController;
@@ -174,10 +178,11 @@ class MarkersController extends GeometryController {
   void _hideAllMarkerInfoWindow() {
     _markerIdToController.values
         .where(
-      (MarkerController? controller) => controller?.infoWindowShown ?? false,
-    )
+          (MarkerController? controller) =>
+              controller?.infoWindowShown ?? false,
+        )
         .forEach((MarkerController controller) {
-      controller.hideInfoWindow();
-    });
+          controller.hideInfoWindow();
+        });
   }
 }

@@ -11,7 +11,7 @@ import 'page.dart';
 
 class PlaceCirclePage extends GoogleMapExampleAppPage {
   const PlaceCirclePage({Key? key})
-      : super(const Icon(Icons.linear_scale), 'Place circle', key: key);
+    : super(const Icon(Icons.linear_scale), 'Place circle', key: key);
 
   @override
   Widget build(BuildContext context) {

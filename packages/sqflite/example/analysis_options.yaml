@@ -11,6 +11,14 @@ include: package:flutter_lints/flutter.yaml
 # https://github.com/flutter/flutter/blob/master/analysis_options.yaml
 
 analyzer:
+  exclude:
+    - 'build/**'
+    - 'android/**'
+    - 'ios/**'
+    - 'web/**'
+    - 'windows/**'
+    - 'macos/**'
+    - 'linux/**'
   language:
     strict-casts: true
     strict-inference: true
@@ -76,7 +84,6 @@ linter:
     #
     - annotate_overrides
     - avoid_init_to_null
-    - avoid_null_checks_in_equality_operators
     - avoid_return_types_on_setters
     - empty_constructor_bodies
     - library_names

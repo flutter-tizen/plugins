@@ -1,5 +1,17 @@
-## NEXT
+## 0.1.6
 
+* Update flutter_secure_storage to 11.0.0.
+* Update flutter_secure_storage_platform_interface to 2.0.3.
+* Update minimum Flutter and Dart version to 3.32 and 3.8.
+
+## 0.1.5
+
+* Add an `implements` entry to the pubspec to improve discoverability on pub.dev.
+
+## 0.1.4
+
+* Update analysis_options.yaml for Flutter 3.47.0.
+* Update the repository URL to use the `main` branch.
 * Update integration tests based on upstream flutter_secure_storage v10.2.0 (12 test cases).
 * Update integration tests.
 

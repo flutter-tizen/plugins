@@ -1,8 +1,8 @@
 name: tizen_app_control
 description: Tizen application control APIs. Used to launch apps on a Tizen device.
 homepage: https://github.com/flutter-tizen/plugins
-repository: https://github.com/flutter-tizen/plugins/tree/master/packages/tizen_app_control
-version: 0.2.3
+repository: https://github.com/flutter-tizen/plugins/tree/main/packages/tizen_app_control
+version: 0.2.4
 
 environment:
   sdk: ">=3.1.0 <4.0.0"

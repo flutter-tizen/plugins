@@ -44,6 +44,7 @@ class _MyAppState extends State<MyApp> {
 
     try {
       deviceData = _readTizenDeviceInfo(await deviceInfoPlugin.tizenInfo);
+      deviceData['duid'] = await deviceInfoPlugin.duid;
     } on PlatformException {
       deviceData = <String, dynamic>{
         'Error:': 'Failed to get platform version.',

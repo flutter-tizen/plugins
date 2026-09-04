@@ -1,4 +1,12 @@
 analyzer:
+  exclude:
+    - 'build/**'
+    - 'android/**'
+    - 'ios/**'
+    - 'web/**'
+    - 'windows/**'
+    - 'macos/**'
+    - 'linux/**'
   errors:
     unused_import: error
     unused_local_variable: error

@@ -1,6 +1,16 @@
-## NEXT
+## 2.3.3
+
+* Update path_provider to 2.1.6.
+* Updates minimum supported SDK version to Flutter 3.38/Dart 3.10.0.
+
+## 2.3.2
+
+* Add an `implements` entry to the pubspec to improve discoverability on pub.dev.
+
+## 2.3.1
 
 * Update integration tests.
+* Update the repository URL to use the `main` branch.
 
 ## 2.3.0
 

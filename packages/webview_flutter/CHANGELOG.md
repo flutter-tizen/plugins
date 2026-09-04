@@ -1,3 +1,23 @@
+## 0.10.4
+
+* Fix a black screen issue on Tizen 6.5 TV devices.
+
+## 0.10.3
+
+* Add an `implements` entry to the pubspec to improve discoverability on pub.dev.
+
+## 0.10.2
+
+* Update the repository URL to use the `main` branch.
+
+## 0.10.1
+
+* Implement `clearLocalStorage`.
+* Implement `onHttpError` for the navigation delegate.
+* Fix races and use-after-frees on WebView disposal, including a buffer-pool use-after-free on the raster thread.
+* Use GLib to schedule the deferred WebView teardown.
+* Drain all pending WebView teardowns before ewk_shutdown(), fixing a native crash on app exit.
+
 ## 0.10.0
 
 * Update minimum supported SDK version to Flutter 3.32/Dart 3.8.

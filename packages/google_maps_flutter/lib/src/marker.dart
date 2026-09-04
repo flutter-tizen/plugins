@@ -17,17 +17,17 @@ class MarkerController {
     LatLngCallback? onDragEnd,
     ui.VoidCallback? onTap,
     ClusterManagerId? clusterManagerId,
-    WebViewController? controller,
-  })  : _marker = marker,
-        _infoWindow = infoWindow,
-        _consumeTapEvents = consumeTapEvents,
-        _clusterManagerId = clusterManagerId,
-        tapEvent = onTap,
-        dragStartEvent = onDragStart,
-        dragEvent = onDrag,
-        dragEndEvent = onDragEnd {
-    if (controller != null) {
-      _addMarkerEvent(controller);
+    GoogleMapsJsBridge? bridge,
+  }) : _marker = marker,
+       _infoWindow = infoWindow,
+       _consumeTapEvents = consumeTapEvents,
+       _clusterManagerId = clusterManagerId,
+       tapEvent = onTap,
+       dragStartEvent = onDragStart,
+       dragEvent = onDrag,
+       dragEndEvent = onDragEnd {
+    if (bridge != null) {
+      _addMarkerEvent(bridge);
     }
   }
 
@@ -49,13 +49,19 @@ class MarkerController {
   /// Marker component's drag end event.
   LatLngCallback? dragEndEvent;
 
-  Future<void> _addMarkerEvent(WebViewController? controller) async {
-    final String command = '''
-        $marker.addListener("click", (event) => MarkerClick.postMessage(JSON.stringify(${marker?.id})));
-        $marker.addListener("dragstart", (event) => MarkerDragStart.postMessage(JSON.stringify({id:${marker?.id}, event:event})));
-        $marker.addListener("drag", (event) => MarkerDrag.postMessage(JSON.stringify({id:${marker?.id}, event:event})));
-        $marker.addListener("dragend", (event) => MarkerDragEnd.postMessage(JSON.stringify({id:${marker?.id}, event:event})));''';
-    await controller!.runJavaScript(command);
+  Future<void> _addMarkerEvent(GoogleMapsJsBridge bridge) async {
+    final JsRef ref = JsRef(_marker!.toString());
+    final int id = _marker!.id;
+    final String dragPayload = 'JSON.stringify({id:$id, event:event})';
+    await bridge.addListener(
+      ref,
+      'click',
+      'MarkerClick',
+      'JSON.stringify($id)',
+    );
+    await bridge.addListener(ref, 'dragstart', 'MarkerDragStart', dragPayload);
+    await bridge.addListener(ref, 'drag', 'MarkerDrag', dragPayload);
+    await bridge.addListener(ref, 'dragend', 'MarkerDragEnd', dragPayload);
   }
 
   /// Returns `true` if this Controller will use its own `onTap` handler to consume events.

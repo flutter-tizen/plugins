@@ -10,7 +10,7 @@ Add `device_info_plus_tizen` as a dependency in your `pubspec.yaml` file.
 
 ```yaml
 dependencies:
-  device_info_plus_tizen: ^1.4.0
+  device_info_plus_tizen: ^1.4.3
 ```
 
 Then you can import `device_info_plus_tizen` in your Dart code.
@@ -26,31 +26,32 @@ String modelName = tizenInfo.modelName;
 
 ## Supported properties
 
-| Property | Feature or system key |
-|-|-|
-| `modelName` | `http://tizen.org/system/model_name` |
-| `cpuArch` | `http://tizen.org/feature/platform.core.cpu.arch` |
-| `nativeApiVersion` | `http://tizen.org/feature/platform.native.api.version` |
-| `platformVersion` | `http://tizen.org/feature/platform.version` |
-| `webApiVersion` | `http://tizen.org/feature/platform.web.api.version` |
-| `profile` | `http://tizen.org/feature/profile` |
-| `buildDate` | `http://tizen.org/system/build.date` |
-| `buildId` | `http://tizen.org/system/build.id` |
-| `buildString` | `http://tizen.org/system/build.string` |
-| `buildTime` | `http://tizen.org/system/build.time` |
-| `buildType` | `http://tizen.org/system/build.type` |
-| `buildVariant` | `http://tizen.org/system/build.variant` |
-| `buildRelease` | `http://tizen.org/system/build.release` |
-| `deviceType` | `http://tizen.org/system/device_type` |
-| `manufacturer` | `http://tizen.org/system/manufacturer` |
-| `platformName` | `http://tizen.org/system/platform.name` |
-| `platformProcessor` | `http://tizen.org/system/platform.processor` |
-| `tizenId` | `http://tizen.org/system/tizenid` |
-| `freeDiskSize` | `storage_get_internal_memory_size()` |
-| `totalDiskSize` | `storage_get_internal_memory_size()` |
-| `physicalRamSize` | `runtime_info_get_system_memory_info()` |
-| `availableRamSize` | `runtime_info_get_system_memory_info()` |
-| `screenWidth` | `http://tizen.org/feature/screen.width` |
-| `screenHeight` | `http://tizen.org/feature/screen.height` |
+| Property | Feature or system key | TV only |
+|-|-|-|
+| `modelName` | `http://tizen.org/system/model_name` | |
+| `cpuArch` | `http://tizen.org/feature/platform.core.cpu.arch` | |
+| `nativeApiVersion` | `http://tizen.org/feature/platform.native.api.version` | |
+| `platformVersion` | `http://tizen.org/feature/platform.version` | |
+| `webApiVersion` | `http://tizen.org/feature/platform.web.api.version` | |
+| `profile` | `http://tizen.org/feature/profile` | |
+| `buildDate` | `http://tizen.org/system/build.date` | |
+| `buildId` | `http://tizen.org/system/build.id` | |
+| `buildString` | `http://tizen.org/system/build.string` | |
+| `buildTime` | `http://tizen.org/system/build.time` | |
+| `buildType` | `http://tizen.org/system/build.type` | |
+| `buildVariant` | `http://tizen.org/system/build.variant` | |
+| `buildRelease` | `http://tizen.org/system/build.release` | |
+| `deviceType` | `http://tizen.org/system/device_type` | |
+| `manufacturer` | `http://tizen.org/system/manufacturer` | |
+| `platformName` | `http://tizen.org/system/platform.name` | |
+| `platformProcessor` | `http://tizen.org/system/platform.processor` | |
+| `tizenId` | `http://tizen.org/system/tizenid` | |
+| `freeDiskSize` | `storage_get_internal_memory_size()` | |
+| `totalDiskSize` | `storage_get_internal_memory_size()` | |
+| `physicalRamSize` | `runtime_info_get_system_memory_info()` | |
+| `availableRamSize` | `runtime_info_get_system_memory_info()` | |
+| `screenWidth` | `http://tizen.org/feature/screen.width` | |
+| `screenHeight` | `http://tizen.org/feature/screen.height` | |
+| `duid` | `db/comss/duid` (vconf) | ✅ |
 
 For descriptions of the `system_info` keys in the list, see https://docs.tizen.org/application/native/guides/device/system.
