@@ -11,13 +11,13 @@ import 'package:flutter/services.dart';
 class WindowManager {
   WindowManager._();
 
-  static const MethodChannel _channel = MethodChannel('tizen/window_manager');
+  static const MethodChannel _channel = MethodChannel('tizen/internal/window');
 
   /// Activates the window.
-  static Future<void> activate() => _channel.invokeMethod('activate');
+  static Future<void> activate() => _channel.invokeMethod('activateWindow');
 
   /// Lowers the window.
-  static Future<void> lower() => _channel.invokeMethod('lower');
+  static Future<void> lower() => _channel.invokeMethod('lowerWindow');
 
   /// Gets the geometry (position and size) of the window.
   ///
@@ -27,7 +27,7 @@ class WindowManager {
   /// - 'width': The width of the window
   /// - 'height': The height of the window
   static Future<Map<String, int>> getGeometry() async {
-    final dynamic result = await _channel.invokeMethod('getGeometry');
+    final dynamic result = await _channel.invokeMethod('getWindowGeometry');
     if (result is Map) {
       return Map<String, int>.from(result);
     }

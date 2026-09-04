@@ -1,3 +1,7 @@
+## 0.2.0
+
+* Use the window method channel of the embedder.
+
 ## 0.1.1
 
 * Update integration tests.
