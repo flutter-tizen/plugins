@@ -1,3 +1,7 @@
+## NEXT
+
+* Resolve `use_super_parameters` lint.
+
 ## 0.2.3
 
 * Update google_maps_flutter to 2.18.0.

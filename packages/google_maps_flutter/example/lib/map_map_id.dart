@@ -8,8 +8,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'page.dart';
 
 class MapIdPage extends GoogleMapExampleAppPage {
-  const MapIdPage({Key? key})
-    : super(const Icon(Icons.map), 'Cloud-based maps styling', key: key);
+  const MapIdPage({super.key})
+    : super(const Icon(Icons.map), 'Cloud-based maps styling');
 
   @override
   Widget build(BuildContext context) {
