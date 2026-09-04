@@ -16,7 +16,7 @@ class FirebaseCore extends FirebasePlatform {
     FirebasePlatform.instance = FirebaseCore();
   }
 
-  FirebaseApp _mapDartToPlatfromApp(core_dart.FirebaseApp app) {
+  FirebaseApp _mapDartToPlatformApp(core_dart.FirebaseApp app) {
     final core_dart.FirebaseOptions options = app.options;
 
     return FirebaseApp._(
@@ -33,6 +33,9 @@ class FirebaseCore extends FirebasePlatform {
         trackingId: options.trackingId,
         appGroupId: options.appGroupId,
         deepLinkURLScheme: options.deepLinkURLScheme,
+        androidClientId: options.androidClientId,
+        iosClientId: options.iosClientId,
+        iosBundleId: options.iosBundleId,
       ),
     );
   }
@@ -40,7 +43,7 @@ class FirebaseCore extends FirebasePlatform {
   @override
   List<FirebaseApp> get apps {
     return core_dart.Firebase.apps
-        .map(_mapDartToPlatfromApp)
+        .map(_mapDartToPlatformApp)
         .toList(growable: false);
   }
 
@@ -66,7 +69,7 @@ class FirebaseCore extends FirebasePlatform {
           await core_dart.Firebase.initializeApp(
               name: name, options: dartOptions);
 
-      return _mapDartToPlatfromApp(dartApp);
+      return _mapDartToPlatformApp(dartApp);
     } on core_dart.FirebaseException catch (e) {
       switch (e.code) {
         case 'no-app':
@@ -85,7 +88,7 @@ class FirebaseCore extends FirebasePlatform {
   @override
   FirebaseApp app([String name = defaultFirebaseAppName]) {
     try {
-      return _mapDartToPlatfromApp(core_dart.Firebase.app(name));
+      return _mapDartToPlatformApp(core_dart.Firebase.app(name));
     } catch (_) {
       throw noAppExists(name);
     }

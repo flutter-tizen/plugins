@@ -1,3 +1,17 @@
+## 0.1.8
+
+* Update in_app_purchase to 3.3.0
+* Updates minimum supported SDK version to Flutter 3.38/Dart 3.10.0.
+
+## 0.1.7
+
+* Add an `implements` entry to the pubspec to improve discoverability on pub.dev.
+
+## 0.1.6
+
+* Update integration tests.
+* Update the repository URL to use the `main` branch.
+
 ## 0.1.5
 
 * Update in_app_purchase to 3.2.3

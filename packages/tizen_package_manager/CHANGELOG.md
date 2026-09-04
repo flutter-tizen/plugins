@@ -1,3 +1,8 @@
+## 0.4.4
+
+* Update integration tests.
+* Update the repository URL to use the `main` branch.
+
 ## 0.4.3
 
 * Return a null icon path (instead of an empty string) when a package has no

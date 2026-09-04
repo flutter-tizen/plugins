@@ -1,8 +1,8 @@
 name: shared_preferences_tizen
 description: Tizen implementation of the shared_preferences plugin.
 homepage: https://github.com/flutter-tizen/plugins
-repository: https://github.com/flutter-tizen/plugins/tree/master/packages/shared_preferences
-version: 2.3.3
+repository: https://github.com/flutter-tizen/plugins/tree/main/packages/shared_preferences
+version: 2.3.5
 
 environment:
   sdk: ^3.6.0
@@ -10,6 +10,7 @@ environment:
 
 flutter:
   plugin:
+    implements: shared_preferences
     platforms:
       tizen:
         dartPluginClass: SharedPreferencesPlugin

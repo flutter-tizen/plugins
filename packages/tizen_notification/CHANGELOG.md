@@ -1,3 +1,8 @@
+## 0.2.2
+
+* Update integration tests.
+* Update the repository URL to use the `main` branch.
+
 ## 0.2.1
 
 * Add regression integration tests.

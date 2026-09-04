@@ -6,8 +6,11 @@
 // ignore_for_file: avoid_setters_without_getters
 
 import 'dart:async';
+import 'dart:convert';
+
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+
+import 'google_maps_js_bridge.dart';
 
 /// Default LatLng.
 const LatLng nullLatLng = LatLng(0, 0);
@@ -54,7 +57,7 @@ class GMarkerOptions {
   String toString() {
     return '{anchorPoint:$anchorPoint, draggable:$draggable, icon:$icon, map: map, '
         ' opacity:$opacity, position:new google.maps.LatLng(${position?.latitude}, ${position?.longitude}),'
-        ' title:"$title", visible:$visible, zIndex:$zIndex}';
+        ' title:${jsonEncode(title)}, visible:$visible, zIndex:$zIndex}';
   }
 }
 
@@ -74,7 +77,7 @@ class GIcon {
 
   @override
   String toString() {
-    return '{url: "$url", scaledSize:$scaledSize, size: $size}';
+    return '{url:${jsonEncode(url)}, scaledSize:$scaledSize, size: $size}';
   }
 }
 
@@ -141,21 +144,24 @@ class GInfoWindowOptions {
     final String pos = position != null
         ? '{lat:${position?.latitude}, lng:${position?.longitude}}'
         : 'null';
-    return '{content:$content, pixelOffset:null , position:$pos, zIndex:$zIndex}';
+    final String contentJs = content != null ? jsonEncode(content) : 'null';
+    return '{content:$contentJs, pixelOffset:null , position:$pos, zIndex:$zIndex}';
   }
 }
 
 /// This class represents GMarker's InfoWindow.
 class GInfoWindow {
   /// GInfoWindow Constructor.
-  GInfoWindow(GInfoWindowOptions? opts) : _id = _gid++ {
+  GInfoWindow(GoogleMapsJsBridge bridge, GInfoWindowOptions? opts)
+    : _bridge = bridge,
+      _id = _gid++ {
     _createInfoWindow(opts);
   }
 
+  final GoogleMapsJsBridge _bridge;
+
   Future<void> _createInfoWindow(GInfoWindowOptions? opts) async {
-    await webController!.runJavaScript(
-      'var ${toString()} = new google.maps.InfoWindow($opts);',
-    );
+    await _bridge.createObject(toString(), 'new google.maps.InfoWindow($opts)');
   }
 
   final int _id;
@@ -167,7 +173,7 @@ class GInfoWindow {
   }
 
   Future<void> _callCloseInfoWindow() async {
-    await webController!.runJavaScript('${toString()}.close();');
+    await _bridge.callMethod(JsRef(toString()), 'close', <Object?>[]);
   }
 
   /// Opens InfoWindow on the given map.
@@ -176,9 +182,9 @@ class GInfoWindow {
   }
 
   Future<void> _callOpenInfoWindow(GMarker? anchor) async {
-    await webController!.runJavaScript(
-      '${toString()}.open({anchor: $anchor, map});',
-    );
+    await _bridge.callMethod(JsRef(toString()), 'open', <Object?>[
+      JsExpression('{anchor: $anchor, map}'),
+    ]);
   }
 
   @override
@@ -193,27 +199,38 @@ class GInfoWindow {
   set pixelOffset(GSize? size) => _setPixelOffset(size);
 
   Future<void> _setContent(Object? /*String?|Node?*/ content) async {
-    await callMethod(this, 'setContent', <Object?>[content]);
+    await _bridge.callMethod(JsRef(toString()), 'setContent', <Object?>[
+      content,
+    ]);
   }
 
   Future<void> _setPixelOffset(GSize? size) async {
-    await setProperty(this, 'pixelOffset', size?.toValue());
+    await _bridge.setProperty(
+      JsRef(toString()),
+      'pixelOffset',
+      size != null ? JsExpression(size.toValue()) : null,
+    );
   }
 }
 
 /// This class represents a geographical location on the map as a Marker.
 class GMarker {
   /// GMarker Constructor.
-  GMarker([GMarkerOptions? opts])
-      : id = _gid++,
-        _options = opts {
+  GMarker(GoogleMapsJsBridge bridge, [GMarkerOptions? opts])
+    : _bridge = bridge,
+      id = _gid++,
+      _options = opts {
     _createMarker(opts);
   }
 
+  final GoogleMapsJsBridge _bridge;
+
   Future<void> _createMarker(GMarkerOptions? opts) async {
-    final String command =
-        'var ${toString()} = new google.maps.Marker($opts); ${toString()}.id = $id;';
-    await webController!.runJavaScript(command);
+    final JsRef ref = await _bridge.createObject(
+      toString(),
+      'new google.maps.Marker($opts)',
+    );
+    await _bridge.setProperty(ref, 'id', id);
   }
 
   /// GMarker id.
@@ -274,41 +291,48 @@ class GMarker {
   }
 
   Future<void> _setMap(Object? /*GMap?|StreetViewPanorama?*/ map) async {
-    await callMethod(this, 'setMap', <Object?>[map]);
+    final Object? mapArg = map is String ? JsExpression(map) : map;
+    await _bridge.callMethod(JsRef(toString()), 'setMap', <Object?>[mapArg]);
   }
 
   Future<void> _setOptions(GMarkerOptions? options) async {
-    await callMethod(this, 'setOptions', <GMarkerOptions?>[options]);
+    await _bridge.callMethod(JsRef(toString()), 'setOptions', <GMarkerOptions?>[
+      options,
+    ]);
   }
 
   Future<void> _setVisible(bool? visible) async {
-    await callMethod(this, 'setVisible', <bool?>[visible]);
+    await _bridge.callMethod(JsRef(toString()), 'setVisible', <bool?>[visible]);
   }
 
   Future<void> _setDraggable(bool? visible) async {
-    await callMethod(this, 'setDraggable', <bool?>[visible]);
+    await _bridge.callMethod(JsRef(toString()), 'setDraggable', <bool?>[
+      visible,
+    ]);
   }
 
   Future<void> _setIcon(Object? icon) async {
-    await callMethod(this, 'setIcon', <Object?>[icon]);
+    await _bridge.callMethod(JsRef(toString()), 'setIcon', <Object?>[icon]);
   }
 
   Future<void> _setOpacity(num? opacity) async {
-    await callMethod(this, 'setOpacity', <num?>[opacity]);
+    await _bridge.callMethod(JsRef(toString()), 'setOpacity', <num?>[opacity]);
   }
 
   Future<void> _setPosition(LatLng? position) async {
-    await callMethod(this, 'setPosition', <Object?>[
-      'new google.maps.LatLng(${position!.latitude},${position.longitude})',
+    await _bridge.callMethod(JsRef(toString()), 'setPosition', <Object?>[
+      JsExpression(
+        'new google.maps.LatLng(${position!.latitude},${position.longitude})',
+      ),
     ]);
   }
 
   Future<void> _setTitle(String? title) async {
-    await callMethod(this, 'setTitle', <String?>[title]);
+    await _bridge.callMethod(JsRef(toString()), 'setTitle', <String?>[title]);
   }
 
   Future<void> _setZIndex(num? zIndex) async {
-    await callMethod(this, 'setZIndex', <num?>[zIndex]);
+    await _bridge.callMethod(JsRef(toString()), 'setZIndex', <num?>[zIndex]);
   }
 }
 
@@ -316,14 +340,16 @@ class GMarker {
 /// map.
 class GPolyline {
   /// GPolyline Constructor.
-  GPolyline([GPolylineOptions? opts]) : id = _gid++ {
+  GPolyline(GoogleMapsJsBridge bridge, [GPolylineOptions? opts])
+    : _bridge = bridge,
+      id = _gid++ {
     _createPolyline(opts);
   }
 
+  final GoogleMapsJsBridge _bridge;
+
   Future<void> _createPolyline(GPolylineOptions? opts) async {
-    await webController!.runJavaScript(
-      'var ${toString()} = new google.maps.Polyline($opts);',
-    );
+    await _bridge.createObject(toString(), 'new google.maps.Polyline($opts)');
   }
 
   /// GPolyline id.
@@ -347,15 +373,20 @@ class GPolyline {
   }
 
   Future<void> _setVisible(bool? visible) async {
-    await callMethod(this, 'setVisible', <bool?>[visible]);
+    await _bridge.callMethod(JsRef(toString()), 'setVisible', <bool?>[visible]);
   }
 
   Future<void> _setMap(Object? /*GMap?|StreetViewPanorama?*/ map) async {
-    await callMethod(this, 'setMap', <Object?>[map]);
+    final Object? mapArg = map is String ? JsExpression(map) : map;
+    await _bridge.callMethod(JsRef(toString()), 'setMap', <Object?>[mapArg]);
   }
 
   Future<void> _setOptions(GPolylineOptions? options) async {
-    await callMethod(this, 'setOptions', <GPolylineOptions?>[options]);
+    await _bridge.callMethod(
+      JsRef(toString()),
+      'setOptions',
+      <GPolylineOptions?>[options],
+    );
   }
 }
 
@@ -397,7 +428,7 @@ class GPolylineOptions {
       }
     }
 
-    return '{geodesic:$geodesic, path:[$paths], strokeColor:"$strokeColor",'
+    return '{geodesic:$geodesic, path:[$paths], strokeColor:${jsonEncode(strokeColor)},'
         ' strokeOpacity:$strokeOpacity, map: map, strokeWeight:$strokeWeight, visible:$visible, zIndex:$zIndex}';
   }
 }
@@ -406,14 +437,16 @@ class GPolylineOptions {
 /// connected coordinates in an ordered sequence.
 class GPolygon {
   /// GPolygon Constructor.
-  GPolygon([GPolygonOptions? opts]) : id = _gid++ {
+  GPolygon(GoogleMapsJsBridge bridge, [GPolygonOptions? opts])
+    : _bridge = bridge,
+      id = _gid++ {
     _createPolygon(opts);
   }
 
+  final GoogleMapsJsBridge _bridge;
+
   Future<void> _createPolygon(GPolygonOptions? opts) async {
-    await webController!.runJavaScript(
-      'var ${toString()} = new google.maps.Polygon($opts);',
-    );
+    await _bridge.createObject(toString(), 'new google.maps.Polygon($opts)');
   }
 
   /// GPolygon id.
@@ -437,15 +470,20 @@ class GPolygon {
   }
 
   Future<void> _setVisible(bool? visible) async {
-    await callMethod(this, 'setVisible', <bool?>[visible]);
+    await _bridge.callMethod(JsRef(toString()), 'setVisible', <bool?>[visible]);
   }
 
   Future<void> _setMap(Object? /*GMap?|StreetViewPanorama?*/ map) async {
-    await callMethod(this, 'setMap', <Object?>[map]);
+    final Object? mapArg = map is String ? JsExpression(map) : map;
+    await _bridge.callMethod(JsRef(toString()), 'setMap', <Object?>[mapArg]);
   }
 
   Future<void> _setOptions(GPolygonOptions? options) async {
-    await callMethod(this, 'setOptions', <GPolygonOptions?>[options]);
+    await _bridge.callMethod(
+      JsRef(toString()),
+      'setOptions',
+      <GPolygonOptions?>[options],
+    );
   }
 }
 
@@ -497,8 +535,8 @@ class GPolygonOptions {
       str.write('], ');
     }
 
-    return '{fillColor:"$fillColor", fillOpacity:$fillOpacity, geodesic:$geodesic, paths:[$str],'
-        ' strokeColor:"$strokeColor", strokeOpacity:$strokeOpacity, map: map,'
+    return '{fillColor:${jsonEncode(fillColor)}, fillOpacity:$fillOpacity, geodesic:$geodesic, paths:[$str],'
+        ' strokeColor:${jsonEncode(strokeColor)}, strokeOpacity:$strokeOpacity, map: map,'
         ' strokeWeight:$strokeWeight, visible:$visible, zIndex:$zIndex}';
   }
 }
@@ -506,14 +544,16 @@ class GPolygonOptions {
 /// This class represents a circle using the passed GCircleOptions.
 class GCircle {
   /// GCircle Constructor.
-  GCircle([GCircleOptions? opts]) : id = _gid++ {
+  GCircle(GoogleMapsJsBridge bridge, [GCircleOptions? opts])
+    : _bridge = bridge,
+      id = _gid++ {
     _createCircle(opts);
   }
 
+  final GoogleMapsJsBridge _bridge;
+
   Future<void> _createCircle(GCircleOptions? opts) async {
-    await webController!.runJavaScript(
-      'var ${toString()} = new google.maps.Circle($opts);',
-    );
+    await _bridge.createObject(toString(), 'new google.maps.Circle($opts)');
   }
 
   /// GCircle id.
@@ -522,7 +562,7 @@ class GCircle {
 
   @override
   String toString() {
-    return 'polygon$id';
+    return 'circle$id';
   }
 
   /// Sets if the circle is visible.
@@ -540,19 +580,22 @@ class GCircle {
   }
 
   Future<void> _setVisible(bool? visible) async {
-    await callMethod(this, 'setVisible', <bool?>[visible]);
+    await _bridge.callMethod(JsRef(toString()), 'setVisible', <bool?>[visible]);
   }
 
   Future<void> _setRadius(num? radius) async {
-    await callMethod(this, 'setRadius', <num?>[radius]);
+    await _bridge.callMethod(JsRef(toString()), 'setRadius', <num?>[radius]);
   }
 
   Future<void> _setMap(Object? /*GMap?|StreetViewPanorama?*/ map) async {
-    await callMethod(this, 'setMap', <Object?>[map]);
+    final Object? mapArg = map is String ? JsExpression(map) : map;
+    await _bridge.callMethod(JsRef(toString()), 'setMap', <Object?>[mapArg]);
   }
 
   Future<void> _setOptions(GCircleOptions? options) async {
-    await callMethod(this, 'setOptions', <GCircleOptions?>[options]);
+    await _bridge.callMethod(JsRef(toString()), 'setOptions', <GCircleOptions?>[
+      options,
+    ]);
   }
 }
 
@@ -590,8 +633,8 @@ class GCircleOptions {
 
   @override
   String toString() {
-    return '{center: new google.maps.LatLng(${center?.latitude}, ${center?.longitude}), fillColor:"$fillColor",'
-        ' fillOpacity:$fillOpacity, radius:$radius, strokeColor:"$strokeColor", strokeOpacity:$strokeOpacity,'
+    return '{center: new google.maps.LatLng(${center?.latitude}, ${center?.longitude}), fillColor:${jsonEncode(fillColor)},'
+        ' fillOpacity:$fillOpacity, radius:$radius, strokeColor:${jsonEncode(strokeColor)}, strokeOpacity:$strokeOpacity,'
         ' map: map, strokeWeight:$strokeWeight, visible:$visible, zIndex:$zIndex}';
   }
 }
@@ -599,74 +642,86 @@ class GCircleOptions {
 /// The [GMarkerClusterer] object used to cluster markers on the map.
 class GMarkerClusterer {
   /// GMarkerCluster Constructor.
-  GMarkerClusterer([GMarkerClustererOptions? opts]) : id = _gid++ {
-    _createMarkerClusterer(opts);
+  GMarkerClusterer(GoogleMapsJsBridge bridge, [GMarkerClustererOptions? opts])
+    : _bridge = bridge,
+      id = _gid++ {
+    _ready = _createMarkerClusterer(opts);
   }
 
-  void _createMarkerClusterer(GMarkerClustererOptions? opts) {
-    final String command =
-        'var ${toString()} = new markerClusterer.MarkerClusterer($opts);';
-    webController!.runJavaScript(command);
+  final GoogleMapsJsBridge _bridge;
+
+  /// Completes once the JS-side clusterer exists. Every method awaits this so
+  /// the ordering is stated in code rather than relying on the method channel
+  /// happening to deliver the constructor's script first.
+  late final Future<void> _ready;
+
+  Future<void> _createMarkerClusterer(GMarkerClustererOptions? opts) async {
+    await _bridge.createObject(
+      toString(),
+      'new markerClusterer.MarkerClusterer($opts)',
+    );
   }
 
   /// GCircle id.
   final int id;
   static int _gid = 0;
 
+  JsRef get _ref => JsRef(toString());
+
   /// Adds a marker to be clustered by the [GMarkerClusterer].
-  void addMarker(GMarker marker, bool? noDraw) {
-    webController!.runJavaScript('${toString()}.addMarker($marker, $noDraw);');
+  Future<void> addMarker(GMarker marker, bool? noDraw) async {
+    await _ready;
+    await _bridge.callMethod(_ref, 'addMarker', <Object?>[
+      JsRef(marker.toString()),
+      noDraw,
+    ]);
   }
 
   /// Removes a marker from the [GMarkerClusterer].
   Future<bool> removeMarker(GMarker marker, bool? noDraw) async {
-    final bool result = await webController!.runJavaScriptReturningResult(
-      '${toString()}.removeMarker($marker, $noDraw);',
-    ) as bool;
-
-    return result;
-  }
-
-  /// Adds a list of markers to be clustered by the [GMarkerClusterer].
-  void addMarkers(List<GMarker>? markers, bool? noDraw) {
-    final String command =
-        'JSON.stringify($this.addMarkers.call($this, $markers, $noDraw))';
-    webController!.runJavaScript(command);
-  }
-
-  /// Removes a list of markers from the [GMarkerClusterer].
-  bool removeMarkers(List<GMarker>? markers, bool? noDraw) {
-    final String command =
-        'JSON.stringify($this.removeMarkers.call($this, $markers, $noDraw))';
-    return webController!.runJavaScriptReturningResult(command) as bool;
+    await _ready;
+    final Object? result = await _bridge.callMethodReturning(
+      _ref,
+      'removeMarker',
+      <Object?>[JsRef(marker.toString()), noDraw],
+    );
+    return result! as bool;
   }
 
   /// Clears all the markers from the [GMarkerClusterer].
-  void clearMarkers(bool? noDraw) {
-    webController!.runJavaScript('${toString()}.clearMarkers($noDraw);');
+  Future<void> clearMarkers(bool? noDraw) async {
+    await _ready;
+    await _bridge.callMethod(_ref, 'clearMarkers', <Object?>[noDraw]);
   }
 
   /// Returns the list of clusters.
-  List<Map<String, dynamic>> get clusters {
-    final List<Map<String, dynamic>> results =
-        webController!.runJavaScriptReturningResult('${toString()}.clusters')
-            as List<Map<String, dynamic>>;
-    return results;
+  Future<List<Map<String, dynamic>>> get clusters async {
+    await _ready;
+    final String value =
+        await _bridge.runJavaScriptReturningResult(
+              'JSON.stringify(${toString()}.clusters)',
+            )
+            as String;
+    final List<dynamic> results = json.decode(value) as List<dynamic>;
+    return results.cast<Map<String, dynamic>>();
   }
 
   /// Called when the [GMarkerClusterer] is added to the map.
-  void onAdd() {
-    webController!.runJavaScript('${toString()}.onAdd();');
+  Future<void> onAdd() async {
+    await _ready;
+    await _bridge.callMethod(_ref, 'onAdd', <Object?>[]);
   }
 
   /// Called when the [MarkerClusterer] is removed from the map.
-  void onRemove() {
-    webController!.runJavaScript('${toString()}.onRemove();');
+  Future<void> onRemove() async {
+    await _ready;
+    await _bridge.callMethod(_ref, 'onRemove', <Object?>[]);
   }
 
   /// Recalculates and draws all the marker clusters.
-  void render() {
-    webController!.runJavaScript('${toString()}.render();');
+  Future<void> render() async {
+    await _ready;
+    await _bridge.callMethod(_ref, 'render', <Object?>[]);
   }
 
   @override
@@ -713,19 +768,23 @@ class GMarkerClustererOptions {
 /// against the Earth's surface.
 class GGroundOverlay {
   /// GGroundOverlay Constructor.
-  GGroundOverlay([GGroundOverlayOptions? opts])
-      : id = _gid++,
-        _options = opts {
+  GGroundOverlay(GoogleMapsJsBridge bridge, [GGroundOverlayOptions? opts])
+    : _bridge = bridge,
+      id = _gid++,
+      _options = opts {
     _createGroundOverlay(opts);
   }
 
+  final GoogleMapsJsBridge _bridge;
+
   Future<void> _createGroundOverlay(GGroundOverlayOptions? opts) async {
-    final String url = opts?.url ?? "''";
+    final String url = jsonEncode(opts?.url ?? '');
     final String bounds = opts?.bounds ?? '{}';
-    final String command =
-        'var ${toString()} = new google.maps.GroundOverlay($url, $bounds, $opts);'
-        ' ${toString()}.id = $id;';
-    await webController!.runJavaScript(command);
+    final JsRef ref = await _bridge.createObject(
+      toString(),
+      'new google.maps.GroundOverlay($url, $bounds, $opts)',
+    );
+    await _bridge.setProperty(ref, 'id', id);
   }
 
   /// GGroundOverlay id.
@@ -766,11 +825,12 @@ class GGroundOverlay {
   }
 
   Future<void> _setMap(Object? map) async {
-    await callMethod(this, 'setMap', <Object?>[map]);
+    final Object? mapArg = map is String ? JsExpression(map) : map;
+    await _bridge.callMethod(JsRef(toString()), 'setMap', <Object?>[mapArg]);
   }
 
   Future<void> _setOpacity(num? opacity) async {
-    await callMethod(this, 'setOpacity', <num?>[opacity]);
+    await _bridge.callMethod(JsRef(toString()), 'setOpacity', <num?>[opacity]);
   }
 }
 
@@ -779,8 +839,7 @@ class GGroundOverlayOptions {
   /// GGroundOverlayOptions Constructor.
   GGroundOverlayOptions();
 
-  /// The image URL passed to the JS GroundOverlay constructor, already quoted
-  /// as a JS string literal (e.g. `'data:image/png;base64,...'`).
+  /// The image URL passed to the JS GroundOverlay constructor.
   String? url;
 
   /// The bounds passed to the JS GroundOverlay constructor as a JS object
@@ -801,19 +860,4 @@ class GGroundOverlayOptions {
     return '{clickable:$clickable, opacity:$opacity,'
         ' map: ${visible == false ? 'null' : 'map'}}';
   }
-}
-
-/// Returns webview controller instance
-WebViewController? webController;
-
-/// Sets the value to property of the object.
-Future<void> setProperty(Object o, String property, Object? value) async {
-  final String command = "JSON.stringify($o['$property'] = $value)";
-  await webController!.runJavaScript(command);
-}
-
-/// Calls the method of the object with the args.
-Future<void> callMethod(Object o, String method, List<Object?> args) async {
-  final String command = 'JSON.stringify($o.$method.apply($o, $args))';
-  await webController!.runJavaScript(command);
 }

@@ -18,7 +18,7 @@ final LatLngBounds sydneyBounds = LatLngBounds(
 
 class MapUiPage extends GoogleMapExampleAppPage {
   const MapUiPage({Key? key})
-      : super(const Icon(Icons.map), 'User interface', key: key);
+    : super(const Icon(Icons.map), 'User interface', key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -255,8 +255,9 @@ class MapUiBodyState extends State<MapUiBody> {
       child: Text('${_nightMode ? 'disable' : 'enable'} night mode'),
       onPressed: () async {
         _nightMode = !_nightMode;
-        final String style =
-            _nightMode ? await _getFileData('assets/night_mode.json') : '';
+        final String style = _nightMode
+            ? await _getFileData('assets/night_mode.json')
+            : '';
         setState(() {
           _mapStyle = style;
         });

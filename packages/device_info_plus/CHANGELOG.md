@@ -1,6 +1,18 @@
-## NEXT
+## 1.4.3
 
+* Add `DeviceInfoPluginTizen.duid` to retrieve the device's DUID (Device Unique ID).
 * Add 2 integration test cases.
+
+## 1.4.2
+
+* Add an `implements` entry to the pubspec to improve discoverability on pub.dev.
+
+## 1.4.1
+
+* Update analysis_options.yaml for Flutter 3.47.0.
+* Update the repository URL to use the `main` branch.
+* Add 2 integration test cases.
+* Update integration tests.
 
 ## 1.4.0
 

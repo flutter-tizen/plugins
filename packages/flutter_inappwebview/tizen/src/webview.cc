@@ -8,10 +8,12 @@
 #include <app_common.h>
 #include <flutter/standard_method_codec.h>
 #include <flutter_texture_registrar.h>
+#include <glib.h>
 #include <tbm_surface.h>
 
 #include <atomic>
 #include <utility>
+#include <vector>
 
 #include "buffer_pool.h"
 #include "log.h"
@@ -212,6 +214,39 @@ bool WebView::ClearAllCookies() {
   return false;
 }
 
+void WebView::InitializeEngine() { ewk_init(); }
+
+void WebView::ShutdownEngine() {
+  // ewk_shutdown() fatally CHECKs (SIGTRAP) on a live Ewk_View. Dispose()
+  // normally empties instances_ already; past the deadline, force-dispose
+  // the stragglers instead of shutting down anyway.
+  constexpr gint64 kDeadlineUsec = 2 * G_USEC_PER_SEC;
+  const gint64 deadline = g_get_monotonic_time() + kDeadlineUsec;
+  for (;;) {
+    std::vector<WebView*> stragglers;
+    {
+      std::lock_guard<std::mutex> lock(instances_mutex_);
+      if (instances_.empty()) {
+        break;
+      }
+      if (g_get_monotonic_time() >= deadline) {
+        stragglers.assign(instances_.begin(), instances_.end());
+      }
+    }
+    if (!stragglers.empty()) {
+      LOG_WARN(
+          "ShutdownEngine: WebView instance(s) still alive past the "
+          "deadline; force-disposing them before calling ewk_shutdown().");
+      for (auto* instance : stragglers) {
+        instance->Dispose();
+      }
+      continue;
+    }
+    g_usleep(1000);
+  }
+  ewk_shutdown();
+}
+
 std::string WebView::GetDefaultUserAgent() {
   std::lock_guard<std::mutex> lock(instances_mutex_);
   for (auto* instance : instances_) {
@@ -307,7 +342,22 @@ void WebView::StopNavigation() {
   if (disposed_ || !webview_instance_) {
     return;
   }
+  is_navigation_cancelled_ = true;
+  if (!url_before_navigation_.empty()) {
+    committed_url_ = url_before_navigation_;
+  }
+  // ewk_view_stop() has no effect while the view is suspended.
+  ewk_view_resume(webview_instance_);
   ewk_view_stop(webview_instance_);
+}
+
+bool WebView::NavigateProgrammatically(const std::function<bool()>& ewk_call) {
+  is_programmatic_navigation_ = true;
+  const bool started = ewk_call();
+  if (!started) {
+    is_programmatic_navigation_ = false;
+  }
+  return started;
 }
 
 void WebView::Dispose() {
@@ -354,6 +404,8 @@ void WebView::Dispose() {
                                    &WebView::OnNavigationPolicy);
     evas_object_smart_callback_del(webview_instance_, "url,changed",
                                    &WebView::OnUrlChange);
+    evas_object_smart_callback_del(webview_instance_, "title,changed",
+                                   &WebView::OnTitleChange);
     auto& ewk_view = EwkInternalApiBinding::GetInstance().view;
     if (ewk_view.OnJavaScriptAlert) {
       ewk_view.OnJavaScriptAlert(webview_instance_, nullptr, nullptr);
@@ -369,8 +421,6 @@ void WebView::Dispose() {
   }
 
   ecore_evas_ = nullptr;
-
-  // ewk_shutdown();
 }
 
 void WebView::Offset(double left, double top) {
@@ -489,6 +539,7 @@ bool WebView::SendKey(const char* key, const char* string, const char* compose,
 
   if (strcmp(key, "XF86Back") == 0 && !is_down) {
     if (ewk_view_back_possible(webview_instance_)) {
+      // Not programmatic: must still reach shouldOverrideUrlLoading.
       ewk_view_back(webview_instance_);
       return true;
     }
@@ -530,15 +581,9 @@ bool WebView::InitWebView() {
                                                            chromium_argv);
   });
 
-  // TODO(jsuya): ewk_init() and ewk_shutdown() are designed to be called only
-  // once in a process.(If ewk_init() is called after ewk_shutdown() is
-  // called, SIGTRAP is called internally.) ewk_init() initializes the efl
-  // modules and web engine's arguments data. The efl modules are initialized
-  // by default in OS, and arguments data is also initialized through
-  // SetArguments() API, so calling ewk_init() is not necessary. Therefore,
-  // temporarily comment out ewk_init() and ewk_shutdown(). It can be reverted
-  // depending on updates to chromium-efl.
-  // ewk_init();
+  // ewk_init()/ewk_shutdown() are called once per process by
+  // WebView::InitializeEngine()/ShutdownEngine(), driven by the plugin's
+  // constructor/destructor.
   static Ecore_Evas* shared_ecore_evas = nullptr;
   if (!shared_ecore_evas) {
     shared_ecore_evas = ecore_evas_new("wayland_egl", 0, 0, 1, 1, 0);
@@ -620,6 +665,8 @@ bool WebView::InitWebView() {
                                  &WebView::OnNavigationPolicy, this);
   evas_object_smart_callback_add(webview_instance_, "url,changed",
                                  &WebView::OnUrlChange, this);
+  evas_object_smart_callback_add(webview_instance_, "title,changed",
+                                 &WebView::OnTitleChange, this);
 
   Resize(width_, height_);
   evas_object_show(webview_instance_);
@@ -685,7 +732,10 @@ void WebView::ApplyInitialParams(const flutter::EncodableValue& params) {
       std::string url =
           std::string("file://") + res_path + "flutter_assets/" + initial_file;
       free(res_path);
-      ewk_view_url_set(webview_instance_, url.c_str());
+      NavigateProgrammatically([this, &url] {
+        ewk_view_url_set(webview_instance_, url.c_str());
+        return true;
+      });
       return;
     }
   }
@@ -697,8 +747,11 @@ void WebView::ApplyInitialParams(const flutter::EncodableValue& params) {
     std::string base_url = "about:blank";
     if (GetValueFromEncodableMap(initial_data, "data", &data)) {
       GetValueFromEncodableMap(initial_data, "baseUrl", &base_url);
-      ewk_view_html_string_load(webview_instance_, data.c_str(),
-                                base_url.c_str(), nullptr);
+      NavigateProgrammatically([this, &data, &base_url] {
+        ewk_view_html_string_load(webview_instance_, data.c_str(),
+                                  base_url.c_str(), nullptr);
+        return true;
+      });
       return;
     }
   }
@@ -708,7 +761,10 @@ void WebView::ApplyInitialParams(const flutter::EncodableValue& params) {
                                &url_request)) {
     std::string url;
     if (GetValueFromEncodableMap(url_request, "url", &url) && !url.empty()) {
-      ewk_view_url_set(webview_instance_, url.c_str());
+      NavigateProgrammatically([this, &url] {
+        ewk_view_url_set(webview_instance_, url.c_str());
+        return true;
+      });
     }
   }
 }
@@ -768,16 +824,22 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
       }
       const auto ewk_method =
           method == "POST" ? EWK_HTTP_METHOD_POST : EWK_HTTP_METHOD_GET;
-      bool ret = ewk_view_url_request_set(
-          webview_instance_, url.c_str(), ewk_method, ewk_headers,
-          body.empty() ? nullptr : reinterpret_cast<const char*>(body.data()));
+      const bool ret = NavigateProgrammatically([&] {
+        return ewk_view_url_request_set(
+            webview_instance_, url.c_str(), ewk_method, ewk_headers,
+            body.empty() ? nullptr
+                         : reinterpret_cast<const char*>(body.data()));
+      });
       eina_hash_free(ewk_headers);
       if (!ret) {
         result->Error("Operation failed", "Failed to load URL request.");
         return;
       }
     } else {
-      ewk_view_url_set(webview_instance_, url.c_str());
+      NavigateProgrammatically([this, &url] {
+        ewk_view_url_set(webview_instance_, url.c_str());
+        return true;
+      });
     }
     result->Success();
   } else if (method_name == "postUrl") {
@@ -791,9 +853,11 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
     if (!body.empty()) {
       body.push_back('\0');
     }
-    const bool ret = ewk_view_url_request_set(
-        webview_instance_, url.c_str(), EWK_HTTP_METHOD_POST, nullptr,
-        body.empty() ? nullptr : reinterpret_cast<const char*>(body.data()));
+    const bool ret = NavigateProgrammatically([&] {
+      return ewk_view_url_request_set(
+          webview_instance_, url.c_str(), EWK_HTTP_METHOD_POST, nullptr,
+          body.empty() ? nullptr : reinterpret_cast<const char*>(body.data()));
+    });
     if (ret) {
       result->Success();
     } else {
@@ -806,8 +870,13 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
       return;
     }
     GetValueFromEncodableMap(arguments, "baseUrl", &base_url);
-    ewk_view_html_string_load(webview_instance_, data.c_str(), base_url.c_str(),
-                              nullptr);
+    // Bypasses OnNavigationPolicy, so clear any stale cancellation here.
+    is_navigation_cancelled_ = false;
+    NavigateProgrammatically([this, &data, &base_url] {
+      ewk_view_html_string_load(webview_instance_, data.c_str(),
+                                base_url.c_str(), nullptr);
+      return true;
+    });
     result->Success();
   } else if (method_name == "loadFile") {
     std::string file_path;
@@ -827,7 +896,10 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
       url = std::string("file://") + res_path + "flutter_assets/" + file_path;
       free(res_path);
     }
-    ewk_view_url_set(webview_instance_, url.c_str());
+    NavigateProgrammatically([this, &url] {
+      ewk_view_url_set(webview_instance_, url.c_str());
+      return true;
+    });
     result->Success();
   } else if (method_name == "canGoBack") {
     result->Success(flutter::EncodableValue(
@@ -836,18 +908,28 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
     result->Success(flutter::EncodableValue(
         static_cast<bool>(ewk_view_forward_possible(webview_instance_))));
   } else if (method_name == "goBack") {
-    ewk_view_back(webview_instance_);
+    NavigateProgrammatically(
+        [this] { return static_cast<bool>(ewk_view_back(webview_instance_)); });
     result->Success();
   } else if (method_name == "goForward") {
-    ewk_view_forward(webview_instance_);
+    NavigateProgrammatically([this] {
+      return static_cast<bool>(ewk_view_forward(webview_instance_));
+    });
     result->Success();
   } else if (method_name == "reload") {
-    ewk_view_reload(webview_instance_);
+    NavigateProgrammatically([this] {
+      ewk_view_reload(webview_instance_);
+      return true;
+    });
     result->Success();
   } else if (method_name == "getUrl") {
-    const char* url = ewk_view_url_get(webview_instance_);
-    result->Success(url ? flutter::EncodableValue(url)
-                        : flutter::EncodableValue());
+    if (is_navigation_cancelled_ && !committed_url_.empty()) {
+      result->Success(flutter::EncodableValue(committed_url_));
+    } else {
+      const char* url = ewk_view_url_get(webview_instance_);
+      result->Success(url ? flutter::EncodableValue(url)
+                          : flutter::EncodableValue());
+    }
   } else if (method_name == "getTitle") {
     const char* title = ewk_view_title_get(webview_instance_);
     result->Success(title ? flutter::EncodableValue(std::string(title))
@@ -886,11 +968,32 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
     }
     if (method_name == "scrollTo") {
       ewk_view_scroll_set(webview_instance_, x, y);
+      target_scroll_x_ = x;
+      target_scroll_y_ = y;
+      target_scroll_set_time_ = std::chrono::steady_clock::now();
     } else {
-      ewk_view_scroll_by(webview_instance_, x, y);
+      int32_t current_x = 0, current_y = 0;
+      ewk_view_scroll_pos_get(webview_instance_, &current_x, &current_y);
+      // Only trust a pending target briefly; it can go stale (manual
+      // scroll, EWK clamping) since scroll_set() applies asynchronously.
+      constexpr auto kTargetTtl = std::chrono::milliseconds(100);
+      const bool target_fresh =
+          std::chrono::steady_clock::now() - target_scroll_set_time_ <
+          kTargetTtl;
+      int32_t base_x = (target_fresh && target_scroll_x_ >= 0)
+                           ? target_scroll_x_
+                           : current_x;
+      int32_t base_y = (target_fresh && target_scroll_y_ >= 0)
+                           ? target_scroll_y_
+                           : current_y;
+      target_scroll_x_ = base_x + x;
+      target_scroll_y_ = base_y + y;
+      target_scroll_set_time_ = std::chrono::steady_clock::now();
+      ewk_view_scroll_set(webview_instance_, target_scroll_x_,
+                          target_scroll_y_);
     }
-    int32_t new_x = 0, new_y = 0;
-    ewk_view_scroll_pos_get(webview_instance_, &new_x, &new_y);
+    int32_t new_x = target_scroll_x_;
+    int32_t new_y = target_scroll_y_;
     flutter::EncodableMap args = {
         {flutter::EncodableValue("x"), flutter::EncodableValue(new_x)},
         {flutter::EncodableValue("y"), flutter::EncodableValue(new_y)},
@@ -901,6 +1004,17 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
   } else if (method_name == "getScrollX" || method_name == "getScrollY") {
     int32_t x = 0, y = 0;
     ewk_view_scroll_pos_get(webview_instance_, &x, &y);
+    if (method_name == "getScrollX") {
+      if (target_scroll_x_ >= 0) {
+        x = target_scroll_x_;
+        target_scroll_x_ = -1;
+      }
+    } else {
+      if (target_scroll_y_ >= 0) {
+        y = target_scroll_y_;
+        target_scroll_y_ = -1;
+      }
+    }
     result->Success(
         flutter::EncodableValue(method_name == "getScrollX" ? x : y));
   } else if (method_name == "zoomBy") {
@@ -1003,6 +1117,9 @@ void WebView::OnFrameRendered(void* data, Evas_Object* obj, void* event_info) {
 
 void WebView::OnLoadStarted(void* data, Evas_Object* obj, void* event_info) {
   WebView* webview = static_cast<WebView*>(data);
+  webview->is_programmatic_navigation_ = false;
+  webview->target_scroll_x_ = -1;
+  webview->target_scroll_y_ = -1;
   flutter::EncodableMap args = {
       {flutter::EncodableValue("url"),
        flutter::EncodableValue(GetViewUrl(webview->webview_instance_))}};
@@ -1012,20 +1129,12 @@ void WebView::OnLoadStarted(void* data, Evas_Object* obj, void* event_info) {
 
 void WebView::OnLoadFinished(void* data, Evas_Object* obj, void* event_info) {
   WebView* webview = static_cast<WebView*>(data);
+  webview->is_programmatic_navigation_ = false;
   flutter::EncodableMap args = {
       {flutter::EncodableValue("url"),
        flutter::EncodableValue(GetViewUrl(webview->webview_instance_))}};
   webview->webview_channel_->InvokeMethod(
       "onLoadStop", std::make_unique<flutter::EncodableValue>(args));
-
-  const char* title = ewk_view_title_get(webview->webview_instance_);
-  if (title) {
-    flutter::EncodableMap title_args = {
-        {flutter::EncodableValue("title"), flutter::EncodableValue(title)}};
-    webview->webview_channel_->InvokeMethod(
-        "onTitleChanged",
-        std::make_unique<flutter::EncodableValue>(title_args));
-  }
 }
 
 void WebView::OnProgress(void* data, Evas_Object* obj, void* event_info) {
@@ -1040,6 +1149,9 @@ void WebView::OnProgress(void* data, Evas_Object* obj, void* event_info) {
 
 void WebView::OnLoadError(void* data, Evas_Object* obj, void* event_info) {
   WebView* webview = static_cast<WebView*>(data);
+  webview->is_programmatic_navigation_ = false;
+  webview->target_scroll_x_ = -1;
+  webview->target_scroll_y_ = -1;
   Ewk_Error* error = static_cast<Ewk_Error*>(event_info);
   std::string url =
       ewk_error_url_get(error) ? std::string(ewk_error_url_get(error)) : "";
@@ -1080,15 +1192,30 @@ void WebView::OnNavigationPolicy(void* data, Evas_Object* obj,
   WebView* webview = static_cast<WebView*>(data);
   Ewk_Policy_Decision* policy_decision =
       static_cast<Ewk_Policy_Decision*>(event_info);
-  // Always accept the navigation on its original frame so iframe loads stay
-  // in their iframe. The view is then suspended while we wait for the Dart
-  // shouldOverrideUrlLoading response and either resumed (allow) or stopped
-  // (cancel) by NavigationRequestResult.
-  ewk_policy_decision_use(policy_decision);
-  if (!webview->has_navigation_delegate_) {
+
+  // A new decision means any prior cancellation is now stale.
+  webview->is_navigation_cancelled_ = false;
+
+  if (webview->is_programmatic_navigation_) {
+    // App-initiated navigations skip shouldOverrideUrlLoading.
+    webview->is_programmatic_navigation_ = false;
+    ewk_policy_decision_use(policy_decision);
     return;
   }
 
+  if (!webview->has_navigation_delegate_) {
+    ewk_policy_decision_use(policy_decision);
+    return;
+  }
+
+  // Snapshot before accepting: ewk_policy_decision_use() can trigger
+  // "url,changed" for the new URL immediately.
+  const std::string url_before_navigation =
+      GetViewUrl(webview->webview_instance_);
+  ewk_policy_decision_use(policy_decision);
+  webview->url_before_navigation_ = url_before_navigation;
+
+  // Suspended until NavigationRequestResult resumes or stops it.
   const char* url_cstr = ewk_policy_decision_url_get(policy_decision);
   const std::string url = url_cstr ? std::string(url_cstr) : std::string();
   ewk_view_suspend(webview->webview_instance_);
@@ -1103,13 +1230,32 @@ void WebView::OnNavigationPolicy(void* data, Evas_Object* obj,
 
 void WebView::OnUrlChange(void* data, Evas_Object* obj, void* event_info) {
   WebView* webview = static_cast<WebView*>(data);
+  if (webview->is_navigation_cancelled_) {
+    // Drop only this one stale event, then clear the flag, or a later
+    // same-document change (pushState/replaceState) would be ignored too.
+    webview->is_navigation_cancelled_ = false;
+    return;
+  }
+  webview->committed_url_ = GetViewUrl(webview->webview_instance_);
   flutter::EncodableMap args = {
       {flutter::EncodableValue("url"),
-       flutter::EncodableValue(GetViewUrl(webview->webview_instance_))},
+       flutter::EncodableValue(webview->committed_url_)},
       {flutter::EncodableValue("isReload"), flutter::EncodableValue(false)}};
   webview->webview_channel_->InvokeMethod(
       "onUpdateVisitedHistory",
       std::make_unique<flutter::EncodableValue>(args));
+}
+
+void WebView::OnTitleChange(void* data, Evas_Object* obj, void* event_info) {
+  WebView* webview = static_cast<WebView*>(data);
+  const char* title = static_cast<const char*>(event_info);
+  if (!title) {
+    return;
+  }
+  flutter::EncodableMap args = {
+      {flutter::EncodableValue("title"), flutter::EncodableValue(title)}};
+  webview->webview_channel_->InvokeMethod(
+      "onTitleChanged", std::make_unique<flutter::EncodableValue>(args));
 }
 
 void WebView::OnEvaluateJavaScript(Evas_Object* obj, const char* result_value,

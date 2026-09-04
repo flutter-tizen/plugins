@@ -5,6 +5,10 @@
 * Add JSON serialization for complex parameters.
 * Add pending seekTo handling.
 
+## 0.5.10
+
+* Update the repository URL to use the `main` branch.
+
 ## 0.5.9
 
 * Adds compatibility with `http` 1.0 in example.

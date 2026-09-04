@@ -1,3 +1,7 @@
+## 2.0.4
+
+* Update the repository URL to use the `main` branch.
+
 ## 2.0.3
 
 * Update minimum Flutter and Dart version to 3.13 and 3.1.

@@ -10,12 +10,12 @@ import 'package:path_provider/path_provider.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('getTemporaryDirectory', (WidgetTester tester) async {
+  test('getTemporaryDirectory', () async {
     final Directory result = await getTemporaryDirectory();
     _verifySampleFile(result, 'temporaryDirectory');
   });
 
-  testWidgets('getApplicationDocumentsDirectory', (WidgetTester tester) async {
+  test('getApplicationDocumentsDirectory', () async {
     final Directory result = await getApplicationDocumentsDirectory();
     if (Platform.isMacOS) {
       // _verifySampleFile causes hangs in driver when sandboxing is disabled
@@ -28,17 +28,17 @@ void main() {
     }
   });
 
-  testWidgets('getApplicationSupportDirectory', (WidgetTester tester) async {
+  test('getApplicationSupportDirectory', () async {
     final Directory result = await getApplicationSupportDirectory();
     _verifySampleFile(result, 'applicationSupport');
   });
 
-  testWidgets('getApplicationCacheDirectory', (WidgetTester tester) async {
+  test('getApplicationCacheDirectory', () async {
     final Directory result = await getApplicationCacheDirectory();
     _verifySampleFile(result, 'applicationCache');
   });
 
-  testWidgets('getLibraryDirectory', (WidgetTester tester) async {
+  test('getLibraryDirectory', () async {
     if (Platform.isIOS) {
       final Directory result = await getLibraryDirectory();
       _verifySampleFile(result, 'library');
@@ -48,7 +48,7 @@ void main() {
     }
   });
 
-  testWidgets('getExternalStorageDirectory', (WidgetTester tester) async {
+  test('getExternalStorageDirectory', () async {
     if (Platform.isIOS) {
       final Future<Directory?> result = getExternalStorageDirectory();
       await expectLater(result, throwsA(isInstanceOf<UnsupportedError>()));
@@ -58,7 +58,7 @@ void main() {
     }
   });
 
-  testWidgets('getExternalCacheDirectories', (WidgetTester tester) async {
+  test('getExternalCacheDirectories', () async {
     if (Platform.isIOS) {
       final Future<List<Directory>?> result = getExternalCacheDirectories();
       await expectLater(result, throwsA(isInstanceOf<UnsupportedError>()));
@@ -71,7 +71,7 @@ void main() {
     }
   });
 
-  testWidgets('getDownloadsDirectory', (WidgetTester tester) async {
+  test('getDownloadsDirectory', () async {
     final Directory? result = await getDownloadsDirectory();
     if (result != null) {
       _verifySampleFile(result, 'downloads');
@@ -90,9 +90,7 @@ void main() {
   ];
 
   for (final StorageDirectory? type in allDirs) {
-    testWidgets('getExternalStorageDirectories (type: $type)', (
-      WidgetTester tester,
-    ) async {
+    test('getExternalStorageDirectories (type: $type)', () async {
       if (Platform.isIOS) {
         final Future<List<Directory>?> result = getExternalStorageDirectories();
         await expectLater(result, throwsA(isInstanceOf<UnsupportedError>()));

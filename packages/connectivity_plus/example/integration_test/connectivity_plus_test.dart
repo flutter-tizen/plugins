@@ -16,7 +16,7 @@ void main() {
       connectivity = Connectivity();
     });
 
-    testWidgets('test connectivity result', (WidgetTester tester) async {
+    test('test connectivity result', () async {
       final result = await connectivity.checkConnectivity();
       expect(result, isNotNull);
       expect(result, isNotEmpty);

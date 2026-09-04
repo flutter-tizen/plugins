@@ -1,3 +1,20 @@
+## 1.0.11
+
+* Update geolocator to 14.0.3.
+* Update geolocator_platform_interface to 4.3.0.
+* Update minimum Flutter and Dart version to 3.24 and 3.5.
+* Replace the forked baseflow_plugin_template dependency of the example app with the published 2.2.1.
+
+## 1.0.10
+
+* Add an `implements` entry to the pubspec to improve discoverability on pub.dev.
+
+## 1.0.9
+
+* Update analysis_options.yaml for Flutter 3.47.0.
+* Update integration tests.
+* Update the repository URL to use the `main` branch.
+
 ## 1.0.8
 
 * Remove Ecore API.

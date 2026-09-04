@@ -16,7 +16,7 @@ import 'page.dart';
 
 class PlaceMarkerPage extends GoogleMapExampleAppPage {
   const PlaceMarkerPage({Key? key})
-      : super(const Icon(Icons.place), 'Place marker', key: key);
+    : super(const Icon(Icons.place), 'Place marker', key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -286,8 +286,9 @@ class PlaceMarkerBodyState extends State<PlaceMarkerBody> {
               children: <Widget>[
                 TextButton(onPressed: _add, child: const Text('Add')),
                 TextButton(
-                  onPressed:
-                      selectedId == null ? null : () => _remove(selectedId),
+                  onPressed: selectedId == null
+                      ? null
+                      : () => _remove(selectedId),
                   child: const Text('Remove'),
                 ),
               ],
@@ -296,8 +297,9 @@ class PlaceMarkerBodyState extends State<PlaceMarkerBody> {
               alignment: WrapAlignment.spaceEvenly,
               children: <Widget>[
                 TextButton(
-                  onPressed:
-                      selectedId == null ? null : () => _changeInfo(selectedId),
+                  onPressed: selectedId == null
+                      ? null
+                      : () => _changeInfo(selectedId),
                   child: const Text('change info'),
                 ),
                 TextButton(
@@ -325,8 +327,9 @@ class PlaceMarkerBodyState extends State<PlaceMarkerBody> {
                   child: const Text('toggle draggable'),
                 ),
                 TextButton(
-                  onPressed:
-                      selectedId == null ? null : () => _toggleFlat(selectedId),
+                  onPressed: selectedId == null
+                      ? null
+                      : () => _toggleFlat(selectedId),
                   child: const Text('toggle flat'),
                 ),
                 TextButton(
@@ -357,9 +360,7 @@ class PlaceMarkerBodyState extends State<PlaceMarkerBody> {
                   onPressed: selectedId == null
                       ? null
                       : () {
-                          _getMarkerIcon(context).then((
-                            BitmapDescriptor icon,
-                          ) {
+                          _getMarkerIcon(context).then((BitmapDescriptor icon) {
                             _setMarkerIcon(selectedId, icon);
                           });
                         },

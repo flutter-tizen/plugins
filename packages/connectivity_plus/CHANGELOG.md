@@ -1,3 +1,18 @@
+## 1.3.3
+
+* Update connectivity_plus to 7.3.1.
+* Update the example app to use the `hasConnectivity` extension.
+
+## 1.3.2
+
+* Add an `implements` entry to the pubspec to improve discoverability on pub.dev.
+
+## 1.3.1
+
+* Update analysis_options.yaml for Flutter 3.47.0.
+* Update integration tests.
+* Update the repository URL to use the `main` branch.
+
 ## 1.3.0
 
 * Update minimum Dart version to 3.2.

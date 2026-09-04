@@ -15,7 +15,7 @@ void main() {
     networkInfo = NetworkInfo();
   });
 
-  testWidgets('test non-null network value', (WidgetTester tester) async {
+  test('test non-null network value', () async {
     expect(networkInfo.getWifiName(), isNotNull);
     expect(networkInfo.getWifiBSSID(), isNotNull);
     expect(networkInfo.getWifiIP(), isNotNull);

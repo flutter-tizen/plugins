@@ -43,7 +43,7 @@ void main() {
   // Existing tests — preserved unchanged
   // ---------------------------------------------------------------------------
 
-  testWidgets('Parcel test', (WidgetTester tester) async {
+  test('Parcel test', () async {
     final Parcel parcel = Parcel();
     parcel.writeBool(false);
     parcel.writeInt32(123);
@@ -64,25 +64,25 @@ void main() {
 
   group('Parcel', () {
     group('writeInt16 / readInt16', () {
-      testWidgets('round-trips positive value', (WidgetTester _) async {
+      test('round-trips positive value', () async {
         final Parcel parcel = Parcel();
         parcel.writeInt16(32767);
         expect(parcel.readInt16(), 32767);
       });
 
-      testWidgets('round-trips negative value', (WidgetTester _) async {
+      test('round-trips negative value', () async {
         final Parcel parcel = Parcel();
         parcel.writeInt16(-1);
         expect(parcel.readInt16(), -1);
       });
 
-      testWidgets('round-trips minimum value', (WidgetTester _) async {
+      test('round-trips minimum value', () async {
         final Parcel parcel = Parcel();
         parcel.writeInt16(-32768);
         expect(parcel.readInt16(), -32768);
       });
 
-      testWidgets('masks value to 16 bits', (WidgetTester _) async {
+      test('masks value to 16 bits', () async {
         final Parcel parcel = Parcel();
         // 0x10042 & 0xffff == 0x0042 == 66
         parcel.writeInt16(0x10042);
@@ -91,21 +91,21 @@ void main() {
     });
 
     group('writeInt64 / readInt64', () {
-      testWidgets('round-trips large positive value', (WidgetTester _) async {
+      test('round-trips large positive value', () async {
         final Parcel parcel = Parcel();
         const int value = 9007199254740992; // 2^53
         parcel.writeInt64(value);
         expect(parcel.readInt64(), value);
       });
 
-      testWidgets('round-trips maximum value', (WidgetTester _) async {
+      test('round-trips maximum value', () async {
         final Parcel parcel = Parcel();
         const int value = 9223372036854775807; // int64 max
         parcel.writeInt64(value);
         expect(parcel.readInt64(), value);
       });
 
-      testWidgets('round-trips minimum value', (WidgetTester _) async {
+      test('round-trips minimum value', () async {
         final Parcel parcel = Parcel();
         const int value = -9223372036854775808; // int64 min
         parcel.writeInt64(value);
@@ -114,28 +114,26 @@ void main() {
     });
 
     group('writeByte / readByte', () {
-      testWidgets('round-trips a value', (WidgetTester _) async {
+      test('round-trips a value', () async {
         final Parcel parcel = Parcel();
         parcel.writeByte(0xab);
         expect(parcel.readByte(), 0xab);
       });
 
-      testWidgets('round-trips maximum unsigned value', (WidgetTester _) async {
+      test('round-trips maximum unsigned value', () async {
         final Parcel parcel = Parcel();
         parcel.writeByte(255);
         expect(parcel.readByte(), 255);
       });
 
-      testWidgets('reads a negative input back as an unsigned byte', (
-        WidgetTester _,
-      ) async {
+      test('reads a negative input back as an unsigned byte', () async {
         final Parcel parcel = Parcel();
         // -1 is written as 0xff and must read back as the unsigned byte 255.
         parcel.writeByte(-1);
         expect(parcel.readByte(), 255);
       });
 
-      testWidgets('masks value to 8 bits', (WidgetTester _) async {
+      test('masks value to 8 bits', () async {
         final Parcel parcel = Parcel();
         // 0x142 & 0xff == 0x42 == 66
         parcel.writeByte(0x142);
@@ -144,7 +142,7 @@ void main() {
     });
 
     group('writeArrayCount / readArrayCount', () {
-      testWidgets('round-trips a count', (WidgetTester _) async {
+      test('round-trips a count', () async {
         final Parcel parcel = Parcel();
         parcel.writeArrayCount(42);
         expect(parcel.readArrayCount(), 42);
@@ -152,7 +150,7 @@ void main() {
     });
 
     group('write / read (burst byte array)', () {
-      testWidgets('round-trips byte array', (WidgetTester _) async {
+      test('round-trips byte array', () async {
         final Parcel parcel = Parcel();
         final Uint8List bytes = Uint8List.fromList(<int>[
           0x00,
@@ -168,9 +166,7 @@ void main() {
     });
 
     group('Parcel.fromRaw', () {
-      testWidgets('reconstructed parcel reads back original values', (
-        WidgetTester _,
-      ) async {
+      test('reconstructed parcel reads back original values', () async {
         final Parcel original = Parcel();
         original.writeInt32(99);
         original.writeString('raw');
@@ -186,9 +182,7 @@ void main() {
     });
 
     group('writeBundle / readBundle', () {
-      testWidgets('round-trips a Bundle with string entries', (
-        WidgetTester _,
-      ) async {
+      test('round-trips a Bundle with string entries', () async {
         final Bundle bundle = Bundle();
         bundle['key1'] = 'value1';
         bundle['key2'] = 'value2';
@@ -201,7 +195,7 @@ void main() {
         expect(restored['key2'], 'value2');
       });
 
-      testWidgets('round-trips an empty Bundle', (WidgetTester _) async {
+      test('round-trips an empty Bundle', () async {
         final Parcel parcel = Parcel();
         parcel.writeBundle(Bundle());
         final Bundle restored = parcel.readBundle();
@@ -210,32 +204,28 @@ void main() {
     });
 
     group('header', () {
-      testWidgets('tag can be set and retrieved', (WidgetTester _) async {
+      test('tag can be set and retrieved', () async {
         final Parcel parcel = Parcel();
         final ParcelHeader header = parcel.header;
         header.tag = '1.2.3';
         expect(parcel.header.tag, '1.2.3');
       });
 
-      testWidgets('sequenceNumber can be set and retrieved', (
-        WidgetTester _,
-      ) async {
+      test('sequenceNumber can be set and retrieved', () async {
         final Parcel parcel = Parcel();
         final ParcelHeader header = parcel.header;
         header.sequenceNumber = 7;
         expect(parcel.header.sequenceNumber, 7);
       });
 
-      testWidgets('tag defaults to empty string', (WidgetTester _) async {
+      test('tag defaults to empty string', () async {
         final Parcel parcel = Parcel();
         expect(parcel.header.tag, isEmpty);
       });
     });
 
     group('Parcelable', () {
-      testWidgets('custom Parcelable serializes and deserializes correctly', (
-        WidgetTester _,
-      ) async {
+      test('custom Parcelable serializes and deserializes correctly', () async {
         final Parcel parcel = Parcel();
         final _Point original = _Point(x: 10, y: 20);
         original.serialize(parcel);
@@ -253,9 +243,7 @@ void main() {
   // ---------------------------------------------------------------------------
 
   group('PortType', () {
-    testWidgets('has exactly the main and callback values', (
-      WidgetTester _,
-    ) async {
+    test('has exactly the main and callback values', () async {
       expect(
         PortType.values,
         unorderedEquals(<PortType>[PortType.main, PortType.callback]),
@@ -268,19 +256,50 @@ void main() {
   // ---------------------------------------------------------------------------
 
   group('ProxyBase', () {
-    testWidgets('isConnected is false before connecting', (
-      WidgetTester _,
-    ) async {
+    test('isConnected is false before connecting', () async {
       final _TestProxy proxy = _TestProxy();
       expect(proxy.isConnected, isFalse);
     });
 
-    testWidgets('appid and portName are set from constructor', (
-      WidgetTester _,
-    ) async {
+    test('appid and portName are set from constructor', () async {
       final _TestProxy proxy = _TestProxy();
       expect(proxy.appid, 'org.tizen.nonexistent_app_for_rpc_test');
       expect(proxy.portName, 'TestPort');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Tizen 10.0+ Parcel APIs (reader, dataSize, reserve) with safety guards
+  // ---------------------------------------------------------------------------
+
+  group('Tizen 10.0+ Parcel APIs', () {
+    test('reader getter/setter', () async {
+      final Parcel parcel = Parcel();
+      try {
+        parcel.reader = 10;
+        expect(parcel.reader, 10);
+      } on UnsupportedError catch (e) {
+        expect(e.message, contains('not supported on this version of Tizen'));
+      }
+    });
+
+    test('dataSize getter/setter', () async {
+      final Parcel parcel = Parcel();
+      try {
+        parcel.dataSize = 20;
+        expect(parcel.dataSize, 20);
+      } on UnsupportedError catch (e) {
+        expect(e.message, contains('not supported on this version of Tizen'));
+      }
+    });
+
+    test('reserve', () async {
+      final Parcel parcel = Parcel();
+      try {
+        parcel.reserve(100);
+      } on UnsupportedError catch (e) {
+        expect(e.message, contains('not supported on this version of Tizen'));
+      }
     });
   });
 }

@@ -1,3 +1,13 @@
+## 0.2.4
+
+* Update analysis_options.yaml for Flutter 3.47.0.
+* Update integration tests.
+* Update the repository URL to use the `main` branch.
+
+## 0.2.3
+
+* Fix `RTCPeerConnection.close()` to be idempotent; calling it more than once no longer throws an error.
+
 ## 0.2.2
 
 * Support x86_64

@@ -66,7 +66,10 @@ class _PermissionHandlerWidgetState extends State<PermissionHandlerWidget> {
                   permission != Permission.nearbyWifiDevices &&
                   permission != Permission.videos &&
                   permission != Permission.audio &&
-                  permission != Permission.scheduleExactAlarm;
+                  permission != Permission.scheduleExactAlarm &&
+                  permission != Permission.assistant &&
+                  permission != Permission.backgroundRefresh &&
+                  permission != Permission.accessLocalNetwork;
             })
             .map((permission) => PermissionWidget(permission))
             .toList(),

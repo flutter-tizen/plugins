@@ -3,13 +3,13 @@ description: Demonstrates how to use the flutter_secure_storage_tizen plugin.
 publish_to: "none"
 
 environment:
-  sdk: ^3.6.0
-  flutter: ">=3.27.0"
+  sdk: ^3.8.0
+  flutter: ">=3.32.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  flutter_secure_storage: ^10.0.0
+  flutter_secure_storage: ^11.0.0
   flutter_secure_storage_tizen:
     path: ../
 

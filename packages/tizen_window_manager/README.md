@@ -10,7 +10,7 @@ To use this package, add `tizen_window_manager` as a dependency in your `pubspec
 
 ```yaml
 dependencies:
-  tizen_window_manager: ^0.1.0
+  tizen_window_manager: ^0.1.1
 ```
 
 ## API Reference

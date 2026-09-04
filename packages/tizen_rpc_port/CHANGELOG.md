@@ -1,3 +1,15 @@
+## 0.1.8
+
+* Update analysis_options.yaml for Flutter 3.47.0.
+* Update integration tests.
+* Update the repository URL to use the `main` branch.
+
+## 0.1.7
+
+* Guard Tizen 10.0+ specific Parcel APIs (`reader`, `dataSize`, and `reserve`) to throw `UnsupportedError` on unsupported versions of Tizen instead of crashing.
+* Add integration test cases for the guarded Tizen 10.0+ specific Parcel APIs.
+* Update README to mention system requirements for these APIs.
+
 ## 0.1.6
 
 * Read byte values as unsigned (0-255) so `Parcel.readByte` is consistent

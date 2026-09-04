@@ -465,8 +465,7 @@ void FlutterWebRTC::HandleMethodCall(
     const std::string peerConnectionId = findString(params, "peerConnectionId");
     RTCPeerConnection* pc = PeerConnectionForId(peerConnectionId);
     if (pc == nullptr) {
-      result->Error("peerConnectionCloseFailed",
-                    "peerConnectionClose() peerConnection is null");
+      result->Success();
       return;
     }
     RTCPeerConnectionClose(pc, peerConnectionId, std::move(result));

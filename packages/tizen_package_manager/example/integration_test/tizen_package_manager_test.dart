@@ -14,7 +14,7 @@ import 'package:tizen_package_manager_example/main.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Can get current package info', (WidgetTester tester) async {
+  test('Can get current package info', () async {
     final PackageInfo info = await PackageManager.getPackageInfo(
       currentPackageId,
     );
@@ -27,24 +27,20 @@ void main() {
     expect(info.isRemovable, true);
   });
 
-  testWidgets('Can get current package size info', (WidgetTester tester) async {
+  test('Can get current package size info', () async {
     final PackageSizeInfo info = await PackageManager.getPackageSizeInfo(
       currentPackageId,
     );
     expect(info.appSize, greaterThan(0)); // package size -> 160935936
   });
 
-  testWidgets('Can get all installed packages info', (
-    WidgetTester tester,
-  ) async {
+  test('Can get all installed packages info', () async {
     final List<PackageInfo> infos = await PackageManager.getPackagesInfo();
     expect(infos.isNotEmpty, true);
   });
 
   group('PackageInfo fields', () {
-    testWidgets('iconPath is null or a non-empty string', (
-      WidgetTester tester,
-    ) async {
+    test('iconPath is null or a non-empty string', () async {
       final PackageInfo info =
           await PackageManager.getPackageInfo(currentPackageId);
       expect(info.iconPath, anyOf(isNull, isNotEmpty));
@@ -52,9 +48,7 @@ void main() {
   });
 
   group('PackageSizeInfo fields', () {
-    testWidgets('all size fields are non-negative', (
-      WidgetTester tester,
-    ) async {
+    test('all size fields are non-negative', () async {
       final PackageSizeInfo info =
           await PackageManager.getPackageSizeInfo(currentPackageId);
       expect(info.dataSize, greaterThanOrEqualTo(0));
@@ -67,9 +61,7 @@ void main() {
   });
 
   group('getPackagesInfo list items', () {
-    testWidgets('each PackageInfo item has valid field values', (
-      WidgetTester tester,
-    ) async {
+    test('each PackageInfo item has valid field values', () async {
       final List<PackageInfo> infos = await PackageManager.getPackagesInfo();
       expect(infos, isNotEmpty);
       for (final PackageInfo info in infos) {
@@ -81,9 +73,7 @@ void main() {
       }
     });
 
-    testWidgets('getPackagesInfo contains current package', (
-      WidgetTester tester,
-    ) async {
+    test('getPackagesInfo contains current package', () async {
       final List<PackageInfo> infos = await PackageManager.getPackagesInfo();
       final Iterable<String> ids = infos.map((PackageInfo i) => i.packageId);
       expect(ids, contains(currentPackageId));
@@ -91,18 +81,14 @@ void main() {
   });
 
   group('getPackageInfo error paths', () {
-    testWidgets('throws ArgumentError for empty packageId', (
-      WidgetTester tester,
-    ) async {
+    test('throws ArgumentError for empty packageId', () async {
       await expectLater(
         PackageManager.getPackageInfo(''),
         throwsArgumentError,
       );
     });
 
-    testWidgets('throws PlatformException for invalid packageId', (
-      WidgetTester tester,
-    ) async {
+    test('throws PlatformException for invalid packageId', () async {
       await expectLater(
         PackageManager.getPackageInfo('invalid.package.id.that.does.not.exist'),
         throwsA(isA<PlatformException>()),
@@ -111,9 +97,7 @@ void main() {
   });
 
   group('getPackageSizeInfo error paths', () {
-    testWidgets('throws ArgumentError for empty packageId', (
-      WidgetTester tester,
-    ) async {
+    test('throws ArgumentError for empty packageId', () async {
       await expectLater(
         PackageManager.getPackageSizeInfo(''),
         throwsArgumentError,
@@ -127,17 +111,13 @@ void main() {
   });
 
   group('install error paths', () {
-    testWidgets('throws ArgumentError for empty packagePath', (
-      WidgetTester tester,
-    ) async {
+    test('throws ArgumentError for empty packagePath', () async {
       await expectLater(PackageManager.install(''), throwsArgumentError);
     });
   });
 
   group('uninstall error paths', () {
-    testWidgets('throws ArgumentError for empty packageId', (
-      WidgetTester tester,
-    ) async {
+    test('throws ArgumentError for empty packageId', () async {
       await expectLater(PackageManager.uninstall(''), throwsArgumentError);
     });
   });
@@ -146,25 +126,19 @@ void main() {
   // throw. Actually exercising an event requires installing/uninstalling/
   // updating a real package on the device, which is out of scope here.
   group('event streams', () {
-    testWidgets('can subscribe to onInstallProgressChanged and cancel', (
-      WidgetTester tester,
-    ) async {
+    test('can subscribe to onInstallProgressChanged and cancel', () async {
       final StreamSubscription<PackageEvent> subscription =
           PackageManager.onInstallProgressChanged.listen(null);
       await subscription.cancel();
     });
 
-    testWidgets('can subscribe to onUninstallProgressChanged and cancel', (
-      WidgetTester tester,
-    ) async {
+    test('can subscribe to onUninstallProgressChanged and cancel', () async {
       final StreamSubscription<PackageEvent> subscription =
           PackageManager.onUninstallProgressChanged.listen(null);
       await subscription.cancel();
     });
 
-    testWidgets('can subscribe to onUpdateProgressChanged and cancel', (
-      WidgetTester tester,
-    ) async {
+    test('can subscribe to onUpdateProgressChanged and cancel', () async {
       final StreamSubscription<PackageEvent> subscription =
           PackageManager.onUpdateProgressChanged.listen(null);
       await subscription.cancel();

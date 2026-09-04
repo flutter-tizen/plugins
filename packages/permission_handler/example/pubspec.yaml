@@ -3,17 +3,14 @@ description: Demonstrates how to use the permission_handler_tizen plugin.
 publish_to: "none"
 
 environment:
-  sdk: ^3.5.0
-  flutter: ">=3.24.0"
+  sdk: ^3.6.0
+  flutter: ">=3.27.0"
 
 dependencies:
-  baseflow_plugin_template:
-    git:
-      url: https://github.com/seungsoo47/baseflow_plugin_template
-      ref: temp_fix
+  baseflow_plugin_template: ^2.2.1
   flutter:
     sdk: flutter
-  permission_handler: ^12.0.1
+  permission_handler: ^13.0.1
   permission_handler_tizen:
     path: ../
   url_launcher: ^6.1.0

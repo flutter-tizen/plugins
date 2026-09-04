@@ -3,13 +3,13 @@ description: Demonstrates how to use the network_info_plus_tizen plugin.
 publish_to: "none"
 
 environment:
-  sdk: ^3.6.0
-  flutter: ">=3.27.0"
+  sdk: ^3.10.0
+  flutter: ">=3.38.1"
 
 dependencies:
   flutter:
     sdk: flutter
-  network_info_plus: ^7.0.0
+  network_info_plus: ^8.2.1
   network_info_plus_tizen:
     path: ../
 

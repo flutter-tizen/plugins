@@ -1,3 +1,23 @@
+## 1.4.7
+
+* Update permission_handler to 13.0.1.
+* Update permission_handler_platform_interface to 4.4.0.
+* Update minimum Flutter and Dart version to 3.27 and 3.6.
+* Sync the `Permission` enum with the platform interface.
+* Update README to list the permissions that are not supported yet.
+* Replace the forked baseflow_plugin_template dependency of the example app with the published 2.2.1.
+
+## 1.4.6
+
+* Add an `implements` entry to the pubspec to improve discoverability on pub.dev.
+
+## 1.4.5
+
+* Update analysis_options.yaml for Flutter 3.47.0.
+* Update the repository URL to use the `main` branch.
+* Add 8 integration test cases.
+* Update integration tests.
+
 ## 1.4.4
 
 * Remove Ecore API.

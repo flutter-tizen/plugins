@@ -3,25 +3,22 @@ description: Demonstrates how to use the geolocator_tizen plugin.
 publish_to: "none"
 
 environment:
-  sdk: ">=3.1.0 <4.0.0"
-  flutter: ">=3.13.0"
+  sdk: ^3.5.0
+  flutter: ">=3.24.0"
 
 dependencies:
-  baseflow_plugin_template:
-    git:
-      url: https://github.com/seungsoo47/baseflow_plugin_template
-      ref: temp_fix
+  baseflow_plugin_template: ^2.2.1
   cupertino_icons: ^1.0.1+1
   flutter:
     sdk: flutter
-  geolocator: ^8.0.0
+  geolocator: ^14.0.3
   geolocator_tizen:
     path: ../
   url_launcher_tizen:
     path: ../../url_launcher
 
 dev_dependencies:
-  flutter_lints: ^1.0.4
+  flutter_lints: ^5.0.0
   flutter_test:
     sdk: flutter
   integration_test:

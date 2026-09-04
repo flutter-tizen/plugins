@@ -11,7 +11,7 @@ import 'package:integration_test/integration_test.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Can initialize the plugin', (WidgetTester tester) async {
+  test('Can initialize the plugin', () async {
     GoogleSignInTizen.setCredentials(
       clientId: credentials.clientId,
       clientSecret: credentials.clientSecret,

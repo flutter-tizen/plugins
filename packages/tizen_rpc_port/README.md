@@ -21,7 +21,7 @@ The generated source files (`message_client.dart` and `message_server.dart`) dep
 
 ```yaml
 depenedencies:
-  tizen_rpc_port: ^0.1.6
+  tizen_rpc_port: ^0.1.8
 ```
 
 Assuming that the name of the interface defined in your interface file is `Message`, the client must first call its `connect` method to connect to the server before making any remote invocation.
@@ -47,3 +47,6 @@ The following privileges may be added to the client app's `tizen-manifest.xml` f
 ## Supported devices
 
 This plugin is supported on Tizen devices running Tizen 6.5 or above.
+
+> **Note**
+> Some `Parcel` APIs (`reader`, `dataSize`, and `reserve`) are supported only on Tizen 10.0 or above. Calling these APIs on unsupported versions of Tizen will throw an `UnsupportedError`.

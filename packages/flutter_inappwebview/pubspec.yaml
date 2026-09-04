@@ -1,8 +1,8 @@
 name: flutter_inappwebview_tizen
 description: Tizen implementation of the flutter_inappwebview plugin.
 homepage: https://github.com/flutter-tizen/plugins
-repository: https://github.com/flutter-tizen/plugins/tree/master/packages/flutter_inappwebview
-version: 0.1.1
+repository: https://github.com/flutter-tizen/plugins/tree/main/packages/flutter_inappwebview
+version: 0.2.0
 
 environment:
   sdk: ">=3.8.0 <4.0.0"
@@ -10,6 +10,7 @@ environment:
 
 flutter:
   plugin:
+    implements: flutter_inappwebview
     platforms:
       tizen:
         pluginClass: FlutterInappwebviewTizenPlugin

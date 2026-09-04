@@ -25,9 +25,11 @@ class LweWebViewController extends PlatformWebViewController {
 
   final LweWebView _webview;
   late LweNavigationDelegate _lweNavigationDelegate;
+  int? _viewId;
 
   /// Called when [TizenView] is created.
   void onCreate(int viewId) {
+    _viewId = viewId;
     if (_webview.hasNavigationDelegate) {
       _lweNavigationDelegate.onCreate(viewId);
     }
@@ -142,6 +144,15 @@ class LweWebViewController extends PlatformWebViewController {
   ) async {
     _lweNavigationDelegate = handler;
     _webview.hasNavigationDelegate = true;
+    // If the view has already been created, the previous delegate's method
+    // call handler is the one currently bound to the platform channel. Bind
+    // the new delegate now so its callbacks (e.g. onUrlChange, onPageFinished)
+    // are the ones invoked; otherwise events would keep going to the old
+    // delegate and be dropped.
+    final int? viewId = _viewId;
+    if (viewId != null) {
+      handler.onCreate(viewId);
+    }
   }
 
   @override
@@ -382,15 +393,21 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
   /// Creates a new [LweNavigationDelegate].
   LweNavigationDelegate(super.params) : super.implementation();
 
-  late final MethodChannel _navigationDelegateChannel;
+  late MethodChannel _navigationDelegateChannel;
+  int? _viewId;
   PageEventCallback? _onPageFinished;
   PageEventCallback? _onPageStarted;
   ProgressCallback? _onProgress;
   WebResourceErrorCallback? _onWebResourceError;
   NavigationRequestCallback? _onNavigationRequest;
+  UrlChangeCallback? _onUrlChange;
 
   /// Called when [TizenView] is created.
   void onCreate(int viewId) {
+    if (_viewId == viewId) {
+      return;
+    }
+    _viewId = viewId;
     _navigationDelegateChannel = MethodChannel(
       kLweNavigationDelegateChannelName + viewId.toString(),
     );
@@ -429,6 +446,11 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
                 isForMainFrame: true,
               ),
             );
+          }
+          return null;
+        case 'onUrlChange':
+          if (_onUrlChange != null) {
+            _onUrlChange!(UrlChange(url: arguments['url']! as String));
           }
           return null;
       }
@@ -506,10 +528,7 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
 
   @override
   Future<void> setOnUrlChange(UrlChangeCallback onUrlChange) async {
-    throw UnimplementedError(
-      'This version of `LweNavigationDelegate` currently has no '
-      'implementation for `setOnUrlChange`',
-    );
+    _onUrlChange = onUrlChange;
   }
 
   @override

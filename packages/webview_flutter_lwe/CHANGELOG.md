@@ -1,3 +1,36 @@
+## 0.5.5
+
+* Add an `implements` entry to the pubspec to improve discoverability on pub.dev.
+
+## 0.5.4
+
+* Update the repository URL to use the `main` branch.
+
+## 0.5.3
+
+* Update lightweight web engine (1.5.1).
+
+## 0.5.2
+
+* Update lightweight web engine (1.4.1).
+* Add an optional `preferMainThread` parameter to `LWE::Initialize`.
+
+## 0.5.1
+
+* Update the README.md.
+
+## 0.5.0
+
+* Implement `onUrlChange` for the navigation delegate.
+* Fix navigation delegate callbacks being dropped when the navigation delegate
+  is replaced after the WebView is created.
+* Fix a crash on the raster thread when a WebView is disposed while a frame is
+  still being composited.
+* Fix a use-after-free when navigation-delegate or JavaScript-channel callbacks
+  run after the WebView has been disposed.
+* Add 1 integration test case.
+* Update lightweight web engine (1.3.40).
+
 ## 0.4.1
 
 * Remove Ecore API.

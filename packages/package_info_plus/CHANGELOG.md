@@ -1,3 +1,18 @@
+## 1.2.0
+
+* Update package_info_plus to 10.2.1.
+* Update package_info_plus_platform_interface to 4.1.0.
+* Update minimum Flutter and Dart version to 3.38.1 and 3.10.
+
+## 1.1.2
+
+* Add an `implements` entry to the pubspec to improve discoverability on pub.dev.
+
+## 1.1.1
+
+* Update analysis_options.yaml for Flutter 3.47.0.
+* Update the repository URL to use the `main` branch.
+
 ## 1.1.0
 
 * Update package_info_plus to 9.0.1.

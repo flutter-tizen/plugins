@@ -18,13 +18,11 @@ void main() {
     tizenInfo = await deviceInfoPlugin.tizenInfo;
   });
 
-  testWidgets('Can get non-null device model', (WidgetTester tester) async {
+  test('Can get non-null device model', () async {
     expect(tizenInfo.modelName, isNotNull);
   });
 
-  testWidgets('Check all Tizen info values are available', (
-    WidgetTester tester,
-  ) async {
+  test('Check all Tizen info values are available', () async {
     expect(tizenInfo.modelName, isNotNull);
     expect(tizenInfo.cpuArch, isNotNull);
     expect(tizenInfo.nativeApiVersion, isNotNull);
@@ -56,9 +54,7 @@ void main() {
     );
   }, skip: !Platform.isLinux);
 
-  testWidgets('tizenInfo is consistent across repeated calls', (
-    WidgetTester tester,
-  ) async {
+  test('tizenInfo is consistent across repeated calls', () async {
     // Repeated calls on the same instance return the cached instance.
     final plugin1 = DeviceInfoPluginTizen();
     final first = await plugin1.tizenInfo;
@@ -71,9 +67,7 @@ void main() {
     expect(third.modelName, first.modelName);
   }, skip: !Platform.isLinux);
 
-  testWidgets('TizenDeviceInfo.fromMap round-trips through data', (
-    WidgetTester tester,
-  ) async {
+  test('TizenDeviceInfo.fromMap round-trips through data', () async {
     final data = tizenInfo.data;
     expect(data, isNotEmpty);
 
@@ -82,5 +76,27 @@ void main() {
     expect(rebuilt.platformVersion, tizenInfo.platformVersion);
     expect(rebuilt.screenWidth, tizenInfo.screenWidth);
     expect(rebuilt.totalDiskSize, tizenInfo.totalDiskSize);
+  }, skip: !Platform.isLinux);
+
+  // Tizen-only: duid has no upstream counterpart in device_info_plus.
+  test('duid does not throw', () async {
+    final deviceInfoPlugin = DeviceInfoPluginTizen();
+    await deviceInfoPlugin.duid;
+  }, skip: !Platform.isLinux);
+
+  test('duid is consistent and cached across repeated calls', () async {
+    // Repeated calls on the same instance return the cached instance.
+    final plugin1 = DeviceInfoPluginTizen();
+    final first = await plugin1.duid;
+    final second = await plugin1.duid;
+    expect(second, first);
+    if (first != null) {
+      expect(second, same(first));
+    }
+
+    // A new instance triggers a fresh native call that must yield the same data.
+    final plugin2 = DeviceInfoPluginTizen();
+    final third = await plugin2.duid;
+    expect(third, first);
   }, skip: !Platform.isLinux);
 }

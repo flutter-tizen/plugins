@@ -20,7 +20,7 @@ width, position) from the same channel.
 
 ```yaml
 dependencies:
-  keyboard_detection_tizen: ^0.1.0
+  keyboard_detection_tizen: ^0.1.1
 ```
 
 ```dart
