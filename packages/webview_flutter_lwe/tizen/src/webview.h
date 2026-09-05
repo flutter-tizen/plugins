@@ -58,8 +58,6 @@ class WebView : public PlatformView {
  private:
   void HandleWebViewMethodCall(const FlMethodCall& method_call,
                                std::unique_ptr<FlMethodResult> result);
-  void HandleCookieMethodCall(const FlMethodCall& method_call,
-                              std::unique_ptr<FlMethodResult> result);
 
   template <typename T>
   void SetBackgroundColor(const T& color);

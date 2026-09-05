@@ -20,8 +20,8 @@ This package is not an _endorsed_ implementation of `webview_flutter`. Therefore
 
 ```yaml
 dependencies:
-  webview_flutter: ^4.13.1
-  webview_flutter_lwe: ^0.5.5
+  webview_flutter: ^4.14.1
+  webview_flutter_lwe: ^0.5.6
 ```
 
 ## Example
@@ -70,6 +70,10 @@ await controller.setVerticalScrollBarEnabled(false);
 // This will show both vertical and horizontal scrollbars
 await controller.setHorizontalScrollBarEnabled(true);
 ```
+
+### Cookie management
+
+`WebViewCookieManager.getCookies` does not return cookies marked as `HttpOnly`. The Lightweight Web Engine only exposes cookies that are accessible to JavaScript (equivalent to `document.cookie`), so `HttpOnly` cookies sent by a server are stored and used for requests but are not included in the result.
 
 ## Supported devices
 
