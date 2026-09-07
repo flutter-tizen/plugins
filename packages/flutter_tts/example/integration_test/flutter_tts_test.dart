@@ -54,7 +54,8 @@ void main() {
   });
 
   test('setVoice returns 1', () async {
-    final voices = (await flutterTts.getVoices as List).cast<Map>();
+    final voices =
+        (await flutterTts.getVoices as List).cast<Map<Object?, Object?>>();
     expect(voices, isNotEmpty);
     final voice = voices.first;
     expect(

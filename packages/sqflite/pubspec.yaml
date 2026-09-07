@@ -20,3 +20,7 @@ dependencies:
   flutter:
     sdk: flutter
   sqflite: ^2.4.3
+
+dev_dependencies:
+  flutter_lints: ^5.0.0
+

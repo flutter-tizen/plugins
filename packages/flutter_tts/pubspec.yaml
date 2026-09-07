@@ -12,6 +12,9 @@ dependencies:
   flutter:
     sdk: flutter
 
+dev_dependencies:
+  lints: ^5.0.0
+
 flutter:
   plugin:
     platforms:

@@ -1,3 +1,7 @@
+## NEXT
+
+* Follow the analysis options of the frontend plugin.
+
 ## 0.2.0
 
 - Fix `onTitleChanged` to fire on title changes after the initial load, not just once at load finish.

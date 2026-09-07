@@ -1,3 +1,7 @@
+## NEXT
+
+* Follow the analysis options of the frontend plugin.
+
 ## 1.7.1
 
 * Update analysis_options.yaml for Flutter 3.47.0.

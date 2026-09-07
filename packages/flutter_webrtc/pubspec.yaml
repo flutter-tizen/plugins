@@ -19,3 +19,7 @@ dependencies:
   flutter:
     sdk: flutter
   path_provider_tizen: ^2.1.0
+
+dev_dependencies:
+  lints: ^5.0.0
+

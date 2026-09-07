@@ -7,7 +7,7 @@ void main() => runApp(MyApp());
 
 class MyApp extends StatefulWidget {
   @override
-  _MyAppState createState() => _MyAppState();
+  State<MyApp> createState() => _MyAppState();
 }
 
 enum TtsState { playing, stopped, paused, continued }
@@ -190,8 +190,9 @@ class _MyAppState extends State<MyApp> {
             return _languageDropDownSection(snapshot.data as List<dynamic>);
           } else if (snapshot.hasError) {
             return Text('Error loading languages...');
-          } else
+          } else {
             return Text('Loading Languages...');
+          }
         },
       );
 

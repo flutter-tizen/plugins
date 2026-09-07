@@ -1,3 +1,7 @@
+## NEXT
+
+* Follow the analysis options of the frontend plugin.
+
 ## 0.1.1
 
 * Update the repository URL to use the `main` branch.

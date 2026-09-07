@@ -1,0 +1,57 @@
+# Follows the analysis options of the frontend plugin:
+# https://github.com/flutter-webrtc/flutter-webrtc/blob/main/analysis_options.yaml
+include: package:lints/recommended.yaml
+
+analyzer:
+  exclude:
+    - 'build/**'
+    - 'android/**'
+    - 'ios/**'
+    - 'web/**'
+    - 'windows/**'
+    - 'macos/**'
+    - 'linux/**'
+  errors:
+    # treat missing required parameters as a warning (not a hint)
+    missing_required_param: warning
+    # treat missing returns as a warning (not a hint)
+    missing_return: warning
+    # allow having TODOs in the code
+    todo: ignore
+    # allow self-reference to deprecated members
+    deprecated_member_use_from_same_package: ignore
+    # Conflict with import_sorter
+    directives_ordering: ignore
+    constant_identifier_names: ignore
+    deprecated_member_use: ignore
+    implementation_imports: ignore
+
+linter:
+  rules:
+    - always_declare_return_types
+    - avoid_empty_else
+    - avoid_returning_null_for_void
+    - await_only_futures
+    - camel_case_extensions
+    - camel_case_types
+    - cancel_subscriptions
+    - flutter_style_todos
+    - sort_constructors_first
+    - sort_pub_dependencies
+    - sort_unnamed_constructors_first
+    - type_init_formals
+    - unnecessary_brace_in_string_interps
+    - unnecessary_const
+    - unnecessary_getters_setters
+    - unnecessary_new
+    - unnecessary_null_aware_assignments
+    - unnecessary_null_in_if_null_operators
+    - unnecessary_overrides
+    - unnecessary_parenthesis
+    - unnecessary_statements
+    - unnecessary_string_interpolations
+    - unnecessary_this
+    - unrelated_type_equality_checks
+    - use_rethrow_when_possible
+    - valid_regexps
+    - void_checks

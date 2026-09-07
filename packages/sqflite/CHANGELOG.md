@@ -1,3 +1,7 @@
+## NEXT
+
+* Follow the analysis options of the frontend plugin.
+
 ## 0.1.6
 
 * Update minimum Flutter and Dart version to 3.44 and 3.12.
