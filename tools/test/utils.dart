@@ -16,16 +16,14 @@ Future<List<String>> runCapturingPrint(
   Function(Error error)? errorHandler,
   Function(Exception error)? exceptionHandler,
 }) async {
-  final List<String> prints = <String>[];
-  final ZoneSpecification spec = ZoneSpecification(
+  final prints = <String>[];
+  final spec = ZoneSpecification(
     print: (_, __, ___, String message) {
       prints.add(message);
     },
   );
   try {
-    await Zone.current
-        .fork(specification: spec)
-        .run<Future<void>>(() => runner.run(args));
+    await Zone.current.fork(specification: spec).run<Future<void>>(() => runner.run(args));
   } on Error catch (e) {
     if (errorHandler == null) {
       rethrow;

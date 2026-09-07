@@ -24,17 +24,13 @@ class AuthorizationResponse {
   /// Creates a [AuthorizationResponse] from a json object.
   static AuthorizationResponse fromJson(Map<String, Object?> json) {
     final String? verificationUrl =
-        json['verification_url'] as String? ??
-        json['verification_uri'] as String?;
+        json['verification_url'] as String? ?? json['verification_uri'] as String?;
     return AuthorizationResponse._(
       deviceCode: json['device_code']! as String,
       userCode: json['user_code']! as String,
       verificationUrl: Uri.parse(verificationUrl!),
       expiresIn: Duration(seconds: json['expires_in']! as int),
-      interval:
-          json['interval'] is int
-              ? Duration(seconds: json['interval']! as int)
-              : null,
+      interval: json['interval'] is int ? Duration(seconds: json['interval']! as int) : null,
     );
   }
 
@@ -76,10 +72,7 @@ class TokenResponse {
       tokenType: json['token_type']! as String,
       expiresIn: Duration(seconds: json['expires_in']! as int),
       refreshToken: json['refresh_token'] as String?,
-      scope:
-          json['scope'] is String
-              ? (json['scope']! as String).split(' ').toList()
-              : null,
+      scope: json['scope'] is String ? (json['scope']! as String).split(' ').toList() : null,
       idToken: json['id_token'] as String?,
     );
   }
@@ -148,19 +141,10 @@ class DeviceAuthClient {
   }
 
   /// Requests authroization grant from [authorizationEndPoint].
-  Future<AuthorizationResponse> requestAuthorization(
-    String clientId,
-    List<String> scope,
-  ) async {
-    final Map<String, String> body = <String, String>{
-      'client_id': clientId,
-      'scope': scope.join(' '),
-    };
+  Future<AuthorizationResponse> requestAuthorization(String clientId, List<String> scope) async {
+    final body = <String, String>{'client_id': clientId, 'scope': scope.join(' ')};
 
-    final http.Response response = await _httpClient.post(
-      authorizationEndPoint,
-      body: body,
-    );
+    final http.Response response = await _httpClient.post(authorizationEndPoint, body: body);
 
     if (response.statusCode != 200) {
       _handleErrorResponse(response);
@@ -177,25 +161,20 @@ class DeviceAuthClient {
     String clientSecret,
     String deviceCode,
   ) async {
-    final Map<String, String> body = <String, String>{
+    final body = <String, String>{
       'grant_type': 'http://oauth.net/grant_type/device/1.0',
       'client_id': clientId,
       'client_secret': clientSecret,
       'code': deviceCode,
     };
 
-    final http.Response response = await _httpClient.post(
-      tokenEndPoint,
-      body: body,
-    );
+    final http.Response response = await _httpClient.post(tokenEndPoint, body: body);
 
     if (response.statusCode != 200) {
       _handleErrorResponse(response);
     }
 
-    return TokenResponse.fromJson(
-      convert.jsonDecode(response.body) as Map<String, Object?>,
-    );
+    return TokenResponse.fromJson(convert.jsonDecode(response.body) as Map<String, Object?>);
   }
 
   /// Repeat sending token request to [tokenEndPoint] until user grants access.
@@ -269,12 +248,9 @@ class DeviceAuthClient {
 
   /// Requests a revoke token request to [revokeEndPoint].
   Future<void> revokeToken(String token) async {
-    final Map<String, String> body = <String, String>{'token': token};
+    final body = <String, String>{'token': token};
 
-    final http.Response response = await _httpClient.post(
-      revokeEndPoint,
-      body: body,
-    );
+    final http.Response response = await _httpClient.post(revokeEndPoint, body: body);
     if (response.statusCode != 200) {
       _handleErrorResponse(response);
     }
@@ -286,45 +262,33 @@ class DeviceAuthClient {
     required String clientSecret,
     required String refreshToken,
   }) async {
-    final Map<String, String> body = <String, String>{
+    final body = <String, String>{
       'client_id': clientId,
       'client_secret': clientSecret,
       'refresh_token': refreshToken,
       'grant_type': 'refresh_token',
     };
 
-    final http.Response response = await _httpClient.post(
-      tokenEndPoint,
-      body: body,
-    );
+    final http.Response response = await _httpClient.post(tokenEndPoint, body: body);
 
     if (response.statusCode != 200) {
       _handleErrorResponse(response);
     }
-    return TokenResponse.fromJson(
-      convert.jsonDecode(response.body) as Map<String, Object?>,
-    );
+    return TokenResponse.fromJson(convert.jsonDecode(response.body) as Map<String, Object?>);
   }
 
   void _handleErrorResponse(http.Response response) {
     // Google Token endpoint returns status code 428 for 'authroization_pending'
     // response which is not specified in the spec: https://datatracker.ietf.org/doc/html/rfc8628#section-3.5.
-    if (response.statusCode == 400 ||
-        response.statusCode == 401 ||
-        response.statusCode == 428) {
-      final Map<String, Object?> json =
-          convert.jsonDecode(response.body) as Map<String, Object?>;
+    if (response.statusCode == 400 || response.statusCode == 401 || response.statusCode == 428) {
+      final json = convert.jsonDecode(response.body) as Map<String, Object?>;
       throw AuthorizationException(
         json['error']! as String,
         json['error_description']! as String?,
-        json['error_uri'] is String
-            ? Uri.parse(json['error_uri']! as String)
-            : null,
+        json['error_uri'] is String ? Uri.parse(json['error_uri']! as String) : null,
       );
     } else {
-      throw HttpException(
-        'Status code: ${response.statusCode}, ${response.reasonPhrase}.',
-      );
+      throw HttpException('Status code: ${response.statusCode}, ${response.reasonPhrase}.');
     }
   }
 }

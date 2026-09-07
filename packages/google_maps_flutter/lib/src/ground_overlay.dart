@@ -37,10 +37,7 @@ class GroundOverlayController {
   ///
   /// This cannot be called after [remove].
   void update(util.GGroundOverlayOptions options) {
-    assert(
-      _groundOverlay != null,
-      'Cannot `update` GroundOverlay after calling `remove`.',
-    );
+    assert(_groundOverlay != null, 'Cannot `update` GroundOverlay after calling `remove`.');
     _groundOverlay!.options = options;
   }
 

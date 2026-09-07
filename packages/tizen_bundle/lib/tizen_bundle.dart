@@ -40,14 +40,13 @@ class Bundle extends MapMixin<String, Object> {
 
   /// Creates a [Bundle] from the given [map].
   factory Bundle.fromMap(Map<String, Object> map) {
-    final Bundle bundle = Bundle();
+    final bundle = Bundle();
     map.forEach((String key, Object value) => bundle[key] = value);
     return bundle;
   }
 
   late final Pointer<bundle> _handle;
-  static final Finalizer<Pointer<bundle>> _finalizer =
-      Finalizer<Pointer<bundle>>(
+  static final Finalizer<Pointer<bundle>> _finalizer = Finalizer<Pointer<bundle>>(
     (Pointer<bundle> bundle) => tizen.bundle_free(bundle),
   );
 
@@ -65,7 +64,7 @@ class Bundle extends MapMixin<String, Object> {
   /// The keys of this.
   @override
   Iterable<String> get keys {
-    final List<String> keys = <String>[];
+    final keys = <String>[];
     _currentKeys = keys;
     tizen.bundle_foreach(
       _handle,
@@ -200,9 +199,8 @@ class Bundle extends MapMixin<String, Object> {
 
   void _addStrings(String key, List<String> values) {
     using((Arena arena) {
-      final List<Pointer<Char>> stringList = values
-          .map((String str) => str.toNativeChar(allocator: arena))
-          .toList();
+      final List<Pointer<Char>> stringList =
+          values.map((String str) => str.toNativeChar(allocator: arena)).toList();
       final Pointer<Pointer<Char>> stringArray = arena<Pointer<Char>>(
         stringList.length,
       );
@@ -235,8 +233,8 @@ class Bundle extends MapMixin<String, Object> {
         _throwException(ret);
       }
 
-      final List<String> strings = <String>[];
-      for (int index = 0; index < length.value; ++index) {
+      final strings = <String>[];
+      for (var index = 0; index < length.value; ++index) {
         strings.add(stringArray[index].toDartString());
       }
       return strings;
@@ -246,7 +244,7 @@ class Bundle extends MapMixin<String, Object> {
   void _addBytes(String key, Uint8List bytes) {
     using((Arena arena) {
       final Pointer<Uint8> bytesArray = arena<Uint8>(bytes.length);
-      for (int index = 0; index < bytes.length; ++index) {
+      for (var index = 0; index < bytes.length; ++index) {
         bytesArray[index] = bytes[index] & 0xff;
       }
 
@@ -276,8 +274,8 @@ class Bundle extends MapMixin<String, Object> {
         _throwException(ret);
       }
 
-      final Uint8List byteList = Uint8List(size.value);
-      for (int index = 0; index < size.value; ++index) {
+      final byteList = Uint8List(size.value);
+      for (var index = 0; index < size.value; ++index) {
         byteList[index] = bytes.value[index];
       }
       return byteList;

@@ -20,7 +20,7 @@ plugins:
   });
 
   test('correctly parses recipe', () {
-    final Recipe recipe = Recipe.fromYaml(loadYaml(yamlString) as YamlMap);
+    final recipe = Recipe.fromYaml(loadYaml(yamlString) as YamlMap);
 
     expect(recipe.contains('c'), true);
     expect(recipe.isExcluded('c'), true);

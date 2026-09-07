@@ -55,9 +55,9 @@ class _HoleLayer extends Layer {
   }
 
   Picture _createHolePicture(Rect holeRect) {
-    final PictureRecorder recorder = PictureRecorder();
-    final Canvas canvas = Canvas(recorder);
-    final Paint paint = Paint();
+    final recorder = PictureRecorder();
+    final canvas = Canvas(recorder);
+    final paint = Paint();
     paint.color = Colors.transparent;
     paint.blendMode = BlendMode.src;
     canvas.drawRect(rect, paint);

@@ -27,7 +27,7 @@ void main() {
     await tester.pumpWidget(const MyApp());
 
     final String appId = await AppManager.currentAppId;
-    final AppRunningContext context = AppRunningContext(appId: appId);
+    final context = AppRunningContext(appId: appId);
 
     // TODO(seungsoo47): The `AppRunningContext.appState` API always returns the
     // appropriate value. However, we decided to comment out this testcase
@@ -64,8 +64,7 @@ void main() {
         );
       });
 
-      testWidgets('throws ArgumentError for empty appId',
-          (WidgetTester _) async {
+      testWidgets('throws ArgumentError for empty appId', (WidgetTester _) async {
         await expectLater(AppManager.isRunning(''), throwsArgumentError);
       });
     });
@@ -79,8 +78,7 @@ void main() {
         expect(appInfo.sharedResourcePath, isNotEmpty);
       });
 
-      testWidgets('throws ArgumentError for empty appId',
-          (WidgetTester _) async {
+      testWidgets('throws ArgumentError for empty appId', (WidgetTester _) async {
         await expectLater(AppManager.getAppInfo(''), throwsArgumentError);
       });
     });
@@ -89,7 +87,7 @@ void main() {
   group('AppRunningContext', () {
     testWidgets('packageId matches current app', (WidgetTester _) async {
       final String appId = await AppManager.currentAppId;
-      final AppRunningContext context = AppRunningContext(appId: appId);
+      final context = AppRunningContext(appId: appId);
       expect(context.packageId, 'org.tizen.tizen_app_manager_example');
     });
 

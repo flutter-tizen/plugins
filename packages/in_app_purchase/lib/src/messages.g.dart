@@ -58,8 +58,7 @@ class ProductsListApiResult {
       cpResult: result[1] as String?,
       totalCount: result[2]! as int,
       checkValue: result[3]! as String,
-      itemDetails: (result[4] as List<Object?>?)!
-          .cast<Map<Object?, Object?>?>(),
+      itemDetails: (result[4] as List<Object?>?)!.cast<Map<Object?, Object?>?>(),
     );
   }
 }
@@ -96,13 +95,7 @@ class GetUserPurchaseListAPIResult {
   List<Map<Object?, Object?>?> invoiceDetails;
 
   Object encode() {
-    return <Object?>[
-      cpStatus,
-      cpResult,
-      totalCount,
-      checkValue,
-      invoiceDetails,
-    ];
+    return <Object?>[cpStatus, cpResult, totalCount, checkValue, invoiceDetails];
   }
 
   static GetUserPurchaseListAPIResult decode(Object result) {
@@ -112,8 +105,7 @@ class GetUserPurchaseListAPIResult {
       cpResult: result[1] as String?,
       totalCount: result[2]! as int,
       checkValue: result[3]! as String,
-      invoiceDetails: (result[4] as List<Object?>?)!
-          .cast<Map<Object?, Object?>?>(),
+      invoiceDetails: (result[4] as List<Object?>?)!.cast<Map<Object?, Object?>?>(),
     );
   }
 }
@@ -187,11 +179,7 @@ class VerifyInvoiceAPIResult {
 /// Defines a dictionary for data returned by the IsServiceAvailable API.
 /// This only can be used in [BillingManager.isAvailable].
 class ServiceAvailableAPIResult {
-  ServiceAvailableAPIResult({
-    required this.status,
-    required this.result,
-    required this.serviceYn,
-  });
+  ServiceAvailableAPIResult({required this.status, required this.result, required this.serviceYn});
 
   /// The result code of connecting to billing server.
   /// Returns "100000" on success and other codes on failure.
@@ -322,13 +310,7 @@ class OrderDetails {
   String orderCustomId;
 
   Object encode() {
-    return <Object?>[
-      orderItemId,
-      orderTitle,
-      orderTotal,
-      orderCurrencyId,
-      orderCustomId,
-    ];
+    return <Object?>[orderItemId, orderTitle, orderTotal, orderCurrencyId, orderCustomId];
   }
 
   static OrderDetails decode(Object result) {
@@ -358,10 +340,7 @@ class BuyInfoMessage {
 
   static BuyInfoMessage decode(Object result) {
     result as List<Object?>;
-    return BuyInfoMessage(
-      appId: result[0]! as String,
-      payDetials: result[1]! as OrderDetails,
-    );
+    return BuyInfoMessage(appId: result[0]! as String, payDetials: result[1]! as OrderDetails);
   }
 }
 
@@ -475,13 +454,11 @@ class InAppPurchaseApi {
   /// Constructor for [InAppPurchaseApi].  The [binaryMessenger] named argument is
   /// available for dependency injection.  If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
-  InAppPurchaseApi({
-    BinaryMessenger? binaryMessenger,
-    String messageChannelSuffix = '',
-  }) : pigeonVar_binaryMessenger = binaryMessenger,
-       pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty
-           ? '.$messageChannelSuffix'
-           : '';
+  InAppPurchaseApi({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
+    : pigeonVar_binaryMessenger = binaryMessenger,
+      pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty
+          ? '.$messageChannelSuffix'
+          : '';
   final BinaryMessenger? pigeonVar_binaryMessenger;
 
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
@@ -492,12 +469,11 @@ class InAppPurchaseApi {
   Future<ProductsListApiResult> getProductsList(ProductMessage product) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.getProductsList$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel =
-        BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(<Object?>[product]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -519,17 +495,14 @@ class InAppPurchaseApi {
   }
 
   /// Retrieves the user's purchase list.
-  Future<GetUserPurchaseListAPIResult> getUserPurchaseList(
-    PurchaseMessage purchase,
-  ) async {
+  Future<GetUserPurchaseListAPIResult> getUserPurchaseList(PurchaseMessage purchase) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.getUserPurchaseList$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel =
-        BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(<Object?>[purchase]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -555,12 +528,11 @@ class InAppPurchaseApi {
   Future<BillingBuyData> buyItem(BuyInfoMessage buyInfo) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.buyItem$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel =
-        BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(<Object?>[buyInfo]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -585,12 +557,11 @@ class InAppPurchaseApi {
   Future<VerifyInvoiceAPIResult> verifyInvoice(InvoiceMessage invoice) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.verifyInvoice$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel =
-        BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_channel.send(<Object?>[invoice]) as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -615,14 +586,12 @@ class InAppPurchaseApi {
   Future<bool> isServiceAvailable() async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.isServiceAvailable$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel =
-        BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_channel.send(null) as List<Object?>?;
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList = await pigeonVar_channel.send(null) as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -644,14 +613,12 @@ class InAppPurchaseApi {
   Future<String> getCustomId() async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.getCustomId$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel =
-        BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_channel.send(null) as List<Object?>?;
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList = await pigeonVar_channel.send(null) as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -673,14 +640,12 @@ class InAppPurchaseApi {
   Future<String> getCountryCode() async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.in_app_purchase_tizen.InAppPurchaseApi.getCountryCode$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel =
-        BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_channel.send(null) as List<Object?>?;
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final List<Object?>? pigeonVar_replyList = await pigeonVar_channel.send(null) as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {

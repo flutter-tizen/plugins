@@ -21,7 +21,7 @@ class AuthorizationException implements Exception {
 
   @override
   String toString() {
-    String errorString = 'Authorization error ($error)';
+    var errorString = 'Authorization error ($error)';
     if (description != null) {
       errorString = '$errorString: $description';
     }

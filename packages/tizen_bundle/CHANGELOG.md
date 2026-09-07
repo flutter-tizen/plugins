@@ -1,3 +1,8 @@
+## NEXT
+
+* Omit obvious local variable types.
+* Reformat with a line length of 100.
+
 ## 0.1.5
 
 * Fix `operator []` and `remove()` to not throw on non-String keys.

@@ -37,11 +37,9 @@ class PolylinesController extends GeometryController {
       return;
     }
 
-    final util.GPolylineOptions polylineOptions = _polylineOptionsFromPolyline(
-      polyline,
-    );
-    final util.GPolyline gPolyline = util.GPolyline(_bridge, polylineOptions);
-    final PolylineController controller = PolylineController(
+    final util.GPolylineOptions polylineOptions = _polylineOptionsFromPolyline(polyline);
+    final gPolyline = util.GPolyline(_bridge, polylineOptions);
+    final controller = PolylineController(
       polyline: gPolyline,
       consumeTapEvents: polyline.consumeTapEvents,
       onTap: () {
@@ -59,8 +57,7 @@ class PolylinesController extends GeometryController {
   }
 
   void _changePolyline(Polyline polyline) {
-    final PolylineController? polylineController =
-        _polylineIdToController[polyline.polylineId];
+    final PolylineController? polylineController = _polylineIdToController[polyline.polylineId];
     polylineController?.update(_polylineOptionsFromPolyline(polyline));
   }
 
@@ -70,8 +67,7 @@ class PolylinesController extends GeometryController {
   }
 
   void _removePolyline(PolylineId polylineId) {
-    final PolylineController? polylineController =
-        _polylineIdToController[polylineId];
+    final PolylineController? polylineController = _polylineIdToController[polylineId];
     polylineController?.remove();
     _polylineIdToController.remove(polylineId);
   }

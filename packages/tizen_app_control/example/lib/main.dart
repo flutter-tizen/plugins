@@ -29,7 +29,7 @@ void serviceMain() {
   final StreamSubscription<ReceivedAppControl> appControlListener =
       AppControl.onAppControl.listen((ReceivedAppControl request) async {
     if (request.shouldReply) {
-      final AppControl reply = AppControl();
+      final reply = AppControl();
       await request.reply(reply, AppControlReplyResult.succeeded);
     }
   });
@@ -61,8 +61,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final GlobalKey<ScaffoldMessengerState> _messengerKey =
-      GlobalKey<ScaffoldMessengerState>();
+  final GlobalKey<ScaffoldMessengerState> _messengerKey = GlobalKey<ScaffoldMessengerState>();
   LocalPort? _localPort;
   int _messagesCount = 0;
   bool _isServiceStarted = false;
@@ -90,8 +89,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _launchYoutube() async {
-    const String videoId = 'N7J4hdrvsZA';
-    final AppControl request = AppControl(
+    const videoId = 'N7J4hdrvsZA';
+    final request = AppControl(
       appId: 'com.samsung.tv.cobalt-yt',
       operation: 'http://tizen.org/appcontrol/operation/default',
       extraData: <String, dynamic>{
@@ -103,7 +102,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _sendSms() async {
-    final AppControl request = AppControl(
+    final request = AppControl(
       operation: 'http://tizen.org/appcontrol/operation/share_text',
       uri: 'sms:',
       launchMode: LaunchMode.group,
@@ -122,7 +121,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _pickImage() async {
-    final AppControl request = AppControl(
+    final request = AppControl(
       operation: 'http://tizen.org/appcontrol/operation/pick',
       mime: 'image/*',
       launchMode: LaunchMode.group,
@@ -140,14 +139,12 @@ class _MyAppState extends State<MyApp> {
         AppControl reply,
         AppControlReplyResult result,
       ) {
-        const String kAppControlDataSelected =
-            'http://tizen.org/appcontrol/data/selected';
+        const kAppControlDataSelected = 'http://tizen.org/appcontrol/data/selected';
         String? imagePath;
         if (result == AppControlReplyResult.succeeded &&
             reply.extraData.containsKey(kAppControlDataSelected)) {
           final List<String> imagePaths =
-              (reply.extraData[kAppControlDataSelected] as List<Object?>)
-                  .cast<String>();
+              (reply.extraData[kAppControlDataSelected] as List<Object?>).cast<String>();
           imagePath = imagePaths[0];
         }
         _messengerKey.currentState!.showSnackBar(
@@ -158,7 +155,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _launchService() async {
-    final AppControl request = AppControl(appId: _kServiceAppId);
+    final request = AppControl(appId: _kServiceAppId);
     await request.sendLaunchRequest(
       replyCallback: (
         AppControl request,
@@ -179,7 +176,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _terminateService() async {
-    final AppRunningContext context = AppRunningContext(appId: _kServiceAppId);
+    final context = AppRunningContext(appId: _kServiceAppId);
     context.terminate(background: true);
     setState(() {
       _isServiceStarted = false;

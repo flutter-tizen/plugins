@@ -27,15 +27,13 @@ class _MyAppState extends State<MyApp> {
   Timer? _windowTimer;
 
   void _activateWindow() {
-    final AppLifecycleState currentLifecycleState =
-        WidgetsBinding.instance.lifecycleState!;
+    final AppLifecycleState currentLifecycleState = WidgetsBinding.instance.lifecycleState!;
     if (currentLifecycleState != AppLifecycleState.resumed) {
       _windowTimer?.cancel();
       _windowTimer = Timer.periodic(const Duration(milliseconds: 500), (
         Timer timer,
       ) {
-        final AppLifecycleState? currentState =
-            WidgetsBinding.instance.lifecycleState;
+        final AppLifecycleState? currentState = WidgetsBinding.instance.lifecycleState;
         if (currentState == AppLifecycleState.resumed) {
           timer.cancel();
           _windowTimer = null;
@@ -47,8 +45,7 @@ class _MyAppState extends State<MyApp> {
         }
       });
     } else {
-      debugPrint(
-          'AppLifecycleState is resumed, no need to start periodic calls');
+      debugPrint('AppLifecycleState is resumed, no need to start periodic calls');
     }
   }
 
@@ -127,8 +124,7 @@ class _MyAppState extends State<MyApp> {
               const SizedBox(height: 10),
               ElevatedButton(
                 onPressed: _lowerWindowAndActivateWindow,
-                child: const Text(
-                    'Call lower window and call activate window 3 seconds later.'),
+                child: const Text('Call lower window and call activate window 3 seconds later.'),
               ),
               const SizedBox(height: 10),
               const Text(
@@ -180,8 +176,7 @@ class _MyAppState extends State<MyApp> {
                         height: 16,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
                     : const Text('Get Window Geometry'),

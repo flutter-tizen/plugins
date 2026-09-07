@@ -11,8 +11,7 @@ MessagePortManager _manager = MessagePortManager();
 /// Called when a message is received on message port.
 ///
 /// This is used by [LocalPort.register].
-typedef OnMessageReceived = void Function(dynamic message,
-    [RemotePort? remotePort]);
+typedef OnMessageReceived = void Function(dynamic message, [RemotePort? remotePort]);
 
 /// Local message port for receiving messages.
 class LocalPort {
@@ -52,9 +51,9 @@ class LocalPort {
         final Map<dynamic, dynamic> map = event;
         final dynamic message = map['message'];
         if (map.containsKey('remotePort')) {
-          final String remoteAppId = map['remoteAppId'] as String;
-          final String remotePort = map['remotePort'] as String;
-          final bool trusted = map['trusted'] as bool;
+          final remoteAppId = map['remoteAppId'] as String;
+          final remotePort = map['remotePort'] as String;
+          final trusted = map['trusted'] as bool;
           onMessage(message, RemotePort._(remoteAppId, remotePort, trusted));
         } else {
           onMessage(message);

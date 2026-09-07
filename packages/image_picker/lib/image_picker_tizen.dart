@@ -143,8 +143,7 @@ class ImagePickerTizen extends CameraDelegatingImagePickerPlatform {
       throw ArgumentError.value(maxHeight, 'maxHeight', 'cannot be negative');
     }
 
-    return _channel
-        .invokeMethod<List<dynamic>?>('pickMultiImage', <String, dynamic>{
+    return _channel.invokeMethod<List<dynamic>?>('pickMultiImage', <String, dynamic>{
       'maxWidth': maxWidth,
       'maxHeight': maxHeight,
       'imageQuality': imageQuality,
@@ -156,18 +155,16 @@ class ImagePickerTizen extends CameraDelegatingImagePickerPlatform {
   Future<List<XFile>> getMedia({required MediaOptions options}) async {
     final ImageOptions imageOptions = options.imageOptions;
 
-    final Map<String, dynamic> args = <String, dynamic>{
+    final args = <String, dynamic>{
       'maxImageWidth': imageOptions.maxWidth,
       'maxImageHeight': imageOptions.maxHeight,
       'imageQuality': imageOptions.imageQuality,
       'allowMultiple': options.allowMultiple,
     };
 
-    final List<XFile>? paths =
-        await _channel.invokeMethod<List<dynamic>?>('pickMedia', args).then(
-              (List<dynamic>? paths) =>
-                  paths?.map((dynamic path) => XFile(path as String)).toList(),
-            );
+    final List<XFile>? paths = await _channel.invokeMethod<List<dynamic>?>('pickMedia', args).then(
+          (List<dynamic>? paths) => paths?.map((dynamic path) => XFile(path as String)).toList(),
+        );
 
     return paths ?? <XFile>[];
   }

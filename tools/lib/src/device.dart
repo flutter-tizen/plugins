@@ -25,8 +25,8 @@ class Device {
     this.profile, {
     required TizenSdk tizenSdk,
     ProcessRunner processRunner = const ProcessRunner(),
-  }) : _tizenSdk = tizenSdk,
-       _processRunner = processRunner;
+  })  : _tizenSdk = tizenSdk,
+        _processRunner = processRunner;
 
   /// Creates a new physical Tizen device reference.
   ///
@@ -37,7 +37,7 @@ class Device {
     required TizenSdk tizenSdk,
     ProcessRunner processRunner = const ProcessRunner(),
   }) {
-    final Device device = Device._(
+    final device = Device._(
       name,
       profile,
       tizenSdk: tizenSdk,
@@ -99,7 +99,7 @@ class Device {
 
   String? _findSerial() {
     final List<SdbDeviceInfo> deviceInfos = _tizenSdk.sdbDevices();
-    for (final SdbDeviceInfo deviceInfo in deviceInfos) {
+    for (final deviceInfo in deviceInfos) {
       if (deviceInfo.name == name) {
         return deviceInfo.serial;
       }
@@ -130,10 +130,9 @@ class Device {
       workingDirectory: workingDir,
     );
 
-    bool timedOut = false;
-    final Stream<String> streamLines = process.stdout
-        .transform(const Utf8Decoder())
-        .transform(const LineSplitter());
+    var timedOut = false;
+    final Stream<String> streamLines =
+        process.stdout.transform(const Utf8Decoder()).transform(const LineSplitter());
 
     final Future<int> timedExitCode = process.exitCode.timeout(
       timeout,
@@ -143,8 +142,8 @@ class Device {
       },
     );
 
-    String lastLine = '';
-    final Completer<int> completer = Completer<int>();
+    var lastLine = '';
+    final completer = Completer<int>();
     streamLines.listen((String line) {
       lastLine = line;
       print(line);
@@ -155,19 +154,16 @@ class Device {
 
     String? error;
     if (timedOut) {
-      error =
-          'Timeout expired. The test may need more time to finish. '
+      error = 'Timeout expired. The test may need more time to finish. '
           'If you expect the test to finish before timeout, check if the tests '
           'require device screen to be awake or if they require manually '
           'clicking the UI button for permissions.';
     } else if (lastLine.contains('No tests ran')) {
-      error =
-          'Missing integration tests (use --exclude if this is intentional).';
+      error = 'Missing integration tests (use --exclude if this is intentional).';
     } else if (lastLine.contains('No devices found')) {
       error = 'Device was disconnected during test.';
     } else if (lastLine.contains('failed')) {
-      error =
-          'flutter-tizen test integration_test failed, see the output '
+      error = 'flutter-tizen test integration_test failed, see the output '
           'above for details.';
     } else if (!lastLine.contains('passed')) {
       error = 'Could not parse the log output.';
@@ -187,7 +183,7 @@ class EmulatorDevice extends Device {
     required TizenSdk tizenSdk,
     ProcessRunner processRunner = const ProcessRunner(),
   }) {
-    final EmulatorDevice emulatorDevice = EmulatorDevice._(
+    final emulatorDevice = EmulatorDevice._(
       name,
       profile,
       tizenSdk: tizenSdk,
@@ -229,10 +225,9 @@ class EmulatorDevice extends Device {
       throw ToolExit(result.exitCode);
     }
 
-    final List<String> emulatorNames =
-        LineSplitter.split(
-          result.stdout as String,
-        ).map((String name) => name.trim()).toList();
+    final List<String> emulatorNames = LineSplitter.split(
+      result.stdout as String,
+    ).map((String name) => name.trim()).toList();
     return emulatorNames.contains(name);
   }
 
@@ -248,13 +243,16 @@ class EmulatorDevice extends Device {
         platform = '$profile-x86';
         break;
     }
-    await _processRunner.runAndStream(_tizenSdk.emCli.path, <String>[
-      'create',
-      '-n',
-      name,
-      '-p',
-      platform,
-    ], exitOnError: true);
+    await _processRunner.runAndStream(
+        _tizenSdk.emCli.path,
+        <String>[
+          'create',
+          '-n',
+          name,
+          '-p',
+          platform,
+        ],
+        exitOnError: true);
   }
 
   /// Grants all privacy-related permissions to apps by default.
@@ -265,7 +263,7 @@ class EmulatorDevice extends Device {
       return false;
     }
     final Map<String, String> capability = _tizenSdk.sdbCapability(serial!);
-    final bool rooted = capability['rootonoff_support'] == 'enabled';
+    final rooted = capability['rootonoff_support'] == 'enabled';
     if (!rooted) {
       return false;
     }
@@ -286,7 +284,7 @@ class EmulatorDevice extends Device {
       'touch',
       '/opt/share/askuser_disable',
     ]);
-    final String stdout = result.stdout as String;
+    final stdout = result.stdout as String;
     if (result.exitCode != 0 || stdout.trim().isNotEmpty) {
       print('Error: running sdb shell command failed: $stdout');
       return false;
@@ -316,15 +314,18 @@ class EmulatorDevice extends Device {
       print('Device $name ($profile) is already launched.');
       return;
     }
-    await _processRunner.runAndStream(_tizenSdk.emCli.path, <String>[
-      'launch',
-      '-n',
-      name,
-    ], exitOnError: true);
+    await _processRunner.runAndStream(
+        _tizenSdk.emCli.path,
+        <String>[
+          'launch',
+          '-n',
+          name,
+        ],
+        exitOnError: true);
 
     await _poll(() {
       final List<SdbDeviceInfo> deviceInfos = _tizenSdk.sdbDevices();
-      for (final SdbDeviceInfo deviceInfo in deviceInfos) {
+      for (final deviceInfo in deviceInfos) {
         if (deviceInfo.name == name && deviceInfo.status == 'device') {
           return true;
         }
@@ -352,7 +353,7 @@ class EmulatorDevice extends Device {
 
     await _poll(() {
       final List<SdbDeviceInfo> deviceInfos = _tizenSdk.sdbDevices();
-      for (final SdbDeviceInfo deviceInfo in deviceInfos) {
+      for (final deviceInfo in deviceInfos) {
         if (deviceInfo.name == name) {
           return false;
         }
@@ -368,7 +369,7 @@ class EmulatorDevice extends Device {
     Duration interval = const Duration(seconds: 1),
     Duration timeout = const Duration(minutes: 5),
   }) async {
-    final DateTime start = DateTime.now();
+    final start = DateTime.now();
     while (DateTime.now().difference(start) <= timeout) {
       if (await function()) {
         return;
@@ -383,8 +384,8 @@ class EmulatorDevice extends Device {
     Directory workingDir,
     Duration timeout,
   ) async {
-    bool autoLaunched = false;
-    bool autoCreated = false;
+    var autoLaunched = false;
+    var autoCreated = false;
     try {
       if (!exists) {
         autoCreated = true;

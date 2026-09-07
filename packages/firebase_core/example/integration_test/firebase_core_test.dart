@@ -18,7 +18,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('firebase_core', () {
-    const String testAppName = '[DEFAULT]';
+    const testAppName = '[DEFAULT]';
 
     setUpAll(() async {
       await Firebase.initializeApp(

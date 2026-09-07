@@ -29,43 +29,27 @@ Map<String, dynamic> _mapOptionsFromConfiguration(MapConfiguration config) {
   final EdgeInsets? padding = config.padding;
   return <String, dynamic>{
     if (config.compassEnabled != null) 'compassEnabled': config.compassEnabled,
-    if (config.mapToolbarEnabled != null)
-      'mapToolbarEnabled': config.mapToolbarEnabled,
+    if (config.mapToolbarEnabled != null) 'mapToolbarEnabled': config.mapToolbarEnabled,
     if (config.cameraTargetBounds != null)
       'cameraTargetBounds': config.cameraTargetBounds!.toJson(),
     if (config.mapType != null) 'mapType': config.mapType!.index,
     if (config.minMaxZoomPreference != null)
       'minMaxZoomPreference': config.minMaxZoomPreference!.toJson(),
-    if (config.rotateGesturesEnabled != null)
-      'rotateGesturesEnabled': config.rotateGesturesEnabled,
-    if (config.scrollGesturesEnabled != null)
-      'scrollGesturesEnabled': config.scrollGesturesEnabled,
-    if (config.tiltGesturesEnabled != null)
-      'tiltGesturesEnabled': config.tiltGesturesEnabled,
-    if (config.zoomControlsEnabled != null)
-      'zoomControlsEnabled': config.zoomControlsEnabled,
-    if (config.zoomGesturesEnabled != null)
-      'zoomGesturesEnabled': config.zoomGesturesEnabled,
-    if (config.liteModeEnabled != null)
-      'liteModeEnabled': config.liteModeEnabled,
-    if (config.trackCameraPosition != null)
-      'trackCameraPosition': config.trackCameraPosition,
-    if (config.myLocationEnabled != null)
-      'myLocationEnabled': config.myLocationEnabled,
+    if (config.rotateGesturesEnabled != null) 'rotateGesturesEnabled': config.rotateGesturesEnabled,
+    if (config.scrollGesturesEnabled != null) 'scrollGesturesEnabled': config.scrollGesturesEnabled,
+    if (config.tiltGesturesEnabled != null) 'tiltGesturesEnabled': config.tiltGesturesEnabled,
+    if (config.zoomControlsEnabled != null) 'zoomControlsEnabled': config.zoomControlsEnabled,
+    if (config.zoomGesturesEnabled != null) 'zoomGesturesEnabled': config.zoomGesturesEnabled,
+    if (config.liteModeEnabled != null) 'liteModeEnabled': config.liteModeEnabled,
+    if (config.trackCameraPosition != null) 'trackCameraPosition': config.trackCameraPosition,
+    if (config.myLocationEnabled != null) 'myLocationEnabled': config.myLocationEnabled,
     if (config.myLocationButtonEnabled != null)
       'myLocationButtonEnabled': config.myLocationButtonEnabled,
     if (padding != null)
-      'padding': <double>[
-        padding.top,
-        padding.left,
-        padding.bottom,
-        padding.right,
-      ],
-    if (config.indoorViewEnabled != null)
-      'indoorEnabled': config.indoorViewEnabled,
+      'padding': <double>[padding.top, padding.left, padding.bottom, padding.right],
+    if (config.indoorViewEnabled != null) 'indoorEnabled': config.indoorViewEnabled,
     if (config.trafficEnabled != null) 'trafficEnabled': config.trafficEnabled,
-    if (config.buildingsEnabled != null)
-      'buildingsEnabled': config.buildingsEnabled,
+    if (config.buildingsEnabled != null) 'buildingsEnabled': config.buildingsEnabled,
     if (config.mapId != null) 'mapId': config.mapId,
     if (config.style != null) 'style': config.style,
     if (config.colorScheme != null) 'colorScheme': config.colorScheme!.index,
@@ -77,11 +61,11 @@ String? _getCameraBounds(dynamic option) {
     return null;
   }
 
-  final List<Object> bound = option[0]! as List<Object>;
+  final bound = option[0]! as List<Object>;
   final LatLng? southwest = LatLng.fromJson(bound[0]);
   final LatLng? northeast = LatLng.fromJson(bound[1]);
 
-  final String restrictedBound =
+  final restrictedBound =
       '{south:${southwest?.latitude}, west:${southwest?.longitude}, north:${northeast?.latitude}, east:${northeast?.longitude}}';
 
   return restrictedBound;
@@ -107,8 +91,7 @@ String? _getCameraBounds(dynamic option) {
 String _rawOptionsToString(Map<String, dynamic> rawOptions) {
   // These don't have any rawOptions entry, but they seem to be off in the
   // native maps.
-  String options =
-      'mapTypeControl: false, fullscreenControl: false, streetViewControl: false';
+  var options = 'mapTypeControl: false, fullscreenControl: false, streetViewControl: false';
 
   if (_mapTypeToMapTypeId.containsKey(rawOptions['mapType'])) {
     options += ", mapTypeId: '${_mapTypeToMapTypeId[rawOptions['mapType']]}'";
@@ -132,15 +115,13 @@ String _rawOptionsToString(Map<String, dynamic> rawOptions) {
     options += ', zoomControl: ${rawOptions['zoomControlsEnabled']}';
   }
 
-  if (rawOptions['style'] != null &&
-      (rawOptions['style'] as String).isNotEmpty) {
+  if (rawOptions['style'] != null && (rawOptions['style'] as String).isNotEmpty) {
     options += ', styles: ${rawOptions['style']}';
   } else {
     options += ', styles: null';
   }
 
-  if (rawOptions['scrollGesturesEnabled'] == false ||
-      rawOptions['zoomGesturesEnabled'] == false) {
+  if (rawOptions['scrollGesturesEnabled'] == false || rawOptions['zoomGesturesEnabled'] == false) {
     options += ", gestureHandling: 'none'";
   } else {
     options += ", gestureHandling: 'auto'";
@@ -189,11 +170,7 @@ bool _isTrafficLayerEnabled(Map<String, dynamic> rawOptions) {
 }
 
 // The keys we'd expect to see in a serialized MapTypeStyle JSON object.
-final Set<String> _mapStyleKeys = <String>{
-  'elementType',
-  'featureType',
-  'stylers',
-};
+final Set<String> _mapStyleKeys = <String>{'elementType', 'featureType', 'stylers'};
 
 // Checks if the passed in Map contains some of the _mapStyleKeys.
 bool _isJsonMapStyle(Map<String, Object?> value) {
@@ -219,8 +196,7 @@ String _mapStyles(String? mapStyleJson) {
               .decode(
                 mapStyleJson,
                 reviver: (Object? key, Object? value) {
-                  if (value is Map &&
-                      _isJsonMapStyle(value as Map<String, Object?>)) {
+                  if (value is Map && _isJsonMapStyle(value as Map<String, Object?>)) {
                     return MapTypeStyle()
                       ..elementType = value['elementType'] as String?
                       ..featureType = value['featureType'] as String?
@@ -279,15 +255,11 @@ LatLng _convertToLatLng(String value) {
 ScreenCoordinate _convertToPoint(String value) {
   try {
     final dynamic latlng = json.decode(value);
-    int x = 0, y = 0;
+    var x = 0, y = 0;
 
     if (latlng is Map<String, dynamic>) {
-      x = latlng['x'] is int
-          ? latlng['x'] as int
-          : (latlng['x'] as double).toInt();
-      y = latlng['y'] is int
-          ? latlng['y'] as int
-          : (latlng['y'] as double).toInt();
+      x = latlng['x'] is int ? latlng['x'] as int : (latlng['x'] as double).toInt();
+      y = latlng['y'] is int ? latlng['y'] as int : (latlng['y'] as double).toInt();
 
       return ScreenCoordinate(x: x, y: y);
     }
@@ -310,7 +282,7 @@ util.GInfoWindowOptions? _infoWindowOptionsFromMarker(Marker marker) {
   // Add an outer wrapper to the contents of the infowindow. The content is
   // JSON-encoded by its consumers (GInfoWindowOptions.toString and
   // GInfoWindow._setContent), so it must be raw, unquoted HTML here.
-  final StringBuffer buffer = StringBuffer();
+  final buffer = StringBuffer();
   buffer.write('<div id="marker-${marker.markerId.value}-infowindow">');
   if (markerTitle.isNotEmpty) {
     buffer.write('<h3 class="infowindow-title">');
@@ -333,44 +305,30 @@ util.GInfoWindowOptions? _infoWindowOptionsFromMarker(Marker marker) {
 // Computes the options for a new [GMarker] from an incoming set of options
 // [marker], and the existing marker registered with the map: [currentMarker].
 // Preserves the position from the [currentMarker], if set.
-util.GMarkerOptions _markerOptionsFromMarker(
-  Marker marker,
-  util.GMarker? currentMarker,
-) {
-  final List<Object?> iconConfig = marker.icon.toJson() as List<Object?>;
+util.GMarkerOptions _markerOptionsFromMarker(Marker marker, util.GMarker? currentMarker) {
+  final iconConfig = marker.icon.toJson() as List<Object?>;
   util.GIcon? icon;
 
   if (iconConfig.isNotEmpty) {
     if (iconConfig[0] == 'asset') {
       assert(iconConfig.length >= 2);
-      final Map<String, Object?> assetConfig =
-          iconConfig[1]! as Map<String, Object?>;
+      final assetConfig = iconConfig[1]! as Map<String, Object?>;
       icon = util.GIcon()..url = '../${assetConfig['assetName']}';
       if (assetConfig['width'] != null || assetConfig['height'] != null) {
         icon.size = util.GSize(
-          assetConfig['width'] != null
-              ? double.parse(assetConfig['width']!.toString())
-              : null,
-          assetConfig['height'] != null
-              ? double.parse(assetConfig['height']!.toString())
-              : null,
+          assetConfig['width'] != null ? double.parse(assetConfig['width']!.toString()) : null,
+          assetConfig['height'] != null ? double.parse(assetConfig['height']!.toString()) : null,
         );
       }
     } else if (iconConfig[0] == 'bytes') {
       assert(iconConfig.length >= 2);
-      final Map<String, Object?> assetConfig =
-          iconConfig[1]! as Map<String, Object?>;
+      final assetConfig = iconConfig[1]! as Map<String, Object?>;
       icon = util.GIcon()
-        ..url =
-            'data:image/png;base64,${base64Encode(assetConfig['byteData']! as List<int>)}';
+        ..url = 'data:image/png;base64,${base64Encode(assetConfig['byteData']! as List<int>)}';
       if (assetConfig['width'] != null || assetConfig['height'] != null) {
         icon.size = util.GSize(
-          assetConfig['width'] != null
-              ? double.parse(assetConfig['width']!.toString())
-              : null,
-          assetConfig['height'] != null
-              ? double.parse(assetConfig['height']!.toString())
-              : null,
+          assetConfig['width'] != null ? double.parse(assetConfig['width']!.toString()) : null,
+          assetConfig['height'] != null ? double.parse(assetConfig['height']!.toString()) : null,
         );
       }
     }
@@ -421,10 +379,10 @@ util.GPolylineOptions _polylineOptionsFromPolyline(Polyline polyline) {
 util.GPolygonOptions _polygonOptionsFromPolygon(Polygon polygon) {
   final List<LatLng> path = polygon.points;
   final bool polygonDirection = _isPolygonClockwise(path);
-  final List<List<LatLng>> paths = <List<LatLng>>[path];
-  int holeIndex = 0;
+  final paths = <List<LatLng>>[path];
+  var holeIndex = 0;
 
-  for (int i = 0; i < polygon.holes.length; i++) {
+  for (var i = 0; i < polygon.holes.length; i++) {
     List<LatLng> holePath = polygon.holes[i];
     if (_isPolygonClockwise(holePath) == polygonDirection) {
       holePath = holePath.reversed.toList();
@@ -462,8 +420,8 @@ util.GPolygonOptions _polygonOptionsFromPolygon(Polygon polygon) {
 /// the `path` is a transformed version of [Polygon.points] or each of the
 /// [Polygon.holes], guaranteeing that `lat` and `lng` can be accessed with `!`.
 bool _isPolygonClockwise(List<LatLng> path) {
-  double direction = 0.0;
-  for (int i = 0; i < path.length; i++) {
+  var direction = 0.0;
+  for (var i = 0; i < path.length; i++) {
     direction =
         direction +
         ((path[(i + 1) % path.length].latitude - path[i].latitude) *
@@ -485,9 +443,7 @@ util.GCircleOptions _circleOptionsFromCircle(Circle circle) {
     ..zIndex = circle.zIndex;
 }
 
-util.GGroundOverlayOptions? _groundOverlayOptionsFromGroundOverlay(
-  GroundOverlay groundOverlay,
-) {
+util.GGroundOverlayOptions? _groundOverlayOptionsFromGroundOverlay(GroundOverlay groundOverlay) {
   // The JS Maps GroundOverlay only supports bounds-based positioning. Skip
   // position-only overlays — the platform interface allows the field but the
   // JS API has no equivalent.
@@ -521,19 +477,17 @@ util.GGroundOverlayOptions? _groundOverlayOptionsFromGroundOverlay(
 }
 
 String? _imageUrlFromMapBitmap(MapBitmap bitmap) {
-  final List<Object?> iconConfig = bitmap.toJson() as List<Object?>;
+  final iconConfig = bitmap.toJson() as List<Object?>;
   if (iconConfig.isEmpty) {
     return null;
   }
   if (iconConfig[0] == 'asset' && iconConfig.length >= 2) {
-    final Map<String, Object?> assetConfig =
-        iconConfig[1]! as Map<String, Object?>;
+    final assetConfig = iconConfig[1]! as Map<String, Object?>;
     return '../${assetConfig['assetName']}';
   }
   if (iconConfig[0] == 'bytes' && iconConfig.length >= 2) {
-    final Map<String, Object?> assetConfig =
-        iconConfig[1]! as Map<String, Object?>;
-    final List<int> bytes = assetConfig['byteData']! as List<int>;
+    final assetConfig = iconConfig[1]! as Map<String, Object?>;
+    final bytes = assetConfig['byteData']! as List<int>;
     return 'data:image/png;base64,${base64Encode(bytes)}';
   }
   return null;

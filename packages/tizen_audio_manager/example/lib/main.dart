@@ -41,16 +41,15 @@ class _VolumeControlScreenState extends State<VolumeControlScreen> {
   Timer? _timer;
   VolumeChangedEvent? _volumeChangedEvent;
   StreamSubscription<VolumeChangedEvent>? _subscription;
-  final List<DropdownMenuItem<AudioVolumeType>> _dropdownButtonItems =
-      AudioVolumeType.values
-          .where((AudioVolumeType e) => e != AudioVolumeType.none)
-          .map(
-            (AudioVolumeType e) => DropdownMenuItem<AudioVolumeType>(
-              value: e,
-              child: Text(e.name),
-            ),
-          )
-          .toList();
+  final List<DropdownMenuItem<AudioVolumeType>> _dropdownButtonItems = AudioVolumeType.values
+      .where((AudioVolumeType e) => e != AudioVolumeType.none)
+      .map(
+        (AudioVolumeType e) => DropdownMenuItem<AudioVolumeType>(
+          value: e,
+          child: Text(e.name),
+        ),
+      )
+      .toList();
 
   @override
   void initState() {
@@ -58,8 +57,7 @@ class _VolumeControlScreenState extends State<VolumeControlScreen> {
     _onAudioTypeChanged(_selectedType);
 
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) async {
-      final AudioVolumeType type =
-          await AudioManager.volumeController.currentPlaybackType;
+      final AudioVolumeType type = await AudioManager.volumeController.currentPlaybackType;
 
       if (type != _currentPlaybackType) {
         setState(() {

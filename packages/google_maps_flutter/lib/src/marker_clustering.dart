@@ -21,8 +21,7 @@ class ClusterManagersController extends GeometryController {
   }) : _streamController = stream,
        _bridge = bridge,
        _idToClusterManagerId = <String, ClusterManagerId>{},
-       _clusterManagerIdToMarkerClusterer =
-           <ClusterManagerId, util.GMarkerClusterer>{};
+       _clusterManagerIdToMarkerClusterer = <ClusterManagerId, util.GMarkerClusterer>{};
 
   // The stream over which cluster managers broadcast their events
   final StreamController<MapEvent<Object?>> _streamController;
@@ -30,13 +29,11 @@ class ClusterManagersController extends GeometryController {
   final GoogleMapsJsBridge _bridge;
 
   // A cache of [MarkerClusterer]s indexed by their [ClusterManagerId].
-  final Map<ClusterManagerId, util.GMarkerClusterer>
-  _clusterManagerIdToMarkerClusterer;
+  final Map<ClusterManagerId, util.GMarkerClusterer> _clusterManagerIdToMarkerClusterer;
   final Map<String, ClusterManagerId> _idToClusterManagerId;
 
   /// A cache of [ClusterManagerId]s indexed by [GMarkerClusterer.id].
-  Map<String, ClusterManagerId> get idToClusterManagerId =>
-      _idToClusterManagerId;
+  Map<String, ClusterManagerId> get idToClusterManagerId => _idToClusterManagerId;
 
   /// Adds a set of [ClusterManager] objects to the cache.
   void addClusterManagers(Set<ClusterManager> clusterManagersToAdd) {
@@ -44,29 +41,18 @@ class ClusterManagersController extends GeometryController {
   }
 
   void _addClusterManager(ClusterManager clusterManager) {
-    final String onClusterClickHandler =
+    final onClusterClickHandler =
         '(event, cluster, map) => ClusterClick.postMessage(makeClusterEvent("${clusterManager.clusterManagerId.value}", event, cluster))';
 
-    final util.GMarkerClustererOptions options = util.GMarkerClustererOptions(
-      onClusterClick: onClusterClickHandler,
-    );
+    final options = util.GMarkerClustererOptions(onClusterClick: onClusterClickHandler);
 
-    final util.GMarkerClusterer markerClusterer = util.GMarkerClusterer(
-      _bridge,
-      options,
-    );
+    final markerClusterer = util.GMarkerClusterer(_bridge, options);
 
-    _clusterManagerIdToMarkerClusterer[clusterManager.clusterManagerId] =
-        markerClusterer;
-    _idToClusterManagerId[clusterManager.clusterManagerId.value] =
-        clusterManager.clusterManagerId;
+    _clusterManagerIdToMarkerClusterer[clusterManager.clusterManagerId] = markerClusterer;
+    _idToClusterManagerId[clusterManager.clusterManagerId.value] = clusterManager.clusterManagerId;
     // The platform interface requires this to stay synchronous, so the JS
     // call is fire-and-forget; only its errors need surfacing.
-    unawaited(
-      markerClusterer.onAdd().catchError(
-        (Object e) => debugPrint('JavaScript Error: $e'),
-      ),
-    );
+    unawaited(markerClusterer.onAdd().catchError((Object e) => debugPrint('JavaScript Error: $e')));
   }
 
   /// Removes a set of [ClusterManagerId]s from the cache.
@@ -84,9 +70,7 @@ class ClusterManagersController extends GeometryController {
             .catchError((Object e) => debugPrint('JavaScript Error: $e')),
       );
       unawaited(
-        markerClusterer.onRemove().catchError(
-          (Object e) => debugPrint('JavaScript Error: $e'),
-        ),
+        markerClusterer.onRemove().catchError((Object e) => debugPrint('JavaScript Error: $e')),
       );
     }
     _clusterManagerIdToMarkerClusterer.remove(clusterManagerId);
@@ -104,9 +88,7 @@ class ClusterManagersController extends GeometryController {
             .catchError((Object e) => debugPrint('JavaScript Error: $e')),
       );
       unawaited(
-        markerClusterer.render().catchError(
-          (Object e) => debugPrint('JavaScript Error: $e'),
-        ),
+        markerClusterer.render().catchError((Object e) => debugPrint('JavaScript Error: $e')),
       );
     }
   }
@@ -125,9 +107,7 @@ class ClusterManagersController extends GeometryController {
           }),
         );
         unawaited(
-          markerClusterer.render().catchError(
-            (Object e) => debugPrint('JavaScript Error: $e'),
-          ),
+          markerClusterer.render().catchError((Object e) => debugPrint('JavaScript Error: $e')),
         );
       }
     }
@@ -140,10 +120,7 @@ class ClusterManagersController extends GeometryController {
         _clusterManagerIdToMarkerClusterer[clusterManagerId];
     if (markerClusterer != null) {
       return (await markerClusterer.clusters)
-          .map(
-            (Map<String, dynamic> cluster) =>
-                _convertCluster(clusterManagerId, cluster),
-          )
+          .map((Map<String, dynamic> cluster) => _convertCluster(clusterManagerId, cluster))
           .toList();
     }
     return <Cluster>[];
@@ -155,12 +132,8 @@ class ClusterManagersController extends GeometryController {
     ClusterManagerId clusterManagerId,
     Map<String, dynamic> markerClustererCluster,
   ) {
-    if (markerClustererCluster['count'] as int > 0 &&
-        markerClustererCluster['bounds'] != null) {
-      final Cluster cluster = _convertCluster(
-        clusterManagerId,
-        markerClustererCluster,
-      );
+    if (markerClustererCluster['count'] as int > 0 && markerClustererCluster['bounds'] != null) {
+      final Cluster cluster = _convertCluster(clusterManagerId, markerClustererCluster);
       _streamController.add(ClusterTapEvent(mapId, cluster));
     }
   }
@@ -170,12 +143,12 @@ class ClusterManagersController extends GeometryController {
     ClusterManagerId clusterManagerId,
     Map<String, dynamic> markerClustererCluster,
   ) {
-    final LatLng position = LatLng(
+    final position = LatLng(
       (markerClustererCluster['position'] as dynamic)['lat'] as double,
       (markerClustererCluster['position'] as dynamic)['lng'] as double,
     );
 
-    final LatLngBounds bounds = LatLngBounds(
+    final bounds = LatLngBounds(
       southwest: LatLng(
         (markerClustererCluster['bounds'] as dynamic)['south'] as double,
         (markerClustererCluster['bounds'] as dynamic)['west'] as double,
@@ -186,18 +159,10 @@ class ClusterManagersController extends GeometryController {
       ),
     );
 
-    final List<MarkerId> markerIds =
-        (markerClustererCluster['markers']! as List<dynamic>)
-            .map<MarkerId>(
-              (dynamic markerId) => MarkerId((markerId as int).toString()),
-            )
-            .toList();
+    final List<MarkerId> markerIds = (markerClustererCluster['markers']! as List<dynamic>)
+        .map<MarkerId>((dynamic markerId) => MarkerId((markerId as int).toString()))
+        .toList();
 
-    return Cluster(
-      clusterManagerId,
-      markerIds,
-      position: position,
-      bounds: bounds,
-    );
+    return Cluster(clusterManagerId, markerIds, position: position, bounds: bounds);
   }
 }

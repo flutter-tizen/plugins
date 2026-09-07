@@ -14,12 +14,11 @@ void main() {
 class MyApp extends StatelessWidget {
   MyApp({super.key});
 
-  final TizenNotificationPlugin _tizenNotificationPlugin =
-      TizenNotificationPlugin();
+  final TizenNotificationPlugin _tizenNotificationPlugin = TizenNotificationPlugin();
   final int _notificationId = 1;
 
   Future<void> _showNotification() async {
-    final TizenNotificationDetails details = TizenNotificationDetails(
+    final details = TizenNotificationDetails(
       icons: NotificationIcons(icon: 'test.png'),
       sound: NotificationSound(type: SoundType.builtIn),
       vibration: NotificationVibration(type: VibrationType.builtIn),

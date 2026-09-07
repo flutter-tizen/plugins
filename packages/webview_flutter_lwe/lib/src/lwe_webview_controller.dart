@@ -19,9 +19,7 @@ const String kLweNavigationDelegateChannelName =
 /// An implementation of [PlatformWebViewController] using the Lightweight Web Engine.
 class LweWebViewController extends PlatformWebViewController {
   /// Constructs a [LweWebViewController].
-  LweWebViewController(super.params)
-    : _webview = LweWebView(),
-      super.implementation();
+  LweWebViewController(super.params) : _webview = LweWebView(), super.implementation();
 
   final LweWebView _webview;
   late LweNavigationDelegate _lweNavigationDelegate;
@@ -57,9 +55,7 @@ class LweWebViewController extends PlatformWebViewController {
   @override
   Future<void> loadRequest(LoadRequestParams params) {
     if (!params.uri.hasScheme) {
-      throw ArgumentError(
-        'LoadRequestParams#uri is required to have a scheme.',
-      );
+      throw ArgumentError('LoadRequestParams#uri is required to have a scheme.');
     }
 
     switch (params.method) {
@@ -135,13 +131,10 @@ class LweWebViewController extends PlatformWebViewController {
   }
 
   @override
-  Future<void> setBackgroundColor(Color color) =>
-      _webview.setBackgroundColor(color);
+  Future<void> setBackgroundColor(Color color) => _webview.setBackgroundColor(color);
 
   @override
-  Future<void> setPlatformNavigationDelegate(
-    covariant LweNavigationDelegate handler,
-  ) async {
+  Future<void> setPlatformNavigationDelegate(covariant LweNavigationDelegate handler) async {
     _lweNavigationDelegate = handler;
     _webview.hasNavigationDelegate = true;
     // If the view has already been created, the previous delegate's method
@@ -156,30 +149,26 @@ class LweWebViewController extends PlatformWebViewController {
   }
 
   @override
-  Future<void> addJavaScriptChannel(
-    JavaScriptChannelParams javaScriptChannelParams,
-  ) => _webview.addJavaScriptChannel(javaScriptChannelParams);
+  Future<void> addJavaScriptChannel(JavaScriptChannelParams javaScriptChannelParams) =>
+      _webview.addJavaScriptChannel(javaScriptChannelParams);
 
   @override
   Future<void> removeJavaScriptChannel(String javaScriptChannelName) =>
       _webview.removeJavaScriptChannel(javaScriptChannelName);
 
   @override
-  Future<void> runJavaScript(String javaScript) =>
-      _webview.runJavaScript(javaScript);
+  Future<void> runJavaScript(String javaScript) => _webview.runJavaScript(javaScript);
 
   @override
   Future<Object> runJavaScriptReturningResult(String javaScript) =>
       _webview.runJavaScriptReturningResult(javaScript);
 
   @override
-  Future<void> setUserAgent(String? userAgent) =>
-      _webview.setUserAgent(userAgent);
+  Future<void> setUserAgent(String? userAgent) => _webview.setUserAgent(userAgent);
 
   @override
   Future<void> setOnScrollPositionChange(
-    void Function(ScrollPositionChange scrollPositionChange)?
-    onScrollPositionChange,
+    void Function(ScrollPositionChange scrollPositionChange)? onScrollPositionChange,
   ) async {
     throw UnimplementedError(
       'This version of `LweWebViewController` currently has no '
@@ -214,8 +203,7 @@ class LweWebViewController extends PlatformWebViewController {
 
   @override
   Future<void> setOnJavaScriptAlertDialog(
-    Future<void> Function(JavaScriptAlertDialogRequest request)
-    onJavaScriptAlertDialog,
+    Future<void> Function(JavaScriptAlertDialogRequest request) onJavaScriptAlertDialog,
   ) async {
     throw UnimplementedError(
       'This version of `LweWebViewController` currently has no '
@@ -225,8 +213,7 @@ class LweWebViewController extends PlatformWebViewController {
 
   @override
   Future<void> setOnJavaScriptConfirmDialog(
-    Future<bool> Function(JavaScriptConfirmDialogRequest request)
-    onJavaScriptConfirmDialog,
+    Future<bool> Function(JavaScriptConfirmDialogRequest request) onJavaScriptConfirmDialog,
   ) async {
     throw UnimplementedError(
       'This version of `LweWebViewController` currently has no '
@@ -236,8 +223,7 @@ class LweWebViewController extends PlatformWebViewController {
 
   @override
   Future<void> setOnJavaScriptTextInputDialog(
-    Future<String> Function(JavaScriptTextInputDialogRequest request)
-    onJavaScriptTextInputDialog,
+    Future<String> Function(JavaScriptTextInputDialogRequest request) onJavaScriptTextInputDialog,
   ) async {
     throw UnimplementedError(
       'This version of `LweWebViewController` currently has no '
@@ -278,8 +264,7 @@ class LweWebViewWidget extends PlatformWebViewWidget {
       key: params.key,
       viewType: 'plugins.flutter.io/webview',
       onPlatformViewCreated: (int id) {
-        final LweWebViewController controller =
-            params.controller as LweWebViewController;
+        final controller = params.controller as LweWebViewController;
         controller.onCreate(id);
       },
       layoutDirection: params.layoutDirection,
@@ -381,9 +366,7 @@ class LweWebResourceError extends WebResourceError {
         return WebResourceErrorType.tooManyRequests;
     }
 
-    throw ArgumentError(
-      'Could not find a WebResourceErrorType for errorCode: $errorCode',
-    );
+    throw ArgumentError('Could not find a WebResourceErrorType for errorCode: $errorCode');
   }
 }
 
@@ -412,8 +395,8 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
       kLweNavigationDelegateChannelName + viewId.toString(),
     );
     _navigationDelegateChannel.setMethodCallHandler((MethodCall call) async {
-      final Map<String, Object?> arguments =
-          (call.arguments as Map<Object?, Object?>).cast<String, Object?>();
+      final Map<String, Object?> arguments = (call.arguments as Map<Object?, Object?>)
+          .cast<String, Object?>();
 
       switch (call.method) {
         case 'navigationRequest':
@@ -455,16 +438,11 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
           return null;
       }
 
-      throw MissingPluginException(
-        '${call.method} was invoked but has no handler',
-      );
+      throw MissingPluginException('${call.method} was invoked but has no handler');
     });
   }
 
-  Future<bool> _handleNavigation(
-    String url, {
-    required bool isForMainFrame,
-  }) async {
+  Future<bool> _handleNavigation(String url, {required bool isForMainFrame}) async {
     final NavigationRequestCallback? onNavigationRequest = _onNavigationRequest;
 
     if (onNavigationRequest == null) {
@@ -475,8 +453,7 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
       NavigationRequest(url: url, isMainFrame: isForMainFrame),
     );
 
-    if (returnValue is NavigationDecision &&
-        returnValue == NavigationDecision.navigate) {
+    if (returnValue is NavigationDecision && returnValue == NavigationDecision.navigate) {
       return true;
     } else if (returnValue is Future<NavigationDecision>) {
       return returnValue.then((NavigationDecision shouldLoadUrl) {
@@ -490,9 +467,7 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
   }
 
   @override
-  Future<void> setOnNavigationRequest(
-    NavigationRequestCallback onNavigationRequest,
-  ) async {
+  Future<void> setOnNavigationRequest(NavigationRequestCallback onNavigationRequest) async {
     _onNavigationRequest = onNavigationRequest;
   }
 
@@ -520,9 +495,7 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
   }
 
   @override
-  Future<void> setOnWebResourceError(
-    WebResourceErrorCallback onWebResourceError,
-  ) async {
+  Future<void> setOnWebResourceError(WebResourceErrorCallback onWebResourceError) async {
     _onWebResourceError = onWebResourceError;
   }
 
@@ -532,9 +505,7 @@ class LweNavigationDelegate extends PlatformNavigationDelegate {
   }
 
   @override
-  Future<void> setOnHttpAuthRequest(
-    HttpAuthRequestCallback onHttpAuthRequest,
-  ) async {
+  Future<void> setOnHttpAuthRequest(HttpAuthRequestCallback onHttpAuthRequest) async {
     throw UnimplementedError(
       'This version of `LweNavigationDelegate` currently has no '
       'implementation for `setOnHttpAuthRequest`',

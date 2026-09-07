@@ -87,22 +87,21 @@ abstract class StubBase {
       <String, Object>{'handle': _handle.address},
     );
     _streamSubscription = stream.listen((dynamic data) async {
-      final Map<String, dynamic> map =
-          (data as Map<dynamic, dynamic>).cast<String, dynamic>();
-      final int handle = map['handle'] as int;
+      final Map<String, dynamic> map = (data as Map<dynamic, dynamic>).cast<String, dynamic>();
+      final handle = map['handle'] as int;
       if (handle != _handle.address) {
         return;
       }
-      final String event = map['event'] as String;
-      final String sender = map['sender'] as String;
-      final String instance = map['instance'] as String;
+      final event = map['event'] as String;
+      final sender = map['sender'] as String;
+      final instance = map['instance'] as String;
       if (event == 'connected') {
         await onConnectedEvent(sender, instance);
       } else if (event == 'disconnected') {
         await onDisconnectedEvent(sender, instance);
       } else if (event == 'received') {
-        final Uint8List rawData = map['rawData'] as Uint8List;
-        final Parcel parcel = Parcel.fromRaw(rawData);
+        final rawData = map['rawData'] as Uint8List;
+        final parcel = Parcel.fromRaw(rawData);
         await onReceivedEvent(sender, instance, parcel);
       } else {
         debugPrint('Unknown event: $event');

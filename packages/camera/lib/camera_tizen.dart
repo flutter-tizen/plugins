@@ -27,8 +27,7 @@ class CameraTizen extends CameraPlatform {
 
   /// The name of the channel that device events from the platform side are
   /// sent on.
-  static const String _deviceEventChannelName =
-      'plugins.flutter.io/camera_tizen/fromPlatform';
+  static const String _deviceEventChannelName = 'plugins.flutter.io/camera_tizen/fromPlatform';
 
   /// The controller we need to broadcast the different events coming
   /// from handleMethodCall, specific to camera events.
@@ -48,7 +47,7 @@ class CameraTizen extends CameraPlatform {
 
   StreamController<DeviceEvent> _createDeviceEventStreamController() {
     // Set up the method handler lazily.
-    const MethodChannel channel = MethodChannel(_deviceEventChannelName);
+    const channel = MethodChannel(_deviceEventChannelName);
     channel.setMethodCallHandler(_handleDeviceMethodCall);
     return StreamController<DeviceEvent>.broadcast();
   }
@@ -59,16 +58,15 @@ class CameraTizen extends CameraPlatform {
   // The stream for vending frames to platform interface clients.
   StreamController<CameraImageData>? _frameStreamController;
 
-  Stream<CameraEvent> _cameraEvents(int cameraId) =>
-      _cameraEventStreamController.stream.where(
+  Stream<CameraEvent> _cameraEvents(int cameraId) => _cameraEventStreamController.stream.where(
         (CameraEvent event) => event.cameraId == cameraId,
       );
 
   @override
   Future<List<CameraDescription>> availableCameras() async {
     try {
-      final List<Map<dynamic, dynamic>>? cameras = await _channel
-          .invokeListMethod<Map<dynamic, dynamic>>('availableCameras');
+      final List<Map<dynamic, dynamic>>? cameras =
+          await _channel.invokeListMethod<Map<dynamic, dynamic>>('availableCameras');
 
       if (cameras == null) {
         return <CameraDescription>[];
@@ -95,12 +93,11 @@ class CameraTizen extends CameraPlatform {
     bool enableAudio = false,
   }) async {
     try {
-      final Map<String, dynamic>? reply = await _channel
-          .invokeMapMethod<String, dynamic>('create', <String, dynamic>{
+      final Map<String, dynamic>? reply =
+          await _channel.invokeMapMethod<String, dynamic>('create', <String, dynamic>{
         'cameraName': cameraDescription.name,
-        'resolutionPreset': resolutionPreset != null
-            ? _serializeResolutionPreset(resolutionPreset)
-            : null,
+        'resolutionPreset':
+            resolutionPreset != null ? _serializeResolutionPreset(resolutionPreset) : null,
         'enableAudio': enableAudio,
       });
 
@@ -116,7 +113,7 @@ class CameraTizen extends CameraPlatform {
     ImageFormatGroup imageFormatGroup = ImageFormatGroup.unknown,
   }) {
     _channels.putIfAbsent(cameraId, () {
-      final MethodChannel channel = MethodChannel(
+      final channel = MethodChannel(
         'plugins.flutter.io/camera_tizen/camera$cameraId',
       );
       channel.setMethodCallHandler(
@@ -125,7 +122,7 @@ class CameraTizen extends CameraPlatform {
       return channel;
     });
 
-    final Completer<void> completer = Completer<void>();
+    final completer = Completer<void>();
 
     onCameraInitialized(cameraId).first.then((CameraInitializedEvent value) {
       completer.complete();
@@ -194,8 +191,7 @@ class CameraTizen extends CameraPlatform {
 
   @override
   Stream<DeviceOrientationChangedEvent> onDeviceOrientationChanged() {
-    return _deviceEventStreamController.stream
-        .whereType<DeviceOrientationChangedEvent>();
+    return _deviceEventStreamController.stream.whereType<DeviceOrientationChangedEvent>();
   }
 
   @override
@@ -301,7 +297,7 @@ class CameraTizen extends CameraPlatform {
 
   Future<void> _startPlatformStream() async {
     await _channel.invokeMethod<void>('startImageStream');
-    const EventChannel cameraEventChannel = EventChannel(
+    const cameraEventChannel = EventChannel(
       'plugins.flutter.io/camera_tizen/imageStream',
     );
     _platformImageStreamSubscription =

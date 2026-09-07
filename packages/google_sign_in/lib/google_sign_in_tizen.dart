@@ -14,11 +14,7 @@ import 'src/oauth2.dart';
 
 export 'src/authorization_exception.dart';
 
-const List<String> _authenticationScopes = <String>[
-  'openid',
-  'email',
-  'profile',
-];
+const List<String> _authenticationScopes = <String>['openid', 'email', 'profile'];
 
 /// Holds authentication data after Google sign in for Tizen.
 class _GoogleSignInTokenDataTizen {
@@ -48,17 +44,13 @@ class _GoogleSignInTokenDataTizen {
 
   /// Returns `true` if [accessToken] is expired and needs to be refreshed.
   bool get isExpired {
-    const Duration minimalTimeToExpire = Duration(minutes: 1);
-    return DateTime.now()
-        .add(minimalTimeToExpire)
-        .isAfter(accessTokenExpirationDate);
+    const minimalTimeToExpire = Duration(minutes: 1);
+    return DateTime.now().add(minimalTimeToExpire).isAfter(accessTokenExpirationDate);
   }
 
   /// Returns `true` if all [scopes] are granted by [accessToken].
   bool grantsScopes(List<String> scopes) {
-    return scopes
-        .map(_normalizeScope)
-        .every((String scope) => grantedScopes.contains(scope));
+    return scopes.map(_normalizeScope).every((String scope) => grantedScopes.contains(scope));
   }
 
   /// Returns a copy whose access token will be refreshed on next use.
@@ -77,9 +69,7 @@ class _GoogleSignInTokenDataTizen {
     final Object? grantedScopesJson = json['granted_scopes'];
     return _GoogleSignInTokenDataTizen(
       accessToken: json['access_token']! as String,
-      accessTokenExpirationDate: DateTime.parse(
-        json['access_token_expiration_date']! as String,
-      ),
+      accessTokenExpirationDate: DateTime.parse(json['access_token_expiration_date']! as String),
       idToken: json['id_token']! as String,
       refreshToken: json['refresh_token'] as String?,
       grantedScopes:
@@ -93,8 +83,7 @@ class _GoogleSignInTokenDataTizen {
   Map<String, Object> toJson() {
     return <String, Object>{
       'access_token': accessToken,
-      'access_token_expiration_date':
-          accessTokenExpirationDate.toIso8601String(),
+      'access_token_expiration_date': accessTokenExpirationDate.toIso8601String(),
       'id_token': idToken,
       'granted_scopes': grantedScopes.toList(),
       if (refreshToken != null) 'refresh_token': refreshToken!,
@@ -138,9 +127,7 @@ class _CachedTokenStorage {
       return null;
     }
     try {
-      _token = _GoogleSignInTokenDataTizen.fromJson(
-        jsonDecode(jsonString) as Map<String, Object?>,
-      );
+      _token = _GoogleSignInTokenDataTizen.fromJson(jsonDecode(jsonString) as Map<String, Object?>);
       return _token;
     } catch (_) {
       await removeToken();
@@ -166,9 +153,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
   final _CachedTokenStorage _storage = _CachedTokenStorage();
 
   final DeviceAuthClient _authClient = DeviceAuthClient(
-    authorizationEndPoint: Uri.parse(
-      'https://oauth2.googleapis.com/device/code',
-    ),
+    authorizationEndPoint: Uri.parse('https://oauth2.googleapis.com/device/code'),
     tokenEndPoint: Uri.parse('https://oauth2.googleapis.com/token'),
     revokeEndPoint: Uri.parse('https://oauth2.googleapis.com/revoke'),
   );
@@ -176,10 +161,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
   /// Sets [clientId] and [clientSecret] to be used for GoogleSignIn authentication.
   ///
   /// This must be called before calling [GoogleSignIn.initialize].
-  static void setCredentials({
-    required String clientId,
-    required String clientSecret,
-  }) {
+  static void setCredentials({required String clientId, required String clientSecret}) {
     _credentials = _Credentials(clientId, clientSecret);
   }
 
@@ -191,8 +173,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
   ///
   /// If [MaterialApp] or [CupertinoApp] is used, it's convinient to
   /// assign this object to their `navigatorKey` parameter.
-  static GlobalKey<NavigatorState> get navigatorKey =>
-      device_flow_widget.navigatorKey;
+  static GlobalKey<NavigatorState> get navigatorKey => device_flow_widget.navigatorKey;
 
   /// Sets the [GlobalKey] that identifies a [NavigatorState].
   ///
@@ -266,12 +247,8 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
   bool supportsAuthenticate() => true;
 
   @override
-  Future<AuthenticationResults> authenticate(
-    AuthenticateParameters params,
-  ) async {
-    final _GoogleSignInTokenDataTizen token = await _signInWithDeviceFlow(
-      _authenticationScopes,
-    );
+  Future<AuthenticationResults> authenticate(AuthenticateParameters params) async {
+    final _GoogleSignInTokenDataTizen token = await _signInWithDeviceFlow(_authenticationScopes);
     await _storage.saveToken(token);
     return AuthenticationResults(
       user: _userDataFromIdToken(token.idToken),
@@ -291,9 +268,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     if (existingToken != null &&
         _tokenMatchesRequestedUser(existingToken, request) &&
         existingToken.grantsScopes(request.scopes)) {
-      return ClientAuthorizationTokenData(
-        accessToken: existingToken.accessToken,
-      );
+      return ClientAuthorizationTokenData(accessToken: existingToken.accessToken);
     }
 
     if (!request.promptIfUnauthorized) {
@@ -333,13 +308,9 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
   }
 
   @override
-  Future<void> clearAuthorizationToken(
-    ClearAuthorizationTokenParams params,
-  ) async {
-    final _GoogleSignInTokenDataTizen? existingToken =
-        await _storage.getToken();
-    if (existingToken == null ||
-        existingToken.accessToken != params.accessToken) {
+  Future<void> clearAuthorizationToken(ClearAuthorizationTokenParams params) async {
+    final _GoogleSignInTokenDataTizen? existingToken = await _storage.getToken();
+    if (existingToken == null || existingToken.accessToken != params.accessToken) {
       return;
     }
     await _storage.saveToken(existingToken.withInvalidatedAccessToken());
@@ -350,8 +321,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
 
   @override
   Future<void> disconnect(DisconnectParams params) async {
-    final _GoogleSignInTokenDataTizen? existingToken =
-        await _storage.getToken();
+    final _GoogleSignInTokenDataTizen? existingToken = await _storage.getToken();
     if (existingToken == null) {
       return;
     }
@@ -368,8 +338,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
   }
 
   Future<_GoogleSignInTokenDataTizen?> _getValidToken() async {
-    final _GoogleSignInTokenDataTizen? existingToken =
-        await _storage.getToken();
+    final _GoogleSignInTokenDataTizen? existingToken = await _storage.getToken();
     if (existingToken == null) {
       return null;
     }
@@ -382,9 +351,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     }
 
     try {
-      final _GoogleSignInTokenDataTizen token = await _refreshToken(
-        existingToken,
-      );
+      final _GoogleSignInTokenDataTizen token = await _refreshToken(existingToken);
       await _storage.saveToken(token);
       return token;
     } on AuthorizationException catch (error) {
@@ -398,19 +365,19 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     }
   }
 
-  Future<_GoogleSignInTokenDataTizen> _signInWithDeviceFlow(
-    List<String> scopes,
-  ) async {
+  Future<_GoogleSignInTokenDataTizen> _signInWithDeviceFlow(List<String> scopes) async {
     _ensureSetCredentials();
     _ensureNavigatorKeyAssigned();
 
-    bool expired = false;
-    bool canceled = false;
-    bool widgetShown = false;
+    var expired = false;
+    var canceled = false;
+    var widgetShown = false;
 
     try {
-      final AuthorizationResponse authorizationResponse = await _authClient
-          .requestAuthorization(_credentials!.clientId, scopes);
+      final AuthorizationResponse authorizationResponse = await _authClient.requestAuthorization(
+        _credentials!.clientId,
+        scopes,
+      );
 
       final Future<TokenResponse?> tokenResponseFuture = _authClient.pollToken(
         clientId: _credentials!.clientId,
@@ -497,9 +464,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
         throw const FormatException('Invalid idToken.');
       }
       final String normalizedPayload = base64Url.normalize(splitTokens[1]);
-      final String payloadString = utf8.decode(
-        base64Url.decode(normalizedPayload),
-      );
+      final String payloadString = utf8.decode(base64Url.decode(normalizedPayload));
       json = jsonDecode(payloadString) as Map<String, Object?>;
     } catch (error) {
       throw GoogleSignInException(
@@ -509,8 +474,8 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
       );
     }
 
-    final String? email = json['email'] as String?;
-    final String? id = json['sub'] as String?;
+    final email = json['email'] as String?;
+    final id = json['sub'] as String?;
     if (email == null || id == null) {
       throw const GoogleSignInException(
         code: GoogleSignInExceptionCode.providerConfigurationError,
@@ -526,9 +491,7 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
     );
   }
 
-  Future<_GoogleSignInTokenDataTizen> _refreshToken(
-    _GoogleSignInTokenDataTizen token,
-  ) async {
+  Future<_GoogleSignInTokenDataTizen> _refreshToken(_GoogleSignInTokenDataTizen token) async {
     _ensureSetCredentials();
 
     final TokenResponse tokenResponse = await _authClient.refreshToken(
@@ -557,16 +520,11 @@ class GoogleSignInTizen extends GoogleSignInPlatform {
   }
 
   List<String> _scopesForAuthentication(List<String> scopes) {
-    return <String>{
-      ..._authenticationScopes,
-      ...scopes.map(_normalizeScope),
-    }.toList();
+    return <String>{..._authenticationScopes, ...scopes.map(_normalizeScope)}.toList();
   }
 }
 
-GoogleSignInException _exceptionFromAuthorizationException(
-  AuthorizationException error,
-) {
+GoogleSignInException _exceptionFromAuthorizationException(AuthorizationException error) {
   final GoogleSignInExceptionCode code = switch (error.error) {
     'access_denied' => GoogleSignInExceptionCode.canceled,
     'invalid_client' => GoogleSignInExceptionCode.clientConfigurationError,
@@ -576,10 +534,7 @@ GoogleSignInException _exceptionFromAuthorizationException(
   return GoogleSignInException(
     code: code,
     description: error.description ?? error.error,
-    details: <String, String?>{
-      'error': error.error,
-      'uri': error.uri?.toString(),
-    },
+    details: <String, String?>{'error': error.error, 'uri': error.uri?.toString()},
   );
 }
 
