@@ -205,7 +205,7 @@ linter:
     - sort_unnamed_constructors_first
     - specify_nonobvious_local_variable_types
     - specify_nonobvious_property_types
-    # - strict_top_level_inference # TODO(jsuya): Different from flutter/packages: temporary. Disabled to pass CI on Flutter 3.47.0; re-enable after fixing existing violations (https://github.com/flutter-tizen/plugins/issues/1089).
+    - strict_top_level_inference
     - test_types_in_equals
     - throw_in_finally
     - tighten_type_of_initializing_formals

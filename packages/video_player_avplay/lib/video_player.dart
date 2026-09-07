@@ -1278,7 +1278,7 @@ class _VideoPlayerState extends State<VideoPlayer> {
     return value.isInfinite || value.isNaN;
   }
 
-  void _afterFrameLayout(_) {
+  void _afterFrameLayout(Duration _) {
     if (widget.controller.value.isInitialized) {
       final Rect rect = _getCurrentRect();
       if (rect != Rect.zero && _playerRect != rect) {

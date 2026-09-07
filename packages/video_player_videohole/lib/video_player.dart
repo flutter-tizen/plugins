@@ -1000,7 +1000,7 @@ class _VideoPlayerState extends State<VideoPlayer> {
     WidgetsBinding.instance.addPostFrameCallback(_afterFrameLayout);
   }
 
-  void _afterFrameLayout(_) {
+  void _afterFrameLayout(Duration _) {
     if (widget.controller.value.isInitialized) {
       final Rect currentRect = _getCurrentRect();
       if (currentRect != Rect.zero && _playerRect != currentRect) {

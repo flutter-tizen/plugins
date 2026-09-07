@@ -1,3 +1,7 @@
+## NEXT
+
+* Resolve `strict_top_level_inference` lint.
+
 ## 0.5.10
 
 * Update the repository URL to use the `main` branch.

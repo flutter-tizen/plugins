@@ -1,3 +1,7 @@
+## NEXT
+
+* Resolve `strict_top_level_inference` lint.
+
 ## 0.8.16
 
 * Added `setAbr` property to disable adaptive bitrate switching for HLS streams.
