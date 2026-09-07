@@ -22,24 +22,23 @@ void main() {
 }
 
 void runTests() {
-  const double floatTolerance = 1e-8;
+  const floatTolerance = 1e-8;
 
   GoogleMapsFlutterPlatform.instance.enableDebugInspection();
 
-  final GoogleMapsInspectorPlatform inspector =
-      GoogleMapsInspectorPlatform.instance!;
+  final GoogleMapsInspectorPlatform inspector = GoogleMapsInspectorPlatform.instance!;
 
   group('Tiles', () {
     testWidgets('set tileOverlay correctly', (WidgetTester tester) async {
-      final Completer<int> mapIdCompleter = Completer<int>();
-      final TileOverlay tileOverlay1 = TileOverlay(
+      final mapIdCompleter = Completer<int>();
+      final tileOverlay1 = TileOverlay(
         tileOverlayId: const TileOverlayId('tile_overlay_1'),
         tileProvider: _DebugTileProvider(),
         zIndex: 2,
         transparency: 0.2,
       );
 
-      final TileOverlay tileOverlay2 = TileOverlay(
+      final tileOverlay2 = TileOverlay(
         tileOverlayId: const TileOverlayId('tile_overlay_2'),
         tileProvider: _DebugTileProvider(),
         zIndex: 1,
@@ -74,32 +73,26 @@ void runTests() {
 
       expect(tileOverlayInfo1.visible, isTrue);
       expect(tileOverlayInfo1.fadeIn, isTrue);
-      expect(
-        tileOverlayInfo1.transparency,
-        moreOrLessEquals(0.2, epsilon: 0.001),
-      );
+      expect(tileOverlayInfo1.transparency, moreOrLessEquals(0.2, epsilon: 0.001));
       expect(tileOverlayInfo1.zIndex, 2);
 
       expect(tileOverlayInfo2.visible, isFalse);
       expect(tileOverlayInfo2.fadeIn, isFalse);
-      expect(
-        tileOverlayInfo2.transparency,
-        moreOrLessEquals(0.3, epsilon: 0.001),
-      );
+      expect(tileOverlayInfo2.transparency, moreOrLessEquals(0.3, epsilon: 0.001));
       expect(tileOverlayInfo2.zIndex, 1);
     });
 
     testWidgets('update tileOverlays correctly', (WidgetTester tester) async {
-      final Completer<int> mapIdCompleter = Completer<int>();
+      final mapIdCompleter = Completer<int>();
       final Key key = GlobalKey();
-      final TileOverlay tileOverlay1 = TileOverlay(
+      final tileOverlay1 = TileOverlay(
         tileOverlayId: const TileOverlayId('tile_overlay_1'),
         tileProvider: _DebugTileProvider(),
         zIndex: 2,
         transparency: 0.2,
       );
 
-      final TileOverlay tileOverlay2 = TileOverlay(
+      final tileOverlay2 = TileOverlay(
         tileOverlayId: const TileOverlayId('tile_overlay_2'),
         tileProvider: _DebugTileProvider(),
         zIndex: 3,
@@ -121,7 +114,7 @@ void runTests() {
 
       final int mapId = await mapIdCompleter.future;
 
-      final TileOverlay tileOverlay1New = TileOverlay(
+      final tileOverlay1New = TileOverlay(
         tileOverlayId: const TileOverlayId('tile_overlay_1'),
         tileProvider: _DebugTileProvider(),
         zIndex: 1,
@@ -157,19 +150,16 @@ void runTests() {
 
       expect(tileOverlayInfo1.visible, isFalse);
       expect(tileOverlayInfo1.fadeIn, isFalse);
-      expect(
-        tileOverlayInfo1.transparency,
-        moreOrLessEquals(0.3, epsilon: 0.001),
-      );
+      expect(tileOverlayInfo1.transparency, moreOrLessEquals(0.3, epsilon: 0.001));
       expect(tileOverlayInfo1.zIndex, 1);
 
       expect(tileOverlayInfo2, isNull);
     });
 
     testWidgets('remove tileOverlays correctly', (WidgetTester tester) async {
-      final Completer<int> mapIdCompleter = Completer<int>();
+      final mapIdCompleter = Completer<int>();
       final Key key = GlobalKey();
-      final TileOverlay tileOverlay1 = TileOverlay(
+      final tileOverlay1 = TileOverlay(
         tileOverlayId: const TileOverlayId('tile_overlay_1'),
         tileProvider: _DebugTileProvider(),
         zIndex: 2,
@@ -216,12 +206,9 @@ void runTests() {
   }, skip: isWeb /* Tiles not supported on the web */);
 
   /// Check that two lists of [WeightedLatLng] are more or less equal.
-  void expectHeatmapDataMoreOrLessEquals(
-    List<WeightedLatLng> data1,
-    List<WeightedLatLng> data2,
-  ) {
+  void expectHeatmapDataMoreOrLessEquals(List<WeightedLatLng> data1, List<WeightedLatLng> data2) {
     expect(data1.length, data2.length);
-    for (int i = 0; i < data1.length; i++) {
+    for (var i = 0; i < data1.length; i++) {
       final WeightedLatLng wll1 = data1[i];
       final WeightedLatLng wll2 = data2[i];
       expect(wll1.weight, wll2.weight);
@@ -242,14 +229,11 @@ void runTests() {
     expect(gradient2, isNotNull);
 
     expect(gradient1.colors.length, gradient2.colors.length);
-    for (int i = 0; i < gradient1.colors.length; i++) {
+    for (var i = 0; i < gradient1.colors.length; i++) {
       final HeatmapGradientColor color1 = gradient1.colors[i];
       final HeatmapGradientColor color2 = gradient2.colors[i];
       expect(color1.color, color2.color);
-      expect(
-        color1.startPoint,
-        moreOrLessEquals(color2.startPoint, epsilon: floatTolerance),
-      );
+      expect(color1.startPoint, moreOrLessEquals(color2.startPoint, epsilon: floatTolerance));
     }
 
     expect(gradient1.colorMapSize, gradient2.colorMapSize);
@@ -274,10 +258,7 @@ void runTests() {
     if (canHandleMaxIntensity()) {
       expect(heatmap1.maxIntensity, heatmap2.maxIntensity);
     }
-    expect(
-      heatmap1.opacity,
-      moreOrLessEquals(heatmap2.opacity, epsilon: floatTolerance),
-    );
+    expect(heatmap1.opacity, moreOrLessEquals(heatmap2.opacity, epsilon: floatTolerance));
     expect(heatmap1.radius, heatmap2.radius);
     if (canHandleZoomIntensity()) {
       expect(heatmap1.minimumZoomIntensity, heatmap2.minimumZoomIntensity);
@@ -285,7 +266,7 @@ void runTests() {
     }
   }
 
-  const Heatmap heatmap1 = Heatmap(
+  const heatmap1 = Heatmap(
     heatmapId: HeatmapId('heatmap_1'),
     data: <WeightedLatLng>[
       WeightedLatLng(LatLng(37.782, -122.447)),
@@ -319,8 +300,8 @@ void runTests() {
   );
 
   testWidgets('set heatmap correctly', (WidgetTester tester) async {
-    final Completer<int> mapIdCompleter = Completer<int>();
-    final Heatmap heatmap2 = Heatmap(
+    final mapIdCompleter = Completer<int>();
+    final heatmap2 = Heatmap(
       heatmapId: const HeatmapId('heatmap_2'),
       data: heatmap1.data,
       dissipating: heatmap1.dissipating,
@@ -347,18 +328,11 @@ void runTests() {
     await tester.pumpAndSettle(const Duration(seconds: 3));
 
     final int mapId = await mapIdCompleter.future;
-    final GoogleMapsInspectorPlatform inspector =
-        GoogleMapsInspectorPlatform.instance!;
+    final GoogleMapsInspectorPlatform inspector = GoogleMapsInspectorPlatform.instance!;
 
     if (inspector.supportsGettingHeatmapInfo()) {
-      final Heatmap heatmapInfo1 = (await inspector.getHeatmapInfo(
-        heatmap1.mapsId,
-        mapId: mapId,
-      ))!;
-      final Heatmap heatmapInfo2 = (await inspector.getHeatmapInfo(
-        heatmap2.mapsId,
-        mapId: mapId,
-      ))!;
+      final Heatmap heatmapInfo1 = (await inspector.getHeatmapInfo(heatmap1.mapsId, mapId: mapId))!;
+      final Heatmap heatmapInfo2 = (await inspector.getHeatmapInfo(heatmap2.mapsId, mapId: mapId))!;
 
       expectHeatmapEquals(heatmap1, heatmapInfo1);
       expectHeatmapEquals(heatmap2, heatmapInfo2);
@@ -366,7 +340,7 @@ void runTests() {
   });
 
   testWidgets('update heatmaps correctly', (WidgetTester tester) async {
-    final Completer<int> mapIdCompleter = Completer<int>();
+    final mapIdCompleter = Completer<int>();
     final Key key = GlobalKey();
 
     await tester.pumpWidget(
@@ -384,8 +358,7 @@ void runTests() {
     );
 
     final int mapId = await mapIdCompleter.future;
-    final GoogleMapsInspectorPlatform inspector =
-        GoogleMapsInspectorPlatform.instance!;
+    final GoogleMapsInspectorPlatform inspector = GoogleMapsInspectorPlatform.instance!;
 
     final Heatmap heatmap1New = heatmap1.copyWith(
       dataParam: heatmap1.data.sublist(5),
@@ -415,17 +388,14 @@ void runTests() {
     await tester.pumpAndSettle(const Duration(seconds: 3));
 
     if (inspector.supportsGettingHeatmapInfo()) {
-      final Heatmap heatmapInfo1 = (await inspector.getHeatmapInfo(
-        heatmap1.mapsId,
-        mapId: mapId,
-      ))!;
+      final Heatmap heatmapInfo1 = (await inspector.getHeatmapInfo(heatmap1.mapsId, mapId: mapId))!;
 
       expectHeatmapEquals(heatmap1New, heatmapInfo1);
     }
   });
 
   testWidgets('remove heatmaps correctly', (WidgetTester tester) async {
-    final Completer<int> mapIdCompleter = Completer<int>();
+    final mapIdCompleter = Completer<int>();
     final Key key = GlobalKey();
 
     await tester.pumpWidget(
@@ -443,8 +413,7 @@ void runTests() {
     );
 
     final int mapId = await mapIdCompleter.future;
-    final GoogleMapsInspectorPlatform inspector =
-        GoogleMapsInspectorPlatform.instance!;
+    final GoogleMapsInspectorPlatform inspector = GoogleMapsInspectorPlatform.instance!;
 
     await tester.pumpWidget(
       Directionality(
@@ -462,10 +431,7 @@ void runTests() {
     await tester.pumpAndSettle(const Duration(seconds: 3));
 
     if (inspector.supportsGettingHeatmapInfo()) {
-      final Heatmap? heatmapInfo1 = await inspector.getHeatmapInfo(
-        heatmap1.mapsId,
-        mapId: mapId,
-      );
+      final Heatmap? heatmapInfo1 = await inspector.getHeatmapInfo(heatmap1.mapsId, mapId: mapId);
 
       expect(heatmapInfo1, isNull);
     }
@@ -487,25 +453,17 @@ class _DebugTileProvider implements TileProvider {
 
   @override
   Future<Tile> getTile(int x, int y, int? zoom) async {
-    final ui.PictureRecorder recorder = ui.PictureRecorder();
-    final Canvas canvas = Canvas(recorder);
-    final TextSpan textSpan = TextSpan(text: '$x,$y', style: textStyle);
-    final TextPainter textPainter = TextPainter(
-      text: textSpan,
-      textDirection: TextDirection.ltr,
-    );
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    final textSpan = TextSpan(text: '$x,$y', style: textStyle);
+    final textPainter = TextPainter(text: textSpan, textDirection: TextDirection.ltr);
     textPainter.layout(maxWidth: width.toDouble());
     textPainter.paint(canvas, Offset.zero);
-    canvas.drawRect(
-      Rect.fromLTRB(0, 0, width.toDouble(), width.toDouble()),
-      boxPaint,
-    );
+    canvas.drawRect(Rect.fromLTRB(0, 0, width.toDouble(), width.toDouble()), boxPaint);
     final ui.Picture picture = recorder.endRecording();
     final Uint8List byteData = await picture
         .toImage(width, height)
-        .then(
-          (ui.Image image) => image.toByteData(format: ui.ImageByteFormat.png),
-        )
+        .then((ui.Image image) => image.toByteData(format: ui.ImageByteFormat.png))
         .then((ByteData? byteData) => byteData!.buffer.asUint8List());
     return Tile(width, height, byteData);
   }

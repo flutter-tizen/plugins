@@ -86,8 +86,8 @@ class _CurrentPackageScreenState extends State<_CurrentPackageScreen> {
       ]),
       builder: (BuildContext context, AsyncSnapshot<List<dynamic>> snapshot) {
         if (snapshot.hasData) {
-          final PackageInfo packageInfo = snapshot.data![0] as PackageInfo;
-          final PackageSizeInfo sizeInfo = snapshot.data![1] as PackageSizeInfo;
+          final packageInfo = snapshot.data![0] as PackageInfo;
+          final sizeInfo = snapshot.data![1] as PackageSizeInfo;
           return ListView(
             children: <Widget>[
               _infoTile('Package ID', packageInfo.packageId),
@@ -100,18 +100,15 @@ class _CurrentPackageScreenState extends State<_CurrentPackageScreen> {
               _infoTile('Removable', packageInfo.isRemovable.toString()),
               const Divider(),
               const ListTile(
-                title: Text('Package Size Information',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
+                title:
+                    Text('Package Size Information', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
               _infoTile('Data Size', '${sizeInfo.dataSize} bytes'),
               _infoTile('Cache Size', '${sizeInfo.cacheSize} bytes'),
               _infoTile('App Size', '${sizeInfo.appSize} bytes'),
-              _infoTile(
-                  'External Data Size', '${sizeInfo.externalDataSize} bytes'),
-              _infoTile(
-                  'External Cache Size', '${sizeInfo.externalCacheSize} bytes'),
-              _infoTile(
-                  'External App Size', '${sizeInfo.externalAppSize} bytes'),
+              _infoTile('External Data Size', '${sizeInfo.externalDataSize} bytes'),
+              _infoTile('External Cache Size', '${sizeInfo.externalCacheSize} bytes'),
+              _infoTile('External App Size', '${sizeInfo.externalAppSize} bytes'),
             ],
           );
         } else if (snapshot.hasError) {
@@ -131,24 +128,19 @@ class _PackageListScreen extends StatefulWidget {
   State<_PackageListScreen> createState() => _PackageListScreenState();
 }
 
-class _PackageListScreenState extends State<_PackageListScreen>
-    with AutomaticKeepAliveClientMixin {
+class _PackageListScreenState extends State<_PackageListScreen> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
-  Future<Map<String, PackageSizeInfo>> _getAllPackagesSizeInfo(
-      List<PackageInfo> packages) async {
-    final Map<String, PackageSizeInfo> sizeInfoMap =
-        <String, PackageSizeInfo>{};
+  Future<Map<String, PackageSizeInfo>> _getAllPackagesSizeInfo(List<PackageInfo> packages) async {
+    final sizeInfoMap = <String, PackageSizeInfo>{};
 
-    for (final PackageInfo package in packages) {
+    for (final package in packages) {
       try {
-        final PackageSizeInfo sizeInfo =
-            await PackageManager.getPackageSizeInfo(package.packageId);
+        final PackageSizeInfo sizeInfo = await PackageManager.getPackageSizeInfo(package.packageId);
         sizeInfoMap[package.packageId] = sizeInfo;
       } catch (e) {
-        debugPrint(
-            'Failed to get size info for package ${package.packageId}: $e');
+        debugPrint('Failed to get size info for package ${package.packageId}: $e');
       }
     }
 
@@ -174,14 +166,12 @@ class _PackageListScreenState extends State<_PackageListScreen>
               AsyncSnapshot<Map<String, PackageSizeInfo>> sizeSnapshot,
             ) {
               if (sizeSnapshot.hasData) {
-                final Map<String, PackageSizeInfo> sizeInfoMap =
-                    sizeSnapshot.data!;
+                final Map<String, PackageSizeInfo> sizeInfoMap = sizeSnapshot.data!;
                 return ListView.builder(
                   itemCount: packages.length,
                   itemBuilder: (BuildContext context, int index) {
                     final PackageInfo package = packages[index];
-                    final PackageSizeInfo? sizeInfo =
-                        sizeInfoMap[package.packageId];
+                    final PackageSizeInfo? sizeInfo = sizeInfoMap[package.packageId];
 
                     return ListTile(
                       title: Text(package.label),

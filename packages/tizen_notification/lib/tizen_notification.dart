@@ -22,8 +22,7 @@ class TizenNotificationPlugin {
     String body = '',
     TizenNotificationDetails? notificationDetails,
   }) {
-    final Map<String, Object?> details =
-        notificationDetails?.toMap() ?? <String, Object?>{};
+    final Map<String, Object?> details = notificationDetails?.toMap() ?? <String, Object?>{};
     details['id'] = id.toString();
     details['title'] = title;
     details['body'] = body;
@@ -31,8 +30,7 @@ class TizenNotificationPlugin {
     // Set disableAppLaunch automatically if appControl is unset.
     if (notificationDetails?.appControl == null) {
       final int properties = (details['properties'] as int?) ?? 0;
-      details['properties'] =
-          properties | NotificationProperty.disableAppLaunch;
+      details['properties'] = properties | NotificationProperty.disableAppLaunch;
     }
 
     return _channel.invokeMethod('show', details);

@@ -95,8 +95,7 @@ class Profile {
     }
     final List<String> segments = value.split('-');
     final String typeString = segments[0].toLowerCase();
-    final String? versionString =
-        segments.length >= 2 ? segments[1].trim() : null;
+    final String? versionString = segments.length >= 2 ? segments[1].trim() : null;
 
     DeviceType? matchingDeviceType;
     for (final DeviceType deviceType in DeviceType.values) {
@@ -162,14 +161,11 @@ class TizenSdk {
     if (environment.containsKey(_kTizenSdk)) {
       tizenHomeDir = fileSystem.directory(environment[_kTizenSdk]);
     } else if (io.Platform.isLinux || io.Platform.isMacOS) {
-      tizenHomeDir = fileSystem
-          .directory(environment['HOME'])
-          .childDirectory('tizen-studio');
+      tizenHomeDir = fileSystem.directory(environment['HOME']).childDirectory('tizen-studio');
     } else if (io.Platform.isWindows) {
       if (environment.containsKey('SystemDrive')) {
-        tizenHomeDir = fileSystem
-            .directory(environment['SystemDrive'])
-            .childDirectory('tizen-studio');
+        tizenHomeDir =
+            fileSystem.directory(environment['SystemDrive']).childDirectory('tizen-studio');
       }
     }
     if (tizenHomeDir == null || !tizenHomeDir.existsSync()) {
@@ -192,9 +188,8 @@ class TizenSdk {
   final Directory _sdkRoot;
 
   /// Cli tool for interacting with connected devices.
-  File get sdb => _sdkRoot
-      .childDirectory('tools')
-      .childFile(io.Platform.isWindows ? 'sdb.exe' : 'sdb');
+  File get sdb =>
+      _sdkRoot.childDirectory('tools').childFile(io.Platform.isWindows ? 'sdb.exe' : 'sdb');
 
   /// Tizen SDK's emulator cli.
   File get emCli => _sdkRoot
@@ -205,18 +200,16 @@ class TizenSdk {
 
   /// Returns information of all connected devices.
   List<SdbDeviceInfo> sdbDevices() {
-    final io.ProcessResult result =
-        _processRunner.runSync(sdb.path, <String>['devices']);
+    final io.ProcessResult result = _processRunner.runSync(sdb.path, <String>['devices']);
     if (result.exitCode != 0) {
       print('Error: running command `sdb devices` failed.');
       throw ToolExit(result.exitCode);
     }
 
-    final List<SdbDeviceInfo> deviceInfos = <SdbDeviceInfo>[];
-    final List<String> lines =
-        LineSplitter.split((result.stdout as String).trim()).toList();
+    final deviceInfos = <SdbDeviceInfo>[];
+    final List<String> lines = LineSplitter.split((result.stdout as String).trim()).toList();
 
-    for (final String line in lines) {
+    for (final line in lines) {
       if (line.startsWith('List of devices')) {
         continue;
       }
@@ -245,14 +238,12 @@ class TizenSdk {
       throw ToolExit(result.exitCode);
     }
 
-    final Map<String, String> capabilities = <String, String>{};
-    final List<String> lines =
-        LineSplitter.split((result.stdout as String).trim()).toList();
-    for (final String line in lines) {
+    final capabilities = <String, String>{};
+    final List<String> lines = LineSplitter.split((result.stdout as String).trim()).toList();
+    for (final line in lines) {
       final int index = line.indexOf(':');
       final String key = line.substring(0, index).trim();
-      final String value =
-          index + 1 > line.length ? '' : line.substring(index + 1).trim();
+      final String value = index + 1 > line.length ? '' : line.substring(index + 1).trim();
       capabilities[key] = value;
     }
     return capabilities;
@@ -263,7 +254,7 @@ class TizenSdk {
 ///
 /// Returns `null` if emulator [name] is not running.
 String? findEmulatorPid(String name) {
-  const ProcessRunner processRunner = ProcessRunner();
+  const processRunner = ProcessRunner();
   // TODO(HakkyuKim): Support Windows.
   final io.ProcessResult result = processRunner.runSync('ps', <String>['aux']);
 
@@ -272,11 +263,10 @@ String? findEmulatorPid(String name) {
     throw ToolExit(result.exitCode);
   }
 
-  final List<String> lines = LineSplitter.split(result.stdout as String)
-      .map((String line) => line.trim())
-      .toList();
+  final List<String> lines =
+      LineSplitter.split(result.stdout as String).map((String line) => line.trim()).toList();
 
-  for (final String line in lines) {
+  for (final line in lines) {
     if (line.contains('emulator-x86_64') && line.contains(name)) {
       return line.split(RegExp(r'\s+'))[1];
     }

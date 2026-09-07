@@ -20,8 +20,7 @@ class PathProviderPlugin extends PathProviderPlatform {
   Future<String?> getTemporaryPath() async => appCommon.getCachePath();
 
   @override
-  Future<String?> getApplicationDocumentsPath() async =>
-      appCommon.getDataPath();
+  Future<String?> getApplicationDocumentsPath() async => appCommon.getDataPath();
 
   @override
   Future<String?> getApplicationCachePath() async => appCommon.getCachePath();
@@ -30,8 +29,7 @@ class PathProviderPlugin extends PathProviderPlatform {
   Future<String?> getApplicationSupportPath() async => appCommon.getDataPath();
 
   @override
-  Future<String?> getExternalStoragePath() async =>
-      appCommon.getExternalDataPath();
+  Future<String?> getExternalStoragePath() async => appCommon.getExternalDataPath();
 
   @override
   Future<List<String>?> getExternalCachePaths() async {
@@ -42,18 +40,14 @@ class PathProviderPlugin extends PathProviderPlatform {
   @override
   Future<String?> getDownloadsPath() async {
     try {
-      return await storage.getDirectory(
-        storage_directory_e.STORAGE_DIRECTORY_DOWNLOADS,
-      );
+      return await storage.getDirectory(storage_directory_e.STORAGE_DIRECTORY_DOWNLOADS);
     } catch (_) {
       return null;
     }
   }
 
   @override
-  Future<List<String>?> getExternalStoragePaths({
-    StorageDirectory? type,
-  }) async {
+  Future<List<String>?> getExternalStoragePaths({StorageDirectory? type}) async {
     int dirType;
     switch (type) {
       case StorageDirectory.music:

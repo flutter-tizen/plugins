@@ -37,11 +37,9 @@ class CirclesController extends GeometryController {
       return;
     }
 
-    final util.GCircleOptions populationOptions = _circleOptionsFromCircle(
-      circle,
-    );
-    final util.GCircle gCircle = util.GCircle(_bridge, populationOptions);
-    final CircleController controller = CircleController(
+    final util.GCircleOptions populationOptions = _circleOptionsFromCircle(circle);
+    final gCircle = util.GCircle(_bridge, populationOptions);
+    final controller = CircleController(
       circle: gCircle,
       consumeTapEvents: circle.consumeTapEvents,
       onTap: () {
@@ -59,8 +57,7 @@ class CirclesController extends GeometryController {
   }
 
   void _changeCircle(Circle circle) {
-    final CircleController? circleController =
-        _circleIdToController[circle.circleId];
+    final CircleController? circleController = _circleIdToController[circle.circleId];
     circleController?.update(_circleOptionsFromCircle(circle));
   }
 

@@ -14,22 +14,22 @@ void main() {
   // ---------------------------------------------------------------------------
   group('Bundle() default constructor', () {
     test('creates an empty bundle with length 0', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       expect(bundle.length, 0);
     });
 
     test('isEmpty returns true for a newly created bundle', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       expect(bundle.isEmpty, true);
     });
 
     test('isNotEmpty returns false for a newly created bundle', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       expect(bundle.isNotEmpty, false);
     });
 
     test('keys returns empty iterable for an empty bundle', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       expect(bundle.keys, isEmpty);
     });
   });
@@ -39,14 +39,13 @@ void main() {
   // ---------------------------------------------------------------------------
   group('Bundle.fromMap', () {
     test('creates an empty bundle from an empty map', () async {
-      final Bundle bundle = Bundle.fromMap(<String, Object>{});
+      final bundle = Bundle.fromMap(<String, Object>{});
       expect(bundle.length, 0);
       expect(bundle.isEmpty, true);
     });
 
-    test('creates a bundle with String, List<String>, and Uint8List entries',
-        () async {
-      final Bundle bundle = Bundle.fromMap(<String, Object>{
+    test('creates a bundle with String, List<String>, and Uint8List entries', () async {
+      final bundle = Bundle.fromMap(<String, Object>{
         'stringKey': 'stringValue',
         'stringsKey': <String>['value1', 'value2'],
         'bytesKey': Uint8List.fromList(<int>[0x03]),
@@ -65,10 +64,10 @@ void main() {
     test(
       'mutating the original after copy does not affect the copy',
       () async {
-        final Bundle original = Bundle();
+        final original = Bundle();
         original['key'] = 'originalValue';
 
-        final Bundle copy = Bundle.fromBundle(original);
+        final copy = Bundle.fromBundle(original);
         original['key'] = 'mutatedValue';
 
         // copy should still hold the value at the time of duplication
@@ -76,13 +75,11 @@ void main() {
       },
     );
 
-    test(
-        'copy has independent entries — adding to copy does not affect original',
-        () async {
-      final Bundle original = Bundle();
+    test('copy has independent entries — adding to copy does not affect original', () async {
+      final original = Bundle();
       original['key'] = 'value';
 
-      final Bundle copy = Bundle.fromBundle(original);
+      final copy = Bundle.fromBundle(original);
       copy['newKey'] = 'newValue';
 
       expect(original.containsKey('newKey'), false);
@@ -94,28 +91,28 @@ void main() {
   // ---------------------------------------------------------------------------
   group('Bundle.decode', () {
     test('round-trips a List<String> value through encode/decode', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       bundle['stringsKey'] = <String>['alpha', 'beta', 'gamma'];
       final String encoded = bundle.encode();
-      final Bundle decoded = Bundle.decode(encoded);
+      final decoded = Bundle.decode(encoded);
       expect(decoded['stringsKey'], <String>['alpha', 'beta', 'gamma']);
     });
 
     test('round-trips a Uint8List value through encode/decode', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       bundle['bytesKey'] = Uint8List.fromList(<int>[0x00, 0x7f, 0xff]);
       final String encoded = bundle.encode();
-      final Bundle decoded = Bundle.decode(encoded);
+      final decoded = Bundle.decode(encoded);
       expect(decoded['bytesKey'], Uint8List.fromList(<int>[0x00, 0x7f, 0xff]));
     });
 
     test('round-trips multiple keys of mixed types', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       bundle['s'] = 'hello';
       bundle['ss'] = <String>['x', 'y'];
       bundle['b'] = Uint8List.fromList(<int>[1, 2, 3]);
       final String encoded = bundle.encode();
-      final Bundle decoded = Bundle.decode(encoded);
+      final decoded = Bundle.decode(encoded);
       expect(decoded.length, 3);
       expect(decoded['s'], 'hello');
       expect(decoded['ss'], <String>['x', 'y']);
@@ -128,29 +125,28 @@ void main() {
   // ---------------------------------------------------------------------------
   group('operator[] (get)', () {
     test('returns null for a missing key', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       expect(bundle['nonExistentKey'], isNull);
     });
 
     test('returns null when the key is not a String', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       bundle['someKey'] = 'someValue';
       // operator[] takes an Object?, so it must accept any key.
-      for (final Object? key in <Object?>[null, 42, true]) {
+      for (final key in <Object?>[null, 42, true]) {
         expect(bundle[key], isNull);
       }
     });
 
     test('returns the correct value after key is overwritten', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       bundle['key'] = 'first';
       bundle['key'] = 'second';
       expect(bundle['key'], 'second');
     });
 
-    test('same read-only call twice returns identical results (idempotency)',
-        () async {
-      final Bundle bundle = Bundle();
+    test('same read-only call twice returns identical results (idempotency)', () async {
+      final bundle = Bundle();
       bundle['key'] = 'value';
       expect(bundle['key'], bundle['key']);
     });
@@ -161,7 +157,7 @@ void main() {
   // ---------------------------------------------------------------------------
   group('operator[]= (set)', () {
     test('throws ArgumentError for an unsupported value type', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       expect(
         () => bundle['key'] = 42,
         throwsA(isA<ArgumentError>()),
@@ -169,30 +165,29 @@ void main() {
     });
 
     test('stores an empty string value', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       bundle['emptyString'] = '';
       expect(bundle['emptyString'], '');
     });
 
     test('stores a single-element List<String>', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       bundle['single'] = <String>['only'];
       expect(bundle['single'], <String>['only']);
     });
 
     test('stores an empty Uint8List', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       bundle['emptyBytes'] = Uint8List(0);
-      final Uint8List result = bundle['emptyBytes']! as Uint8List;
+      final result = bundle['emptyBytes']! as Uint8List;
       expect(result.length, 0);
     });
 
     test('preserves full byte range 0x00–0xff in Uint8List', () async {
-      final Bundle bundle = Bundle();
-      final Uint8List allBytes =
-          Uint8List.fromList(List<int>.generate(256, (int i) => i));
+      final bundle = Bundle();
+      final allBytes = Uint8List.fromList(List<int>.generate(256, (int i) => i));
       bundle['allBytes'] = allBytes;
-      final Uint8List result = bundle['allBytes']! as Uint8List;
+      final result = bundle['allBytes']! as Uint8List;
       expect(result, allBytes);
     });
   });
@@ -202,22 +197,22 @@ void main() {
   // ---------------------------------------------------------------------------
   group('remove()', () {
     test('removing a key that is not a String is a no-op', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       bundle['key'] = 'value';
       // remove() takes an Object?, so it must accept any key.
-      for (final Object? key in <Object?>[null, 42, true]) {
+      for (final key in <Object?>[null, 42, true]) {
         expect(() => bundle.remove(key), returnsNormally);
       }
       expect(bundle.length, 1);
     });
 
     test('removing a non-existent key is a no-op', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       expect(() => bundle.remove('doesNotExist'), returnsNormally);
     });
 
     test('add then remove then verify gone (state transition)', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       bundle['key'] = 'value';
       expect(bundle.containsKey('key'), true);
       bundle.remove('key');
@@ -231,14 +226,14 @@ void main() {
   // ---------------------------------------------------------------------------
   group('clear()', () {
     test('clear() on an already-empty bundle is idempotent', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       bundle.clear();
       expect(bundle.length, 0);
       expect(bundle.isEmpty, true);
     });
 
     test('clear() removes all entries including mixed types', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       bundle['s'] = 'hello';
       bundle['ss'] = <String>['a', 'b'];
       bundle['b'] = Uint8List.fromList(<int>[1]);
@@ -253,7 +248,7 @@ void main() {
   // ---------------------------------------------------------------------------
   group('length, isEmpty, isNotEmpty', () {
     test('length reflects current entry count correctly', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       expect(bundle.length, 0);
       bundle['k1'] = 'v1';
       expect(bundle.length, 1);
@@ -264,14 +259,14 @@ void main() {
     });
 
     test('isNotEmpty becomes true after adding an entry', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       expect(bundle.isNotEmpty, false);
       bundle['key'] = 'value';
       expect(bundle.isNotEmpty, true);
     });
 
     test('isEmpty becomes true after removing the last entry', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       bundle['key'] = 'value';
       expect(bundle.isEmpty, false);
       bundle.remove('key');
@@ -284,22 +279,22 @@ void main() {
   // ---------------------------------------------------------------------------
   group('inherited MapMixin members', () {
     test('containsKey returns true for existing key', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       bundle['key'] = 'value';
       expect(bundle.containsKey('key'), true);
     });
 
     test('containsKey returns false for missing key', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       expect(bundle.containsKey('missing'), false);
     });
 
     test('keys of different bundles are independent', () async {
-      final Bundle bundle1 = Bundle();
+      final bundle1 = Bundle();
       bundle1['a'] = 'v1';
       final Iterable<String> keys1 = bundle1.keys;
 
-      final Bundle bundle2 = Bundle();
+      final bundle2 = Bundle();
       bundle2['b'] = 'v2';
       bundle2.keys;
 
@@ -307,7 +302,7 @@ void main() {
     });
 
     test('keys and values return all stored entries', () async {
-      final Bundle bundle = Bundle.fromMap(<String, String>{
+      final bundle = Bundle.fromMap(<String, String>{
         'key1': 'value1',
         'key2': 'value2',
         'key3': 'value3',
@@ -320,19 +315,19 @@ void main() {
     });
 
     test('containsValue returns true for existing string value', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       bundle['key'] = 'needle';
       expect(bundle.containsValue('needle'), true);
     });
 
     test('containsValue returns false for absent value', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       bundle['key'] = 'value';
       expect(bundle.containsValue('absent'), false);
     });
 
     test('entries exposes key-value pairs correctly', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       bundle['k'] = 'v';
       final MapEntry<String, Object> entry = bundle.entries.single;
       expect(entry.key, 'k');
@@ -340,10 +335,10 @@ void main() {
     });
 
     test('forEach iterates over all entries', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       bundle['a'] = '1';
       bundle['b'] = '2';
-      final Map<String, Object> collected = <String, Object>{};
+      final collected = <String, Object>{};
       bundle.forEach((String key, Object value) {
         collected[key] = value;
       });
@@ -353,7 +348,7 @@ void main() {
     });
 
     test('addAll adds all entries from a map', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       bundle.addAll(<String, Object>{
         'x': 'valueX',
         'y': 'valueY',
@@ -364,7 +359,7 @@ void main() {
     });
 
     test('putIfAbsent inserts only when key is absent', () async {
-      final Bundle bundle = Bundle();
+      final bundle = Bundle();
       bundle['existing'] = 'original';
 
       final Object result = bundle.putIfAbsent('existing', () => 'new');

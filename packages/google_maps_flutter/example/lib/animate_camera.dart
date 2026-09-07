@@ -10,8 +10,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'page.dart';
 
 class AnimateCameraPage extends GoogleMapExampleAppPage {
-  const AnimateCameraPage({super.key})
-    : super(const Icon(Icons.map), 'Camera control, animated');
+  const AnimateCameraPage({super.key}) : super(const Icon(Icons.map), 'Camera control, animated');
 
   @override
   Widget build(BuildContext context) {
@@ -45,9 +44,7 @@ class AnimateCameraState extends State<AnimateCamera> {
             height: 200.0,
             child: GoogleMap(
               onMapCreated: _onMapCreated,
-              initialCameraPosition: const CameraPosition(
-                target: LatLng(0.0, 0.0),
-              ),
+              initialCameraPosition: const CameraPosition(target: LatLng(0.0, 0.0)),
             ),
           ),
         ),
@@ -74,9 +71,7 @@ class AnimateCameraState extends State<AnimateCamera> {
                 TextButton(
                   onPressed: () {
                     mapController?.animateCamera(
-                      CameraUpdate.newLatLng(
-                        const LatLng(56.1725505, 10.1850512),
-                      ),
+                      CameraUpdate.newLatLng(const LatLng(56.1725505, 10.1850512)),
                     );
                   },
                   child: const Text('newLatLng'),
@@ -98,19 +93,14 @@ class AnimateCameraState extends State<AnimateCamera> {
                 TextButton(
                   onPressed: () {
                     mapController?.animateCamera(
-                      CameraUpdate.newLatLngZoom(
-                        const LatLng(37.4231613, -122.087159),
-                        11.0,
-                      ),
+                      CameraUpdate.newLatLngZoom(const LatLng(37.4231613, -122.087159), 11.0),
                     );
                   },
                   child: const Text('newLatLngZoom'),
                 ),
                 TextButton(
                   onPressed: () {
-                    mapController?.animateCamera(
-                      CameraUpdate.scrollBy(150.0, -225.0),
-                    );
+                    mapController?.animateCamera(CameraUpdate.scrollBy(150.0, -225.0));
                   },
                   child: const Text('scrollBy'),
                 ),

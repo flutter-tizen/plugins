@@ -15,8 +15,7 @@ import 'custom_marker_icon.dart';
 import 'page.dart';
 
 class MarkerIconsPage extends GoogleMapExampleAppPage {
-  const MarkerIconsPage({super.key})
-    : super(const Icon(Icons.image), 'Marker icons');
+  const MarkerIconsPage({super.key}) : super(const Icon(Icons.image), 'Marker icons');
 
   @override
   Widget build(BuildContext context) {
@@ -45,8 +44,7 @@ class MarkerIconsBodyState extends State<MarkerIconsBody> {
   AssetMapBitmap? _markerIconAsset;
   BytesMapBitmap? _markerIconBytes;
   final int _markersAmountPerType = 15;
-  bool get _customSizeEnabled =>
-      _currentSizeOption != _MarkerSizeOption.original;
+  bool get _customSizeEnabled => _currentSizeOption != _MarkerSizeOption.original;
 
   @override
   Widget build(BuildContext context) {
@@ -63,10 +61,7 @@ class MarkerIconsBodyState extends State<MarkerIconsBody> {
                 width: 350.0,
                 height: 300.0,
                 child: GoogleMap(
-                  initialCameraPosition: const CameraPosition(
-                    target: _kMapCenter,
-                    zoom: 7.0,
-                  ),
+                  initialCameraPosition: const CameraPosition(target: _kMapCenter, zoom: 7.0),
                   markers: _markers,
                   onMapCreated: _onMapCreated,
                 ),
@@ -74,11 +69,7 @@ class MarkerIconsBodyState extends State<MarkerIconsBody> {
             ),
             TextButton(
               onPressed: () => _toggleScaling(context),
-              child: Text(
-                _scalingEnabled
-                    ? 'Disable auto scaling'
-                    : 'Enable auto scaling',
-              ),
+              child: Text(_scalingEnabled ? 'Disable auto scaling' : 'Enable auto scaling'),
             ),
             if (_scalingEnabled) ...<Widget>[
               Container(
@@ -90,10 +81,7 @@ class MarkerIconsBodyState extends State<MarkerIconsBody> {
                 'Reference box with size of ${referenceSize.width} x ${referenceSize.height} in logical pixels.',
               ),
               const SizedBox(height: 10),
-              Image.asset(
-                'assets/red_square.png',
-                scale: _mipMapsEnabled ? null : 1.0,
-              ),
+              Image.asset('assets/red_square.png', scale: _mipMapsEnabled ? null : 1.0),
               const Text('Asset image rendered with flutter'),
               const SizedBox(height: 10),
               Row(
@@ -111,9 +99,7 @@ class MarkerIconsBodyState extends State<MarkerIconsBody> {
                         });
                       }
                     },
-                    items: _MarkerSizeOption.values.map((
-                      _MarkerSizeOption option,
-                    ) {
+                    items: _MarkerSizeOption.values.map((_MarkerSizeOption option) {
                       return DropdownMenuItem<_MarkerSizeOption>(
                         value: option,
                         child: Text(_getMarkerSizeOptionName(option)),
@@ -125,9 +111,7 @@ class MarkerIconsBodyState extends State<MarkerIconsBody> {
             ],
             TextButton(
               onPressed: () => _toggleMipMaps(context),
-              child: Text(
-                _mipMapsEnabled ? 'Disable mipmaps' : 'Enable mipmaps',
-              ),
+              child: Text(_mipMapsEnabled ? 'Disable mipmaps' : 'Enable mipmaps'),
             ),
           ],
         ),
@@ -178,15 +162,9 @@ class MarkerIconsBodyState extends State<MarkerIconsBody> {
     if (width != null && height != null) {
       return Size(width, height);
     } else if (width != null) {
-      return Size(
-        width,
-        width * _markerAssetImageSize.height / _markerAssetImageSize.width,
-      );
+      return Size(width, width * _markerAssetImageSize.height / _markerAssetImageSize.width);
     } else if (height != null) {
-      return Size(
-        height * _markerAssetImageSize.width / _markerAssetImageSize.height,
-        height,
-      );
+      return Size(height * _markerAssetImageSize.width / _markerAssetImageSize.height, height);
     } else {
       return _markerAssetImageSize;
     }
@@ -209,10 +187,7 @@ class MarkerIconsBodyState extends State<MarkerIconsBody> {
   }
 
   Marker _createAssetMarker(int index) {
-    final LatLng position = LatLng(
-      _kMapCenter.latitude - (index * 0.5),
-      _kMapCenter.longitude - 1,
-    );
+    final position = LatLng(_kMapCenter.latitude - (index * 0.5), _kMapCenter.longitude - 1);
 
     return Marker(
       markerId: MarkerId('marker_asset_$index'),
@@ -222,10 +197,7 @@ class MarkerIconsBodyState extends State<MarkerIconsBody> {
   }
 
   Marker _createBytesMarker(int index) {
-    final LatLng position = LatLng(
-      _kMapCenter.latitude - (index * 0.5),
-      _kMapCenter.longitude + 1,
-    );
+    final position = LatLng(_kMapCenter.latitude - (index * 0.5), _kMapCenter.longitude + 1);
 
     return Marker(
       markerId: MarkerId('marker_bytes_$index'),
@@ -235,8 +207,8 @@ class MarkerIconsBodyState extends State<MarkerIconsBody> {
   }
 
   void _updateMarkers() {
-    final Set<Marker> markers = <Marker>{};
-    for (int i = 0; i < _markersAmountPerType; i++) {
+    final markers = <Marker>{};
+    for (var i = 0; i < _markersAmountPerType; i++) {
       if (_markerIconAsset != null) {
         markers.add(_createAssetMarker(i));
       }
@@ -251,26 +223,20 @@ class MarkerIconsBodyState extends State<MarkerIconsBody> {
 
   Future<void> _updateMarkerAssetImage(BuildContext context) async {
     // Width and height are used only for custom size.
-    final (
-      double? width,
-      double? height,
-    ) = _scalingEnabled && _customSizeEnabled
+    final (double? width, double? height) = _scalingEnabled && _customSizeEnabled
         ? _getCurrentMarkerSize()
         : (null, null);
 
     AssetMapBitmap assetMapBitmap;
     if (_mipMapsEnabled) {
-      final ImageConfiguration imageConfiguration =
-          createLocalImageConfiguration(context);
+      final ImageConfiguration imageConfiguration = createLocalImageConfiguration(context);
 
       assetMapBitmap = await AssetMapBitmap.create(
         imageConfiguration,
         'assets/red_square.png',
         width: width,
         height: height,
-        bitmapScaling: _scalingEnabled
-            ? MapBitmapScaling.auto
-            : MapBitmapScaling.none,
+        bitmapScaling: _scalingEnabled ? MapBitmapScaling.auto : MapBitmapScaling.none,
       );
     } else {
       // Uses hardcoded asset path
@@ -280,9 +246,7 @@ class MarkerIconsBodyState extends State<MarkerIconsBody> {
         'assets/red_square.png',
         width: width,
         height: height,
-        bitmapScaling: _scalingEnabled
-            ? MapBitmapScaling.auto
-            : MapBitmapScaling.none,
+        bitmapScaling: _scalingEnabled ? MapBitmapScaling.auto : MapBitmapScaling.none,
       );
     }
 
@@ -290,15 +254,13 @@ class MarkerIconsBodyState extends State<MarkerIconsBody> {
   }
 
   Future<void> _updateMarkerBytesImage(BuildContext context) async {
-    final double? devicePixelRatio = MediaQuery.maybeDevicePixelRatioOf(
-      context,
-    );
+    final double? devicePixelRatio = MediaQuery.maybeDevicePixelRatioOf(context);
 
     final Size bitmapLogicalSize = _getMarkerReferenceSize();
     final double? imagePixelRatio = _scalingEnabled ? devicePixelRatio : null;
 
     // Create canvasSize with physical marker size
-    final Size canvasSize = Size(
+    final canvasSize = Size(
       bitmapLogicalSize.width * (imagePixelRatio ?? 1.0),
       bitmapLogicalSize.height * (imagePixelRatio ?? 1.0),
     );
@@ -306,21 +268,16 @@ class MarkerIconsBodyState extends State<MarkerIconsBody> {
     final ByteData bytes = await createCustomMarkerIconImage(size: canvasSize);
 
     // Width and height are used only for custom size.
-    final (
-      double? width,
-      double? height,
-    ) = _scalingEnabled && _customSizeEnabled
+    final (double? width, double? height) = _scalingEnabled && _customSizeEnabled
         ? _getCurrentMarkerSize()
         : (null, null);
 
-    final BytesMapBitmap bitmap = BytesMapBitmap(
+    final bitmap = BytesMapBitmap(
       bytes.buffer.asUint8List(),
       imagePixelRatio: imagePixelRatio,
       width: width,
       height: height,
-      bitmapScaling: _scalingEnabled
-          ? MapBitmapScaling.auto
-          : MapBitmapScaling.none,
+      bitmapScaling: _scalingEnabled ? MapBitmapScaling.auto : MapBitmapScaling.none,
     );
 
     _updateBytesBitmap(bitmap);

@@ -36,7 +36,7 @@ class InAppPurchaseTizenPlatformAddition extends InAppPurchasePlatformAddition {
     required int pageNum,
     String? securityKey,
   }) {
-    final RequestParameters requestParameters = RequestParameters();
+    final requestParameters = RequestParameters();
     requestParameters.appId = appId;
     requestParameters.pageSize = pageSize;
     requestParameters.pageNum = pageNum;
@@ -45,9 +45,7 @@ class InAppPurchaseTizenPlatformAddition extends InAppPurchasePlatformAddition {
   }
 
   /// Check whether a purchase, corresponding to the requested "InvoiceID", was successful.
-  Future<bool> verifyPurchase({
-    required PurchaseDetails purchaseDetails,
-  }) async {
+  Future<bool> verifyPurchase({required PurchaseDetails purchaseDetails}) async {
     VerifyInvoiceAPIResult verifyPurchaseResult;
     try {
       verifyPurchaseResult = await _billingManager.verifyInvoice(

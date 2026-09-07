@@ -332,11 +332,7 @@ class VideoEvent {
 
   @override
   int get hashCode =>
-      eventType.hashCode ^
-      duration.hashCode ^
-      size.hashCode ^
-      buffered.hashCode ^
-      text.hashCode;
+      eventType.hashCode ^ duration.hashCode ^ size.hashCode ^ buffered.hashCode ^ text.hashCode;
 }
 
 /// Type of the event.
@@ -440,8 +436,7 @@ class DurationRange {
   }
 
   @override
-  String toString() =>
-      '${objectRuntimeType(this, 'DurationRange')}(start: $start, end: $end)';
+  String toString() => '${objectRuntimeType(this, 'DurationRange')}(start: $start, end: $end)';
 
   @override
   bool operator ==(Object other) =>

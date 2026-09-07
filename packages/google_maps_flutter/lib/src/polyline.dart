@@ -41,10 +41,7 @@ class PolylineController {
   ///
   /// This cannot be called after [remove].
   void update(util.GPolylineOptions options) {
-    assert(
-      _polyline != null,
-      'Cannot `update` Polyline after calling `remove`.',
-    );
+    assert(_polyline != null, 'Cannot `update` Polyline after calling `remove`.');
     _polyline!.options = options;
   }
 

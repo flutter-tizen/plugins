@@ -1,3 +1,8 @@
+## NEXT
+
+* Omit obvious local variable types.
+* Reformat with a line length of 100.
+
 ## 0.4.4
 
 * Update integration tests.

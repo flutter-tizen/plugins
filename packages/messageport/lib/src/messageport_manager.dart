@@ -16,11 +16,10 @@ class MessagePortManager {
   MessagePortManager();
 
   final Map<String, Stream<dynamic>> _localPorts = <String, Stream<dynamic>>{};
-  final Map<String, Stream<dynamic>> _trustedLocalPorts =
-      <String, Stream<dynamic>>{};
+  final Map<String, Stream<dynamic>> _trustedLocalPorts = <String, Stream<dynamic>>{};
 
   Future<void> createLocalPort(String portName, bool trusted) async {
-    final Map<String, dynamic> args = <String, dynamic>{};
+    final args = <String, dynamic>{};
     args['portName'] = portName;
     args['trusted'] = trusted;
     return _channel.invokeMethod('createLocal', args);
@@ -31,7 +30,7 @@ class MessagePortManager {
     String portName,
     bool trusted,
   ) async {
-    final Map<String, dynamic> args = <String, dynamic>{};
+    final args = <String, dynamic>{};
     args['remoteAppId'] = remoteAppId;
     args['portName'] = portName;
     args['trusted'] = trusted;
@@ -43,7 +42,7 @@ class MessagePortManager {
   }
 
   Future<void> send(RemotePort remotePort, dynamic message) async {
-    final Map<String, dynamic> args = <String, dynamic>{};
+    final args = <String, dynamic>{};
     args['trusted'] = remotePort.trusted;
     args['remoteAppId'] = remotePort.remoteAppId;
     args['portName'] = remotePort.portName;
@@ -56,7 +55,7 @@ class MessagePortManager {
     LocalPort localPort,
     dynamic message,
   ) async {
-    final Map<String, dynamic> args = <String, dynamic>{};
+    final args = <String, dynamic>{};
     args['trusted'] = remotePort.trusted;
     args['remoteAppId'] = remotePort.remoteAppId;
     args['portName'] = remotePort.portName;
@@ -69,16 +68,15 @@ class MessagePortManager {
   Stream<dynamic> registerLocalPort(LocalPort localPort) {
     if (localPort.trusted) {
       if (!_trustedLocalPorts.containsKey(localPort.portName)) {
-        final EventChannel eventChannel = EventChannel(
+        final eventChannel = EventChannel(
           'tizen/messageport/${localPort.portName}_trusted',
         );
-        _trustedLocalPorts[localPort.portName] =
-            eventChannel.receiveBroadcastStream();
+        _trustedLocalPorts[localPort.portName] = eventChannel.receiveBroadcastStream();
       }
       return _trustedLocalPorts[localPort.portName]!;
     }
     if (!_localPorts.containsKey(localPort.portName)) {
-      final EventChannel eventChannel = EventChannel(
+      final eventChannel = EventChannel(
         'tizen/messageport/${localPort.portName}',
       );
       _localPorts[localPort.portName] = eventChannel.receiveBroadcastStream();

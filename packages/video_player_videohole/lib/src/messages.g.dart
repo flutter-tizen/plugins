@@ -218,14 +218,10 @@ class CreateMessage {
       uri: result[1] as String?,
       packageName: result[2] as String?,
       formatHint: result[3] as String?,
-      httpHeaders:
-          (result[4] as Map<Object?, Object?>?)?.cast<Object?, Object?>(),
-      drmConfigs:
-          (result[5] as Map<Object?, Object?>?)?.cast<Object?, Object?>(),
-      playerOptions:
-          (result[6] as Map<Object?, Object?>?)?.cast<Object?, Object?>(),
-      windowGeometry:
-          (result[7] as Map<Object?, Object?>?)?.cast<Object?, Object?>(),
+      httpHeaders: (result[4] as Map<Object?, Object?>?)?.cast<Object?, Object?>(),
+      drmConfigs: (result[5] as Map<Object?, Object?>?)?.cast<Object?, Object?>(),
+      playerOptions: (result[6] as Map<Object?, Object?>?)?.cast<Object?, Object?>(),
+      windowGeometry: (result[7] as Map<Object?, Object?>?)?.cast<Object?, Object?>(),
     );
   }
 }
@@ -412,8 +408,7 @@ class VideoPlayerVideoholeApi {
   /// Constructor for [VideoPlayerVideoholeApi].  The [binaryMessenger] named argument is
   /// available for dependency injection.  If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
-  VideoPlayerVideoholeApi({BinaryMessenger? binaryMessenger})
-      : _binaryMessenger = binaryMessenger;
+  VideoPlayerVideoholeApi({BinaryMessenger? binaryMessenger}) : _binaryMessenger = binaryMessenger;
   final BinaryMessenger? _binaryMessenger;
 
   static const MessageCodec<Object?> codec = _VideoPlayerVideoholeApiCodec();
@@ -447,8 +442,7 @@ class VideoPlayerVideoholeApi {
       codec,
       binaryMessenger: _binaryMessenger,
     );
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -476,8 +470,7 @@ class VideoPlayerVideoholeApi {
       codec,
       binaryMessenger: _binaryMessenger,
     );
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -500,8 +493,7 @@ class VideoPlayerVideoholeApi {
       codec,
       binaryMessenger: _binaryMessenger,
     );
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -524,8 +516,7 @@ class VideoPlayerVideoholeApi {
       codec,
       binaryMessenger: _binaryMessenger,
     );
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -548,8 +539,7 @@ class VideoPlayerVideoholeApi {
       codec,
       binaryMessenger: _binaryMessenger,
     );
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -572,8 +562,7 @@ class VideoPlayerVideoholeApi {
       codec,
       binaryMessenger: _binaryMessenger,
     );
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -596,8 +585,7 @@ class VideoPlayerVideoholeApi {
       codec,
       binaryMessenger: _binaryMessenger,
     );
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -625,8 +613,7 @@ class VideoPlayerVideoholeApi {
       codec,
       binaryMessenger: _binaryMessenger,
     );
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -654,8 +641,7 @@ class VideoPlayerVideoholeApi {
       codec,
       binaryMessenger: _binaryMessenger,
     );
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -683,8 +669,7 @@ class VideoPlayerVideoholeApi {
       codec,
       binaryMessenger: _binaryMessenger,
     );
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -712,8 +697,7 @@ class VideoPlayerVideoholeApi {
       codec,
       binaryMessenger: _binaryMessenger,
     );
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -741,8 +725,7 @@ class VideoPlayerVideoholeApi {
       codec,
       binaryMessenger: _binaryMessenger,
     );
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -765,8 +748,7 @@ class VideoPlayerVideoholeApi {
       codec,
       binaryMessenger: _binaryMessenger,
     );
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -789,8 +771,7 @@ class VideoPlayerVideoholeApi {
       codec,
       binaryMessenger: _binaryMessenger,
     );
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -813,8 +794,7 @@ class VideoPlayerVideoholeApi {
       codec,
       binaryMessenger: _binaryMessenger,
     );
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -837,8 +817,7 @@ class VideoPlayerVideoholeApi {
       codec,
       binaryMessenger: _binaryMessenger,
     );
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -866,8 +845,7 @@ class VideoPlayerVideoholeApi {
       codec,
       binaryMessenger: _binaryMessenger,
     );
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_playerId]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_playerId]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',
@@ -921,8 +899,7 @@ class VideoPlayerVideoholeApi {
       codec,
       binaryMessenger: _binaryMessenger,
     );
-    final List<Object?>? replyList =
-        await channel.send(<Object?>[arg_msg]) as List<Object?>?;
+    final List<Object?>? replyList = await channel.send(<Object?>[arg_msg]) as List<Object?>?;
     if (replyList == null) {
       throw PlatformException(
         code: 'channel-error',

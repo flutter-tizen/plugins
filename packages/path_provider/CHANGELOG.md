@@ -1,3 +1,8 @@
+## NEXT
+
+* Omit obvious local variable types.
+* Reformat with a line length of 100.
+
 ## 2.3.3
 
 * Update path_provider to 2.1.6.

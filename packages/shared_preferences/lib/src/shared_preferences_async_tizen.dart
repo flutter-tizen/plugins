@@ -65,9 +65,7 @@ base class SharedPreferencesAsyncTizen extends SharedPreferencesAsyncPlatform {
   }
 
   String _joinStringList(List<String> list) {
-    return list.isEmpty
-        ? _separator
-        : _separator + list.join(_separator) + _separator;
+    return list.isEmpty ? _separator : _separator + list.join(_separator) + _separator;
   }
 
   @override
@@ -188,7 +186,7 @@ base class SharedPreferencesAsyncTizen extends SharedPreferencesAsyncPlatform {
   ) async {
     final PreferencesFilters filter = parameters.filter;
 
-    List<String> keyList = <String>[];
+    var keyList = <String>[];
     await getKeys(
       GetPreferencesParameters(filter: parameters.filter),
       options,
@@ -196,7 +194,7 @@ base class SharedPreferencesAsyncTizen extends SharedPreferencesAsyncPlatform {
       keyList = keys.toList();
     });
 
-    for (final String key in keyList) {
+    for (final key in keyList) {
       if (filter.allowList == null || filter.allowList!.contains(key)) {
         if (!(await _remove(key))) {
           return;
@@ -207,8 +205,7 @@ base class SharedPreferencesAsyncTizen extends SharedPreferencesAsyncPlatform {
 
   Future<bool> _remove(String key) async {
     return using((Arena arena) {
-      final bool ret =
-          tizen.preference_remove(key.toNativeChar(allocator: arena)) == 0;
+      final ret = tizen.preference_remove(key.toNativeChar(allocator: arena)) == 0;
       return ret;
     });
   }
@@ -218,8 +215,7 @@ base class SharedPreferencesAsyncTizen extends SharedPreferencesAsyncPlatform {
 
   static bool _getKeysCallback(Pointer<Char> pKey, Pointer<Void> data) {
     final String key = pKey.toDartString();
-    if (_keysFilters.allowList == null ||
-        _keysFilters.allowList!.contains(key)) {
+    if (_keysFilters.allowList == null || _keysFilters.allowList!.contains(key)) {
       _keys!.add(key);
     }
     return true;
@@ -248,8 +244,7 @@ base class SharedPreferencesAsyncTizen extends SharedPreferencesAsyncPlatform {
 
   static bool _getPreferenceCallback(Pointer<Char> pKey, Pointer<Void> data) {
     final String key = pKey.toDartString();
-    if (_preferencesFilters.allowList == null ||
-        _preferencesFilters.allowList!.contains(key)) {
+    if (_preferencesFilters.allowList == null || _preferencesFilters.allowList!.contains(key)) {
       using((Arena arena) {
         final Pointer<Bool> pBool = arena();
         if (tizen.preference_get_boolean(pKey, pBool) == 0) {

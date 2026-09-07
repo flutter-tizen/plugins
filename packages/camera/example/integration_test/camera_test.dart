@@ -26,8 +26,7 @@ void main() {
     await testDir.delete(recursive: true);
   });
 
-  final Map<ResolutionPreset, Size> presetExpectedSizes =
-      <ResolutionPreset, Size>{
+  final presetExpectedSizes = <ResolutionPreset, Size>{
     ResolutionPreset.medium: const Size(480, 720),
     // Don't bother checking for max here since it could be anything.
   };
@@ -55,7 +54,7 @@ void main() {
     final XFile file = await controller.takePicture();
 
     // Load picture
-    final File fileImage = File(file.path);
+    final fileImage = File(file.path);
     final Image image = await decodeImageFromList(fileImage.readAsBytesSync());
 
     // Verify image dimensions are as expected
@@ -73,11 +72,10 @@ void main() {
     if (cameras.isEmpty) {
       return;
     }
-    for (final CameraDescription cameraDescription in cameras) {
-      bool previousPresetExactlySupported = true;
-      for (final MapEntry<ResolutionPreset, Size> preset
-          in presetExpectedSizes.entries) {
-        final CameraController controller = CameraController(
+    for (final cameraDescription in cameras) {
+      var previousPresetExactlySupported = true;
+      for (final MapEntry<ResolutionPreset, Size> preset in presetExpectedSizes.entries) {
+        final controller = CameraController(
           cameraDescription,
           preset.key,
         );
@@ -111,8 +109,8 @@ void main() {
     final XFile file = await controller.stopVideoRecording();
 
     // Load video metadata
-    final File videoFile = File(file.path);
-    final VideoPlayerController videoController = VideoPlayerController.file(
+    final videoFile = File(file.path);
+    final videoController = VideoPlayerController.file(
       videoFile,
     );
     await videoController.initialize();
@@ -133,11 +131,10 @@ void main() {
     if (cameras.isEmpty) {
       return;
     }
-    for (final CameraDescription cameraDescription in cameras) {
-      bool previousPresetExactlySupported = true;
-      for (final MapEntry<ResolutionPreset, Size> preset
-          in presetExpectedSizes.entries) {
-        final CameraController controller = CameraController(
+    for (final cameraDescription in cameras) {
+      var previousPresetExactlySupported = true;
+      for (final MapEntry<ResolutionPreset, Size> preset in presetExpectedSizes.entries) {
+        final controller = CameraController(
           cameraDescription,
           preset.key,
         );
@@ -163,7 +160,7 @@ void main() {
       return;
     }
 
-    final CameraController controller = CameraController(
+    final controller = CameraController(
       cameras[0],
       ResolutionPreset.low,
       enableAudio: false,
@@ -173,7 +170,7 @@ void main() {
     // await controller.prepareForVideoRecording();
 
     int startPause;
-    int timePaused = 0;
+    var timePaused = 0;
 
     await controller.startVideoRecording();
     final int recordingStart = DateTime.now().millisecondsSinceEpoch;
@@ -196,11 +193,10 @@ void main() {
     sleep(const Duration(milliseconds: 500));
 
     final XFile file = await controller.stopVideoRecording();
-    final int recordingTime =
-        DateTime.now().millisecondsSinceEpoch - recordingStart;
+    final int recordingTime = DateTime.now().millisecondsSinceEpoch - recordingStart;
 
-    final File videoFile = File(file.path);
-    final VideoPlayerController videoController = VideoPlayerController.file(
+    final videoFile = File(file.path);
+    final videoController = VideoPlayerController.file(
       videoFile,
     );
     await videoController.initialize();
@@ -216,14 +212,14 @@ void main() {
       return;
     }
 
-    final CameraController controller = CameraController(
+    final controller = CameraController(
       cameras[0],
       ResolutionPreset.low,
       enableAudio: false,
     );
 
     await controller.initialize();
-    bool isDetecting = false;
+    var isDetecting = false;
 
     await controller.startImageStream((CameraImage image) {
       if (isDetecting) {

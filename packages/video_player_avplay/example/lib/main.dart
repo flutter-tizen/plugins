@@ -70,8 +70,7 @@ class _HlsRomoteVideo extends StatefulWidget {
 class _HlsRomoteVideoState extends State<_HlsRomoteVideo> {
   late VideoPlayerController _controller;
   // Optional
-  final Map<StreamingPropertyType, String> _streamingProperties =
-      <StreamingPropertyType, String>{
+  final Map<StreamingPropertyType, String> _streamingProperties = <StreamingPropertyType, String>{
     StreamingPropertyType.adaptiveInfo: 'STARTBITRATE=460560',
     StreamingPropertyType.setAbr: '0',
   };
@@ -142,8 +141,7 @@ class _DashRomoteVideo extends StatefulWidget {
 class _DashRomoteVideoState extends State<_DashRomoteVideo> {
   late VideoPlayerController _controller;
   // Optional
-  final Map<StreamingPropertyType, String> _streamingProperties =
-      <StreamingPropertyType, String>{
+  final Map<StreamingPropertyType, String> _streamingProperties = <StreamingPropertyType, String>{
     /// You can set multiple parameters at once, please separate them with ";".
     StreamingPropertyType.adaptiveInfo:
         'MAX_RESOLUTION=3840X2160;MAX_FRAMERATE=60;UPDATE_SAME_LANGUAGE_CODE=1;OPEN_SUBTITLE_STYLE=TRUE',
@@ -182,8 +180,7 @@ class _DashRomoteVideoState extends State<_DashRomoteVideo> {
       _controller.updateDashToken('YWJyVHlwZT1CUi1BVkMtREFTSC');
       // New features: get the following properties.
       _controller.getStreamingProperty(StreamingPropertyType.audioStreamInfo);
-      _controller
-          .getStreamingProperty(StreamingPropertyType.subtitleStreamInfo);
+      _controller.getStreamingProperty(StreamingPropertyType.subtitleStreamInfo);
       _controller.getStreamingProperty(StreamingPropertyType.videoStreamInfo);
       _controller.getData(<DashPlayerProperty>{DashPlayerProperty.httpHeader});
     });
@@ -198,8 +195,7 @@ class _DashRomoteVideoState extends State<_DashRomoteVideo> {
 
   @override
   Widget build(BuildContext context) {
-    const TextStyle customTextStyle =
-        TextStyle(fontSize: 30, color: Colors.green);
+    const customTextStyle = TextStyle(fontSize: 30, color: Colors.green);
     return SingleChildScrollView(
       child: Column(
         children: <Widget>[
@@ -214,8 +210,7 @@ class _DashRomoteVideoState extends State<_DashRomoteVideo> {
                 children: <Widget>[
                   VideoPlayer(_controller),
                   ClosedCaption(
-                      captions: _controller.value.captions,
-                      customTextStyle: customTextStyle),
+                      captions: _controller.value.captions, customTextStyle: customTextStyle),
                   _ControlsOverlay(controller: _controller),
                   VideoProgressIndicator(_controller, allowScrubbing: true),
                 ],
@@ -376,8 +371,7 @@ class _DrmRemoteVideoState2 extends State<_DrmRemoteVideo2> {
       'https://test.playready.microsoft.com/smoothstreaming/SSWSS720H264PR/SuperSpeedway_720.ism/Manifest',
       drmConfigs: const DrmConfigs(
         type: DrmType.playready,
-        licenseServerUrl:
-            'https://test.playready.microsoft.com/service/rightsmanager.asmx',
+        licenseServerUrl: 'https://test.playready.microsoft.com/service/rightsmanager.asmx',
       ),
     );
 
@@ -896,7 +890,7 @@ class _TestRemoteVideoState extends State<_TestRemoteVideo> {
   }
 
   DataSource restoreDataSource() {
-    final DataSource dataSource = DataSource(
+    final dataSource = DataSource(
       sourceType: DataSourceType.network,
       uri: 'https://media.w3.org/2010/05/bunny/trailer.mp4',
     );
@@ -906,7 +900,7 @@ class _TestRemoteVideoState extends State<_TestRemoteVideo> {
   int restoreTime() {
     /// if resumeTime >= 0 , it will restore from resumeTime
     /// if resumeTime is not set or <0, it will restore from the time when suspend is called
-    const int resumeTime = 0;
+    const resumeTime = 0;
     return resumeTime;
   }
 

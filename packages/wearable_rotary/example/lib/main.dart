@@ -73,9 +73,7 @@ class RotaryScrollPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          scrollDirection == Axis.vertical
-              ? 'VerticalScrollView'
-              : 'HorizontalScrollView',
+          scrollDirection == Axis.vertical ? 'VerticalScrollView' : 'HorizontalScrollView',
         ),
       ),
       body: Center(
