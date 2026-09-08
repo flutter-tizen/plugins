@@ -4,6 +4,9 @@
 
 Tizen window manager APIs. Used to control windows and get window geometry information.
 
+> **Warning**
+> `WindowManager.activate()` and `WindowManager.lower()` require flutter-tizen `3.35.3-tizen.1.1.0` (released 2025-10-24) or later. Earlier embedders do not handle these requests on the `tizen/internal/window` channel and throw `MissingPluginException`. `WindowManager.getGeometry()` works on all versions.
+
 ## Usage
 
 To use this package, add `tizen_window_manager` as a dependency in your `pubspec.yaml` file.

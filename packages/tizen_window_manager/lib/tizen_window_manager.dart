@@ -14,9 +14,15 @@ class WindowManager {
   static const MethodChannel _channel = MethodChannel('tizen/internal/window');
 
   /// Activates the window.
+  ///
+  /// Requires flutter-tizen 3.35.3-tizen.1.1.0 or later. Throws
+  /// [MissingPluginException] on earlier versions.
   static Future<void> activate() => _channel.invokeMethod('activateWindow');
 
   /// Lowers the window.
+  ///
+  /// Requires flutter-tizen 3.35.3-tizen.1.1.0 or later. Throws
+  /// [MissingPluginException] on earlier versions.
   static Future<void> lower() => _channel.invokeMethod('lowerWindow');
 
   /// Gets the geometry (position and size) of the window.
