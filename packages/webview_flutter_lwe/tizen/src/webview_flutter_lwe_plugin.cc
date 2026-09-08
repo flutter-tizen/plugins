@@ -50,8 +50,10 @@ class WebviewFlutterLwePlugin : public flutter::Plugin {
     const std::string& method_name = method_call.method_name();
 
     if (method_name == "clearCookies") {
-      LWE::CookieManager::GetInstance()->ClearCookies();
-      result->Success(flutter::EncodableValue(true));
+      LWE::CookieManager* cookie_manager = LWE::CookieManager::GetInstance();
+      const bool had_cookies = cookie_manager->HasCookies();
+      cookie_manager->ClearCookies();
+      result->Success(flutter::EncodableValue(had_cookies));
     } else if (method_name == "getCookies") {
       const auto* url = std::get_if<std::string>(method_call.arguments());
       if (!url) {
