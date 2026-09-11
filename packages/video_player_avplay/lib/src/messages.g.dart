@@ -18,28 +18,29 @@ PlatformException _createConnectionError(String channelName) {
 bool _deepEquals(Object? a, Object? b) {
   if (a is List && b is List) {
     return a.length == b.length &&
-        a.indexed.every(
-          ((int, dynamic) item) => _deepEquals(item.$2, b[item.$1]),
-        );
+        a.indexed
+            .every(((int, dynamic) item) => _deepEquals(item.$2, b[item.$1]));
   }
   if (a is Map && b is Map) {
     return a.length == b.length &&
-        a.entries.every(
-          (MapEntry<Object?, Object?> entry) =>
-              (b as Map<Object?, Object?>).containsKey(entry.key) &&
-              _deepEquals(entry.value, b[entry.key]),
-        );
+        a.entries.every((MapEntry<Object?, Object?> entry) =>
+            (b as Map<Object?, Object?>).containsKey(entry.key) &&
+            _deepEquals(entry.value, b[entry.key]));
   }
   return a == b;
 }
 
 class PlayerMessage {
-  PlayerMessage({required this.playerId});
+  PlayerMessage({
+    required this.playerId,
+  });
 
   int playerId;
 
   List<Object?> _toList() {
-    return <Object?>[playerId];
+    return <Object?>[
+      playerId,
+    ];
   }
 
   Object encode() {
@@ -48,7 +49,9 @@ class PlayerMessage {
 
   static PlayerMessage decode(Object result) {
     result as List<Object?>;
-    return PlayerMessage(playerId: result[0]! as int);
+    return PlayerMessage(
+      playerId: result[0]! as int,
+    );
   }
 
   @override
@@ -69,14 +72,20 @@ class PlayerMessage {
 }
 
 class LoopingMessage {
-  LoopingMessage({required this.playerId, required this.isLooping});
+  LoopingMessage({
+    required this.playerId,
+    required this.isLooping,
+  });
 
   int playerId;
 
   bool isLooping;
 
   List<Object?> _toList() {
-    return <Object?>[playerId, isLooping];
+    return <Object?>[
+      playerId,
+      isLooping,
+    ];
   }
 
   Object encode() {
@@ -109,14 +118,20 @@ class LoopingMessage {
 }
 
 class VolumeMessage {
-  VolumeMessage({required this.playerId, required this.volume});
+  VolumeMessage({
+    required this.playerId,
+    required this.volume,
+  });
 
   int playerId;
 
   double volume;
 
   List<Object?> _toList() {
-    return <Object?>[playerId, volume];
+    return <Object?>[
+      playerId,
+      volume,
+    ];
   }
 
   Object encode() {
@@ -149,14 +164,20 @@ class VolumeMessage {
 }
 
 class PlaybackSpeedMessage {
-  PlaybackSpeedMessage({required this.playerId, required this.speed});
+  PlaybackSpeedMessage({
+    required this.playerId,
+    required this.speed,
+  });
 
   int playerId;
 
   double speed;
 
   List<Object?> _toList() {
-    return <Object?>[playerId, speed];
+    return <Object?>[
+      playerId,
+      speed,
+    ];
   }
 
   Object encode() {
@@ -189,14 +210,20 @@ class PlaybackSpeedMessage {
 }
 
 class TrackMessage {
-  TrackMessage({required this.playerId, required this.tracks});
+  TrackMessage({
+    required this.playerId,
+    required this.tracks,
+  });
 
   int playerId;
 
   List<Map<Object?, Object?>?> tracks;
 
   List<Object?> _toList() {
-    return <Object?>[playerId, tracks];
+    return <Object?>[
+      playerId,
+      tracks,
+    ];
   }
 
   Object encode() {
@@ -229,14 +256,20 @@ class TrackMessage {
 }
 
 class TrackTypeMessage {
-  TrackTypeMessage({required this.playerId, required this.trackType});
+  TrackTypeMessage({
+    required this.playerId,
+    required this.trackType,
+  });
 
   int playerId;
 
   String trackType;
 
   List<Object?> _toList() {
-    return <Object?>[playerId, trackType];
+    return <Object?>[
+      playerId,
+      trackType,
+    ];
   }
 
   Object encode() {
@@ -282,7 +315,11 @@ class SelectedTracksMessage {
   String trackType;
 
   List<Object?> _toList() {
-    return <Object?>[playerId, trackId, trackType];
+    return <Object?>[
+      playerId,
+      trackId,
+      trackType,
+    ];
   }
 
   Object encode() {
@@ -316,14 +353,20 @@ class SelectedTracksMessage {
 }
 
 class PositionMessage {
-  PositionMessage({required this.playerId, required this.position});
+  PositionMessage({
+    required this.playerId,
+    required this.position,
+  });
 
   int playerId;
 
   int position;
 
   List<Object?> _toList() {
-    return <Object?>[playerId, position];
+    return <Object?>[
+      playerId,
+      position,
+    ];
   }
 
   Object encode() {
@@ -365,6 +408,7 @@ class CreateMessage {
     this.drmConfigs,
     this.playerOptions,
     this.streamingProperty,
+    this.windowGeometry,
   });
 
   String? asset;
@@ -383,6 +427,8 @@ class CreateMessage {
 
   Map<Object?, Object?>? streamingProperty;
 
+  Map<Object?, Object?>? windowGeometry;
+
   List<Object?> _toList() {
     return <Object?>[
       asset,
@@ -393,6 +439,7 @@ class CreateMessage {
       drmConfigs,
       playerOptions,
       streamingProperty,
+      windowGeometry,
     ];
   }
 
@@ -415,6 +462,8 @@ class CreateMessage {
           (result[6] as Map<Object?, Object?>?)?.cast<Object?, Object?>(),
       streamingProperty:
           (result[7] as Map<Object?, Object?>?)?.cast<Object?, Object?>(),
+      windowGeometry:
+          (result[8] as Map<Object?, Object?>?)?.cast<Object?, Object?>(),
     );
   }
 
@@ -436,12 +485,16 @@ class CreateMessage {
 }
 
 class MixWithOthersMessage {
-  MixWithOthersMessage({required this.mixWithOthers});
+  MixWithOthersMessage({
+    required this.mixWithOthers,
+  });
 
   bool mixWithOthers;
 
   List<Object?> _toList() {
-    return <Object?>[mixWithOthers];
+    return <Object?>[
+      mixWithOthers,
+    ];
   }
 
   Object encode() {
@@ -450,7 +503,9 @@ class MixWithOthersMessage {
 
   static MixWithOthersMessage decode(Object result) {
     result as List<Object?>;
-    return MixWithOthersMessage(mixWithOthers: result[0]! as bool);
+    return MixWithOthersMessage(
+      mixWithOthers: result[0]! as bool,
+    );
   }
 
   @override
@@ -490,7 +545,13 @@ class GeometryMessage {
   int height;
 
   List<Object?> _toList() {
-    return <Object?>[playerId, x, y, width, height];
+    return <Object?>[
+      playerId,
+      x,
+      y,
+      width,
+      height,
+    ];
   }
 
   Object encode() {
@@ -526,14 +587,20 @@ class GeometryMessage {
 }
 
 class DurationMessage {
-  DurationMessage({required this.playerId, this.durationRange});
+  DurationMessage({
+    required this.playerId,
+    this.durationRange,
+  });
 
   int playerId;
 
   List<int?>? durationRange;
 
   List<Object?> _toList() {
-    return <Object?>[playerId, durationRange];
+    return <Object?>[
+      playerId,
+      durationRange,
+    ];
   }
 
   Object encode() {
@@ -576,7 +643,10 @@ class StreamingPropertyTypeMessage {
   String streamingPropertyType;
 
   List<Object?> _toList() {
-    return <Object?>[playerId, streamingPropertyType];
+    return <Object?>[
+      playerId,
+      streamingPropertyType,
+    ];
   }
 
   Object encode() {
@@ -623,7 +693,11 @@ class StreamingPropertyMessage {
   String streamingPropertyValue;
 
   List<Object?> _toList() {
-    return <Object?>[playerId, streamingPropertyType, streamingPropertyValue];
+    return <Object?>[
+      playerId,
+      streamingPropertyType,
+      streamingPropertyValue,
+    ];
   }
 
   Object encode() {
@@ -671,7 +745,11 @@ class BufferConfigMessage {
   int bufferConfigValue;
 
   List<Object?> _toList() {
-    return <Object?>[playerId, bufferConfigType, bufferConfigValue];
+    return <Object?>[
+      playerId,
+      bufferConfigType,
+      bufferConfigValue,
+    ];
   }
 
   Object encode() {
@@ -705,14 +783,20 @@ class BufferConfigMessage {
 }
 
 class RotationMessage {
-  RotationMessage({required this.playerId, required this.rotation});
+  RotationMessage({
+    required this.playerId,
+    required this.rotation,
+  });
 
   int playerId;
 
   int rotation;
 
   List<Object?> _toList() {
-    return <Object?>[playerId, rotation];
+    return <Object?>[
+      playerId,
+      rotation,
+    ];
   }
 
   Object encode() {
@@ -745,14 +829,20 @@ class RotationMessage {
 }
 
 class DisplayModeMessage {
-  DisplayModeMessage({required this.playerId, required this.displayMode});
+  DisplayModeMessage({
+    required this.playerId,
+    required this.displayMode,
+  });
 
   int playerId;
 
   int displayMode;
 
   List<Object?> _toList() {
-    return <Object?>[playerId, displayMode];
+    return <Object?>[
+      playerId,
+      displayMode,
+    ];
   }
 
   Object encode() {
@@ -785,14 +875,20 @@ class DisplayModeMessage {
 }
 
 class DashPropertyTypeListMessage {
-  DashPropertyTypeListMessage({required this.playerId, required this.typeList});
+  DashPropertyTypeListMessage({
+    required this.playerId,
+    required this.typeList,
+  });
 
   int playerId;
 
   List<String?> typeList;
 
   List<Object?> _toList() {
-    return <Object?>[playerId, typeList];
+    return <Object?>[
+      playerId,
+      typeList,
+    ];
   }
 
   Object encode() {
@@ -826,14 +922,20 @@ class DashPropertyTypeListMessage {
 }
 
 class DashPropertyMapMessage {
-  DashPropertyMapMessage({required this.playerId, required this.mapData});
+  DashPropertyMapMessage({
+    required this.playerId,
+    required this.mapData,
+  });
 
   int playerId;
 
   Map<Object?, Object?> mapData;
 
   List<Object?> _toList() {
-    return <Object?>[playerId, mapData];
+    return <Object?>[
+      playerId,
+      mapData,
+    ];
   }
 
   Object encode() {
@@ -985,10 +1087,9 @@ class VideoPlayerAvplayApi {
   /// Constructor for [VideoPlayerAvplayApi].  The [binaryMessenger] named argument is
   /// available for dependency injection.  If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
-  VideoPlayerAvplayApi({
-    BinaryMessenger? binaryMessenger,
-    String messageChannelSuffix = '',
-  })  : pigeonVar_binaryMessenger = binaryMessenger,
+  VideoPlayerAvplayApi(
+      {BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
+      : pigeonVar_binaryMessenger = binaryMessenger,
         pigeonVar_messageChannelSuffix =
             messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
   final BinaryMessenger? pigeonVar_binaryMessenger;
@@ -1031,9 +1132,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[msg]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1063,9 +1163,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[msg]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1090,9 +1189,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[msg]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1117,9 +1215,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[msg]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1144,9 +1241,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[msg]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1171,9 +1267,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[msg]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1198,9 +1293,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[msg]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1230,9 +1324,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[msg]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1262,9 +1355,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[msg]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1294,9 +1386,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[msg]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1326,9 +1417,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[msg]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1358,9 +1448,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[msg]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1390,9 +1479,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[msg]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1417,9 +1505,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[msg]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1444,9 +1531,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[msg]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1471,9 +1557,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[msg]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1498,9 +1583,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[msg]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1530,9 +1614,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[msg]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1562,9 +1645,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[msg]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1589,9 +1671,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[msg]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1621,9 +1702,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[msg]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1653,9 +1733,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[playerId],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[playerId]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1680,9 +1759,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[playerId, msg, resumeTime],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[playerId, msg, resumeTime]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1707,9 +1785,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[msg]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1731,8 +1808,7 @@ class VideoPlayerAvplayApi {
   }
 
   Future<DashPropertyMapMessage> getData(
-    DashPropertyTypeListMessage msg,
-  ) async {
+      DashPropertyTypeListMessage msg) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.video_player_avplay.VideoPlayerAvplayApi.getData$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel =
@@ -1741,9 +1817,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[msg]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1773,9 +1848,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[playerId, dashToken],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[playerId, dashToken]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -1805,9 +1879,8 @@ class VideoPlayerAvplayApi {
       pigeonChannelCodec,
       binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
-    );
+    final Future<Object?> pigeonVar_sendFuture =
+        pigeonVar_channel.send(<Object?>[msg]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {

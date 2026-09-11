@@ -277,7 +277,8 @@ CreateMessage::CreateMessage(const std::string* asset, const std::string* uri,
                              const EncodableMap* http_headers,
                              const EncodableMap* drm_configs,
                              const EncodableMap* player_options,
-                             const EncodableMap* streaming_property)
+                             const EncodableMap* streaming_property,
+                             const EncodableMap* window_geometry)
     : asset_(asset ? std::optional<std::string>(*asset) : std::nullopt),
       uri_(uri ? std::optional<std::string>(*uri) : std::nullopt),
       package_name_(package_name ? std::optional<std::string>(*package_name)
@@ -293,7 +294,10 @@ CreateMessage::CreateMessage(const std::string* asset, const std::string* uri,
                           : std::nullopt),
       streaming_property_(streaming_property
                               ? std::optional<EncodableMap>(*streaming_property)
-                              : std::nullopt) {}
+                              : std::nullopt),
+      window_geometry_(window_geometry
+                           ? std::optional<EncodableMap>(*window_geometry)
+                           : std::nullopt) {}
 
 const std::string* CreateMessage::asset() const {
   return asset_ ? &(*asset_) : nullptr;
@@ -395,9 +399,22 @@ void CreateMessage::set_streaming_property(const EncodableMap& value_arg) {
   streaming_property_ = value_arg;
 }
 
+const EncodableMap* CreateMessage::window_geometry() const {
+  return window_geometry_ ? &(*window_geometry_) : nullptr;
+}
+
+void CreateMessage::set_window_geometry(const EncodableMap* value_arg) {
+  window_geometry_ =
+      value_arg ? std::optional<EncodableMap>(*value_arg) : std::nullopt;
+}
+
+void CreateMessage::set_window_geometry(const EncodableMap& value_arg) {
+  window_geometry_ = value_arg;
+}
+
 EncodableList CreateMessage::ToEncodableList() const {
   EncodableList list;
-  list.reserve(8);
+  list.reserve(9);
   list.push_back(asset_ ? EncodableValue(*asset_) : EncodableValue());
   list.push_back(uri_ ? EncodableValue(*uri_) : EncodableValue());
   list.push_back(package_name_ ? EncodableValue(*package_name_)
@@ -412,6 +429,8 @@ EncodableList CreateMessage::ToEncodableList() const {
                                  : EncodableValue());
   list.push_back(streaming_property_ ? EncodableValue(*streaming_property_)
                                      : EncodableValue());
+  list.push_back(window_geometry_ ? EncodableValue(*window_geometry_)
+                                  : EncodableValue());
   return list;
 }
 
@@ -450,6 +469,11 @@ CreateMessage CreateMessage::FromEncodableList(const EncodableList& list) {
   if (!encodable_streaming_property.IsNull()) {
     decoded.set_streaming_property(
         std::get<EncodableMap>(encodable_streaming_property));
+  }
+  auto& encodable_window_geometry = list[8];
+  if (!encodable_window_geometry.IsNull()) {
+    decoded.set_window_geometry(
+        std::get<EncodableMap>(encodable_window_geometry));
   }
   return decoded;
 }

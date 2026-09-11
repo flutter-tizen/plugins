@@ -62,7 +62,7 @@ class PlusPlayer : public VideoPlayer {
  private:
   bool IsLive();
   std::pair<int64_t, int64_t> GetLiveDuration();
-  bool SetDisplay();
+  bool SetDisplay(const flutter::EncodableMap *window_geometry);
   bool SetDrm(const std::string &uri, int drm_type,
               const std::string &license_server_url);
   flutter::EncodableValue ParseVideoTrack(plusplayer::Track video_track);

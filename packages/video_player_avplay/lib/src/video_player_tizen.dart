@@ -5,6 +5,7 @@
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:tizen_window_manager/tizen_window_manager.dart';
 
 import '../video_player_platform_interface.dart';
 import 'messages.g.dart';
@@ -52,8 +53,24 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
         message.uri = dataSource.uri;
     }
 
+    message.windowGeometry = await _getWindowGeometry();
+
     final PlayerMessage response = await _api.create(message);
     return response.playerId;
+  }
+
+  Future<Map<Object?, Object?>?> _getWindowGeometry() async {
+    try {
+      final Map<String, int> geometry = await WindowManager.getGeometry();
+      return <Object?, Object?>{
+        'x': geometry['x'] ?? 0,
+        'y': geometry['y'] ?? 0,
+        'width': geometry['width'] ?? 0,
+        'height': geometry['height'] ?? 0,
+      };
+    } catch (e) {
+      return null;
+    }
   }
 
   @override
@@ -262,7 +279,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     int playerId, {
     DataSource? dataSource,
     int resumeTime = -1,
-  }) {
+  }) async {
     final CreateMessage message = CreateMessage();
 
     if (dataSource != null) {
@@ -289,6 +306,8 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
           message.uri = dataSource.uri;
       }
     }
+
+    message.windowGeometry = await _getWindowGeometry();
 
     return _api.restore(playerId, message, resumeTime);
   }

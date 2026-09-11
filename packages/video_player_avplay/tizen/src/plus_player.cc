@@ -162,7 +162,7 @@ int64_t PlusPlayer::Create(const std::string &uri,
     }
   }
 
-  if (!SetDisplay()) {
+  if (!SetDisplay(create_message.window_geometry())) {
     LOG_ERROR("[PlusPlayer] Fail to set display.");
     return -1;
   }
@@ -425,15 +425,30 @@ bool PlusPlayer::IsReady() {
   return plusplayer::State::kReady == GetState(player_);
 }
 
-bool PlusPlayer::SetDisplay() {
+bool PlusPlayer::SetDisplay(const flutter::EncodableMap *window_geometry) {
+  if (!window_geometry) {
+    LOG_ERROR("[PlusPlayer] window_geometry is null.");
+    return false;
+  }
+
   void *native_window = GetWindowHandle();
   if (!native_window) {
     LOG_ERROR("[PlusPlayer] Could not get a native window handle.");
     return false;
   }
-  int x = 0, y = 0, width = 0, height = 0;
-  ecore_wl2_window_proxy_->ecore_wl2_window_geometry_get(native_window, &x, &y,
-                                                         &width, &height);
+  int64_t x = flutter_common::GetValue(window_geometry, "x", (int64_t)0);
+  int64_t y = flutter_common::GetValue(window_geometry, "y", (int64_t)0);
+  int64_t width =
+      flutter_common::GetValue(window_geometry, "width", (int64_t)0);
+  int64_t height =
+      flutter_common::GetValue(window_geometry, "height", (int64_t)0);
+
+  if (width <= 0 || height <= 0) {
+    LOG_ERROR("[PlusPlayer] Invalid window geometry: width=%d, height=%d.",
+              width, height);
+    return false;
+  }
+
   uint32_t resource_id = FlutterDesktopViewGetResourceId(flutter_view_);
   if (resource_id == 0) {
     LOG_ERROR("[PlusPlayer] Fail to get resource id.");

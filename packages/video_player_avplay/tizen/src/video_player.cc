@@ -15,9 +15,7 @@ static int64_t player_index = 1;
 
 VideoPlayer::VideoPlayer(flutter::BinaryMessenger *messenger,
                          FlutterDesktopViewRef flutter_view)
-    : ecore_wl2_window_proxy_(std::make_unique<EcoreWl2WindowProxy>()),
-      binary_messenger_(messenger),
-      flutter_view_(flutter_view) {
+    : binary_messenger_(messenger), flutter_view_(flutter_view) {
   sink_event_pipe_ = ecore_pipe_add(
       [](void *data, void *buffer, unsigned int nbyte) -> void {
         auto *self = static_cast<VideoPlayer *>(data);

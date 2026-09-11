@@ -70,6 +70,7 @@ class CreateMessage {
   Map<Object?, Object?>? drmConfigs;
   Map<Object?, Object?>? playerOptions;
   Map<Object?, Object?>? streamingProperty;
+  Map<Object?, Object?>? windowGeometry;
 }
 
 class MixWithOthersMessage {

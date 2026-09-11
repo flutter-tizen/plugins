@@ -16,7 +16,6 @@
 #include <string>
 #include <utility>
 
-#include "ecore_wl2_window_proxy.h"
 #include "messages.h"
 
 namespace video_player_avplay_tizen {
@@ -94,7 +93,6 @@ class VideoPlayer {
                  const std::string &error_message);
 
   std::mutex queue_mutex_;
-  std::unique_ptr<EcoreWl2WindowProxy> ecore_wl2_window_proxy_ = nullptr;
   flutter::BinaryMessenger *binary_messenger_;
   bool is_initialized_ = false;
   FlutterDesktopViewRef flutter_view_;

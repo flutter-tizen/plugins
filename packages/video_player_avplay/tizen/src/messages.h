@@ -240,7 +240,8 @@ class CreateMessage {
                          const flutter::EncodableMap* http_headers,
                          const flutter::EncodableMap* drm_configs,
                          const flutter::EncodableMap* player_options,
-                         const flutter::EncodableMap* streaming_property);
+                         const flutter::EncodableMap* streaming_property,
+                         const flutter::EncodableMap* window_geometry);
 
   const std::string* asset() const;
   void set_asset(const std::string_view* value_arg);
@@ -274,6 +275,10 @@ class CreateMessage {
   void set_streaming_property(const flutter::EncodableMap* value_arg);
   void set_streaming_property(const flutter::EncodableMap& value_arg);
 
+  const flutter::EncodableMap* window_geometry() const;
+  void set_window_geometry(const flutter::EncodableMap* value_arg);
+  void set_window_geometry(const flutter::EncodableMap& value_arg);
+
  private:
   static CreateMessage FromEncodableList(const flutter::EncodableList& list);
   flutter::EncodableList ToEncodableList() const;
@@ -287,6 +292,7 @@ class CreateMessage {
   std::optional<flutter::EncodableMap> drm_configs_;
   std::optional<flutter::EncodableMap> player_options_;
   std::optional<flutter::EncodableMap> streaming_property_;
+  std::optional<flutter::EncodableMap> window_geometry_;
 };
 
 // Generated class from Pigeon that represents data sent in messages.
