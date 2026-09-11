@@ -18,9 +18,7 @@ PlatformException _createConnectionError(String channelName) {
 bool _deepEquals(Object? a, Object? b) {
   if (a is List && b is List) {
     return a.length == b.length &&
-        a.indexed.every(
-          ((int, dynamic) item) => _deepEquals(item.$2, b[item.$1]),
-        );
+        a.indexed.every(((int, dynamic) item) => _deepEquals(item.$2, b[item.$1]));
   }
   if (a is Map && b is Map) {
     return a.length == b.length &&
@@ -85,10 +83,7 @@ class LoopingMessage {
 
   static LoopingMessage decode(Object result) {
     result as List<Object?>;
-    return LoopingMessage(
-      textureId: result[0]! as int,
-      isLooping: result[1]! as bool,
-    );
+    return LoopingMessage(textureId: result[0]! as int, isLooping: result[1]! as bool);
   }
 
   @override
@@ -125,10 +120,7 @@ class VolumeMessage {
 
   static VolumeMessage decode(Object result) {
     result as List<Object?>;
-    return VolumeMessage(
-      textureId: result[0]! as int,
-      volume: result[1]! as double,
-    );
+    return VolumeMessage(textureId: result[0]! as int, volume: result[1]! as double);
   }
 
   @override
@@ -165,10 +157,7 @@ class PlaybackSpeedMessage {
 
   static PlaybackSpeedMessage decode(Object result) {
     result as List<Object?>;
-    return PlaybackSpeedMessage(
-      textureId: result[0]! as int,
-      speed: result[1]! as double,
-    );
+    return PlaybackSpeedMessage(textureId: result[0]! as int, speed: result[1]! as double);
   }
 
   @override
@@ -205,10 +194,7 @@ class PositionMessage {
 
   static PositionMessage decode(Object result) {
     result as List<Object?>;
-    return PositionMessage(
-      textureId: result[0]! as int,
-      position: result[1]! as int,
-    );
+    return PositionMessage(textureId: result[0]! as int, position: result[1]! as int);
   }
 
   @override
@@ -262,8 +248,7 @@ class CreateMessage {
       uri: result[1] as String?,
       packageName: result[2] as String?,
       formatHint: result[3] as String?,
-      httpHeaders: (result[4] as Map<Object?, Object?>?)!
-          .cast<String?, String?>(),
+      httpHeaders: (result[4] as Map<Object?, Object?>?)!.cast<String?, String?>(),
     );
   }
 
@@ -379,13 +364,11 @@ class TizenVideoPlayerApi {
   /// Constructor for [TizenVideoPlayerApi].  The [binaryMessenger] named argument is
   /// available for dependency injection.  If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
-  TizenVideoPlayerApi({
-    BinaryMessenger? binaryMessenger,
-    String messageChannelSuffix = '',
-  }) : pigeonVar_binaryMessenger = binaryMessenger,
-       pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty
-           ? '.$messageChannelSuffix'
-           : '';
+  TizenVideoPlayerApi({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
+    : pigeonVar_binaryMessenger = binaryMessenger,
+      pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty
+          ? '.$messageChannelSuffix'
+          : '';
   final BinaryMessenger? pigeonVar_binaryMessenger;
 
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
@@ -395,15 +378,13 @@ class TizenVideoPlayerApi {
   Future<void> initialize() async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.initialize$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel =
-        BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
     final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(null);
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_sendFuture as List<Object?>?;
+    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -420,17 +401,13 @@ class TizenVideoPlayerApi {
   Future<TextureMessage> create(CreateMessage msg) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.create$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel =
-        BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_sendFuture as List<Object?>?;
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[msg]);
+    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -452,17 +429,13 @@ class TizenVideoPlayerApi {
   Future<void> dispose(TextureMessage msg) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.dispose$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel =
-        BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_sendFuture as List<Object?>?;
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[msg]);
+    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -479,17 +452,13 @@ class TizenVideoPlayerApi {
   Future<void> setLooping(LoopingMessage msg) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setLooping$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel =
-        BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_sendFuture as List<Object?>?;
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[msg]);
+    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -506,17 +475,13 @@ class TizenVideoPlayerApi {
   Future<void> setVolume(VolumeMessage msg) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setVolume$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel =
-        BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_sendFuture as List<Object?>?;
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[msg]);
+    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -533,17 +498,13 @@ class TizenVideoPlayerApi {
   Future<void> setPlaybackSpeed(PlaybackSpeedMessage msg) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setPlaybackSpeed$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel =
-        BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_sendFuture as List<Object?>?;
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[msg]);
+    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -560,17 +521,13 @@ class TizenVideoPlayerApi {
   Future<void> play(TextureMessage msg) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.play$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel =
-        BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_sendFuture as List<Object?>?;
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[msg]);
+    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -587,17 +544,13 @@ class TizenVideoPlayerApi {
   Future<PositionMessage> position(TextureMessage msg) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.position$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel =
-        BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_sendFuture as List<Object?>?;
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[msg]);
+    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -619,17 +572,13 @@ class TizenVideoPlayerApi {
   Future<void> seekTo(PositionMessage msg) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.seekTo$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel =
-        BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_sendFuture as List<Object?>?;
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[msg]);
+    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -646,17 +595,13 @@ class TizenVideoPlayerApi {
   Future<void> pause(TextureMessage msg) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.pause$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel =
-        BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_sendFuture as List<Object?>?;
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[msg]);
+    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {
@@ -673,17 +618,13 @@ class TizenVideoPlayerApi {
   Future<void> setMixWithOthers(MixWithOthersMessage msg) async {
     final String pigeonVar_channelName =
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setMixWithOthers$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel =
-        BasicMessageChannel<Object?>(
-          pigeonVar_channelName,
-          pigeonChannelCodec,
-          binaryMessenger: pigeonVar_binaryMessenger,
-        );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
-      <Object?>[msg],
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
     );
-    final List<Object?>? pigeonVar_replyList =
-        await pigeonVar_sendFuture as List<Object?>?;
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[msg]);
+    final List<Object?>? pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
       throw _createConnectionError(pigeonVar_channelName);
     } else if (pigeonVar_replyList.length > 1) {

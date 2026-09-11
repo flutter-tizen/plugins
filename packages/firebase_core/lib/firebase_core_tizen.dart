@@ -42,9 +42,7 @@ class FirebaseCore extends FirebasePlatform {
 
   @override
   List<FirebaseApp> get apps {
-    return core_dart.Firebase.apps
-        .map(_mapDartToPlatformApp)
-        .toList(growable: false);
+    return core_dart.Firebase.apps.map(_mapDartToPlatformApp).toList(growable: false);
   }
 
   @override
@@ -63,11 +61,9 @@ class FirebaseCore extends FirebasePlatform {
 
     try {
       // Initialize the app in firebase_core_dart
-      final core_dart.FirebaseOptions dartOptions =
-          core_dart.FirebaseOptions.fromMap(options!.asMap);
+      final dartOptions = core_dart.FirebaseOptions.fromMap(options!.asMap);
       final core_dart.FirebaseApp dartApp =
-          await core_dart.Firebase.initializeApp(
-              name: name, options: dartOptions);
+          await core_dart.Firebase.initializeApp(name: name, options: dartOptions);
 
       return _mapDartToPlatformApp(dartApp);
     } on core_dart.FirebaseException catch (e) {

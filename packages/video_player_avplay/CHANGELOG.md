@@ -1,3 +1,8 @@
+## NEXT
+
+* Omit obvious local variable types.
+* Reformat with a line length of 100.
+
 ## 0.8.18
 
 * Replace ecore-wl2 code with tizen window manager plugin.

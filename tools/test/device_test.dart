@@ -29,7 +29,7 @@ void main() {
     late Completer<int> completer;
     late TizenSdk tizenSdk;
 
-    const Duration timeoutLimit = Duration(seconds: 3);
+    const timeoutLimit = Duration(seconds: 3);
 
     setUp(() {
       processRunner = MockProcessRunner();
@@ -37,11 +37,11 @@ void main() {
       process = MockProcess();
       controller = StreamController<String>();
       completer = Completer<int>();
-      when(() => process.stdout).thenAnswer((_) =>
-          controller.stream.map<List<int>>((String event) => event.codeUnits));
+      when(() => process.stdout)
+          .thenAnswer((_) => controller.stream.map<List<int>>((String event) => event.codeUnits));
       when(() => process.exitCode).thenAnswer((_) => completer.future);
-      when(() => processRunner.start(any(), any(),
-              workingDirectory: any(named: 'workingDirectory')))
+      when(() =>
+              processRunner.start(any(), any(), workingDirectory: any(named: 'workingDirectory')))
           .thenAnswer((_) => Future<Process>(() => process));
       tizenSdk = MockTizenSdk();
       when(() => tizenSdk.sdbDevices()).thenReturn(<SdbDeviceInfo>[

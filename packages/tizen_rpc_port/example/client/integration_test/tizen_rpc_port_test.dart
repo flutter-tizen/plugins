@@ -44,7 +44,7 @@ void main() {
   // ---------------------------------------------------------------------------
 
   test('Parcel test', () async {
-    final Parcel parcel = Parcel();
+    final parcel = Parcel();
     parcel.writeBool(false);
     parcel.writeInt32(123);
     parcel.writeString('Hello');
@@ -65,25 +65,25 @@ void main() {
   group('Parcel', () {
     group('writeInt16 / readInt16', () {
       test('round-trips positive value', () async {
-        final Parcel parcel = Parcel();
+        final parcel = Parcel();
         parcel.writeInt16(32767);
         expect(parcel.readInt16(), 32767);
       });
 
       test('round-trips negative value', () async {
-        final Parcel parcel = Parcel();
+        final parcel = Parcel();
         parcel.writeInt16(-1);
         expect(parcel.readInt16(), -1);
       });
 
       test('round-trips minimum value', () async {
-        final Parcel parcel = Parcel();
+        final parcel = Parcel();
         parcel.writeInt16(-32768);
         expect(parcel.readInt16(), -32768);
       });
 
       test('masks value to 16 bits', () async {
-        final Parcel parcel = Parcel();
+        final parcel = Parcel();
         // 0x10042 & 0xffff == 0x0042 == 66
         parcel.writeInt16(0x10042);
         expect(parcel.readInt16(), 66);
@@ -92,22 +92,22 @@ void main() {
 
     group('writeInt64 / readInt64', () {
       test('round-trips large positive value', () async {
-        final Parcel parcel = Parcel();
-        const int value = 9007199254740992; // 2^53
+        final parcel = Parcel();
+        const value = 9007199254740992; // 2^53
         parcel.writeInt64(value);
         expect(parcel.readInt64(), value);
       });
 
       test('round-trips maximum value', () async {
-        final Parcel parcel = Parcel();
-        const int value = 9223372036854775807; // int64 max
+        final parcel = Parcel();
+        const value = 9223372036854775807; // int64 max
         parcel.writeInt64(value);
         expect(parcel.readInt64(), value);
       });
 
       test('round-trips minimum value', () async {
-        final Parcel parcel = Parcel();
-        const int value = -9223372036854775808; // int64 min
+        final parcel = Parcel();
+        const value = -9223372036854775808; // int64 min
         parcel.writeInt64(value);
         expect(parcel.readInt64(), value);
       });
@@ -115,26 +115,26 @@ void main() {
 
     group('writeByte / readByte', () {
       test('round-trips a value', () async {
-        final Parcel parcel = Parcel();
+        final parcel = Parcel();
         parcel.writeByte(0xab);
         expect(parcel.readByte(), 0xab);
       });
 
       test('round-trips maximum unsigned value', () async {
-        final Parcel parcel = Parcel();
+        final parcel = Parcel();
         parcel.writeByte(255);
         expect(parcel.readByte(), 255);
       });
 
       test('reads a negative input back as an unsigned byte', () async {
-        final Parcel parcel = Parcel();
+        final parcel = Parcel();
         // -1 is written as 0xff and must read back as the unsigned byte 255.
         parcel.writeByte(-1);
         expect(parcel.readByte(), 255);
       });
 
       test('masks value to 8 bits', () async {
-        final Parcel parcel = Parcel();
+        final parcel = Parcel();
         // 0x142 & 0xff == 0x42 == 66
         parcel.writeByte(0x142);
         expect(parcel.readByte(), 66);
@@ -143,7 +143,7 @@ void main() {
 
     group('writeArrayCount / readArrayCount', () {
       test('round-trips a count', () async {
-        final Parcel parcel = Parcel();
+        final parcel = Parcel();
         parcel.writeArrayCount(42);
         expect(parcel.readArrayCount(), 42);
       });
@@ -151,8 +151,8 @@ void main() {
 
     group('write / read (burst byte array)', () {
       test('round-trips byte array', () async {
-        final Parcel parcel = Parcel();
-        final Uint8List bytes = Uint8List.fromList(<int>[
+        final parcel = Parcel();
+        final bytes = Uint8List.fromList(<int>[
           0x00,
           0x01,
           0x7f,
@@ -167,13 +167,13 @@ void main() {
 
     group('Parcel.fromRaw', () {
       test('reconstructed parcel reads back original values', () async {
-        final Parcel original = Parcel();
+        final original = Parcel();
         original.writeInt32(99);
         original.writeString('raw');
         original.writeBool(true);
 
         final Uint8List raw = original.asRaw();
-        final Parcel restored = Parcel.fromRaw(raw);
+        final restored = Parcel.fromRaw(raw);
 
         expect(restored.readInt32(), 99);
         expect(restored.readString(), 'raw');
@@ -183,11 +183,11 @@ void main() {
 
     group('writeBundle / readBundle', () {
       test('round-trips a Bundle with string entries', () async {
-        final Bundle bundle = Bundle();
+        final bundle = Bundle();
         bundle['key1'] = 'value1';
         bundle['key2'] = 'value2';
 
-        final Parcel parcel = Parcel();
+        final parcel = Parcel();
         parcel.writeBundle(bundle);
 
         final Bundle restored = parcel.readBundle();
@@ -196,7 +196,7 @@ void main() {
       });
 
       test('round-trips an empty Bundle', () async {
-        final Parcel parcel = Parcel();
+        final parcel = Parcel();
         parcel.writeBundle(Bundle());
         final Bundle restored = parcel.readBundle();
         expect(restored.length, 0);
@@ -205,32 +205,32 @@ void main() {
 
     group('header', () {
       test('tag can be set and retrieved', () async {
-        final Parcel parcel = Parcel();
+        final parcel = Parcel();
         final ParcelHeader header = parcel.header;
         header.tag = '1.2.3';
         expect(parcel.header.tag, '1.2.3');
       });
 
       test('sequenceNumber can be set and retrieved', () async {
-        final Parcel parcel = Parcel();
+        final parcel = Parcel();
         final ParcelHeader header = parcel.header;
         header.sequenceNumber = 7;
         expect(parcel.header.sequenceNumber, 7);
       });
 
       test('tag defaults to empty string', () async {
-        final Parcel parcel = Parcel();
+        final parcel = Parcel();
         expect(parcel.header.tag, isEmpty);
       });
     });
 
     group('Parcelable', () {
       test('custom Parcelable serializes and deserializes correctly', () async {
-        final Parcel parcel = Parcel();
-        final _Point original = _Point(x: 10, y: 20);
+        final parcel = Parcel();
+        final original = _Point(x: 10, y: 20);
         original.serialize(parcel);
 
-        final _Point restored = _Point();
+        final restored = _Point();
         restored.deserialize(parcel);
         expect(restored.x, 10);
         expect(restored.y, 20);
@@ -257,12 +257,12 @@ void main() {
 
   group('ProxyBase', () {
     test('isConnected is false before connecting', () async {
-      final _TestProxy proxy = _TestProxy();
+      final proxy = _TestProxy();
       expect(proxy.isConnected, isFalse);
     });
 
     test('appid and portName are set from constructor', () async {
-      final _TestProxy proxy = _TestProxy();
+      final proxy = _TestProxy();
       expect(proxy.appid, 'org.tizen.nonexistent_app_for_rpc_test');
       expect(proxy.portName, 'TestPort');
     });
@@ -274,7 +274,7 @@ void main() {
 
   group('Tizen 10.0+ Parcel APIs', () {
     test('reader getter/setter', () async {
-      final Parcel parcel = Parcel();
+      final parcel = Parcel();
       try {
         parcel.reader = 10;
         expect(parcel.reader, 10);
@@ -284,7 +284,7 @@ void main() {
     });
 
     test('dataSize getter/setter', () async {
-      final Parcel parcel = Parcel();
+      final parcel = Parcel();
       try {
         parcel.dataSize = 20;
         expect(parcel.dataSize, 20);
@@ -294,7 +294,7 @@ void main() {
     });
 
     test('reserve', () async {
-      final Parcel parcel = Parcel();
+      final parcel = Parcel();
       try {
         parcel.reserve(100);
       } on UnsupportedError catch (e) {

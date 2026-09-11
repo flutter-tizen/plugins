@@ -37,11 +37,9 @@ class PolygonsController extends GeometryController {
       return;
     }
 
-    final util.GPolygonOptions populationOptions = _polygonOptionsFromPolygon(
-      polygon,
-    );
-    final util.GPolygon gPolygon = util.GPolygon(_bridge, populationOptions);
-    final PolygonController controller = PolygonController(
+    final util.GPolygonOptions populationOptions = _polygonOptionsFromPolygon(polygon);
+    final gPolygon = util.GPolygon(_bridge, populationOptions);
+    final controller = PolygonController(
       polygon: gPolygon,
       consumeTapEvents: polygon.consumeTapEvents,
       onTap: () {
@@ -59,8 +57,7 @@ class PolygonsController extends GeometryController {
   }
 
   void _changePolygon(Polygon polygon) {
-    final PolygonController? polygonController =
-        _polygonIdToController[polygon.polygonId];
+    final PolygonController? polygonController = _polygonIdToController[polygon.polygonId];
     polygonController?.update(_polygonOptionsFromPolygon(polygon));
   }
 
@@ -70,8 +67,7 @@ class PolygonsController extends GeometryController {
   }
 
   void _removePolygon(PolygonId polygonId) {
-    final PolygonController? polygonController =
-        _polygonIdToController[polygonId];
+    final PolygonController? polygonController = _polygonIdToController[polygonId];
     polygonController?.remove();
     _polygonIdToController.remove(polygonId);
   }

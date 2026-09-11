@@ -50,15 +50,10 @@ class MarkerController {
   LatLngCallback? dragEndEvent;
 
   Future<void> _addMarkerEvent(GoogleMapsJsBridge bridge) async {
-    final JsRef ref = JsRef(_marker!.toString());
+    final ref = JsRef(_marker!.toString());
     final int id = _marker!.id;
-    final String dragPayload = 'JSON.stringify({id:$id, event:event})';
-    await bridge.addListener(
-      ref,
-      'click',
-      'MarkerClick',
-      'JSON.stringify($id)',
-    );
+    final dragPayload = 'JSON.stringify({id:$id, event:event})';
+    await bridge.addListener(ref, 'click', 'MarkerClick', 'JSON.stringify($id)');
     await bridge.addListener(ref, 'dragstart', 'MarkerDragStart', dragPayload);
     await bridge.addListener(ref, 'drag', 'MarkerDrag', dragPayload);
     await bridge.addListener(ref, 'dragend', 'MarkerDragEnd', dragPayload);
@@ -79,11 +74,7 @@ class MarkerController {
   /// Updates the options of the wrapped [GMarker] object.
   ///
   /// This cannot be called after [remove].
-  void update(
-    Marker marker,
-    util.GMarkerOptions options, {
-    String? newInfoWindowContent,
-  }) {
+  void update(Marker marker, util.GMarkerOptions options, {String? newInfoWindowContent}) {
     assert(_marker != null, 'Cannot `update` Marker after calling `remove`.');
     _marker!.options = options;
     if (_infoWindow != null && newInfoWindowContent != null) {

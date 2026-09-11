@@ -96,8 +96,8 @@ class PackageManager {
       throw ArgumentError('Must not be empty', 'packageId');
     }
 
-    final Map<String, dynamic>? package = await _channel
-        .invokeMapMethod<String, dynamic>('getPackage', <String, String>{
+    final Map<String, dynamic>? package =
+        await _channel.invokeMapMethod<String, dynamic>('getPackage', <String, String>{
       'packageId': packageId,
     });
     return PackageInfo.fromMap(package!);
@@ -108,7 +108,7 @@ class PackageManager {
     final List<Map<dynamic, dynamic>>? packages =
         await _channel.invokeListMethod<Map<dynamic, dynamic>>('getPackages');
 
-    final List<PackageInfo> list = <PackageInfo>[];
+    final list = <PackageInfo>[];
     for (final Map<dynamic, dynamic> package in packages!) {
       list.add(PackageInfo.fromMap(package.cast<String, dynamic>()));
     }
@@ -121,8 +121,7 @@ class PackageManager {
       throw ArgumentError('Must not be empty', 'packageId');
     }
 
-    final Map<String, dynamic>? sizeInfo =
-        await _channel.invokeMapMethod<String, dynamic>(
+    final Map<String, dynamic>? sizeInfo = await _channel.invokeMapMethod<String, dynamic>(
       'getPackageSizeInfo',
       <String, String>{'packageId': packageId},
     );

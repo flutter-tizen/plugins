@@ -1,3 +1,8 @@
+## NEXT
+
+* Omit obvious local variable types.
+* Reformat with a line length of 100.
+
 ## 2.0.4
 
 * Update the repository URL to use the `main` branch.

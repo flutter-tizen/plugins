@@ -42,7 +42,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<int?> create(DataSource dataSource) async {
-    final CreateMessage message = CreateMessage();
+    final message = CreateMessage();
 
     switch (dataSource.sourceType) {
       case DataSourceType.asset:
@@ -120,12 +120,12 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       TrackTypeMessage(playerId: playerId, trackType: TrackType.video.name),
     );
 
-    final List<VideoTrack> videoTracks = <VideoTrack>[];
+    final videoTracks = <VideoTrack>[];
     for (final Map<Object?, Object?>? trackMap in response.tracks) {
-      final int trackId = trackMap!['trackId']! as int;
-      final int bitrate = trackMap['bitrate']! as int;
-      final int width = trackMap['width']! as int;
-      final int height = trackMap['height']! as int;
+      final trackId = trackMap!['trackId']! as int;
+      final bitrate = trackMap['bitrate']! as int;
+      final width = trackMap['width']! as int;
+      final height = trackMap['height']! as int;
 
       videoTracks.add(
         VideoTrack(
@@ -146,12 +146,12 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       TrackTypeMessage(playerId: playerId, trackType: TrackType.audio.name),
     );
 
-    final List<AudioTrack> audioTracks = <AudioTrack>[];
+    final audioTracks = <AudioTrack>[];
     for (final Map<Object?, Object?>? trackMap in response.tracks) {
-      final int trackId = trackMap!['trackId']! as int;
-      final String language = trackMap['language']! as String;
-      final int channel = trackMap['channel']! as int;
-      final int bitrate = trackMap['bitrate']! as int;
+      final trackId = trackMap!['trackId']! as int;
+      final language = trackMap['language']! as String;
+      final channel = trackMap['channel']! as int;
+      final bitrate = trackMap['bitrate']! as int;
 
       audioTracks.add(
         AudioTrack(
@@ -172,10 +172,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       TrackTypeMessage(playerId: playerId, trackType: TrackType.text.name),
     );
 
-    final List<TextTrack> textTracks = <TextTrack>[];
+    final textTracks = <TextTrack>[];
     for (final Map<Object?, Object?>? trackMap in response.tracks) {
-      final int trackId = trackMap!['trackId']! as int;
-      final String language = trackMap['language']! as String;
+      final trackId = trackMap!['trackId']! as int;
+      final language = trackMap['language']! as String;
 
       textTracks.add(TextTrack(trackId: trackId, language: language));
     }
@@ -218,11 +218,11 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     return _eventChannelFor(playerId).receiveBroadcastStream().map((
       dynamic event,
     ) {
-      final Map<dynamic, dynamic> map = event as Map<dynamic, dynamic>;
+      final map = event as Map<dynamic, dynamic>;
       switch (map['event']) {
         case 'initialized':
         case 'restored':
-          final List<dynamic>? durationVal = map['duration'] as List<dynamic>?;
+          final durationVal = map['duration'] as List<dynamic>?;
           VideoEventType videoEventType;
           if (map['event'] == 'initialized') {
             videoEventType = VideoEventType.initialized;
@@ -243,7 +243,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
         case 'completed':
           return VideoEvent(eventType: VideoEventType.completed);
         case 'bufferingUpdate':
-          final int value = map['value']! as int;
+          final value = map['value']! as int;
 
           return VideoEvent(
             buffered: value,
@@ -311,7 +311,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     DataSource? dataSource,
     int resumeTime = -1,
   }) async {
-    final CreateMessage message = CreateMessage();
+    final message = CreateMessage();
 
     if (dataSource != null) {
       switch (dataSource.sourceType) {
@@ -347,8 +347,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     return EventChannel('tizen/video_player/video_events_$playerId');
   }
 
-  static const Map<VideoFormat, String> _videoFormatStringMap =
-      <VideoFormat, String>{
+  static const Map<VideoFormat, String> _videoFormatStringMap = <VideoFormat, String>{
     VideoFormat.ss: 'ss',
     VideoFormat.hls: 'hls',
     VideoFormat.dash: 'dash',

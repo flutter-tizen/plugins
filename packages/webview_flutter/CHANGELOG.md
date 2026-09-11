@@ -1,3 +1,8 @@
+## NEXT
+
+* Omit obvious local variable types.
+* Reformat with a line length of 100.
+
 ## 0.11.0
 
 * Move the native web-engine code behind a `WebViewBackend` interface.

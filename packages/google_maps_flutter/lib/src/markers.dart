@@ -41,8 +41,7 @@ class MarkersController extends GeometryController {
       return;
     }
 
-    final util.GInfoWindowOptions? infoWindowOptions =
-        _infoWindowOptionsFromMarker(marker);
+    final util.GInfoWindowOptions? infoWindowOptions = _infoWindowOptionsFromMarker(marker);
     util.GInfoWindow? infoWindow;
 
     if (infoWindowOptions != null) {
@@ -53,13 +52,13 @@ class MarkersController extends GeometryController {
       marker,
       _markerIdToController[marker.markerId]?.marker,
     );
-    final util.GMarker gMarker = util.GMarker(_bridge, populationOptions);
+    final gMarker = util.GMarker(_bridge, populationOptions);
 
     if (marker.clusterManagerId != null) {
       _clusterManagersController.addItem(marker.clusterManagerId!, gMarker);
     }
 
-    final MarkerController markerController = MarkerController(
+    final markerController = MarkerController(
       marker: gMarker,
       clusterManagerId: marker.clusterManagerId,
       infoWindow: infoWindow,
@@ -89,22 +88,15 @@ class MarkersController extends GeometryController {
   }
 
   void _changeMarker(Marker marker) {
-    final MarkerController? markerController =
-        _markerIdToController[marker.markerId];
+    final MarkerController? markerController = _markerIdToController[marker.markerId];
 
     if (markerController != null) {
       final util.GMarkerOptions markerOptions = _markerOptionsFromMarker(
         marker,
         markerController.marker,
       );
-      final util.GInfoWindowOptions? infoWindow = _infoWindowOptionsFromMarker(
-        marker,
-      );
-      markerController.update(
-        marker,
-        markerOptions,
-        newInfoWindowContent: infoWindow?.content,
-      );
+      final util.GInfoWindowOptions? infoWindow = _infoWindowOptionsFromMarker(marker);
+      markerController.update(marker, markerOptions, newInfoWindowContent: infoWindow?.content);
     }
   }
 
@@ -177,10 +169,7 @@ class MarkersController extends GeometryController {
 
   void _hideAllMarkerInfoWindow() {
     _markerIdToController.values
-        .where(
-          (MarkerController? controller) =>
-              controller?.infoWindowShown ?? false,
-        )
+        .where((MarkerController? controller) => controller?.infoWindowShown ?? false)
         .forEach((MarkerController controller) {
           controller.hideInfoWindow();
         });

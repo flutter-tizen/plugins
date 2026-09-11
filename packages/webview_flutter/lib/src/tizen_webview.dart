@@ -33,22 +33,18 @@ class TizenWebView {
   Future<bool?> _onMethodCall(MethodCall call) async {
     switch (call.method) {
       case 'javaScriptChannelMessage':
-        final Map<String, Object?> arguments =
-            (call.arguments as Map<Object?, Object?>).cast<String, Object?>();
-        final String channel = arguments['channel']! as String;
-        final String message = arguments['message']! as String;
+        final Map<String, Object?> arguments = (call.arguments as Map<Object?, Object?>)
+            .cast<String, Object?>();
+        final channel = arguments['channel']! as String;
+        final message = arguments['message']! as String;
         if (_javaScriptChannelParams.containsKey(channel)) {
-          _javaScriptChannelParams[channel]?.onMessageReceived(
-            JavaScriptMessage(message: message),
-          );
+          _javaScriptChannelParams[channel]?.onMessageReceived(JavaScriptMessage(message: message));
         }
 
         return true;
     }
 
-    throw MissingPluginException(
-      '${call.method} was invoked but has no handler',
-    );
+    throw MissingPluginException('${call.method} was invoked but has no handler');
   }
 
   Future<T?> _invokeChannelMethod<T>(String method, [dynamic arguments]) async {
@@ -64,9 +60,7 @@ class TizenWebView {
   void onCreate(int viewId, bool enginePolicy) {
     _isCreated = true;
     _viewId = viewId;
-    _tizenWebViewChannel = MethodChannel(
-      kTizenWebViewChannelName + viewId.toString(),
-    );
+    _tizenWebViewChannel = MethodChannel(kTizenWebViewChannelName + viewId.toString());
     _tizenWebViewChannel.setMethodCallHandler(_onMethodCall);
     _invokeChannelMethod<void>('setEnginePolicy', enginePolicy);
 
@@ -76,10 +70,7 @@ class TizenWebView {
   /// Applies the requested settings before [TizenView] is created.
   Future<void> _callPendingMethodCalls() async {
     if (hasNavigationDelegate) {
-      await _invokeChannelMethod<void>(
-        'hasNavigationDelegate',
-        hasNavigationDelegate,
-      );
+      await _invokeChannelMethod<void>('hasNavigationDelegate', hasNavigationDelegate);
     }
 
     for (final (String method, dynamic arguments) in _pendingMethodCalls) {
@@ -108,22 +99,17 @@ class TizenWebView {
 
   /// Makes a specific HTTP request ands loads the response in the webview.
   Future<void> loadRequest(String uri) {
-    return _invokeChannelMethod<void>('loadRequest', <String?, String?>{
-      'url': uri,
-    });
+    return _invokeChannelMethod<void>('loadRequest', <String?, String?>{'url': uri});
   }
 
   /// Makes a specific HTTP request with params ands loads the response in the webview.
   Future<void> loadRequestWithParams(LoadRequestParams params) {
-    return _invokeChannelMethod<void>(
-      'loadRequestWithParams',
-      <String?, Object?>{
-        'url': params.uri.toString(),
-        'body': params.body,
-        'method': params.method.index,
-        'headers': params.headers,
-      },
-    );
+    return _invokeChannelMethod<void>('loadRequestWithParams', <String?, Object?>{
+      'url': params.uri.toString(),
+      'body': params.body,
+      'method': params.method.index,
+      'headers': params.headers,
+    });
   }
 
   /// Accessor to the current URL that the WebView is displaying.
@@ -152,8 +138,7 @@ class TizenWebView {
   Future<void> clearCache() => _invokeChannelMethod<void>('clearCache');
 
   /// Clears the local storage used by the [WebView].
-  Future<void> clearLocalStorage() =>
-      _invokeChannelMethod<void>('clearLocalStorage');
+  Future<void> clearLocalStorage() => _invokeChannelMethod<void>('clearLocalStorage');
 
   /// Sets the JavaScript execution mode to be used by the webview.
   Future<void> setJavaScriptMode(int javaScriptMode) =>
@@ -172,10 +157,9 @@ class TizenWebView {
 
   /// Returns the scroll position of this view set by [scrollTo].
   Future<Offset> getScrollPosition() async {
-    final Map<String, Object?>? position =
-        (await _invokeChannelMethod<Map<Object?, Object?>>(
-          'getScrollPosition',
-        ))?.cast<String, Object?>();
+    final Map<String, Object?>? position = (await _invokeChannelMethod<Map<Object?, Object?>>(
+      'getScrollPosition',
+    ))?.cast<String, Object?>();
     if (position == null) {
       return Offset.zero;
     }
@@ -187,16 +171,10 @@ class TizenWebView {
       _invokeChannelMethod<void>('backgroundColor', color.value);
 
   /// Adds a new JavaScript channel to the set of enabled channels.
-  Future<void> addJavaScriptChannel(
-    JavaScriptChannelParams javaScriptChannelParams,
-  ) {
-    _javaScriptChannelParams[javaScriptChannelParams.name] =
-        javaScriptChannelParams;
+  Future<void> addJavaScriptChannel(JavaScriptChannelParams javaScriptChannelParams) {
+    _javaScriptChannelParams[javaScriptChannelParams.name] = javaScriptChannelParams;
 
-    return _invokeChannelMethod<void>(
-      'addJavaScriptChannel',
-      javaScriptChannelParams.name,
-    );
+    return _invokeChannelMethod<void>('addJavaScriptChannel', javaScriptChannelParams.name);
   }
 
   /// Runs the given JavaScript in the context of the current page.
@@ -231,12 +209,10 @@ class TizenWebView {
 
   /// Sets whether the WebView should support zooming using its on-screen zoom
   /// controls and gestures.
-  Future<void> setSupportZoom(bool support) =>
-      _invokeChannelMethod<void>('enableZoom', support);
+  Future<void> setSupportZoom(bool support) => _invokeChannelMethod<void>('enableZoom', support);
 
   /// Sets the value selected by the user input
-  Future<void> javaScriptAlertReply() =>
-      _invokeChannelMethod<void>('javaScriptAlertReply');
+  Future<void> javaScriptAlertReply() => _invokeChannelMethod<void>('javaScriptAlertReply');
 
   /// Sets the value selected by the user input
   Future<void> javaScriptConfirmReply(bool result) =>

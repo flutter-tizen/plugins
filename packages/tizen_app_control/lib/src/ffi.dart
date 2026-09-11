@@ -16,7 +16,7 @@ typedef _AttachAppControlNative = Bool Function(Int32, Handle);
 typedef AttachAppControl = bool Function(int, Object);
 
 final DynamicLibrary _processLib = () {
-  final DynamicLibrary processLib = DynamicLibrary.process();
+  final processLib = DynamicLibrary.process();
   final _InitializeDartApi initFunction =
       processLib.lookupFunction<_InitializeDartApiNative, _InitializeDartApi>(
     'NativeInitializeDartApi',

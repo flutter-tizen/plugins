@@ -16,10 +16,7 @@ import 'google_maps_js_bridge.dart';
 const LatLng nullLatLng = LatLng(0, 0);
 
 /// Default LatLngBounds.
-final LatLngBounds nullLatLngBounds = LatLngBounds(
-  southwest: nullLatLng,
-  northeast: nullLatLng,
-);
+final LatLngBounds nullLatLngBounds = LatLngBounds(southwest: nullLatLng, northeast: nullLatLng);
 
 /// Default ScreenCoordinate.
 const ScreenCoordinate nullScreenCoordinate = ScreenCoordinate(x: 0, y: 0);
@@ -141,7 +138,7 @@ class GInfoWindowOptions {
 
   @override
   String toString() {
-    final String pos = position != null
+    final pos = position != null
         ? '{lat:${position?.latitude}, lng:${position?.longitude}}'
         : 'null';
     final String contentJs = content != null ? jsonEncode(content) : 'null';
@@ -199,9 +196,7 @@ class GInfoWindow {
   set pixelOffset(GSize? size) => _setPixelOffset(size);
 
   Future<void> _setContent(Object? /*String?|Node?*/ content) async {
-    await _bridge.callMethod(JsRef(toString()), 'setContent', <Object?>[
-      content,
-    ]);
+    await _bridge.callMethod(JsRef(toString()), 'setContent', <Object?>[content]);
   }
 
   Future<void> _setPixelOffset(GSize? size) async {
@@ -226,10 +221,7 @@ class GMarker {
   final GoogleMapsJsBridge _bridge;
 
   Future<void> _createMarker(GMarkerOptions? opts) async {
-    final JsRef ref = await _bridge.createObject(
-      toString(),
-      'new google.maps.Marker($opts)',
-    );
+    final JsRef ref = await _bridge.createObject(toString(), 'new google.maps.Marker($opts)');
     await _bridge.setProperty(ref, 'id', id);
   }
 
@@ -296,9 +288,7 @@ class GMarker {
   }
 
   Future<void> _setOptions(GMarkerOptions? options) async {
-    await _bridge.callMethod(JsRef(toString()), 'setOptions', <GMarkerOptions?>[
-      options,
-    ]);
+    await _bridge.callMethod(JsRef(toString()), 'setOptions', <GMarkerOptions?>[options]);
   }
 
   Future<void> _setVisible(bool? visible) async {
@@ -306,9 +296,7 @@ class GMarker {
   }
 
   Future<void> _setDraggable(bool? visible) async {
-    await _bridge.callMethod(JsRef(toString()), 'setDraggable', <bool?>[
-      visible,
-    ]);
+    await _bridge.callMethod(JsRef(toString()), 'setDraggable', <bool?>[visible]);
   }
 
   Future<void> _setIcon(Object? icon) async {
@@ -321,9 +309,7 @@ class GMarker {
 
   Future<void> _setPosition(LatLng? position) async {
     await _bridge.callMethod(JsRef(toString()), 'setPosition', <Object?>[
-      JsExpression(
-        'new google.maps.LatLng(${position!.latitude},${position.longitude})',
-      ),
+      JsExpression('new google.maps.LatLng(${position!.latitude},${position.longitude})'),
     ]);
   }
 
@@ -340,9 +326,7 @@ class GMarker {
 /// map.
 class GPolyline {
   /// GPolyline Constructor.
-  GPolyline(GoogleMapsJsBridge bridge, [GPolylineOptions? opts])
-    : _bridge = bridge,
-      id = _gid++ {
+  GPolyline(GoogleMapsJsBridge bridge, [GPolylineOptions? opts]) : _bridge = bridge, id = _gid++ {
     _createPolyline(opts);
   }
 
@@ -382,11 +366,7 @@ class GPolyline {
   }
 
   Future<void> _setOptions(GPolylineOptions? options) async {
-    await _bridge.callMethod(
-      JsRef(toString()),
-      'setOptions',
-      <GPolylineOptions?>[options],
-    );
+    await _bridge.callMethod(JsRef(toString()), 'setOptions', <GPolylineOptions?>[options]);
   }
 }
 
@@ -419,12 +399,10 @@ class GPolylineOptions {
 
   @override
   String toString() {
-    final StringBuffer paths = StringBuffer();
+    final paths = StringBuffer();
     for (final LatLng? position in path!) {
       if (position != null) {
-        paths.write(
-          'new google.maps.LatLng(${position.latitude},${position.longitude}), ',
-        );
+        paths.write('new google.maps.LatLng(${position.latitude},${position.longitude}), ');
       }
     }
 
@@ -437,9 +415,7 @@ class GPolylineOptions {
 /// connected coordinates in an ordered sequence.
 class GPolygon {
   /// GPolygon Constructor.
-  GPolygon(GoogleMapsJsBridge bridge, [GPolygonOptions? opts])
-    : _bridge = bridge,
-      id = _gid++ {
+  GPolygon(GoogleMapsJsBridge bridge, [GPolygonOptions? opts]) : _bridge = bridge, id = _gid++ {
     _createPolygon(opts);
   }
 
@@ -479,11 +455,7 @@ class GPolygon {
   }
 
   Future<void> _setOptions(GPolygonOptions? options) async {
-    await _bridge.callMethod(
-      JsRef(toString()),
-      'setOptions',
-      <GPolygonOptions?>[options],
-    );
+    await _bridge.callMethod(JsRef(toString()), 'setOptions', <GPolygonOptions?>[options]);
   }
 }
 
@@ -522,14 +494,12 @@ class GPolygonOptions {
 
   @override
   String toString() {
-    final StringBuffer str = StringBuffer();
+    final str = StringBuffer();
     for (final List<LatLng?>? latlng in paths!) {
       str.write('[');
       for (final LatLng? position in latlng!) {
         if (position != null) {
-          str.write(
-            'new google.maps.LatLng(${position.latitude},${position.longitude}), ',
-          );
+          str.write('new google.maps.LatLng(${position.latitude},${position.longitude}), ');
         }
       }
       str.write('], ');
@@ -544,9 +514,7 @@ class GPolygonOptions {
 /// This class represents a circle using the passed GCircleOptions.
 class GCircle {
   /// GCircle Constructor.
-  GCircle(GoogleMapsJsBridge bridge, [GCircleOptions? opts])
-    : _bridge = bridge,
-      id = _gid++ {
+  GCircle(GoogleMapsJsBridge bridge, [GCircleOptions? opts]) : _bridge = bridge, id = _gid++ {
     _createCircle(opts);
   }
 
@@ -593,9 +561,7 @@ class GCircle {
   }
 
   Future<void> _setOptions(GCircleOptions? options) async {
-    await _bridge.callMethod(JsRef(toString()), 'setOptions', <GCircleOptions?>[
-      options,
-    ]);
+    await _bridge.callMethod(JsRef(toString()), 'setOptions', <GCircleOptions?>[options]);
   }
 }
 
@@ -656,10 +622,7 @@ class GMarkerClusterer {
   late final Future<void> _ready;
 
   Future<void> _createMarkerClusterer(GMarkerClustererOptions? opts) async {
-    await _bridge.createObject(
-      toString(),
-      'new markerClusterer.MarkerClusterer($opts)',
-    );
+    await _bridge.createObject(toString(), 'new markerClusterer.MarkerClusterer($opts)');
   }
 
   /// GCircle id.
@@ -671,20 +634,16 @@ class GMarkerClusterer {
   /// Adds a marker to be clustered by the [GMarkerClusterer].
   Future<void> addMarker(GMarker marker, bool? noDraw) async {
     await _ready;
-    await _bridge.callMethod(_ref, 'addMarker', <Object?>[
-      JsRef(marker.toString()),
-      noDraw,
-    ]);
+    await _bridge.callMethod(_ref, 'addMarker', <Object?>[JsRef(marker.toString()), noDraw]);
   }
 
   /// Removes a marker from the [GMarkerClusterer].
   Future<bool> removeMarker(GMarker marker, bool? noDraw) async {
     await _ready;
-    final Object? result = await _bridge.callMethodReturning(
-      _ref,
-      'removeMarker',
-      <Object?>[JsRef(marker.toString()), noDraw],
-    );
+    final Object? result = await _bridge.callMethodReturning(_ref, 'removeMarker', <Object?>[
+      JsRef(marker.toString()),
+      noDraw,
+    ]);
     return result! as bool;
   }
 
@@ -697,12 +656,10 @@ class GMarkerClusterer {
   /// Returns the list of clusters.
   Future<List<Map<String, dynamic>>> get clusters async {
     await _ready;
-    final String value =
-        await _bridge.runJavaScriptReturningResult(
-              'JSON.stringify(${toString()}.clusters)',
-            )
+    final value =
+        await _bridge.runJavaScriptReturningResult('JSON.stringify(${toString()}.clusters)')
             as String;
-    final List<dynamic> results = json.decode(value) as List<dynamic>;
+    final results = json.decode(value) as List<dynamic>;
     return results.cast<Map<String, dynamic>>();
   }
 
@@ -751,7 +708,7 @@ class GMarkerClustererOptions {
 
   @override
   String toString() {
-    String options = '{map: map';
+    var options = '{map: map';
     if (markers != null) {
       options += ', markers: $markers';
     }

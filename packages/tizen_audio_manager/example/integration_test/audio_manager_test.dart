@@ -208,39 +208,31 @@ void main() {
   });
 
   test('currentPlaybackType returns a valid AudioVolumeType', () async {
-    final AudioVolumeType type =
-        await AudioManager.volumeController.currentPlaybackType;
+    final AudioVolumeType type = await AudioManager.volumeController.currentPlaybackType;
     expect(AudioVolumeType.values, contains(type));
   });
 
   test('onChanged emits VolumeChangedEvent when volume is changed', () async {
-    final int originalLevel =
-        await AudioManager.volumeController.getLevel(AudioVolumeType.system);
-    final int maxLevel =
-        await AudioManager.volumeController.getMaxLevel(AudioVolumeType.system);
-    final int targetLevel = originalLevel == maxLevel ? 0 : maxLevel;
+    final int originalLevel = await AudioManager.volumeController.getLevel(AudioVolumeType.system);
+    final int maxLevel = await AudioManager.volumeController.getMaxLevel(AudioVolumeType.system);
+    final targetLevel = originalLevel == maxLevel ? 0 : maxLevel;
 
-    final Completer<VolumeChangedEvent> completer =
-        Completer<VolumeChangedEvent>();
-    final StreamSubscription<VolumeChangedEvent> subscription = AudioManager
-        .volumeController.onChanged
-        .listen((VolumeChangedEvent event) {
+    final completer = Completer<VolumeChangedEvent>();
+    final StreamSubscription<VolumeChangedEvent> subscription =
+        AudioManager.volumeController.onChanged.listen((VolumeChangedEvent event) {
       if (event.type == AudioVolumeType.system && !completer.isCompleted) {
         completer.complete(event);
       }
     });
 
     try {
-      await AudioManager.volumeController
-          .setLevel(AudioVolumeType.system, targetLevel);
-      final VolumeChangedEvent event =
-          await completer.future.timeout(const Duration(seconds: 5));
+      await AudioManager.volumeController.setLevel(AudioVolumeType.system, targetLevel);
+      final VolumeChangedEvent event = await completer.future.timeout(const Duration(seconds: 5));
 
       expect(event.type, equals(AudioVolumeType.system));
       expect(event.level, equals(targetLevel));
     } finally {
-      await AudioManager.volumeController
-          .setLevel(AudioVolumeType.system, originalLevel);
+      await AudioManager.volumeController.setLevel(AudioVolumeType.system, originalLevel);
       await subscription.cancel();
     }
   });

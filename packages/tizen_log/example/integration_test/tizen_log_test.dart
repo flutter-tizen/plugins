@@ -9,7 +9,7 @@ import 'package:tizen_log/tizen_log.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  const String tag = 'TizenLogTest';
+  const tag = 'TizenLogTest';
 
   group('Log', () {
     test('verbose does not throw', () async {

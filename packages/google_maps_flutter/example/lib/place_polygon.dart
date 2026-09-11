@@ -10,8 +10,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'page.dart';
 
 class PlacePolygonPage extends GoogleMapExampleAppPage {
-  const PlacePolygonPage({super.key})
-    : super(const Icon(Icons.linear_scale), 'Place polygon');
+  const PlacePolygonPage({super.key}) : super(const Icon(Icons.linear_scale), 'Place polygon');
 
   @override
   Widget build(BuildContext context) {
@@ -38,12 +37,7 @@ class PlacePolygonBodyState extends State<PlacePolygonBody> {
   // Values when toggling polygon color
   int strokeColorsIndex = 0;
   int fillColorsIndex = 0;
-  List<Color> colors = <Color>[
-    Colors.purple,
-    Colors.red,
-    Colors.green,
-    Colors.pink,
-  ];
+  List<Color> colors = <Color>[Colors.purple, Colors.red, Colors.green, Colors.pink];
 
   // Values when toggling polygon width
   int widthsIndex = 0;
@@ -81,10 +75,10 @@ class PlacePolygonBodyState extends State<PlacePolygonBody> {
       return;
     }
 
-    final String polygonIdVal = 'polygon_id_$_polygonIdCounter';
-    final PolygonId polygonId = PolygonId(polygonIdVal);
+    final polygonIdVal = 'polygon_id_$_polygonIdCounter';
+    final polygonId = PolygonId(polygonIdVal);
 
-    final Polygon polygon = Polygon(
+    final polygon = Polygon(
       polygonId: polygonId,
       consumeTapEvents: true,
       strokeColor: Colors.orange,
@@ -148,9 +142,7 @@ class PlacePolygonBodyState extends State<PlacePolygonBody> {
   void _addHoles(PolygonId polygonId) {
     final Polygon polygon = polygons[polygonId]!;
     setState(() {
-      polygons[polygonId] = polygon.copyWith(
-        holesParam: _createHoles(polygonId),
-      );
+      polygons[polygonId] = polygon.copyWith(holesParam: _createHoles(polygonId));
     });
   }
 
@@ -193,15 +185,11 @@ class PlacePolygonBodyState extends State<PlacePolygonBody> {
                       children: <Widget>[
                         TextButton(onPressed: _add, child: const Text('add')),
                         TextButton(
-                          onPressed: (selectedId == null)
-                              ? null
-                              : () => _remove(selectedId),
+                          onPressed: (selectedId == null) ? null : () => _remove(selectedId),
                           child: const Text('remove'),
                         ),
                         TextButton(
-                          onPressed: (selectedId == null)
-                              ? null
-                              : () => _toggleVisible(selectedId),
+                          onPressed: (selectedId == null) ? null : () => _toggleVisible(selectedId),
                           child: const Text('toggle visible'),
                         ),
                         TextButton(
@@ -231,9 +219,7 @@ class PlacePolygonBodyState extends State<PlacePolygonBody> {
                           child: const Text('remove holes'),
                         ),
                         TextButton(
-                          onPressed: (selectedId == null)
-                              ? null
-                              : () => _changeWidth(selectedId),
+                          onPressed: (selectedId == null) ? null : () => _changeWidth(selectedId),
                           child: const Text('change stroke width'),
                         ),
                         TextButton(
@@ -261,7 +247,7 @@ class PlacePolygonBodyState extends State<PlacePolygonBody> {
   }
 
   List<LatLng> _createPoints() {
-    final List<LatLng> points = <LatLng>[];
+    final points = <LatLng>[];
     final double offset = _polygonIdCounter.ceilToDouble();
     points.add(_createLatLng(51.2395 + offset, -3.4314));
     points.add(_createLatLng(53.5234 + offset, -3.5314));
@@ -271,17 +257,17 @@ class PlacePolygonBodyState extends State<PlacePolygonBody> {
   }
 
   List<List<LatLng>> _createHoles(PolygonId polygonId) {
-    final List<List<LatLng>> holes = <List<LatLng>>[];
+    final holes = <List<LatLng>>[];
     final double offset = polygonOffsets[polygonId]!;
 
-    final List<LatLng> hole1 = <LatLng>[];
+    final hole1 = <LatLng>[];
     hole1.add(_createLatLng(51.8395 + offset, -3.8814));
     hole1.add(_createLatLng(52.0234 + offset, -3.9914));
     hole1.add(_createLatLng(52.1351 + offset, -4.4435));
     hole1.add(_createLatLng(52.0231 + offset, -4.5829));
     holes.add(hole1);
 
-    final List<LatLng> hole2 = <LatLng>[];
+    final hole2 = <LatLng>[];
     hole2.add(_createLatLng(52.2395 + offset, -3.6814));
     hole2.add(_createLatLng(52.4234 + offset, -3.7914));
     hole2.add(_createLatLng(52.5351 + offset, -4.2435));

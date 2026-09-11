@@ -1,6 +1,8 @@
 ## NEXT
 
 * Resolve `unintended_html_in_doc_comment` lint.
+* Omit obvious local variable types.
+* Reformat with a line length of 100.
 
 ## 0.1.8
 

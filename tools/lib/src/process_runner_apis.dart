@@ -41,8 +41,7 @@ extension Synchronous on ProcessRunner {
         stderrEncoding: stderrEncoding);
     if (result.exitCode != 0) {
       if (logOnError) {
-        final String error =
-            _getErrorString(executable, args, workingDir: workingDir);
+        final String error = _getErrorString(executable, args, workingDir: workingDir);
         print('$error Stderr:\n${result.stdout}');
       }
       if (exitOnError) {
@@ -53,9 +52,8 @@ extension Synchronous on ProcessRunner {
   }
 
   /// Copied from [ProcessRunner._getErrorString].
-  String _getErrorString(String executable, List<String> args,
-      {Directory? workingDir}) {
-    final String workdir = workingDir == null ? '' : ' in ${workingDir.path}';
+  String _getErrorString(String executable, List<String> args, {Directory? workingDir}) {
+    final workdir = workingDir == null ? '' : ' in ${workingDir.path}';
     return 'ERROR: Unable to execute "$executable ${args.join(' ')}"$workdir.';
   }
 }

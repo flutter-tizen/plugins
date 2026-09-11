@@ -33,7 +33,7 @@ class Port {
         paths.length,
       );
 
-      for (int i = 0; i < paths.length; ++i) {
+      for (var i = 0; i < paths.length; ++i) {
         pPaths[i] = paths[i].toNativeChar();
       }
 
