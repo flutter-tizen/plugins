@@ -118,7 +118,7 @@ class BillingManager {
                      const char *invoice_id, const char *country_code,
                      FunctionResult<VerifyInvoiceAPIResult> result);
   std::optional<std::string> GetCustomId();
-  std::string GetCountryCode();
+  std::optional<std::string> GetCountryCode();
 
  private:
   static void OnProducts(const char *detail_result, void *user_data);
