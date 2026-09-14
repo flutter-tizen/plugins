@@ -4,6 +4,8 @@
 
 #include "webview_backend_factory.h"
 
+#include <system_info.h>
+
 #include <cstdio>
 #include <cstdlib>
 
@@ -19,8 +21,14 @@ enum class BackendKind { kEwk, kEwkWrapper, kWvStandalone };
 
 BackendKind DefaultBackendForPlatform() {
   int major = 0, minor = 0;
-  if (const char* value = std::getenv("TIZEN_API_VERSION")) {
+  char* value = nullptr;
+  int ret = system_info_get_platform_string(
+      "http://tizen.org/feature/platform.version", &value);
+  if (ret == SYSTEM_INFO_ERROR_NONE && value) {
     std::sscanf(value, "%d.%d", &major, &minor);
+  }
+  if (value) {
+    free(value);
   }
   if (major >= 11) {
     return BackendKind::kWvStandalone;
