@@ -74,39 +74,45 @@ class CreateMessage {
  public:
   CreateMessage() = default;
 
-  const std::optional<std::string>& asset() const { return asset_; }
+  const std::string* asset() const { return asset_ ? &(*asset_) : nullptr; }
   void set_asset(const std::string& value) { asset_ = value; }
 
-  const std::optional<std::string>& uri() const { return uri_; }
+  const std::string* uri() const { return uri_ ? &(*uri_) : nullptr; }
   void set_uri(const std::string& value) { uri_ = value; }
 
-  const std::optional<std::string>& package_name() const {
-    return package_name_;
+  const std::string* package_name() const {
+    return package_name_ ? &(*package_name_) : nullptr;
   }
   void set_package_name(const std::string& value) { package_name_ = value; }
 
-  const std::optional<std::string>& format_hint() const { return format_hint_; }
+  const std::string* format_hint() const {
+    return format_hint_ ? &(*format_hint_) : nullptr;
+  }
   void set_format_hint(const std::string& value) { format_hint_ = value; }
 
-  const flutter::EncodableMap& http_headers() const { return http_headers_; }
+  const flutter::EncodableMap* http_headers() const {
+    return http_headers_ ? &(*http_headers_) : nullptr;
+  }
   void set_http_headers(const flutter::EncodableMap& value) {
     http_headers_ = value;
   }
 
-  const flutter::EncodableMap& drm_configs() const { return drm_configs_; }
+  const flutter::EncodableMap* drm_configs() const {
+    return drm_configs_ ? &(*drm_configs_) : nullptr;
+  }
   void set_drm_configs(const flutter::EncodableMap& value) {
     drm_configs_ = value;
   }
 
-  const flutter::EncodableMap& player_options() const {
-    return player_options_;
+  const flutter::EncodableMap* player_options() const {
+    return player_options_ ? &(*player_options_) : nullptr;
   }
   void set_player_options(const flutter::EncodableMap& value) {
     player_options_ = value;
   }
 
-  const flutter::EncodableMap& window_geometry() const {
-    return window_geometry_;
+  const flutter::EncodableMap* window_geometry() const {
+    return window_geometry_ ? &(*window_geometry_) : nullptr;
   }
   void set_window_geometry(const flutter::EncodableMap& value) {
     window_geometry_ = value;
@@ -117,10 +123,10 @@ class CreateMessage {
   std::optional<std::string> uri_;
   std::optional<std::string> package_name_;
   std::optional<std::string> format_hint_;
-  flutter::EncodableMap http_headers_;
-  flutter::EncodableMap drm_configs_;
-  flutter::EncodableMap player_options_;
-  flutter::EncodableMap window_geometry_;
+  std::optional<flutter::EncodableMap> http_headers_;
+  std::optional<flutter::EncodableMap> drm_configs_;
+  std::optional<flutter::EncodableMap> player_options_;
+  std::optional<flutter::EncodableMap> window_geometry_;
 };
 
 void ffi_set_plugin_registrar(FlutterDesktopPluginRegistrarRef registrar_ref,

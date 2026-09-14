@@ -81,7 +81,7 @@ int64_t MediaPlayer::Create(const std::string &uri,
     return -1;
   }
 
-  std::string cookie = flutter_common::GetValue(&create_message.http_headers(),
+  std::string cookie = flutter_common::GetValue(create_message.http_headers(),
                                                 "Cookie", std::string());
   if (!cookie.empty()) {
     int ret =
@@ -92,7 +92,7 @@ int64_t MediaPlayer::Create(const std::string &uri,
     }
   }
   std::string user_agent = flutter_common::GetValue(
-      &create_message.http_headers(), "User-Agent", std::string());
+      create_message.http_headers(), "User-Agent", std::string());
   if (!user_agent.empty()) {
     int ret = player_set_streaming_user_agent(player_, user_agent.c_str(),
                                               user_agent.size());
@@ -102,10 +102,10 @@ int64_t MediaPlayer::Create(const std::string &uri,
     }
   }
 
-  int64_t drm_type = flutter_common::GetValue(&create_message.drm_configs(),
+  int64_t drm_type = flutter_common::GetValue(create_message.drm_configs(),
                                               "drmType", (int64_t)0);
   std::string license_server_url = flutter_common::GetValue(
-      &create_message.drm_configs(), "licenseServerUrl", std::string());
+      create_message.drm_configs(), "licenseServerUrl", std::string());
   if (drm_type != 0) {
     if (!SetDrm(uri, drm_type, license_server_url)) {
       LOG_ERROR("[MediaPlayer] Failed to set drm.");
@@ -418,10 +418,12 @@ bool MediaPlayer::SetDisplay() {
     LOG_ERROR("[MediaPlayer] Window geometry is missing.");
     return false;
   }
-  int32_t x = flutter_common::GetValue(window_geometry, "x", 0);
-  int32_t y = flutter_common::GetValue(window_geometry, "y", 0);
-  int32_t width = flutter_common::GetValue(window_geometry, "width", 0);
-  int32_t height = flutter_common::GetValue(window_geometry, "height", 0);
+  int64_t x = flutter_common::GetValue(window_geometry, "x", (int64_t)0);
+  int64_t y = flutter_common::GetValue(window_geometry, "y", (int64_t)0);
+  int64_t width =
+      flutter_common::GetValue(window_geometry, "width", (int64_t)0);
+  int64_t height =
+      flutter_common::GetValue(window_geometry, "height", (int64_t)0);
   if (width <= 0 || height <= 0) {
     LOG_ERROR(
         "[MediaPlayer] Invalid window geometry size: width[%d], height[%d].",
