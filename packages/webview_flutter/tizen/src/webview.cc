@@ -27,6 +27,8 @@ constexpr char kTizenWebViewControllerChannelName[] =
 constexpr char kTizenNavigationDelegateChannelName[] =
     "plugins.flutter.io/tizen_webview_navigation_delegate_";
 
+WebView* g_current_webview = nullptr;
+
 class NavigationRequestResult : public FlMethodResult {
  public:
   // |alive| gates every dereference below: Dart resolves this call
@@ -128,14 +130,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
       GetPluginRegistrar()->messenger(), GetNavigationDelegateChannelName(),
       &flutter::StandardMethodCodec::GetInstance());
 
-  auto cookie_channel = std::make_unique<FlMethodChannel>(
-      GetPluginRegistrar()->messenger(),
-      "plugins.flutter.io/tizen_cookie_manager",
-      &flutter::StandardMethodCodec::GetInstance());
-  cookie_channel->SetMethodCallHandler(
-      [webview = this](const auto& call, auto result) {
-        webview->HandleCookieMethodCall(call, std::move(result));
-      });
+  g_current_webview = this;
 }
 
 WebView::~WebView() { Dispose(); }
@@ -163,6 +158,10 @@ void WebView::Dispose() {
     disposed_ = true;
   }
   *is_alive_ = false;
+
+  if (g_current_webview == this) {
+    g_current_webview = nullptr;
+  }
 
   if (!backend_) {
     return;
@@ -523,7 +522,12 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
 
 void WebView::HandleCookieMethodCall(const FlMethodCall& method_call,
                                      std::unique_ptr<FlMethodResult> result) {
-  if (!webview_created_) {
+  WebView* webview = g_current_webview;
+  if (!webview) {
+    result->Error("Invalid operation", "No webview instance is available.");
+    return;
+  }
+  if (!webview->webview_created_) {
     result->Error("Invalid operation",
                   "The webview instance has not been initialized.");
     return;
@@ -532,7 +536,7 @@ void WebView::HandleCookieMethodCall(const FlMethodCall& method_call,
   const std::string& method_name = method_call.method_name();
 
   if (method_name == "clearCookies") {
-    if (backend_->ClearCookies()) {
+    if (webview->backend_->ClearCookies()) {
       result->Success(flutter::EncodableValue(true));
     } else {
       result->Error("Operation failed", "Failed to get cookie manager");

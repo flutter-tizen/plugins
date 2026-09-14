@@ -5,6 +5,7 @@
 #include "webview_flutter_tizen_plugin.h"
 
 #include <flutter/plugin_registrar.h>
+#include <flutter/standard_method_codec.h>
 #include <flutter_tizen.h>
 
 #include <memory>
@@ -15,19 +16,37 @@
 namespace {
 
 constexpr char kViewType[] = "plugins.flutter.io/webview";
+constexpr char kCookieManagerChannelName[] =
+    "plugins.flutter.io/tizen_cookie_manager";
 
 // Constructed/destroyed exactly once by flutter-tizen's engine start/stop,
 // not per-WebView.
 class WebviewFlutterTizenPlugin : public flutter::Plugin {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar* registrar) {
-    auto plugin = std::make_unique<WebviewFlutterTizenPlugin>();
+    auto plugin = std::make_unique<WebviewFlutterTizenPlugin>(registrar);
     registrar->AddPlugin(std::move(plugin));
   }
 
-  WebviewFlutterTizenPlugin() { WebView::InitializeEngine(); }
+  explicit WebviewFlutterTizenPlugin(flutter::PluginRegistrar* registrar) {
+    WebView::InitializeEngine();
 
-  virtual ~WebviewFlutterTizenPlugin() { WebView::ShutdownEngine(); }
+    cookie_channel_ = std::make_unique<FlMethodChannel>(
+        registrar->messenger(), kCookieManagerChannelName,
+        &flutter::StandardMethodCodec::GetInstance());
+    cookie_channel_->SetMethodCallHandler(
+        [](const FlMethodCall& call, std::unique_ptr<FlMethodResult> result) {
+          WebView::HandleCookieMethodCall(call, std::move(result));
+        });
+  }
+
+  virtual ~WebviewFlutterTizenPlugin() {
+    cookie_channel_->SetMethodCallHandler(nullptr);
+    WebView::ShutdownEngine();
+  }
+
+ private:
+  std::unique_ptr<FlMethodChannel> cookie_channel_;
 };
 
 }  // namespace

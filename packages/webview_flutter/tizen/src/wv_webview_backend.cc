@@ -501,6 +501,9 @@ void WvWebViewBackend::SetScrollbarVisible(bool visible) {
 }
 
 bool WvWebViewBackend::ClearCookies() {
+  if (!view_) {
+    return false;
+  }
   auto& wv = WvInternalApiBinding::GetInstance();
   wv_cookie_manager_h cookie_manager =
       wv.context.CookieManagerGet(wv.view.ContextGet(view_));
