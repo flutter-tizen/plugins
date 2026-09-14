@@ -55,29 +55,36 @@ bool BillingManager::Init() {
   return true;
 }
 
-std::string BillingManager::GetCustomId() {
+std::optional<std::string> BillingManager::GetCustomId() {
   void *handle = dlopen("libsso_api.so", RTLD_LAZY);
-  std::string custom_id = "";
   if (!handle) {
     LOG_ERROR("[BillingManager] Fail to open sso APIs.");
-  } else {
-    FuncSsoGetLoginInfo sso_get_login_info =
-        reinterpret_cast<FuncSsoGetLoginInfo>(
-            dlsym(handle, "sso_get_login_info"));
-    if (sso_get_login_info) {
-      sso_login_info_s login_info = {};
-      if (sso_get_login_info(&login_info) == 0) {
-        custom_id = login_info.uid;
-      }
-      // NOTE: written through volatile because a plain memset on a struct that
-      // is dead afterwards is dropped by the optimizer.
-      auto *bytes = reinterpret_cast<volatile unsigned char *>(&login_info);
-      for (std::size_t i = 0; i < sizeof(login_info); ++i) {
-        bytes[i] = 0;
-      }
-    }
-    dlclose(handle);
+    return std::nullopt;
   }
+  FuncSsoGetLoginInfo sso_get_login_info =
+      reinterpret_cast<FuncSsoGetLoginInfo>(
+          dlsym(handle, "sso_get_login_info"));
+  if (!sso_get_login_info) {
+    LOG_ERROR("[BillingManager] Fail to find the sso_get_login_info symbol.");
+    dlclose(handle);
+    return std::nullopt;
+  }
+
+  std::optional<std::string> custom_id;
+  sso_login_info_s login_info = {};
+  int ret = sso_get_login_info(&login_info);
+  if (ret == 0) {
+    custom_id = login_info.uid;
+  } else {
+    LOG_ERROR("[BillingManager] Fail to get the login info. (%d)", ret);
+  }
+  // NOTE: written through volatile because a plain memset on a struct that
+  // is dead afterwards is dropped by the optimizer.
+  auto *bytes = reinterpret_cast<volatile unsigned char *>(&login_info);
+  for (std::size_t i = 0; i < sizeof(login_info); ++i) {
+    bytes[i] = 0;
+  }
+  dlclose(handle);
   return custom_id;
 }
 

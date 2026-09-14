@@ -10,6 +10,7 @@
 #include <cassert>
 #include <iostream>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <variant>
 
@@ -116,7 +117,7 @@ class BillingManager {
   bool VerifyInvoice(const char *app_id, const char *custom_id,
                      const char *invoice_id, const char *country_code,
                      FunctionResult<VerifyInvoiceAPIResult> result);
-  std::string GetCustomId();
+  std::optional<std::string> GetCustomId();
   std::string GetCountryCode();
 
  private:
