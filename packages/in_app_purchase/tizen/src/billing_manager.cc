@@ -8,6 +8,8 @@
 #include <flutter/encodable_value.h>
 #include <flutter/standard_method_codec.h>
 
+#include <cstddef>
+#include <cstdlib>
 #include <mutex>
 #include <string>
 #include <variant>
@@ -63,9 +65,15 @@ std::string BillingManager::GetCustomId() {
         reinterpret_cast<FuncSsoGetLoginInfo>(
             dlsym(handle, "sso_get_login_info"));
     if (sso_get_login_info) {
-      sso_login_info_s login_info;
-      if (!sso_get_login_info(&login_info)) {
+      sso_login_info_s login_info = {};
+      if (sso_get_login_info(&login_info) == 0) {
         custom_id = login_info.uid;
+      }
+      // NOTE: written through volatile because a plain memset on a struct that
+      // is dead afterwards is dropped by the optimizer.
+      auto *bytes = reinterpret_cast<volatile unsigned char *>(&login_info);
+      for (std::size_t i = 0; i < sizeof(login_info); ++i) {
+        bytes[i] = 0;
       }
     }
     dlclose(handle);
@@ -74,25 +82,31 @@ std::string BillingManager::GetCustomId() {
 }
 
 std::string BillingManager::GetCountryCode() {
-  void *handle = dlopen("libvconf.so.0.3.1", RTLD_LAZY);
-  char *country_code = "";
+  std::string country_code;
+  void *handle = dlopen("libvconf.so.0", RTLD_LAZY);
   if (!handle) {
     LOG_ERROR("[BillingManager] Fail to open vconf APIs.");
-  } else {
-    FuncVconfGetStr vconf_get_str =
-        reinterpret_cast<FuncVconfGetStr>(dlsym(handle, "vconf_get_str"));
-    if (vconf_get_str) {
-      country_code = vconf_get_str("db/comss/countrycode");
-    }
-    dlclose(handle);
+    return country_code;
   }
+  FuncVconfGetStr vconf_get_str =
+      reinterpret_cast<FuncVconfGetStr>(dlsym(handle, "vconf_get_str"));
+  if (vconf_get_str) {
+    char *value = vconf_get_str("db/comss/countrycode");
+    if (value) {
+      country_code = value;
+      free(value);
+    } else {
+      LOG_ERROR("[BillingManager] Fail to read db/comss/countrycode.");
+    }
+  }
+  dlclose(handle);
   return country_code;
 }
 
 bool BillingManager::IsAvailable(FunctionResult<bool> result) {
   LOG_INFO("[BillingManager] Check billing server is available.");
 
-  void *handle = dlopen("libcapi-system-info.so.0.2.1", RTLD_LAZY);
+  void *handle = dlopen("libcapi-system-info.so.0", RTLD_LAZY);
   if (!handle) {
     LOG_ERROR("[BillingManager] Fail to open system APIs.");
   } else {

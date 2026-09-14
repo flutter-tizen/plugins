@@ -35,7 +35,7 @@ This package is not an _endorsed_ implementation of `in_app_purchase`. Therefore
 ```yaml
 dependencies:
   in_app_purchase: ^3.3.0
-  in_app_purchase_tizen: ^0.1.8
+  in_app_purchase_tizen: ^0.1.9
 ```
 
 Then you can import `in_app_purchase` and `in_app_purchase_tizen` in your Dart code:
