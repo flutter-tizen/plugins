@@ -176,7 +176,11 @@ ErrorOr<std::string> InAppPurchaseTizenPlugin::GetCustomId() {
 }
 
 ErrorOr<std::string> InAppPurchaseTizenPlugin::GetCountryCode() {
-  return billing_->GetCountryCode();
+  std::optional<std::string> country_code = billing_->GetCountryCode();
+  if (!country_code.has_value()) {
+    return FlutterError("Operation failed", "get country code failed");
+  }
+  return *country_code;
 }
 
 }  // namespace in_app_purchase_tizen

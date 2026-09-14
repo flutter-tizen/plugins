@@ -88,23 +88,27 @@ std::optional<std::string> BillingManager::GetCustomId() {
   return custom_id;
 }
 
-std::string BillingManager::GetCountryCode() {
-  std::string country_code;
+std::optional<std::string> BillingManager::GetCountryCode() {
   void *handle = dlopen("libvconf.so.0", RTLD_LAZY);
   if (!handle) {
     LOG_ERROR("[BillingManager] Fail to open vconf APIs.");
-    return country_code;
+    return std::nullopt;
   }
   FuncVconfGetStr vconf_get_str =
       reinterpret_cast<FuncVconfGetStr>(dlsym(handle, "vconf_get_str"));
-  if (vconf_get_str) {
-    char *value = vconf_get_str("db/comss/countrycode");
-    if (value) {
-      country_code = value;
-      free(value);
-    } else {
-      LOG_ERROR("[BillingManager] Fail to read db/comss/countrycode.");
-    }
+  if (!vconf_get_str) {
+    LOG_ERROR("[BillingManager] Fail to find the vconf_get_str symbol.");
+    dlclose(handle);
+    return std::nullopt;
+  }
+
+  std::optional<std::string> country_code;
+  char *value = vconf_get_str("db/comss/countrycode");
+  if (value) {
+    country_code = value;
+    free(value);
+  } else {
+    LOG_ERROR("[BillingManager] Fail to read db/comss/countrycode.");
   }
   dlclose(handle);
   return country_code;
