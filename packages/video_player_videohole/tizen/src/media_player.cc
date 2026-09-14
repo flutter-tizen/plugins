@@ -412,13 +412,26 @@ bool MediaPlayer::SetDisplay() {
     return false;
   }
 
-  int x = 0, y = 0, width = 0, height = 0;
-  // TODO(JYY): ecore_wl2 APIs are not thread-safe. After the FFI migration,
-  // this display setup path may run on the flutter UI thread instead of the
-  // previous platform main thread. Revisit this when migrating the display
-  // handling from ecore to Glib.
-  ecore_wl2_window_proxy_->ecore_wl2_window_geometry_get(native_window, &x, &y,
-                                                         &width, &height);
+  const flutter::EncodableMap *window_geometry =
+      create_message_.window_geometry();
+  if (!window_geometry) {
+    LOG_ERROR("[MediaPlayer] Window geometry is missing.");
+    return false;
+  }
+  int32_t x = flutter_common::GetValue(window_geometry, "x", 0);
+  int32_t y = flutter_common::GetValue(window_geometry, "y", 0);
+  int32_t width = flutter_common::GetValue(window_geometry, "width", 0);
+  int32_t height = flutter_common::GetValue(window_geometry, "height", 0);
+  if (width <= 0 || height <= 0) {
+    LOG_ERROR(
+        "[MediaPlayer] Invalid window geometry size: width[%d], height[%d].",
+        width, height);
+    return false;
+  }
+  LOG_INFO(
+      "[MediaPlayer] Window geometry: x[%d], y[%d], width[%d], height[%d].", x,
+      y, width, height);
+
   int ret = media_player_proxy_->player_set_ecore_wl_display(
       player_, PLAYER_DISPLAY_TYPE_OVERLAY, native_window, x, y, width, height);
   if (ret != PLAYER_ERROR_NONE) {
@@ -835,6 +848,10 @@ bool MediaPlayer::RestorePlayer(const CreateMessage *restore_message,
              restore_message->uri()->c_str());
     url_ = *restore_message->uri();
     create_message_ = *restore_message;
+  } else {
+    if (restore_message->window_geometry()) {
+      create_message_.set_window_geometry(*restore_message->window_geometry());
+    }
   }
 
   LOG_INFO("[MediaPlayer] Player previous playing time: %llu ms",

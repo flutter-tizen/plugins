@@ -137,7 +137,6 @@ static json EncodableValueToJson(const flutter::EncodableValue& value) {
 VideoPlayer::VideoPlayer(flutter::BinaryMessenger* messenger,
                          FlutterDesktopViewRef flutter_view)
     : player_id_(-1),
-      ecore_wl2_window_proxy_(std::make_unique<EcoreWl2WindowProxy>()),
       binary_messenger_(messenger),
       flutter_view_(flutter_view) {
   main_context_ = std::unique_ptr<GMainContext, GMainContextDeleter>(

@@ -9,6 +9,7 @@ import 'dart:isolate' show RawReceivePort;
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:tizen_window_manager/tizen_window_manager.dart';
 
 import '../video_player_platform_interface.dart';
 import 'ffi_messages.dart';
@@ -27,6 +28,18 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   VideoPlayerTizen() : super();
 
   final VideoPlayerVideoholeFFIApi _ffiApi = VideoPlayerVideoholeFFIApi();
+
+  /// Fetches the window geometry via the tizen_window_manager plugin.
+  ///
+  /// Returns null if the geometry is not available.
+  Future<Map<Object?, Object?>?> _getWindowGeometry() async {
+    try {
+      final Map<String, int> geometry = await WindowManager.getGeometry();
+      return Map<Object?, Object?>.from(geometry);
+    } on Exception {
+      return null;
+    }
+  }
 
   @override
   Future<void> init() async {
@@ -79,6 +92,8 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       case DataSourceType.contentUri:
         message.uri = dataSource.uri;
     }
+
+    message.windowGeometry = await _getWindowGeometry();
 
     final int playerId = _ffiApi.create(message);
 
@@ -504,6 +519,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
           message.uri = dataSource.uri;
       }
     }
+    message?.windowGeometry = await _getWindowGeometry();
 
     final int result = _ffiApi.restore(playerId, message, resumeTime);
     if (result != 0) {

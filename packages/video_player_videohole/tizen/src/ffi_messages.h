@@ -105,6 +105,13 @@ class CreateMessage {
     player_options_ = value;
   }
 
+  const flutter::EncodableMap& window_geometry() const {
+    return window_geometry_;
+  }
+  void set_window_geometry(const flutter::EncodableMap& value) {
+    window_geometry_ = value;
+  }
+
  private:
   std::optional<std::string> asset_;
   std::optional<std::string> uri_;
@@ -113,6 +120,7 @@ class CreateMessage {
   flutter::EncodableMap http_headers_;
   flutter::EncodableMap drm_configs_;
   flutter::EncodableMap player_options_;
+  flutter::EncodableMap window_geometry_;
 };
 
 void ffi_set_plugin_registrar(FlutterDesktopPluginRegistrarRef registrar_ref,

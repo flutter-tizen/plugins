@@ -122,6 +122,9 @@ CreateMessage ParseCreateMessage(const std::string& json_str) {
     if (j.contains("drmConfigs") && j["drmConfigs"].is_object()) {
       msg.set_drm_configs(ParseJsonMap(j["drmConfigs"].dump()));
     }
+    if (j.contains("windowGeometry") && j["windowGeometry"].is_object()) {
+      msg.set_window_geometry(ParseJsonMap(j["windowGeometry"].dump()));
+    }
   } catch (const json::parse_error& e) {
     LOG_ERROR("[ParseCreateMessage] JSON parse error: %s", e.what());
   }

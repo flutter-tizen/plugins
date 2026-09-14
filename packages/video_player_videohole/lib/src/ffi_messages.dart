@@ -53,6 +53,7 @@ class CreateMessage {
     this.httpHeaders,
     this.drmConfigs,
     this.playerOptions,
+    this.windowGeometry,
   });
 
   /// The asset path for local video resources.
@@ -75,6 +76,9 @@ class CreateMessage {
 
   /// Additional player options.
   Map<Object?, Object?>? playerOptions;
+
+  /// The window geometry for the video display surface.
+  Map<Object?, Object?>? windowGeometry;
 
   /// Serializes this message to a JSON string.
   String toJson() {
@@ -100,6 +104,9 @@ class CreateMessage {
     if (playerOptions != null && playerOptions!.isNotEmpty) {
       jsonMap['playerOptions'] = playerOptions;
     }
+    if (windowGeometry != null && windowGeometry!.isNotEmpty) {
+      jsonMap['windowGeometry'] = windowGeometry;
+    }
     return jsonEncode(jsonMap);
   }
 
@@ -116,6 +123,8 @@ class CreateMessage {
       drmConfigs: (jsonMap['drmConfigs'] as Map?)?.cast<Object?, Object?>(),
       playerOptions:
           (jsonMap['playerOptions'] as Map?)?.cast<Object?, Object?>(),
+      windowGeometry:
+          (jsonMap['windowGeometry'] as Map?)?.cast<Object?, Object?>(),
     );
   }
 }
