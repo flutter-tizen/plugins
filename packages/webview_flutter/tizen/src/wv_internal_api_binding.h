@@ -135,8 +135,8 @@ typedef bool (*WvViewFocusSetFnPtr)(wv_view_h view, int focused);
 typedef bool (*WvViewUrlSetFnPtr)(wv_view_h view, const char* url);
 typedef const char* (*WvViewUrlGetFnPtr)(wv_view_h view);
 typedef bool (*WvViewUrlRequestSetFnPtr)(wv_view_h view, const char* url,
-                                         wv_http_method_e method, void* headers,
-                                         const char* body);
+                                         wv_http_method_e method,
+                                         GHashTable* headers, const char* body);
 typedef bool (*WvViewHtmlStringLoadFnPtr)(wv_view_h view, const char* html,
                                           const char* base_url,
                                           const char* unreachable_url);
