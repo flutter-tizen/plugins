@@ -19,6 +19,7 @@
 #include "rapidjson/document.h"
 
 #define SSO_API_MAX_STRING_LEN 128
+#define SSO_SUCCESS 0
 
 namespace in_app_purchase_tizen {
 
@@ -54,7 +55,6 @@ typedef enum {
   SYSTEM_INFO_KEY_INFO_LINK_SERVER_TYPE = 126,
 } system_info_key_e;
 
-// Returns SSORESULT: 0 on success, -1 on failure.
 typedef int (*FuncSsoGetLoginInfo)(sso_login_info_s *login_info);
 typedef char *(*FuncVconfGetStr)(const char *in_key);
 typedef int (*FuncSystemInfGetValueInt)(system_info_key_e key, int *value);

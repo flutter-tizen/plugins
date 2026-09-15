@@ -73,7 +73,7 @@ std::optional<std::string> BillingManager::GetCustomId() {
   std::optional<std::string> custom_id;
   sso_login_info_s login_info = {};
   int ret = sso_get_login_info(&login_info);
-  if (ret == 0) {
+  if (ret == SSO_SUCCESS) {
     custom_id = login_info.uid;
   } else {
     LOG_ERROR("[BillingManager] Fail to get the login info. (%d)", ret);
