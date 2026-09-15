@@ -2,6 +2,7 @@
 
 * Omit obvious local variable types.
 * Reformat with a line length of 100.
+* Replace Ecore pipes with GLib idle callbacks.
 
 ## 0.8.18
 

@@ -5,10 +5,10 @@
 #ifndef FLUTTER_PLUGIN_VIDEO_PLAYER_H_
 #define FLUTTER_PLUGIN_VIDEO_PLAYER_H_
 
-#include <Ecore.h>
 #include <flutter/encodable_value.h>
 #include <flutter/event_channel.h>
 #include <flutter_tizen.h>
+#include <glib.h>
 
 #include <memory>
 #include <mutex>
@@ -100,6 +100,7 @@ class VideoPlayer {
 
  private:
   void ExecuteSinkEvents();
+  void RequestEventDispatch();
   void PushEvent(flutter::EncodableValue encodable_value);
 
   std::queue<flutter::EncodableValue> encodable_event_queue_;
@@ -107,7 +108,7 @@ class VideoPlayer {
   std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
       event_channel_;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
-  Ecore_Pipe *sink_event_pipe_ = nullptr;
+  guint sink_event_source_ = 0;
 };
 
 }  // namespace video_player_avplay_tizen
