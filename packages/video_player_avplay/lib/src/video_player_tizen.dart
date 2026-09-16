@@ -3,6 +3,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:tizen_window_manager/tizen_window_manager.dart';
@@ -11,10 +13,22 @@ import '../video_player_platform_interface.dart';
 import 'messages.g.dart';
 import 'tracks.dart';
 
+class _SeekOperation {
+  _SeekOperation(this.position);
+
+  final int position;
+  final Completer<void> completer = Completer<void>();
+}
+
 /// An implementation of [VideoPlayerPlatform] that uses the
 /// Pigeon-generated [VideoPlayerAvplayApi].
 class VideoPlayerTizen extends VideoPlayerPlatform {
   final VideoPlayerAvplayApi _api = VideoPlayerAvplayApi();
+
+  final Map<int, _SeekOperation> _activeSeeks = <int, _SeekOperation>{};
+
+  final Map<int, List<_SeekOperation>> _pendingSeeks =
+      <int, List<_SeekOperation>>{};
 
   @override
   Future<void> init() {
@@ -23,6 +37,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<void> dispose(int playerId) {
+    _cancelAllSeeks(playerId);
     return _api.dispose(PlayerMessage(playerId: playerId));
   }
 
@@ -116,9 +131,85 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<void> seekTo(int playerId, Duration position) {
-    return _api.seekTo(
-      PositionMessage(playerId: playerId, position: position.inMilliseconds),
-    );
+    final int targetPosition = position.inMilliseconds;
+
+    if (_activeSeeks.containsKey(playerId)) {
+      final _SeekOperation op = _SeekOperation(targetPosition);
+      _pendingSeeks.putIfAbsent(playerId, () => <_SeekOperation>[]);
+      _pendingSeeks[playerId]!.add(op);
+      return op.completer.future;
+    }
+
+    return _startSeek(playerId, targetPosition);
+  }
+
+  Future<void> _startSeek(int playerId, int position) async {
+    final _SeekOperation op = _SeekOperation(position);
+    _activeSeeks[playerId] = op;
+
+    try {
+      await _api.seekTo(
+        PositionMessage(playerId: playerId, position: position),
+      );
+    } catch (e) {
+      _completeSeekWithError(playerId, e);
+    }
+  }
+
+  void _handleSeekCompleted(int playerId) {
+    final _SeekOperation? op = _activeSeeks.remove(playerId);
+    if (op != null && !op.completer.isCompleted) {
+      op.completer.complete();
+    }
+    _startPendingSeekIfAny(playerId);
+  }
+
+  void _startPendingSeekIfAny(int playerId) {
+    final List<_SeekOperation>? pending = _pendingSeeks[playerId];
+    if (pending != null && pending.isNotEmpty) {
+      final _SeekOperation next = pending.removeAt(0);
+      _startSeek(playerId, next.position).then((_) {
+        if (!next.completer.isCompleted) {
+          next.completer.complete();
+        }
+      }).catchError((Object e) {
+        if (!next.completer.isCompleted) {
+          next.completer.completeError(e);
+        }
+      });
+    } else {
+      _pendingSeeks.remove(playerId);
+    }
+  }
+
+  void _completeSeekWithError(int playerId, Object error) {
+    final _SeekOperation? op = _activeSeeks.remove(playerId);
+    if (op != null && !op.completer.isCompleted) {
+      op.completer.completeError(error);
+    }
+    final List<_SeekOperation>? pending = _pendingSeeks.remove(playerId);
+    if (pending != null) {
+      for (final _SeekOperation p in pending) {
+        if (!p.completer.isCompleted) {
+          p.completer.completeError(error);
+        }
+      }
+    }
+  }
+
+  void _cancelAllSeeks(int playerId) {
+    final _SeekOperation? op = _activeSeeks.remove(playerId);
+    if (op != null && !op.completer.isCompleted) {
+      op.completer.completeError('Player was disposed.');
+    }
+    final List<_SeekOperation>? pending = _pendingSeeks.remove(playerId);
+    if (pending != null) {
+      for (final _SeekOperation p in pending) {
+        if (!p.completer.isCompleted) {
+          p.completer.completeError('Player was disposed.');
+        }
+      }
+    }
   }
 
   @override
@@ -443,7 +534,6 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
           return VideoEvent(eventType: VideoEventType.completed);
         case 'bufferingUpdate':
           final int value = map['value']! as int;
-
           return VideoEvent(
             buffered: value,
             eventType: VideoEventType.bufferingUpdate,
@@ -475,6 +565,9 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
             eventType: VideoEventType.manifestInfoUpdated,
             manifestInfo: map['manifestInfo'] as String?,
           );
+        case 'seekCompleted':
+          _handleSeekCompleted(playerId);
+          return VideoEvent(eventType: VideoEventType.unknown);
         default:
           return VideoEvent(eventType: VideoEventType.unknown);
       }

@@ -1,3 +1,7 @@
+## NEXT
+
+* Handle consecutive seekTo calls.
+
 ## 0.8.18
 
 * Replace ecore-wl2 code with tizen window manager plugin.
