@@ -1,3 +1,8 @@
+## NEXT
+
+* Omit obvious local variable types.
+* Reformat with a line length of 100.
+
 ## 0.1.8
 
 * Update analysis_options.yaml for Flutter 3.47.0.

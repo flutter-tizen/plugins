@@ -6,6 +6,8 @@
 * Load `libvconf` and `libcapi-system-info` by their major SONAME.
 * Remove unused private system info keys.
 * Resolve `unintended_html_in_doc_comment` lint.
+* Omit obvious local variable types.
+* Reformat with a line length of 100.
 
 ## 0.1.8
 

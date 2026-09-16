@@ -88,8 +88,7 @@ class IntegrationTestCommand extends PackageLoopingCommand {
   final String name = 'integration-test';
 
   @override
-  final String description =
-      'Runs integration tests for plugin example apps.\n\n'
+  final String description = 'Runs integration tests for plugin example apps.\n\n'
       'This command requires "flutter-tizen" to be in your path.';
 
   @override
@@ -122,8 +121,7 @@ class IntegrationTestCommand extends PackageLoopingCommand {
         throw ToolExit(exitCommandFoundErrors);
       }
       try {
-        final YamlMap yamlMap =
-            loadYaml(recipeFile.readAsStringSync()) as YamlMap;
+        final yamlMap = loadYaml(recipeFile.readAsStringSync()) as YamlMap;
         _recipe = Recipe.fromYaml(yamlMap);
       } on YamlException {
         print('Invalid YAML file.');
@@ -132,7 +130,7 @@ class IntegrationTestCommand extends PackageLoopingCommand {
     }
 
     late io.ProcessResult processResult;
-    for (int attempts = 0; attempts < 5; attempts++) {
+    for (var attempts = 0; attempts < 5; attempts++) {
       // This operation often fails with an exit code 128.
       processResult = await processRunner.run(
         'flutter-tizen',
@@ -160,11 +158,10 @@ class IntegrationTestCommand extends PackageLoopingCommand {
       yield* super.getTargetPackages(filterExcluded: filterExcluded);
     } else {
       final Recipe recipe = _recipe!;
-      final List<PackageEnumerationEntry> packages = await super
-          .getTargetPackages(filterExcluded: filterExcluded)
-          .toList();
+      final List<PackageEnumerationEntry> packages =
+          await super.getTargetPackages(filterExcluded: filterExcluded).toList();
 
-      for (final PackageEnumerationEntry package in packages) {
+      for (final package in packages) {
         final String packageName = package.package.displayName;
         if (!recipe.contains(packageName)) {
           continue;
@@ -180,7 +177,7 @@ class IntegrationTestCommand extends PackageLoopingCommand {
 
   @override
   Future<PackageResult> runForPackage(RepositoryPackage package) async {
-    List<Profile> profiles = <Profile>[];
+    var profiles = <Profile>[];
     if (argResults!.wasParsed(_profilesArg)) {
       profiles = getStringListArg(_profilesArg)
           .map((String profile) => Profile.fromString(profile))
@@ -199,9 +196,8 @@ class IntegrationTestCommand extends PackageLoopingCommand {
 
     final List<RepositoryPackage> examples = package.getExamples().toList();
     if (examples.isEmpty) {
-      return PackageResult.fail(<String>[
-        'Missing example directory (use --exclude if this is intentional).'
-      ]);
+      return PackageResult.fail(
+          <String>['Missing example directory (use --exclude if this is intentional).']);
     }
 
     io.ProcessResult processResult = await processRunner.run(
@@ -210,31 +206,27 @@ class IntegrationTestCommand extends PackageLoopingCommand {
       workingDir: package.directory,
     );
     if (processResult.exitCode != 0) {
-      return PackageResult.fail(<String>[
-        'Command pub get failed. Make sure the pubspec file in your project is valid.'
-      ]);
+      return PackageResult.fail(
+          <String>['Command pub get failed. Make sure the pubspec file in your project is valid.']);
     }
 
     // Number of test = examples * profiles
-    final List<String> errors = <String>[];
-    for (final RepositoryPackage example in examples) {
+    final errors = <String>[];
+    for (final example in examples) {
       if (!example.pubspecFile.existsSync()) {
         errors.add('Missing pubspec file in ${example.path}.');
         continue;
       }
 
-      final Directory integrationTestDir =
-          example.directory.childDirectory('integration_test');
-      if (!integrationTestDir.existsSync() ||
-          integrationTestDir.listSync().isEmpty) {
+      final Directory integrationTestDir = example.directory.childDirectory('integration_test');
+      if (!integrationTestDir.existsSync() || integrationTestDir.listSync().isEmpty) {
         errors.add('Missing integration tests in ${example.path} '
             '(use --exclude if this is intentional).');
         continue;
       }
 
-      for (final Device device in devices) {
-        String? error =
-            await device.runIntegrationTest(example.directory, _timeout);
+      for (final device in devices) {
+        String? error = await device.runIntegrationTest(example.directory, _timeout);
         if (error != null) {
           // Tests may fail unexpectedly on a self-hosted runner. Try again.
           error = await device.runIntegrationTest(example.directory, _timeout);
@@ -254,14 +246,12 @@ class IntegrationTestCommand extends PackageLoopingCommand {
       logWarning('Failed to clean ${package.displayName} after build.');
     }
 
-    return errors.isEmpty
-        ? PackageResult.success()
-        : PackageResult.fail(errors);
+    return errors.isEmpty ? PackageResult.success() : PackageResult.fail(errors);
   }
 
   List<EmulatorDevice> _prepareNewEmulators(List<Profile> profiles) {
-    final List<EmulatorDevice> emulators = <EmulatorDevice>[];
-    for (final Profile profile in profiles) {
+    final emulators = <EmulatorDevice>[];
+    for (final profile in profiles) {
       emulators.add(
         EmulatorDevice(
           '${profile.toString().replaceAll('.', '_')}-${io.pid}',
@@ -279,17 +269,15 @@ class IntegrationTestCommand extends PackageLoopingCommand {
   ///
   /// If [profiles] is omitted or `null` is passed, returns all connected devices.
   List<Device> _findConnectedDevices([List<Profile>? profiles]) {
-    final List<Device> devices = <Device>[];
+    final devices = <Device>[];
     final List<SdbDeviceInfo> deviceInfos = _tizenSdk.sdbDevices();
-    for (final SdbDeviceInfo deviceInfo in deviceInfos) {
-      final Map<String, String> capability =
-          _tizenSdk.sdbCapability(deviceInfo.serial);
+    for (final deviceInfo in deviceInfos) {
+      final Map<String, String> capability = _tizenSdk.sdbCapability(deviceInfo.serial);
       final String? deviceType = capability['profile_name'];
       final String? version = capability['platform_version'];
       final String? cpuArch = capability['cpu_arch'];
       if (deviceType == null || version == null || cpuArch == null) {
-        throw Exception(
-            'Cannot extract profile, Tizen version, or cpu arch from '
+        throw Exception('Cannot extract profile, Tizen version, or cpu arch from '
             'target ${deviceInfo.serial}.\n'
             'profile: $deviceType\n'
             'Tizen version: $version\n'
@@ -299,7 +287,7 @@ class IntegrationTestCommand extends PackageLoopingCommand {
       if (profiles != null && !profiles.contains(profile)) {
         continue;
       }
-      final Device device = cpuArch == 'x86'
+      final device = cpuArch == 'x86'
           ? Device.emulator(
               deviceInfo.name,
               profile,

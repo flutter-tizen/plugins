@@ -26,8 +26,7 @@ void runTests() {
     (WidgetTester tester) async {
       await tester.binding.setSurfaceSize(const Size(800, 600));
 
-      final Completer<GoogleMapController> mapControllerCompleter =
-          Completer<GoogleMapController>();
+      final mapControllerCompleter = Completer<GoogleMapController>();
       final Key key = GlobalKey();
       await tester.pumpWidget(
         Directionality(
@@ -41,8 +40,7 @@ void runTests() {
           ),
         ),
       );
-      final GoogleMapController mapController =
-          await mapControllerCompleter.future;
+      final GoogleMapController mapController = await mapControllerCompleter.future;
 
       await tester.pumpAndSettle();
 
@@ -51,8 +49,9 @@ void runTests() {
       // https://github.com/flutter/flutter/issues/54758
       await Future<void>.delayed(const Duration(seconds: 1));
 
-      final ScreenCoordinate coordinate = await mapController
-          .getScreenCoordinate(kInitialCameraPosition.target);
+      final ScreenCoordinate coordinate = await mapController.getScreenCoordinate(
+        kInitialCameraPosition.target,
+      );
       final Rect rect = tester.getRect(find.byKey(key));
       if (isIOS || isWeb) {
         // On iOS, the coordinate value from the GoogleMapSdk doesn't include the devicePixelRatio`.
@@ -62,13 +61,11 @@ void runTests() {
       } else {
         expect(
           coordinate.x,
-          ((rect.center.dx - rect.topLeft.dx) * tester.view.devicePixelRatio)
-              .round(),
+          ((rect.center.dx - rect.topLeft.dx) * tester.view.devicePixelRatio).round(),
         );
         expect(
           coordinate.y,
-          ((rect.center.dy - rect.topLeft.dy) * tester.view.devicePixelRatio)
-              .round(),
+          ((rect.center.dy - rect.topLeft.dy) * tester.view.devicePixelRatio).round(),
         );
       }
       await tester.binding.setSurfaceSize(null);
@@ -81,13 +78,12 @@ void runTests() {
     'testGetVisibleRegion',
     (WidgetTester tester) async {
       final Key key = GlobalKey();
-      final LatLngBounds zeroLatLngBounds = LatLngBounds(
+      final zeroLatLngBounds = LatLngBounds(
         southwest: const LatLng(0, 0),
         northeast: const LatLng(0, 0),
       );
 
-      final Completer<GoogleMapController> mapControllerCompleter =
-          Completer<GoogleMapController>();
+      final mapControllerCompleter = Completer<GoogleMapController>();
 
       await pumpMap(
         tester,
@@ -100,8 +96,7 @@ void runTests() {
         ),
       );
       await tester.pumpAndSettle();
-      final GoogleMapController mapController =
-          await mapControllerCompleter.future;
+      final GoogleMapController mapController = await mapControllerCompleter.future;
 
       // Wait for the visible region to be non-zero.
       final LatLngBounds firstVisibleRegion =
@@ -116,15 +111,15 @@ void runTests() {
 
       // Making a new `LatLngBounds` about (10, 10) distance south west to the `firstVisibleRegion`.
       // The size of the `LatLngBounds` is 10 by 10.
-      final LatLng southWest = LatLng(
+      final southWest = LatLng(
         firstVisibleRegion.southwest.latitude - 20,
         firstVisibleRegion.southwest.longitude - 20,
       );
-      final LatLng northEast = LatLng(
+      final northEast = LatLng(
         firstVisibleRegion.southwest.latitude - 10,
         firstVisibleRegion.southwest.longitude - 10,
       );
-      final LatLng newCenter = LatLng(
+      final newCenter = LatLng(
         (northEast.latitude + southWest.latitude) / 2,
         (northEast.longitude + southWest.longitude) / 2,
       );
@@ -132,21 +127,15 @@ void runTests() {
       expect(firstVisibleRegion.contains(northEast), isFalse);
       expect(firstVisibleRegion.contains(southWest), isFalse);
 
-      final LatLngBounds latLngBounds = LatLngBounds(
-        southwest: southWest,
-        northeast: northEast,
-      );
+      final latLngBounds = LatLngBounds(southwest: southWest, northeast: northEast);
 
       // TODO(iskakaushik): non-zero padding is needed for some device configurations
       // https://github.com/flutter/flutter/issues/30575
       const double padding = 0;
-      await mapController.moveCamera(
-        CameraUpdate.newLatLngBounds(latLngBounds, padding),
-      );
+      await mapController.moveCamera(CameraUpdate.newLatLngBounds(latLngBounds, padding));
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
-      final LatLngBounds secondVisibleRegion = await mapController
-          .getVisibleRegion();
+      final LatLngBounds secondVisibleRegion = await mapController.getVisibleRegion();
 
       expect(secondVisibleRegion, isNot(zeroLatLngBounds));
 
@@ -159,8 +148,7 @@ void runTests() {
 
   testWidgets('testSetMapStyle valid Json String', (WidgetTester tester) async {
     final Key key = GlobalKey();
-    final Completer<GoogleMapController> controllerCompleter =
-        Completer<GoogleMapController>();
+    final controllerCompleter = Completer<GoogleMapController>();
 
     await pumpMap(
       tester,
@@ -174,19 +162,15 @@ void runTests() {
     );
     final GoogleMapController controller = await controllerCompleter.future;
 
-    const String mapStyle =
-        '[{"elementType":"geometry","stylers":[{"color":"#242f3e"}]}]';
+    const mapStyle = '[{"elementType":"geometry","stylers":[{"color":"#242f3e"}]}]';
     // Intentionally testing the deprecated code path.
     // ignore: deprecated_member_use
     await controller.setMapStyle(mapStyle);
   });
 
-  testWidgets('testSetMapStyle invalid Json String', (
-    WidgetTester tester,
-  ) async {
+  testWidgets('testSetMapStyle invalid Json String', (WidgetTester tester) async {
     final Key key = GlobalKey();
-    final Completer<GoogleMapController> controllerCompleter =
-        Completer<GoogleMapController>();
+    final controllerCompleter = Completer<GoogleMapController>();
 
     await pumpMap(
       tester,
@@ -212,8 +196,7 @@ void runTests() {
 
   testWidgets('testSetMapStyle null string', (WidgetTester tester) async {
     final Key key = GlobalKey();
-    final Completer<GoogleMapController> controllerCompleter =
-        Completer<GoogleMapController>();
+    final controllerCompleter = Completer<GoogleMapController>();
 
     await pumpMap(
       tester,
@@ -234,8 +217,7 @@ void runTests() {
 
   testWidgets('testGetLatLng', (WidgetTester tester) async {
     final Key key = GlobalKey();
-    final Completer<GoogleMapController> controllerCompleter =
-        Completer<GoogleMapController>();
+    final controllerCompleter = Completer<GoogleMapController>();
 
     await pumpMap(
       tester,
@@ -256,13 +238,8 @@ void runTests() {
     await Future<void>.delayed(const Duration(seconds: 1));
 
     final LatLngBounds visibleRegion = await controller.getVisibleRegion();
-    final LatLng topLeft = await controller.getLatLng(
-      const ScreenCoordinate(x: 0, y: 0),
-    );
-    final LatLng northWest = LatLng(
-      visibleRegion.northeast.latitude,
-      visibleRegion.southwest.longitude,
-    );
+    final LatLng topLeft = await controller.getLatLng(const ScreenCoordinate(x: 0, y: 0));
+    final northWest = LatLng(visibleRegion.northeast.latitude, visibleRegion.southwest.longitude);
 
     expect(topLeft, northWest);
   });
@@ -271,8 +248,7 @@ void runTests() {
     'testGetZoomLevel',
     (WidgetTester tester) async {
       final Key key = GlobalKey();
-      final Completer<GoogleMapController> controllerCompleter =
-          Completer<GoogleMapController>();
+      final controllerCompleter = Completer<GoogleMapController>();
 
       await pumpMap(
         tester,
@@ -308,8 +284,7 @@ void runTests() {
     'testScreenCoordinate',
     (WidgetTester tester) async {
       final Key key = GlobalKey();
-      final Completer<GoogleMapController> controllerCompleter =
-          Completer<GoogleMapController>();
+      final controllerCompleter = Completer<GoogleMapController>();
 
       await pumpMap(
         tester,
@@ -330,13 +305,8 @@ void runTests() {
       await Future<void>.delayed(const Duration(seconds: 1));
 
       final LatLngBounds visibleRegion = await controller.getVisibleRegion();
-      final LatLng northWest = LatLng(
-        visibleRegion.northeast.latitude,
-        visibleRegion.southwest.longitude,
-      );
-      final ScreenCoordinate topLeft = await controller.getScreenCoordinate(
-        northWest,
-      );
+      final northWest = LatLng(visibleRegion.northeast.latitude, visibleRegion.southwest.longitude);
+      final ScreenCoordinate topLeft = await controller.getScreenCoordinate(northWest);
       expect(topLeft, const ScreenCoordinate(x: 0, y: 0));
     },
     // TODO(stuartmorgan): Re-enable; see https://github.com/flutter/flutter/issues/139825
@@ -344,8 +314,7 @@ void runTests() {
   );
 
   testWidgets('testResizeWidget', (WidgetTester tester) async {
-    final Completer<GoogleMapController> controllerCompleter =
-        Completer<GoogleMapController>();
+    final controllerCompleter = Completer<GoogleMapController>();
 
     await pumpMap(
       tester,
@@ -385,14 +354,13 @@ void runTests() {
   });
 
   testWidgets('testToggleInfoWindow', (WidgetTester tester) async {
-    const Marker marker = Marker(
+    const marker = Marker(
       markerId: MarkerId('marker'),
       infoWindow: InfoWindow(title: 'InfoWindow'),
     );
-    final Set<Marker> markers = <Marker>{marker};
+    final markers = <Marker>{marker};
 
-    final Completer<GoogleMapController> controllerCompleter =
-        Completer<GoogleMapController>();
+    final controllerCompleter = Completer<GoogleMapController>();
 
     await pumpMap(
       tester,
@@ -414,9 +382,7 @@ void runTests() {
     // re-evaluated when that issue is fixed.
     await Future<void>.delayed(const Duration(seconds: 1));
 
-    bool iwVisibleStatus = await controller.isMarkerInfoWindowShown(
-      marker.markerId,
-    );
+    bool iwVisibleStatus = await controller.isMarkerInfoWindowShown(marker.markerId);
     expect(iwVisibleStatus, false);
 
     await controller.showMarkerInfoWindow(marker.markerId);
@@ -437,7 +403,7 @@ void runTests() {
   });
 
   testWidgets('markerWithAssetMapBitmap', (WidgetTester tester) async {
-    final Set<Marker> markers = <Marker>{
+    final markers = <Marker>{
       Marker(
         markerId: const MarkerId('1'),
         icon: AssetMapBitmap('assets/red_square.png', imagePixelRatio: 1.0),
@@ -453,16 +419,11 @@ void runTests() {
   });
 
   testWidgets('markerWithAssetMapBitmapCreate', (WidgetTester tester) async {
-    final ImageConfiguration imageConfiguration = ImageConfiguration(
-      devicePixelRatio: tester.view.devicePixelRatio,
-    );
-    final Set<Marker> markers = <Marker>{
+    final imageConfiguration = ImageConfiguration(devicePixelRatio: tester.view.devicePixelRatio);
+    final markers = <Marker>{
       Marker(
         markerId: const MarkerId('1'),
-        icon: await AssetMapBitmap.create(
-          imageConfiguration,
-          'assets/red_square.png',
-        ),
+        icon: await AssetMapBitmap.create(imageConfiguration, 'assets/red_square.png'),
       ),
     };
     await pumpMap(
@@ -476,13 +437,10 @@ void runTests() {
 
   testWidgets('markerWithBytesMapBitmap', (WidgetTester tester) async {
     final Uint8List bytes = const Base64Decoder().convert(iconImageBase64);
-    final Set<Marker> markers = <Marker>{
+    final markers = <Marker>{
       Marker(
         markerId: const MarkerId('1'),
-        icon: BytesMapBitmap(
-          bytes,
-          imagePixelRatio: tester.view.devicePixelRatio,
-        ),
+        icon: BytesMapBitmap(bytes, imagePixelRatio: tester.view.devicePixelRatio),
       ),
     };
     await pumpMap(
@@ -496,19 +454,16 @@ void runTests() {
 
   testWidgets('markerWithLegacyAsset', (WidgetTester tester) async {
     tester.view.devicePixelRatio = 2.0;
-    final ImageConfiguration imageConfiguration = ImageConfiguration(
+    final imageConfiguration = ImageConfiguration(
       devicePixelRatio: tester.view.devicePixelRatio,
       size: const Size(100, 100),
     );
-    final Set<Marker> markers = <Marker>{
+    final markers = <Marker>{
       Marker(
         markerId: const MarkerId('1'),
         // Intentionally testing the deprecated code path.
         // ignore: deprecated_member_use
-        icon: await BitmapDescriptor.fromAssetImage(
-          imageConfiguration,
-          'assets/red_square.png',
-        ),
+        icon: await BitmapDescriptor.fromAssetImage(imageConfiguration, 'assets/red_square.png'),
       ),
     };
     await pumpMap(
@@ -525,7 +480,7 @@ void runTests() {
   testWidgets('markerWithLegacyBytes', (WidgetTester tester) async {
     tester.view.devicePixelRatio = 2.0;
     final Uint8List bytes = const Base64Decoder().convert(iconImageBase64);
-    final Set<Marker> markers = <Marker>{
+    final markers = <Marker>{
       Marker(
         markerId: const MarkerId('1'),
         // Intentionally testing the deprecated code path.
@@ -547,8 +502,7 @@ void runTests() {
   testWidgets(
     'testTakeSnapshot',
     (WidgetTester tester) async {
-      final Completer<GoogleMapController> controllerCompleter =
-          Completer<GoogleMapController>();
+      final controllerCompleter = Completer<GoogleMapController>();
 
       await pumpMap(
         tester,
@@ -572,7 +526,7 @@ void runTests() {
   testWidgets(
     'testCloudMapId',
     (WidgetTester tester) async {
-      final Completer<int> mapIdCompleter = Completer<int>();
+      final mapIdCompleter = Completer<int>();
       final Key key = GlobalKey();
 
       await pumpMap(
@@ -599,8 +553,7 @@ void runTests() {
     'getStyleError reports last error',
     (WidgetTester tester) async {
       final Key key = GlobalKey();
-      final Completer<GoogleMapController> controllerCompleter =
-          Completer<GoogleMapController>();
+      final controllerCompleter = Completer<GoogleMapController>();
 
       await pumpMap(
         tester,
@@ -639,7 +592,7 @@ Future<T?> waitForValueMatchingPredicate<T>(
   bool Function(T) predicate, {
   int maxTries = 100,
 }) async {
-  for (int i = 0; i < maxTries; i++) {
+  for (var i = 0; i < maxTries; i++) {
     final T value = await getValue();
     if (predicate(value)) {
       return value;

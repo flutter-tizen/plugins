@@ -76,7 +76,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   Future<int?> create(DataSource dataSource) async {
     _ensureEventPortRegistered();
 
-    final CreateMessage message = CreateMessage();
+    final message = CreateMessage();
 
     switch (dataSource.sourceType) {
       case DataSourceType.asset:
@@ -127,22 +127,20 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       _eventPort!.handler = (dynamic message) {
         try {
           if (message is List && message.length == 2) {
-            final int receivingPlayerId = message[0] as int;
-            final String eventJson = message[1] as String;
+            final receivingPlayerId = message[0] as int;
+            final eventJson = message[1] as String;
 
-            final Map<String, dynamic> eventMap =
-                jsonDecode(eventJson) as Map<String, dynamic>;
+            final eventMap = jsonDecode(eventJson) as Map<String, dynamic>;
 
             if (eventMap['event'] == 'seekCompleted') {
               _handleSeekCompleted(receivingPlayerId);
               return;
             }
 
-            final StreamController<VideoEvent>? controller =
-                _eventControllers[receivingPlayerId];
+            final StreamController<VideoEvent>? controller = _eventControllers[receivingPlayerId];
 
             if (eventMap['event'] == 'error') {
-              final PlatformException exception = PlatformException(
+              final exception = PlatformException(
                 code: eventMap['code'] as String? ?? 'unknown',
                 message: eventMap['message'] as String?,
               );
@@ -261,13 +259,12 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   Future<void> seekTo(int playerId, Duration position) async {
     _ensureEventPortRegistered();
 
-    final Completer<void> completer = Completer<void>();
+    final completer = Completer<void>();
 
     if (_activeSeeks.containsKey(playerId)) {
       final _SeekOperation pendingSeek = _pendingSeeks.putIfAbsent(
         playerId,
-        () =>
-            _SeekOperation(position: position, completers: <Completer<void>>[]),
+        () => _SeekOperation(position: position, completers: <Completer<void>>[]),
       );
       pendingSeek.position = position;
       pendingSeek.completers.add(completer);
@@ -282,12 +279,12 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   Future<List<VideoTrack>> getVideoTracks(int playerId) async {
     final TrackMessage message = _ffiApi.getTrackInfo(playerId, 'video');
 
-    final List<VideoTrack> videoTracks = <VideoTrack>[];
+    final videoTracks = <VideoTrack>[];
     for (final Map<Object?, Object?>? trackMap in message.tracks) {
-      final int trackId = trackMap!['trackId']! as int;
-      final int bitrate = trackMap['bitrate']! as int;
-      final int width = trackMap['width']! as int;
-      final int height = trackMap['height']! as int;
+      final trackId = trackMap!['trackId']! as int;
+      final bitrate = trackMap['bitrate']! as int;
+      final width = trackMap['width']! as int;
+      final height = trackMap['height']! as int;
 
       videoTracks.add(
         VideoTrack(
@@ -306,12 +303,12 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   Future<List<AudioTrack>> getAudioTracks(int playerId) async {
     final TrackMessage message = _ffiApi.getTrackInfo(playerId, 'audio');
 
-    final List<AudioTrack> audioTracks = <AudioTrack>[];
+    final audioTracks = <AudioTrack>[];
     for (final Map<Object?, Object?>? trackMap in message.tracks) {
-      final int trackId = trackMap!['trackId']! as int;
-      final String language = trackMap['language']! as String;
-      final int channel = trackMap['channel']! as int;
-      final int bitrate = trackMap['bitrate']! as int;
+      final trackId = trackMap!['trackId']! as int;
+      final language = trackMap['language']! as String;
+      final channel = trackMap['channel']! as int;
+      final bitrate = trackMap['bitrate']! as int;
 
       audioTracks.add(
         AudioTrack(
@@ -330,10 +327,10 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   Future<List<TextTrack>> getTextTracks(int playerId) async {
     final TrackMessage message = _ffiApi.getTrackInfo(playerId, 'text');
 
-    final List<TextTrack> textTracks = <TextTrack>[];
+    final textTracks = <TextTrack>[];
     for (final Map<Object?, Object?>? trackMap in message.tracks) {
-      final int trackId = trackMap!['trackId']! as int;
-      final String language = trackMap['language']! as String;
+      final trackId = trackMap!['trackId']! as int;
+      final language = trackMap['language']! as String;
 
       textTracks.add(TextTrack(trackId: trackId, language: language));
     }
@@ -399,7 +396,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     switch (map['event']) {
       case 'initialized':
       case 'restored':
-        final List<dynamic>? durationVal = map['duration'] as List<dynamic>?;
+        final durationVal = map['duration'] as List<dynamic>?;
         VideoEventType videoEventType;
         if (map['event'] == 'initialized') {
           videoEventType = VideoEventType.initialized;
@@ -420,7 +417,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       case 'completed':
         return VideoEvent(eventType: VideoEventType.completed);
       case 'bufferingUpdate':
-        final int value = map['value']! as int;
+        final value = map['value']! as int;
         return VideoEvent(
           buffered: value,
           eventType: VideoEventType.bufferingUpdate,
@@ -547,7 +544,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     Duration position,
     List<Completer<void>> completers,
   ) {
-    final _SeekOperation seek = _SeekOperation(
+    final seek = _SeekOperation(
       position: position,
       completers: completers,
     );
@@ -650,8 +647,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     }
   }
 
-  static const Map<VideoFormat, String> _videoFormatStringMap =
-      <VideoFormat, String>{
+  static const Map<VideoFormat, String> _videoFormatStringMap = <VideoFormat, String>{
     VideoFormat.ss: 'ss',
     VideoFormat.hls: 'hls',
     VideoFormat.dash: 'dash',

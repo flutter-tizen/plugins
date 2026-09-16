@@ -41,16 +41,14 @@ void main() {
 
   group('PackageInfo fields', () {
     test('iconPath is null or a non-empty string', () async {
-      final PackageInfo info =
-          await PackageManager.getPackageInfo(currentPackageId);
+      final PackageInfo info = await PackageManager.getPackageInfo(currentPackageId);
       expect(info.iconPath, anyOf(isNull, isNotEmpty));
     });
   });
 
   group('PackageSizeInfo fields', () {
     test('all size fields are non-negative', () async {
-      final PackageSizeInfo info =
-          await PackageManager.getPackageSizeInfo(currentPackageId);
+      final PackageSizeInfo info = await PackageManager.getPackageSizeInfo(currentPackageId);
       expect(info.dataSize, greaterThanOrEqualTo(0));
       expect(info.cacheSize, greaterThanOrEqualTo(0));
       expect(info.appSize, greaterThanOrEqualTo(0));
@@ -64,7 +62,7 @@ void main() {
     test('each PackageInfo item has valid field values', () async {
       final List<PackageInfo> infos = await PackageManager.getPackagesInfo();
       expect(infos, isNotEmpty);
-      for (final PackageInfo info in infos) {
+      for (final info in infos) {
         // Field types are already guaranteed by PackageInfo.fromMap (it casts
         // each field), so only the value-level expectations are asserted here.
         expect(info.packageId, isNotEmpty);

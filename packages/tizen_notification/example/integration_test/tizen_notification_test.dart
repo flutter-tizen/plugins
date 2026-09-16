@@ -45,7 +45,7 @@ void main() {
     test(
       'show notification with TizenNotificationDetails does not throw',
       () async {
-        final TizenNotificationDetails details = TizenNotificationDetails(
+        final details = TizenNotificationDetails(
           properties: NotificationProperty.disableAutoDelete,
           style: NotificationStyle.tray,
         );

@@ -22,7 +22,7 @@ class TrackMessage {
 
   /// Serializes this message to a JSON string.
   String toJson() {
-    final Map<String, dynamic> jsonMap = <String, dynamic>{
+    final jsonMap = <String, dynamic>{
       'playerId': playerId,
       'tracks': tracks,
     };
@@ -31,8 +31,7 @@ class TrackMessage {
 
   /// Deserializes a JSON string into a [TrackMessage].
   static TrackMessage fromJson(String jsonString) {
-    final Map<String, dynamic> jsonMap =
-        jsonDecode(jsonString) as Map<String, dynamic>;
+    final jsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
     return TrackMessage(
       playerId: jsonMap['playerId'] as int,
       tracks: (jsonMap['tracks'] as List<dynamic>)
@@ -82,7 +81,7 @@ class CreateMessage {
 
   /// Serializes this message to a JSON string.
   String toJson() {
-    final Map<String, dynamic> jsonMap = <String, dynamic>{};
+    final jsonMap = <String, dynamic>{};
     if (asset != null && asset!.isNotEmpty) {
       jsonMap['asset'] = asset;
     }
@@ -112,8 +111,7 @@ class CreateMessage {
 
   /// Deserializes a JSON string into a [CreateMessage].
   static CreateMessage fromJson(String jsonString) {
-    final Map<String, dynamic> jsonMap =
-        jsonDecode(jsonString) as Map<String, dynamic>;
+    final jsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
     return CreateMessage(
       asset: jsonMap['asset'] as String?,
       uri: jsonMap['uri'] as String?,
@@ -121,10 +119,8 @@ class CreateMessage {
       formatHint: jsonMap['formatHint'] as String?,
       httpHeaders: (jsonMap['httpHeaders'] as Map?)?.cast<Object?, Object?>(),
       drmConfigs: (jsonMap['drmConfigs'] as Map?)?.cast<Object?, Object?>(),
-      playerOptions:
-          (jsonMap['playerOptions'] as Map?)?.cast<Object?, Object?>(),
-      windowGeometry:
-          (jsonMap['windowGeometry'] as Map?)?.cast<Object?, Object?>(),
+      playerOptions: (jsonMap['playerOptions'] as Map?)?.cast<Object?, Object?>(),
+      windowGeometry: (jsonMap['windowGeometry'] as Map?)?.cast<Object?, Object?>(),
     );
   }
 }
@@ -142,7 +138,7 @@ class DurationMessage {
 
   /// Serializes this message to a JSON string.
   String toJson() {
-    final Map<String, dynamic> jsonMap = <String, dynamic>{
+    final jsonMap = <String, dynamic>{
       'playerId': playerId,
       if (durationRange != null) 'durationRange': durationRange,
     };
@@ -151,13 +147,11 @@ class DurationMessage {
 
   /// Deserializes a JSON string into a [DurationMessage].
   static DurationMessage fromJson(String jsonString) {
-    final Map<String, dynamic> jsonMap =
-        jsonDecode(jsonString) as Map<String, dynamic>;
+    final jsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
     return DurationMessage(
       playerId: jsonMap['playerId'] as int,
-      durationRange: (jsonMap['durationRange'] as List<dynamic>?)
-          ?.map((e) => (e as num).toInt())
-          .toList(),
+      durationRange:
+          (jsonMap['durationRange'] as List<dynamic>?)?.map((e) => (e as num).toInt()).toList(),
     );
   }
 }
@@ -198,15 +192,12 @@ typedef _FFISetPlaybackSpeedDart = int Function(int, double);
 typedef _FFISetLoopingNative = ffi.Int32 Function(ffi.Int64, ffi.Bool);
 typedef _FFISetLoopingDart = int Function(int, bool);
 
-typedef _FFIGetTrackInfoNative = ffi.Pointer<ffi.Char> Function(
-    ffi.Int64, ffi.Pointer<ffi.Char>);
-typedef _FFIGetTrackInfoDart = ffi.Pointer<ffi.Char> Function(
-    int, ffi.Pointer<ffi.Char>);
+typedef _FFIGetTrackInfoNative = ffi.Pointer<ffi.Char> Function(ffi.Int64, ffi.Pointer<ffi.Char>);
+typedef _FFIGetTrackInfoDart = ffi.Pointer<ffi.Char> Function(int, ffi.Pointer<ffi.Char>);
 
 typedef _FFISetTrackSelectionNative = ffi.Int32 Function(
     ffi.Int64, ffi.Int64, ffi.Pointer<ffi.Char>);
-typedef _FFISetTrackSelectionDart = int Function(
-    int, int, ffi.Pointer<ffi.Char>);
+typedef _FFISetTrackSelectionDart = int Function(int, int, ffi.Pointer<ffi.Char>);
 
 typedef _FFISetDisplayGeometryNative = ffi.Int32 Function(
     ffi.Int64, ffi.Int32, ffi.Int32, ffi.Int32, ffi.Int32);
@@ -227,8 +218,7 @@ typedef _FFISetMixWithOthersDart = int Function(bool);
 typedef _FFISuspendNative = ffi.Int32 Function(ffi.Int64);
 typedef _FFISuspendDart = int Function(int);
 
-typedef _FFIRestoreNative = ffi.Int32 Function(
-    ffi.Int64, ffi.Pointer<ffi.Char>, ffi.Int64);
+typedef _FFIRestoreNative = ffi.Int32 Function(ffi.Int64, ffi.Pointer<ffi.Char>, ffi.Int64);
 typedef _FFIRestoreDart = int Function(int, ffi.Pointer<ffi.Char>, int);
 
 typedef _FFIFreeStringNative = ffi.Void Function(ffi.Pointer<ffi.Char>);
@@ -239,8 +229,7 @@ ffi.Pointer<ffi.Char> _toPointer(String? str) {
     return ffi.nullptr;
   }
   final Uint8List units = utf8.encode(str);
-  final ffi.Pointer<ffi.Uint8> result =
-      calloc.allocate<ffi.Uint8>(units.length + 1);
+  final ffi.Pointer<ffi.Uint8> result = calloc.allocate<ffi.Uint8>(units.length + 1);
   final Uint8List nativeString = result.asTypedList(units.length + 1);
   nativeString.setAll(0, units);
   nativeString[units.length] = 0;
@@ -272,8 +261,7 @@ class VideoPlayerFFIBindings {
   late int Function(int, double) _ffiSetVolume;
   late int Function(int, double) _ffiSetPlaybackSpeed;
   late int Function(int, bool) _ffiSetLooping;
-  late ffi.Pointer<ffi.Char> Function(int, ffi.Pointer<ffi.Char>)
-      _ffiGetTrackInfo;
+  late ffi.Pointer<ffi.Char> Function(int, ffi.Pointer<ffi.Char>) _ffiGetTrackInfo;
   late int Function(int, int, ffi.Pointer<ffi.Char>) _ffiSetTrackSelection;
   late int Function(int, int, int, int, int) _ffiSetDisplayGeometry;
   late int Function(int, int) _ffiSetDisplayRotate;
@@ -317,9 +305,8 @@ class VideoPlayerFFIBindings {
           .lookup<ffi.NativeFunction<_FFIDisposeNative>>('ffi_dispose')
           .asFunction<_FFIDisposeDart>();
 
-      _ffiPlay = _lib!
-          .lookup<ffi.NativeFunction<_FFIPlayNative>>('ffi_play')
-          .asFunction<_FFIPlayDart>();
+      _ffiPlay =
+          _lib!.lookup<ffi.NativeFunction<_FFIPlayNative>>('ffi_play').asFunction<_FFIPlayDart>();
 
       _ffiPause = _lib!
           .lookup<ffi.NativeFunction<_FFIPauseNative>>('ffi_pause')
@@ -342,8 +329,7 @@ class VideoPlayerFFIBindings {
           .asFunction<_FFISetVolumeDart>();
 
       _ffiSetPlaybackSpeed = _lib!
-          .lookup<ffi.NativeFunction<_FFISetPlaybackSpeedNative>>(
-              'ffi_set_playback_speed')
+          .lookup<ffi.NativeFunction<_FFISetPlaybackSpeedNative>>('ffi_set_playback_speed')
           .asFunction<_FFISetPlaybackSpeedDart>();
 
       _ffiSetLooping = _lib!
@@ -351,23 +337,19 @@ class VideoPlayerFFIBindings {
           .asFunction<_FFISetLoopingDart>();
 
       _ffiGetTrackInfo = _lib!
-          .lookup<ffi.NativeFunction<_FFIGetTrackInfoNative>>(
-              'ffi_get_track_info')
+          .lookup<ffi.NativeFunction<_FFIGetTrackInfoNative>>('ffi_get_track_info')
           .asFunction<_FFIGetTrackInfoDart>();
 
       _ffiSetTrackSelection = _lib!
-          .lookup<ffi.NativeFunction<_FFISetTrackSelectionNative>>(
-              'ffi_set_track_selection')
+          .lookup<ffi.NativeFunction<_FFISetTrackSelectionNative>>('ffi_set_track_selection')
           .asFunction<_FFISetTrackSelectionDart>();
 
       _ffiSetDisplayGeometry = _lib!
-          .lookup<ffi.NativeFunction<_FFISetDisplayGeometryNative>>(
-              'ffi_set_display_geometry')
+          .lookup<ffi.NativeFunction<_FFISetDisplayGeometryNative>>('ffi_set_display_geometry')
           .asFunction<_FFISetDisplayGeometryDart>();
 
       _ffiSetDisplayRotate = _lib!
-          .lookup<ffi.NativeFunction<_FFISetDisplayRotateNative>>(
-              'ffi_set_display_rotate')
+          .lookup<ffi.NativeFunction<_FFISetDisplayRotateNative>>('ffi_set_display_rotate')
           .asFunction<_FFISetDisplayRotateDart>();
 
       _ffiSuspend = _lib!
@@ -383,13 +365,11 @@ class VideoPlayerFFIBindings {
           .asFunction<_FFISetActivateDart>();
 
       _ffiSetDeactivate = _lib!
-          .lookup<ffi.NativeFunction<_FFISetDeactivateNative>>(
-              'ffi_set_deactivate')
+          .lookup<ffi.NativeFunction<_FFISetDeactivateNative>>('ffi_set_deactivate')
           .asFunction<_FFISetDeactivateDart>();
 
       _ffiSetMixWithOthers = _lib!
-          .lookup<ffi.NativeFunction<_FFISetMixWithOthersNative>>(
-              'ffi_set_mix_with_others')
+          .lookup<ffi.NativeFunction<_FFISetMixWithOthersNative>>('ffi_set_mix_with_others')
           .asFunction<_FFISetMixWithOthersDart>();
 
       _ffiFreeString = _lib!
@@ -397,12 +377,10 @@ class VideoPlayerFFIBindings {
           .asFunction<_FFIFreeStringDart>();
 
       _ffiRegisterDartPort = _lib!
-          .lookup<ffi.NativeFunction<_FFIRegisterEventPortNative>>(
-              'ffi_register_dart_port')
+          .lookup<ffi.NativeFunction<_FFIRegisterEventPortNative>>('ffi_register_dart_port')
           .asFunction<_FFIRegisterEventPortDart>();
       _ffiUnregisterDartPort = _lib!
-          .lookup<ffi.NativeFunction<_FFIUnregisterEventPortNative>>(
-              'ffi_unregister_dart_port')
+          .lookup<ffi.NativeFunction<_FFIUnregisterEventPortNative>>('ffi_unregister_dart_port')
           .asFunction<_FFIUnregisterEventPortDart>();
     } catch (e) {
       _lib = null;
@@ -527,7 +505,7 @@ class VideoPlayerVideoholeFFIApi {
     }
     try {
       final ffi.Pointer<ffi.Uint8> bytes = ptr.cast<ffi.Uint8>();
-      int length = 0;
+      var length = 0;
       while (bytes[length] != 0) {
         length++;
       }
@@ -633,7 +611,7 @@ class VideoPlayerVideoholeFFIApi {
         );
       }
       final ffi.Pointer<ffi.Uint8> bytes = ptr.cast<ffi.Uint8>();
-      int length = 0;
+      var length = 0;
       while (bytes[length] != 0) {
         length++;
       }
@@ -686,8 +664,7 @@ typedef _FFIRegisterEventPortDart = void Function(int);
 typedef _FFIUnregisterEventPortNative = ffi.Void Function();
 typedef _FFIUnregisterEventPortDart = void Function();
 
-late ffi.Pointer<ffi.NativeFunction<_FFIInitializeApiDlNative>>?
-    _ffiInitializeApiDlPtr;
+late ffi.Pointer<ffi.NativeFunction<_FFIInitializeApiDlNative>>? _ffiInitializeApiDlPtr;
 
 /// Whether the Dart API DL has been initialized.
 bool _apiDlInitialized = false;
@@ -712,8 +689,7 @@ void ffiInitializeApiDL() {
 
   try {
     _ffiInitializeApiDlPtr =
-        lib.lookup<ffi.NativeFunction<_FFIInitializeApiDlNative>>(
-            'ffi_initialize_api_dl');
+        lib.lookup<ffi.NativeFunction<_FFIInitializeApiDlNative>>('ffi_initialize_api_dl');
   } catch (e) {
     throw PlatformException(
       code: 'FFI_API_DL_LOOKUP_FAILED',

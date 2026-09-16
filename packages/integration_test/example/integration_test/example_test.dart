@@ -34,8 +34,7 @@ void main() {
       expect(
         find.byWidgetPredicate(
           (Widget widget) =>
-              widget is Text &&
-              widget.data!.startsWith('Platform: ${Platform.operatingSystem}'),
+              widget is Text && widget.data!.startsWith('Platform: ${Platform.operatingSystem}'),
         ),
         findsOneWidget,
       );

@@ -4,8 +4,7 @@
 
 // ignore_for_file: lines_longer_than_80_chars, avoid_classes_with_only_static_members, no_default_cases, public_member_api_docs
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
-import 'package:flutter/foundation.dart'
-    show TargetPlatform, defaultTargetPlatform, kIsWeb;
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {

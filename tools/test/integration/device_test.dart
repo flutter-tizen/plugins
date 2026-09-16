@@ -18,24 +18,20 @@ import 'package:test/test.dart';
 
 Future<void> _checkSystemRequirements(String emulatorName) async {
   final TizenSdk tizenSdk = TizenSdk.locateTizenSdk();
-  io.ProcessResult result = await io.Process.run(
-      tizenSdk.emCli.absolute.path, <String>['list-platform']);
+  io.ProcessResult result =
+      await io.Process.run(tizenSdk.emCli.absolute.path, <String>['list-platform']);
 
-  final List<String> platforms = LineSplitter.split(result.stdout as String)
-      .map((String token) => token.trim())
-      .toList();
+  final List<String> platforms =
+      LineSplitter.split(result.stdout as String).map((String token) => token.trim()).toList();
   if (!platforms.contains('mobile-6.0-x86')) {
     throw Exception('Tizen mobile-6.0 emulator package is not installed.');
   }
 
-  result =
-      await io.Process.run(tizenSdk.emCli.absolute.path, <String>['list-vm']);
-  final List<String> names = LineSplitter.split(result.stdout as String)
-      .map((String token) => token.trim())
-      .toList();
+  result = await io.Process.run(tizenSdk.emCli.absolute.path, <String>['list-vm']);
+  final List<String> names =
+      LineSplitter.split(result.stdout as String).map((String token) => token.trim()).toList();
   if (names.contains(emulatorName)) {
-    throw Exception(
-        'Emulator name used for test already exists: $emulatorName. '
+    throw Exception('Emulator name used for test already exists: $emulatorName. '
         'Emulator name is randomly generated for each test. '
         'Rerun the test to choose a different name.');
   }
@@ -47,11 +43,10 @@ Future<void> _checkSystemRequirements(String emulatorName) async {
 }
 
 String _getRandomString(int length) {
-  const String chars =
-      'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
-  final Random random = Random();
-  return String.fromCharCodes(List<int>.generate(
-      length, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
+  const chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+  final random = Random();
+  return String.fromCharCodes(
+      List<int>.generate(length, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
 }
 
 void main() {
@@ -96,8 +91,7 @@ void main() {
     await io.Process.run('flutter-tizen', <String>['pub', 'get'],
         workingDirectory: testDataDir.parent.absolute.path);
 
-    final String? error = await device.runIntegrationTest(
-        testDataDir, const Duration(seconds: 60));
+    final String? error = await device.runIntegrationTest(testDataDir, const Duration(seconds: 60));
 
     await io.Process.run('flutter-tizen', <String>['clean'],
         workingDirectory: testDataDir.parent.absolute.path);
@@ -106,7 +100,7 @@ void main() {
 
   tearDown(() async {
     final List<SdbDeviceInfo> deviceInfos = tizenSdk.sdbDevices();
-    for (final SdbDeviceInfo deviceInfo in deviceInfos) {
+    for (final deviceInfo in deviceInfos) {
       if (device.name == deviceInfo.name) {
         final String? pid = findEmulatorPid(device.name);
         if (pid == null) {
@@ -118,13 +112,11 @@ void main() {
 
     final io.ProcessResult result =
         await io.Process.run(tizenSdk.emCli.absolute.path, <String>['list-vm']);
-    final List<String> names = LineSplitter.split(result.stdout as String)
-        .map((String token) => token.trim())
-        .toList();
-    for (final String name in names) {
+    final List<String> names =
+        LineSplitter.split(result.stdout as String).map((String token) => token.trim()).toList();
+    for (final name in names) {
       if (name == device.name) {
-        await io.Process.run(tizenSdk.emCli.absolute.path,
-            <String>['delete', '-n', device.name]);
+        await io.Process.run(tizenSdk.emCli.absolute.path, <String>['delete', '-n', device.name]);
       }
     }
   });

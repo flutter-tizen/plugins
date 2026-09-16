@@ -110,7 +110,7 @@ class Message extends ProxyBase {
     }
 
     final Port port = getPort(PortType.main);
-    final Parcel parcel = Parcel();
+    final parcel = Parcel();
     final ParcelHeader header = parcel.header;
     header.tag = _tidlVersion;
     parcel.writeInt32(_MethodId.register.id);
@@ -118,7 +118,7 @@ class Message extends ProxyBase {
     parcel.writeString(name);
 
     {
-      final _NotifyCallback delegate = _NotifyCallback(callback);
+      final delegate = _NotifyCallback(callback);
       delegate.serialize(parcel);
       _delegates.add(delegate);
     }
@@ -151,7 +151,7 @@ class Message extends ProxyBase {
     }
 
     final Port port = getPort(PortType.main);
-    final Parcel parcel = Parcel();
+    final parcel = Parcel();
     final ParcelHeader header = parcel.header;
     header.tag = _tidlVersion;
     parcel.writeInt32(_MethodId.unregister.id);
@@ -165,7 +165,7 @@ class Message extends ProxyBase {
     }
 
     final Port port = getPort(PortType.main);
-    final Parcel parcel = Parcel();
+    final parcel = Parcel();
     final ParcelHeader header = parcel.header;
     header.tag = _tidlVersion;
     parcel.writeInt32(_MethodId.send.id);

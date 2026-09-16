@@ -24,7 +24,7 @@ void main() {
   }, timeout: kTimeout);
 
   test('Can find matching applications', () async {
-    final AppControl request = AppControl(
+    final request = AppControl(
       operation: 'http://tizen.org/appcontrol/operation/view',
       uri: 'file:///opt/usr/globalapps/$kAppId/shared/res/ic_launcher.png',
       mime: 'image/*',
@@ -35,7 +35,7 @@ void main() {
 
   test('Can send and receive request', () async {
     // Send a request to this app (the test runner itself).
-    final AppControl request = AppControl(
+    final request = AppControl(
       appId: kAppId,
       operation: 'operation_1',
     );
@@ -53,7 +53,7 @@ void main() {
   }, timeout: kTimeout);
 
   test('Can send and receive request with uri and mime', () async {
-    final AppControl request = AppControl(
+    final request = AppControl(
       appId: kAppId,
       operation: 'operation_3',
       uri: 'myapp://test/path',
@@ -67,7 +67,7 @@ void main() {
   }, timeout: kTimeout);
 
   test('Omit invalid extra data', () async {
-    final AppControl request = AppControl(
+    final request = AppControl(
       appId: kAppId,
       extraData: <String, Object?>{
         'STRING_DATA': 'string',
@@ -87,13 +87,12 @@ void main() {
     // This time, the request is sent to the service app instead of the test
     // runner, because the platform doesn't allow sending a reply back when
     // caller = callee.
-    final AppControl request = AppControl(
+    final request = AppControl(
       appId: kServiceAppId,
       operation: 'operation_2',
     );
     await request.sendLaunchRequest(
-      replyCallback:
-          (AppControl request, AppControl reply, AppControlReplyResult result) {
+      replyCallback: (AppControl request, AppControl reply, AppControlReplyResult result) {
         expect(result, AppControlReplyResult.canceled);
         expect(reply.extraData['STRING_DATA'], 'string');
       },
@@ -101,13 +100,13 @@ void main() {
   }, timeout: kTimeout);
 
   test('Cannot find target applications', () async {
-    final AppControl request1 = AppControl(appId: 'unknown_app');
+    final request1 = AppControl(appId: 'unknown_app');
     expect(
       request1.sendLaunchRequest,
       throwsA(isInstanceOf<PlatformException>()),
     );
 
-    final AppControl request2 = AppControl(operation: 'unknown_operation');
+    final request2 = AppControl(operation: 'unknown_operation');
     expect(
       request2.sendLaunchRequest,
       throwsA(isInstanceOf<PlatformException>()),
@@ -121,7 +120,7 @@ void serviceMain() {
 
   AppControl.onAppControl.listen((ReceivedAppControl request) async {
     if (request.shouldReply) {
-      final AppControl reply = AppControl(
+      final reply = AppControl(
         extraData: <String, String>{'STRING_DATA': 'string'},
       );
       await request.reply(reply, AppControlReplyResult.canceled);

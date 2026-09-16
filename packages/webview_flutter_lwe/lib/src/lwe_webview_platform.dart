@@ -25,9 +25,7 @@ class LweWebViewPlatform extends WebViewPlatform {
   }
 
   @override
-  PlatformWebViewWidget createPlatformWebViewWidget(
-    PlatformWebViewWidgetCreationParams params,
-  ) {
+  PlatformWebViewWidget createPlatformWebViewWidget(PlatformWebViewWidgetCreationParams params) {
     return LweWebViewWidget(params);
   }
 

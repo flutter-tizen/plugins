@@ -89,7 +89,7 @@ class NotifyCallback extends _Delegate {
       throw Exception('Can be invoked only once');
     }
 
-    final Parcel parcel = Parcel();
+    final parcel = Parcel();
     parcel.writeInt32(_MethodId.callback.id);
     serialize(parcel);
 
@@ -150,12 +150,12 @@ class Message extends StubBase {
     Parcel parcel,
   ) async {
     final String name = parcel.readString();
-    final NotifyCallback callback = NotifyCallback(service._port, service);
+    final callback = NotifyCallback(service._port, service);
     callback.deserialize(parcel);
 
     final int ret = await service.onRegister(name, callback);
 
-    final Parcel result = Parcel();
+    final result = Parcel();
     final ParcelHeader header = parcel.header;
     final ParcelHeader resultHeader = result.header;
     resultHeader.tag = _tidlVersion;
@@ -184,7 +184,7 @@ class Message extends StubBase {
 
     final int ret = await service.onSend(message);
 
-    final Parcel result = Parcel();
+    final result = Parcel();
     final ParcelHeader header = parcel.header;
     final ParcelHeader resultHeader = result.header;
     resultHeader.tag = _tidlVersion;

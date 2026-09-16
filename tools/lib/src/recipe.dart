@@ -13,14 +13,11 @@ class Recipe {
 
   /// Creates a [Recipe] instance by parsing [yamlMap].
   factory Recipe.fromYaml(YamlMap yamlMap) {
-    final Map<String, YamlList> packages =
-        (yamlMap['plugins'] as YamlMap).cast<String, YamlList>();
-    final Map<String, List<Profile>> profilesPerPackage =
-        <String, List<Profile>>{};
+    final Map<String, YamlList> packages = (yamlMap['plugins'] as YamlMap).cast<String, YamlList>();
+    final profilesPerPackage = <String, List<Profile>>{};
     for (final MapEntry<String, YamlList> package in packages.entries) {
-      profilesPerPackage[package.key] = package.value
-          .map((dynamic profile) => Profile.fromString(profile as String))
-          .toList();
+      profilesPerPackage[package.key] =
+          package.value.map((dynamic profile) => Profile.fromString(profile as String)).toList();
     }
     return Recipe._(profilesPerPackage);
   }
@@ -29,8 +26,7 @@ class Recipe {
 
   /// Returns `true` if [package] was specified in the recipe file but
   /// with an empty profile list.
-  bool isExcluded(String package) =>
-      contains(package) && _profilesPerPackage[package]!.isEmpty;
+  bool isExcluded(String package) => contains(package) && _profilesPerPackage[package]!.isEmpty;
 
   /// Returns `true` if [package] was specified in the recipe file.
   bool contains(String package) => _profilesPerPackage.containsKey(package);

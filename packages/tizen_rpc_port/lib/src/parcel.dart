@@ -127,7 +127,7 @@ class Parcel {
   Parcel.fromRaw(Uint8List rawData) {
     _handle = using((Arena arena) {
       final Pointer<Uint8> pRaw = arena(rawData.length);
-      for (int i = 0; i < rawData.length; ++i) {
+      for (var i = 0; i < rawData.length; ++i) {
         pRaw[i] = rawData[i] & _byteMax;
       }
 
@@ -453,7 +453,7 @@ class Parcel {
   void write(Uint8List bytes) {
     using((Arena arena) {
       final Pointer<UnsignedChar> pBuffer = arena(bytes.length);
-      for (int i = 0; i < bytes.length; ++i) {
+      for (var i = 0; i < bytes.length; ++i) {
         pBuffer[i] = bytes[i];
       }
       final int ret = tizen.rpc_port_parcel_burst_write(
@@ -488,8 +488,7 @@ class Parcel {
   /// Gets the reader position of this parcel.
   int get reader {
     _ensureFunctionsLoaded();
-    final int Function(rpc_port_parcel_h, Pointer<Uint32>)? func =
-        _rpcPortParcelGetReader;
+    final int Function(rpc_port_parcel_h, Pointer<Uint32>)? func = _rpcPortParcelGetReader;
     if (func == null) {
       throw UnsupportedError(
         'The reader property is not supported on this version of Tizen.',
@@ -530,8 +529,7 @@ class Parcel {
   /// Gets the data size of this parcel.
   int get dataSize {
     _ensureFunctionsLoaded();
-    final int Function(rpc_port_parcel_h, Pointer<Uint32>)? func =
-        _rpcPortParcelGetDataSize;
+    final int Function(rpc_port_parcel_h, Pointer<Uint32>)? func = _rpcPortParcelGetDataSize;
     if (func == null) {
       throw UnsupportedError(
         'The dataSize property is not supported on this version of Tizen.',
@@ -554,8 +552,7 @@ class Parcel {
   set dataSize(int value) {
     RangeError.checkNotNegative(value, 'value');
     _ensureFunctionsLoaded();
-    final int Function(rpc_port_parcel_h, int)? func =
-        _rpcPortParcelSetDataSize;
+    final int Function(rpc_port_parcel_h, int)? func = _rpcPortParcelSetDataSize;
     if (func == null) {
       throw UnsupportedError(
         'The dataSize property is not supported on this version of Tizen.',
@@ -624,8 +621,7 @@ void _ensureFunctionsLoaded() {
   }
   try {
     _rpcPortParcelGetReader = lib
-        .lookup<
-            NativeFunction<Int32 Function(rpc_port_parcel_h, Pointer<Uint32>)>>(
+        .lookup<NativeFunction<Int32 Function(rpc_port_parcel_h, Pointer<Uint32>)>>(
           'rpc_port_parcel_get_reader',
         )
         .asFunction();
@@ -639,8 +635,7 @@ void _ensureFunctionsLoaded() {
   } catch (_) {}
   try {
     _rpcPortParcelGetDataSize = lib
-        .lookup<
-            NativeFunction<Int32 Function(rpc_port_parcel_h, Pointer<Uint32>)>>(
+        .lookup<NativeFunction<Int32 Function(rpc_port_parcel_h, Pointer<Uint32>)>>(
           'rpc_port_parcel_get_data_size',
         )
         .asFunction();

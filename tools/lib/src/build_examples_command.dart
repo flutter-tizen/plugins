@@ -19,9 +19,9 @@ class BuildExamplesCommand extends PackageLoopingCommand {
 
   @override
   Future<PackageResult> runForPackage(RepositoryPackage package) async {
-    final List<String> errors = <String>[];
+    final errors = <String>[];
 
-    bool builtSomething = false;
+    var builtSomething = false;
     for (final RepositoryPackage example in package.getExamples()) {
       int exitCode = await processRunner.runAndStream(
         'flutter-tizen',
@@ -56,8 +56,6 @@ class BuildExamplesCommand extends PackageLoopingCommand {
       errors.add('No examples found');
     }
 
-    return errors.isEmpty
-        ? PackageResult.success()
-        : PackageResult.fail(errors);
+    return errors.isEmpty ? PackageResult.success() : PackageResult.fail(errors);
   }
 }

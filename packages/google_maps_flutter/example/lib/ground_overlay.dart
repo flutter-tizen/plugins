@@ -10,8 +10,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'page.dart';
 
 class GroundOverlayPage extends GoogleMapExampleAppPage {
-  const GroundOverlayPage({super.key})
-    : super(const Icon(Icons.map), 'Ground overlay');
+  const GroundOverlayPage({super.key}) : super(const Icon(Icons.map), 'Ground overlay');
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +57,7 @@ class GroundOverlayBodyState extends State<GroundOverlayBody> {
 
     _groundOverlayIndex += 1;
 
-    final GroundOverlay overlay = GroundOverlay.fromBounds(
+    final overlay = GroundOverlay.fromBounds(
       groundOverlayId: GroundOverlayId('ground_overlay_$_groundOverlayIndex'),
       image: image,
       bounds: _currentBounds,
@@ -81,12 +80,8 @@ class GroundOverlayBodyState extends State<GroundOverlayBody> {
       return;
     }
     setState(() {
-      final double transparency = _groundOverlay!.transparency == 0.0
-          ? 0.5
-          : 0.0;
-      _groundOverlay = _groundOverlay!.copyWith(
-        transparencyParam: transparency,
-      );
+      final transparency = _groundOverlay!.transparency == 0.0 ? 0.5 : 0.0;
+      _groundOverlay = _groundOverlay!.copyWith(transparencyParam: transparency);
     });
   }
 
@@ -95,9 +90,7 @@ class GroundOverlayBodyState extends State<GroundOverlayBody> {
       return;
     }
     setState(() {
-      _groundOverlay = _groundOverlay!.copyWith(
-        visibleParam: !_groundOverlay!.visible,
-      );
+      _groundOverlay = _groundOverlay!.copyWith(visibleParam: !_groundOverlay!.visible);
     });
   }
 
@@ -110,9 +103,7 @@ class GroundOverlayBodyState extends State<GroundOverlayBody> {
 
   @override
   Widget build(BuildContext context) {
-    final Set<GroundOverlay> overlays = <GroundOverlay>{
-      if (_groundOverlay != null) _groundOverlay!,
-    };
+    final overlays = <GroundOverlay>{if (_groundOverlay != null) _groundOverlay!};
     return Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -120,10 +111,7 @@ class GroundOverlayBodyState extends State<GroundOverlayBody> {
       children: <Widget>[
         Expanded(
           child: GoogleMap(
-            initialCameraPosition: const CameraPosition(
-              target: _mapCenter,
-              zoom: 14.0,
-            ),
+            initialCameraPosition: const CameraPosition(target: _mapCenter, zoom: 14.0),
             groundOverlays: overlays,
             onMapCreated: _onMapCreated,
           ),
