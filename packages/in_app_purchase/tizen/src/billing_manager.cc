@@ -8,6 +8,8 @@
 #include <flutter/encodable_value.h>
 #include <flutter/standard_method_codec.h>
 
+#include <cstddef>
+#include <cstdlib>
 #include <mutex>
 #include <string>
 #include <variant>
@@ -53,46 +55,69 @@ bool BillingManager::Init() {
   return true;
 }
 
-std::string BillingManager::GetCustomId() {
+std::optional<std::string> BillingManager::GetCustomId() {
   void *handle = dlopen("libsso_api.so", RTLD_LAZY);
-  std::string custom_id = "";
   if (!handle) {
     LOG_ERROR("[BillingManager] Fail to open sso APIs.");
-  } else {
-    FuncSsoGetLoginInfo sso_get_login_info =
-        reinterpret_cast<FuncSsoGetLoginInfo>(
-            dlsym(handle, "sso_get_login_info"));
-    if (sso_get_login_info) {
-      sso_login_info_s login_info;
-      if (!sso_get_login_info(&login_info)) {
-        custom_id = login_info.uid;
-      }
-    }
-    dlclose(handle);
+    return std::nullopt;
   }
+  FuncSsoGetLoginInfo sso_get_login_info =
+      reinterpret_cast<FuncSsoGetLoginInfo>(
+          dlsym(handle, "sso_get_login_info"));
+  if (!sso_get_login_info) {
+    LOG_ERROR("[BillingManager] Fail to find the sso_get_login_info symbol.");
+    dlclose(handle);
+    return std::nullopt;
+  }
+
+  std::optional<std::string> custom_id;
+  sso_login_info_s login_info = {};
+  int ret = sso_get_login_info(&login_info);
+  if (ret == SSO_SUCCESS) {
+    custom_id = login_info.uid;
+  } else {
+    LOG_ERROR("[BillingManager] Fail to get the login info. (%d)", ret);
+  }
+  // NOTE: written through volatile because a plain memset on a struct that
+  // is dead afterwards is dropped by the optimizer.
+  auto *bytes = reinterpret_cast<volatile unsigned char *>(&login_info);
+  for (std::size_t i = 0; i < sizeof(login_info); ++i) {
+    bytes[i] = 0;
+  }
+  dlclose(handle);
   return custom_id;
 }
 
-std::string BillingManager::GetCountryCode() {
-  void *handle = dlopen("libvconf.so.0.3.1", RTLD_LAZY);
-  char *country_code = "";
+std::optional<std::string> BillingManager::GetCountryCode() {
+  void *handle = dlopen("libvconf.so.0", RTLD_LAZY);
   if (!handle) {
     LOG_ERROR("[BillingManager] Fail to open vconf APIs.");
-  } else {
-    FuncVconfGetStr vconf_get_str =
-        reinterpret_cast<FuncVconfGetStr>(dlsym(handle, "vconf_get_str"));
-    if (vconf_get_str) {
-      country_code = vconf_get_str("db/comss/countrycode");
-    }
-    dlclose(handle);
+    return std::nullopt;
   }
+  FuncVconfGetStr vconf_get_str =
+      reinterpret_cast<FuncVconfGetStr>(dlsym(handle, "vconf_get_str"));
+  if (!vconf_get_str) {
+    LOG_ERROR("[BillingManager] Fail to find the vconf_get_str symbol.");
+    dlclose(handle);
+    return std::nullopt;
+  }
+
+  std::optional<std::string> country_code;
+  char *value = vconf_get_str("db/comss/countrycode");
+  if (value) {
+    country_code = value;
+    free(value);
+  } else {
+    LOG_ERROR("[BillingManager] Fail to read db/comss/countrycode.");
+  }
+  dlclose(handle);
   return country_code;
 }
 
 bool BillingManager::IsAvailable(FunctionResult<bool> result) {
   LOG_INFO("[BillingManager] Check billing server is available.");
 
-  void *handle = dlopen("libcapi-system-info.so.0.2.1", RTLD_LAZY);
+  void *handle = dlopen("libcapi-system-info.so.0", RTLD_LAZY);
   if (!handle) {
     LOG_ERROR("[BillingManager] Fail to open system APIs.");
   } else {
