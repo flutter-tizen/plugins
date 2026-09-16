@@ -116,7 +116,7 @@ bool DrmManager::SetChallenge(const std::string &media_url,
   return DM_ERROR_NONE == SetChallenge(media_url);
 }
 
-void DrmManager::ReleaseDrmSession() {
+void DrmManager::StopDrmSession() {
   if (drm_session_ == nullptr) {
     LOG_ERROR("[DrmManager] Already released.");
     return;
@@ -138,8 +138,15 @@ void DrmManager::ReleaseDrmSession() {
     LOG_ERROR("[DrmManager] Fail to set finalize to drm session: %s",
               get_error_message(ret));
   }
+}
 
-  ret = DMGRReleaseDRMSession(drm_session_);
+void DrmManager::ReleaseDrmSession() {
+  if (drm_session_ == nullptr) {
+    LOG_ERROR("[DrmManager] Already released.");
+    return;
+  }
+
+  int ret = DMGRReleaseDRMSession(drm_session_);
   if (ret != DM_ERROR_NONE) {
     LOG_ERROR("[DrmManager] Fail to release drm session: %s",
               get_error_message(ret));

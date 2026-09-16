@@ -34,6 +34,7 @@ class DrmManager {
                               unsigned char *pssh_data, void *user_data);
   int UpdatePsshData(const void *data, int length);
   void ReleaseDrmSession();
+  void StopDrmSession();
 
  private:
   struct DataForLicenseProcess {
