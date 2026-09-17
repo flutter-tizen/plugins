@@ -387,6 +387,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<void> suspend(int playerId) {
+    _cancelAllSeeks(playerId);
     return _api.suspend(playerId);
   }
 
