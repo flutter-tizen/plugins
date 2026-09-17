@@ -1,8 +1,9 @@
-## NEXT
+## 0.8.19
 
 * Omit obvious local variable types.
 * Reformat with a line length of 100.
 * Replace Ecore pipes with GLib idle callbacks.
+* Handle consecutive seekTo calls.
 
 ## 0.8.18
 

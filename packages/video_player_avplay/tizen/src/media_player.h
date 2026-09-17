@@ -78,6 +78,7 @@ class MediaPlayer : public VideoPlayer {
   std::unique_ptr<DrmManager> drm_manager_;
   bool is_buffering_ = false;
   SeekCompletedCallback on_seek_completed_;
+  bool is_seeking_ = false;
   std::string url_;
   player_state_e pre_state_;
   int64_t pre_playing_time_;

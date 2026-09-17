@@ -109,6 +109,7 @@ class PlusPlayer : public VideoPlayer {
   bool is_buffering_ = false;
   bool is_prebuffer_mode_ = false;
   SeekCompletedCallback on_seek_completed_;
+  bool is_seeking_ = false;
   std::unique_ptr<plusplayer::PlayerMemento> memento_ = nullptr;
   std::string url_;
   std::unique_ptr<DeviceProxy> device_proxy_ = nullptr;
