@@ -701,8 +701,7 @@ class DurationRange {
   }
 
   @override
-  String toString() =>
-      '${objectRuntimeType(this, 'DurationRange')}(start: $start, end: $end)';
+  String toString() => '${objectRuntimeType(this, 'DurationRange')}(start: $start, end: $end)';
 
   @override
   bool operator ==(Object other) =>
@@ -741,8 +740,7 @@ class SubtitlesInfo {
   }
 
   @override
-  int get hashCode =>
-      textDuration.hashCode ^ textsInfo.hashCode ^ pictureInfo.hashCode;
+  int get hashCode => textDuration.hashCode ^ textsInfo.hashCode ^ pictureInfo.hashCode;
 }
 
 /// [VideoPlayerOptions] can be optionally used to set additional player settings

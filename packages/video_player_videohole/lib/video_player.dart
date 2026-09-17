@@ -192,9 +192,8 @@ class VideoPlayerValue {
       isBuffering: isBuffering ?? this.isBuffering,
       volume: volume ?? this.volume,
       playbackSpeed: playbackSpeed ?? this.playbackSpeed,
-      errorDescription: errorDescription != _defaultErrorDescription
-          ? errorDescription
-          : this.errorDescription,
+      errorDescription:
+          errorDescription != _defaultErrorDescription ? errorDescription : this.errorDescription,
       isCompleted: isCompleted ?? this.isCompleted,
     );
   }
@@ -371,6 +370,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   RestoreDataSourceCallback? _onRestoreDataSource;
   RestoreTimeCallback? _onRestoreTime;
 
+  void Function(VideoEvent)? _eventListener;
+  void Function(Object)? _errorListener;
+
   /// The id of a player that hasn't been initialized.
   @visibleForTesting
   static const int kUninitializedPlayerId = -1;
@@ -387,8 +389,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
   /// Attempts to open the given [dataSource] and load metadata about the video.
   Future<void> initialize() async {
-    final bool allowBackgroundPlayback =
-        videoPlayerOptions?.allowBackgroundPlayback ?? false;
+    final bool allowBackgroundPlayback = videoPlayerOptions?.allowBackgroundPlayback ?? false;
     if (!allowBackgroundPlayback) {
       _lifeCycleObserver = _VideoAppLifeCycleObserver(this);
     }
@@ -430,12 +431,12 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       );
     }
 
-    _playerId = (await _videoPlayerPlatform.create(dataSourceDescription)) ??
-        kUninitializedPlayerId;
+    _playerId =
+        (await _videoPlayerPlatform.create(dataSourceDescription)) ?? kUninitializedPlayerId;
     _creatingCompleter!.complete(null);
-    final Completer<void> initializingCompleter = Completer<void>();
+    final initializingCompleter = Completer<void>();
 
-    void eventListener(VideoEvent event) {
+    _eventListener = (VideoEvent event) {
       if (_isDisposed) {
         return;
       }
@@ -466,8 +467,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           }
           _applyLooping();
           _applyVolume();
-          if (VideoEventType.restored == event.eventType &&
-              _onRestoreDataSource != null) {
+          if (VideoEventType.restored == event.eventType && _onRestoreDataSource != null) {
             play();
           } else {
             _applyPlayPause();
@@ -489,7 +489,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         case VideoEventType.bufferingEnd:
           value = value.copyWith(isBuffering: false);
         case VideoEventType.subtitleUpdate:
-          final Caption caption = Caption(
+          final caption = Caption(
             number: 0,
             start: value.position,
             end: value.position + (event.duration?.end ?? Duration.zero),
@@ -509,7 +509,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         case VideoEventType.unknown:
           break;
       }
-    }
+    };
 
     if (closedCaptionFile != null) {
       _closedCaptionFile ??= await closedCaptionFile;
@@ -519,9 +519,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     if (drmConfigs?.licenseCallback != null) {
       _channel.setMethodCallHandler((MethodCall call) async {
         if (call.method == 'requestLicense') {
-          final Map<dynamic, dynamic> argumentsMap =
-              call.arguments as Map<dynamic, dynamic>;
-          final Uint8List message = argumentsMap['message']! as Uint8List;
+          final argumentsMap = call.arguments as Map<dynamic, dynamic>;
+          final message = argumentsMap['message']! as Uint8List;
           return drmConfigs!.licenseCallback!(message);
         } else {
           throw Exception('not implemented ${call.method}');
@@ -529,22 +528,22 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       });
     }
 
-    void errorListener(Object obj) {
-      final PlatformException e = obj as PlatformException;
+    _errorListener = (Object obj) {
+      final e = obj as PlatformException;
       value = VideoPlayerValue.erroneous(e.message!);
       if (!initializingCompleter.isCompleted) {
         initializingCompleter.completeError(obj);
       }
       _timer?.cancel();
       _durationTimer?.cancel();
-      if (!initializingCompleter.isCompleted) {
-        initializingCompleter.completeError(obj);
-      }
-    }
+    };
 
     _eventSubscription = _videoPlayerPlatform
         .videoEventsFor(_playerId)
-        .listen(eventListener, onError: errorListener);
+        .listen(_eventListener, onError: _errorListener);
+
+    await _videoPlayerPlatform.prepare(_playerId);
+
     return initializingCompleter.future;
   }
 
@@ -630,7 +629,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     return Timer.periodic(const Duration(milliseconds: 500), (
       Timer timer,
     ) async {
-      if (_isDisposed) {
+      if (_isDisposed || _isDisposedOrNotInitialized) {
         return;
       }
       final Duration? newPosition = await position;
@@ -909,8 +908,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       return;
     }
 
-    final DataSource? dataSource =
-        (_onRestoreDataSource != null) ? _onRestoreDataSource!() : null;
+    final DataSource? dataSource = (_onRestoreDataSource != null) ? _onRestoreDataSource!() : null;
     final int resumeTime = (_onRestoreTime != null) ? _onRestoreTime!() : -1;
 
     await _videoPlayerPlatform.restore(
@@ -1006,15 +1004,9 @@ class _VideoPlayerState extends State<VideoPlayer> {
       if (currentRect != Rect.zero && _playerRect != currentRect) {
         _videoPlayerPlatform.setDisplayGeometry(
           _playerId,
-          (currentRect.left.isInfinite || currentRect.left.isNaN)
-              ? 0
-              : currentRect.left.toInt(),
-          (currentRect.top.isInfinite || currentRect.top.isNaN)
-              ? 0
-              : currentRect.top.toInt(),
-          (currentRect.width.isInfinite || currentRect.width.isNaN)
-              ? 0
-              : currentRect.width.toInt(),
+          (currentRect.left.isInfinite || currentRect.left.isNaN) ? 0 : currentRect.left.toInt(),
+          (currentRect.top.isInfinite || currentRect.top.isNaN) ? 0 : currentRect.top.toInt(),
+          (currentRect.width.isInfinite || currentRect.width.isNaN) ? 0 : currentRect.width.toInt(),
           (currentRect.height.isInfinite || currentRect.height.isNaN)
               ? 0
               : currentRect.height.toInt(),
@@ -1026,14 +1018,13 @@ class _VideoPlayerState extends State<VideoPlayer> {
   }
 
   Rect _getCurrentRect() {
-    final RenderObject? renderObject =
-        _videoBoxKey.currentContext?.findRenderObject();
+    final RenderObject? renderObject = _videoBoxKey.currentContext?.findRenderObject();
     if (renderObject == null) {
       return Rect.zero;
     }
     // ignore: deprecated_member_use
     final double pixelRatio = WidgetsBinding.instance.window.devicePixelRatio;
-    final RenderBox renderBox = renderObject as RenderBox;
+    final renderBox = renderObject as RenderBox;
     final Offset offset = renderBox.localToGlobal(Offset.zero) * pixelRatio;
     final Size size = renderBox.size * pixelRatio;
     return offset & size;
@@ -1142,7 +1133,7 @@ class _VideoScrubberState extends State<_VideoScrubber> {
   @override
   Widget build(BuildContext context) {
     void seekToRelativePosition(Offset globalPosition) {
-      final RenderBox box = context.findRenderObject()! as RenderBox;
+      final box = context.findRenderObject()! as RenderBox;
       final Offset tapPos = box.globalToLocal(globalPosition);
       final double relative = tapPos.dx / box.size.width;
       final Duration position = controller.value.duration.end * relative;
@@ -1168,8 +1159,7 @@ class _VideoScrubberState extends State<_VideoScrubber> {
         seekToRelativePosition(details.globalPosition);
       },
       onHorizontalDragEnd: (DragEndDetails details) {
-        if (_controllerWasPlaying &&
-            controller.value.position != controller.value.duration.end) {
+        if (_controllerWasPlaying && controller.value.position != controller.value.duration.end) {
           controller.play();
         }
       },

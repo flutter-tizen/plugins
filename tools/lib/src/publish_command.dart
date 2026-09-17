@@ -16,8 +16,7 @@ import 'package:flutter_plugin_tools/src/common/package_looping_command.dart';
 import 'package:flutter_plugin_tools/src/common/process_runner.dart';
 import 'package:flutter_plugin_tools/src/common/pub_version_finder.dart';
 import 'package:flutter_plugin_tools/src/common/repository_package.dart';
-import 'package:flutter_plugin_tools/src/publish_command.dart'
-    as flutter_plugin_tools;
+import 'package:flutter_plugin_tools/src/publish_command.dart' as flutter_plugin_tools;
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:platform/platform.dart';
@@ -55,8 +54,7 @@ class PublishCommand extends PackageLoopingCommand {
     );
     argParser.addFlag(
       _dryRunFlag,
-      help:
-          'Skips the real `pub publish` command and assumes the command is successful.\n'
+      help: 'Skips the real `pub publish` command and assumes the command is successful.\n'
           'This does not run `pub publish --dry-run`.\n'
           'If you want to run the command with `pub publish --dry-run`, use `--pub-publish-flags=--dry-run`',
     );
@@ -92,8 +90,7 @@ class PublishCommand extends PackageLoopingCommand {
   String get successSummaryMessage => 'published';
 
   @override
-  String get failureListHeader =>
-      'The following packages had failures during publishing:';
+  String get failureListHeader => 'The following packages had failures during publishing:';
 
   @override
   Future<void> initializeRun() async {
@@ -112,22 +109,18 @@ class PublishCommand extends PackageLoopingCommand {
     if (getBoolArg(_allChangedFlag)) {
       final GitVersionFinder gitVersionFinder = await retrieveVersionFinder();
       final String baseSha = await gitVersionFinder.getBaseSha();
-      print(
-          'Publishing all packages that have changed relative to "$baseSha"\n');
+      print('Publishing all packages that have changed relative to "$baseSha"\n');
       // final List<String> changedPubspecs =
       //     await gitVersionFinder.getChangedPubSpecs();
 
-      final List<String> changedPubspecs = changedFiles
-          .where((String file) => file.trim().endsWith('pubspec.yaml'))
-          .toList();
+      final List<String> changedPubspecs =
+          changedFiles.where((String file) => file.trim().endsWith('pubspec.yaml')).toList();
 
-      for (final String pubspecPath in changedPubspecs) {
+      for (final pubspecPath in changedPubspecs) {
         // git outputs a relative, Posix-style path.
         final File pubspecFile = childFileWithSubcomponents(
-            packagesDir.fileSystem.directory((await gitDir).path),
-            p.posix.split(pubspecPath));
-        yield PackageEnumerationEntry(RepositoryPackage(pubspecFile.parent),
-            excluded: false);
+            packagesDir.fileSystem.directory((await gitDir).path), p.posix.split(pubspecPath));
+        yield PackageEnumerationEntry(RepositoryPackage(pubspecFile.parent), excluded: false);
       }
     } else {
       yield* getTargetPackages(filterExcluded: false);
@@ -195,19 +188,14 @@ Safe to ignore if the package is deleted in this commit.
 
   Future<bool> _checkGitStatus(RepositoryPackage package) async {
     final io.ProcessResult statusResult = await (await gitDir).runCommand(
-      <String>[
-        'status',
-        '--porcelain',
-        '--ignored',
-        package.directory.absolute.path
-      ],
+      <String>['status', '--porcelain', '--ignored', package.directory.absolute.path],
       throwOnError: false,
     );
     if (statusResult.exitCode != 0) {
       return false;
     }
 
-    final String statusOutput = statusResult.stdout as String;
+    final statusOutput = statusResult.stdout as String;
     if (statusOutput.isNotEmpty) {
       printError(
           "There are files in the package directory that haven't been saved in git. Refusing to publish these files:\n\n"
@@ -231,8 +219,7 @@ Safe to ignore if the package is deleted in this commit.
       workingDir: package.directory,
     );
     if (pubGetResult.exitCode != 0) {
-      printError(
-          'Pub get failed for ${package.directory.basename}, publishing failed.');
+      printError('Pub get failed for ${package.directory.basename}, publishing failed.');
       return false;
     }
 
@@ -248,9 +235,8 @@ Safe to ignore if the package is deleted in this commit.
     );
     publish.stdout.transform(utf8.decoder).listen((String data) => print(data));
     publish.stderr.transform(utf8.decoder).listen((String data) => print(data));
-    _stdinSubscription ??= _stdin
-        .transform(utf8.decoder)
-        .listen((String data) => publish.stdin.writeln(data));
+    _stdinSubscription ??=
+        _stdin.transform(utf8.decoder).listen((String data) => publish.stdin.writeln(data));
     final int result = await publish.exitCode;
     if (result != 0) {
       printError('Publishing ${package.directory.basename} failed.');
@@ -262,11 +248,9 @@ Safe to ignore if the package is deleted in this commit.
   }
 
   void _ensureValidPubCredential() {
-    final String credentialsPath =
-        _getCredentialsPath(platform: platform, path: path);
+    final String credentialsPath = _getCredentialsPath(platform: platform, path: path);
     final File credentialFile = packagesDir.fileSystem.file(credentialsPath);
-    if (credentialFile.existsSync() &&
-        credentialFile.readAsStringSync().isNotEmpty) {
+    if (credentialFile.existsSync() && credentialFile.readAsStringSync().isNotEmpty) {
       return;
     }
     final String? credential = platform.environment[_pubCredentialName];

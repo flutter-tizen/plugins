@@ -1,6 +1,13 @@
-## NEXT
+## 0.1.9
 
+* Fix the return type of `sso_get_login_info` and clear the login info after use.
+* Fix a crash and a memory leak when reading the country code.
+* Report an error from `getCustomId` and `getCountryCode` when the lookup fails.
+* Load `libvconf` and `libcapi-system-info` by their major SONAME.
+* Remove unused private system info keys.
 * Resolve `unintended_html_in_doc_comment` lint.
+* Omit obvious local variable types.
+* Reformat with a line length of 100.
 
 ## 0.1.8
 

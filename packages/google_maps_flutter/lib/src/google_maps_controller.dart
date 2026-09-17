@@ -31,18 +31,9 @@ class GoogleMapsController {
        _clusterManagers = clusterManagers,
        _groundOverlays = groundOverlays,
        _rawMapOptions = mapOptions {
-    _circlesController = CirclesController(
-      stream: _streamController,
-      bridge: _bridge,
-    );
-    _polygonsController = PolygonsController(
-      stream: _streamController,
-      bridge: _bridge,
-    );
-    _polylinesController = PolylinesController(
-      stream: _streamController,
-      bridge: _bridge,
-    );
+    _circlesController = CirclesController(stream: _streamController, bridge: _bridge);
+    _polygonsController = PolygonsController(stream: _streamController, bridge: _bridge);
+    _polylinesController = PolylinesController(stream: _streamController, bridge: _bridge);
     _clusterManagersController = ClusterManagersController(
       stream: _streamController,
       bridge: _bridge,
@@ -85,23 +76,17 @@ class GoogleMapsController {
   /// Returns min-max zoom levels. Test only.
   @visibleForTesting
   Future<MinMaxZoomPreference> getMinMaxZoomLevels() async {
-    final String value =
-        await _bridge.runJavaScriptReturningResult(
-              'JSON.stringify([map.minZoom, map.maxZoom])',
-            )
+    final value =
+        await _bridge.runJavaScriptReturningResult('JSON.stringify([map.minZoom, map.maxZoom])')
             as String;
     final dynamic bound = json.decode(value);
     double min = 0, max = 0;
     if (bound is List<dynamic>) {
       if (bound[0] is num) {
-        min = (bound[0] is double)
-            ? (bound[0] as double)
-            : (bound[0] as int).toDouble();
+        min = (bound[0] is double) ? (bound[0] as double) : (bound[0] as int).toDouble();
       }
       if (bound[1] is num) {
-        max = (bound[1] is double)
-            ? (bound[1] as double)
-            : (bound[1] as int).toDouble();
+        max = (bound[1] is double) ? (bound[1] as double) : (bound[1] as int).toDouble();
       }
       return MinMaxZoomPreference(min, max);
     }
@@ -111,26 +96,21 @@ class GoogleMapsController {
   /// Returns if zoomGestures property is enabled. Test only.
   @visibleForTesting
   Future<bool> isZoomGesturesEnabled() async {
-    final String value =
-        await _bridge.runJavaScriptReturningResult('map.gestureHandling')
-            as String;
+    final value = await _bridge.runJavaScriptReturningResult('map.gestureHandling') as String;
     return value != 'none';
   }
 
   /// Returns if zoomControls property is enabled. Test only.
   @visibleForTesting
   Future<bool> isZoomControlsEnabled() async {
-    final String value =
-        await _bridge.runJavaScriptReturningResult('map.zoomControl') as String;
+    final value = await _bridge.runJavaScriptReturningResult('map.zoomControl') as String;
     return value != 'false';
   }
 
   /// Returns if scrollGestures property is enabled. Test only.
   @visibleForTesting
   Future<bool> isScrollGesturesEnabled() async {
-    final String value =
-        await _bridge.runJavaScriptReturningResult('map.gestureHandling')
-            as String;
+    final value = await _bridge.runJavaScriptReturningResult('map.gestureHandling') as String;
     return value != 'none';
   }
 
@@ -230,10 +210,7 @@ class GoogleMapsController {
       }
 
       _streamController.add(
-        CameraMoveEvent(
-          _mapId,
-          CameraPosition(target: center, zoom: zoom.toDouble()),
-        ),
+        CameraMoveEvent(_mapId, CameraPosition(target: center, zoom: zoom.toDouble())),
       );
     }
   }
@@ -260,10 +237,7 @@ class GoogleMapsController {
       final dynamic event = json.decode(message);
       if (event is Map<String, dynamic>) {
         assert(event['latLng'] != null);
-        final LatLng position = LatLng(
-          event['latLng']['lat'] as double,
-          event['latLng']['lng'] as double,
-        );
+        final position = LatLng(event['latLng']['lat'] as double, event['latLng']['lng'] as double);
         _streamController.add(MapTapEvent(_mapId, position));
       }
     } catch (e) {
@@ -276,10 +250,7 @@ class GoogleMapsController {
       final dynamic event = json.decode(message);
       if (event is Map<String, dynamic>) {
         assert(event['latLng'] != null);
-        final LatLng position = LatLng(
-          event['latLng']['lat'] as double,
-          event['latLng']['lng'] as double,
-        );
+        final position = LatLng(event['latLng']['lat'] as double, event['latLng']['lng'] as double);
         _streamController.add(MapLongPressEvent(_mapId, position));
       }
     } catch (e) {
@@ -291,20 +262,16 @@ class GoogleMapsController {
     try {
       final dynamic result = json.decode(message);
 
-      final String id = result['id'] as String;
+      final id = result['id'] as String;
       final ClusterManagerId? clusterManagerId =
           _clusterManagersController?.idToClusterManagerId[id];
       if (clusterManagerId == null) {
         return;
       }
 
-      final Map<String, dynamic> markerClustererCluster =
-          result['cluster'] as Map<String, dynamic>;
+      final markerClustererCluster = result['cluster'] as Map<String, dynamic>;
 
-      _clusterManagersController?.clusterClicked(
-        clusterManagerId,
-        markerClustererCluster,
-      );
+      _clusterManagersController?.clusterClicked(clusterManagerId, markerClustererCluster);
     } catch (e) {
       debugPrint('JavaScript Error: $e');
     }
@@ -315,8 +282,7 @@ class GoogleMapsController {
       final dynamic id = json.decode(message);
       if (_markersController != null && id is int) {
         final MarkerId? markerId = _markersController!._idToMarkerId[id];
-        final MarkerController? marker =
-            _markersController!._markerIdToController[markerId];
+        final MarkerController? marker = _markersController!._markerIdToController[markerId];
         if (marker?.tapEvent != null) {
           marker?.tapEvent!();
         }
@@ -332,12 +298,10 @@ class GoogleMapsController {
       if (result is Map<String, dynamic>) {
         assert(result['id'] != null && result['event'] != null);
         if (_markersController != null && result['id'] is int) {
-          final MarkerId? markerId =
-              _markersController!._idToMarkerId[result['id']];
-          final MarkerController? marker =
-              _markersController!._markerIdToController[markerId];
+          final MarkerId? markerId = _markersController!._idToMarkerId[result['id']];
+          final MarkerController? marker = _markersController!._markerIdToController[markerId];
 
-          final LatLng position = LatLng(
+          final position = LatLng(
             result['event']['latLng']['lat'] as double,
             result['event']['latLng']['lng'] as double,
           );
@@ -358,12 +322,10 @@ class GoogleMapsController {
       if (result is Map<String, dynamic>) {
         assert(result['id'] != null && result['event'] != null);
         if (_markersController != null && result['id'] is int) {
-          final MarkerId? markerId =
-              _markersController!._idToMarkerId[result['id']];
-          final MarkerController? marker =
-              _markersController!._markerIdToController[markerId];
+          final MarkerId? markerId = _markersController!._idToMarkerId[result['id']];
+          final MarkerController? marker = _markersController!._markerIdToController[markerId];
 
-          final LatLng position = LatLng(
+          final position = LatLng(
             result['event']['latLng']['lat'] as double,
             result['event']['latLng']['lng'] as double,
           );
@@ -384,12 +346,10 @@ class GoogleMapsController {
       if (result is Map<String, dynamic>) {
         assert(result['id'] != null && result['event'] != null);
         if (_markersController != null && result['id'] is int) {
-          final MarkerId? markerId =
-              _markersController!._idToMarkerId[result['id']];
-          final MarkerController? marker =
-              _markersController!._markerIdToController[markerId];
+          final MarkerId? markerId = _markersController!._idToMarkerId[result['id']];
+          final MarkerController? marker = _markersController!._markerIdToController[markerId];
 
-          final LatLng position = LatLng(
+          final position = LatLng(
             result['event']['latLng']['lat'] as double,
             result['event']['latLng']['lng'] as double,
           );
@@ -408,8 +368,7 @@ class GoogleMapsController {
     try {
       final dynamic id = json.decode(message);
       if (_polylinesController != null && id is int) {
-        final PolylineId? polylineId =
-            _polylinesController!._idToPolylineId[id];
+        final PolylineId? polylineId = _polylinesController!._idToPolylineId[id];
         final PolylineController? polyline =
             _polylinesController!._polylineIdToController[polylineId];
         if (polyline?.tapEvent != null) {
@@ -426,8 +385,7 @@ class GoogleMapsController {
       final dynamic id = json.decode(message);
       if (_polygonsController != null && id is int) {
         final PolygonId? polygonId = _polygonsController!._idToPolygonId[id];
-        final PolygonController? polygon =
-            _polygonsController!._polygonIdToController[polygonId];
+        final PolygonController? polygon = _polygonsController!._polygonIdToController[polygonId];
         if (polygon?.tapEvent != null) {
           polygon?.tapEvent!();
         }
@@ -442,8 +400,7 @@ class GoogleMapsController {
       final dynamic id = json.decode(message);
       if (_circlesController != null && id is int) {
         final CircleId? circleId = _circlesController!._idToCircleId[id];
-        final CircleController? circle =
-            _circlesController!._circleIdToController[circleId];
+        final CircleController? circle = _circlesController!._circleIdToController[circleId];
         if (circle?.tapEvent != null) {
           circle?.tapEvent!();
         }
@@ -460,8 +417,7 @@ class GoogleMapsController {
         final GroundOverlayId? groundOverlayId =
             _groundOverlaysController!._idToGroundOverlayId[id];
         final GroundOverlayController? groundOverlay =
-            _groundOverlaysController!
-                ._groundOverlayIdToController[groundOverlayId];
+            _groundOverlaysController!._groundOverlayIdToController[groundOverlayId];
         if (groundOverlay?.tapEvent != null) {
           groundOverlay?.tapEvent!();
         }
@@ -506,10 +462,7 @@ class GoogleMapsController {
   Future<void> _attachGeometryControllers() async {
     // Now we can add the initial geometry.
     // And bind the (ready) map instance to the other geometry controllers.
-    assert(
-      _circlesController != null,
-      'Cannot attach a map to a null CirclesController instance.',
-    );
+    assert(_circlesController != null, 'Cannot attach a map to a null CirclesController instance.');
     assert(
       _polygonsController != null,
       'Cannot attach a map to a null PolygonsController instance.',
@@ -518,10 +471,7 @@ class GoogleMapsController {
       _polylinesController != null,
       'Cannot attach a map to a null PolylinesController instance.',
     );
-    assert(
-      _markersController != null,
-      'Cannot attach a map to a null MarkersController instance.',
-    );
+    assert(_markersController != null, 'Cannot attach a map to a null MarkersController instance.');
     assert(
       _clusterManagersController != null,
       'Cannot attach a map to a null ClusterManagersController instance.',
@@ -599,7 +549,7 @@ class GoogleMapsController {
 
   // Attaches/detaches a Traffic Layer on the `map` if `attach` is true/false.
   Future<void> _setTrafficLayer(bool attach) async {
-    final String command =
+    final command =
         '''
       var trafficLayer;
       if ($attach == true && trafficLayer == null) {
@@ -647,16 +597,12 @@ class GoogleMapsController {
 
   /// Returns the [LatLngBounds] of the current viewport.
   Future<LatLngBounds> getVisibleRegion() async {
-    return _convertToBounds(
-      await _callMethod('getBounds', <Object?>[]) as String,
-    );
+    return _convertToBounds(await _callMethod('getBounds', <Object?>[]) as String);
   }
 
   /// Returns the [LatLng] at the center of the map.
   Future<LatLng> getCenter() async {
-    return _convertToLatLng(
-      await _callMethod('getCenter', <Object?>[]) as String,
-    );
+    return _convertToLatLng(await _callMethod('getCenter', <Object?>[]) as String);
   }
 
   /// Returns the [ScreenCoordinate] for a given viewport [LatLng].
@@ -678,15 +624,13 @@ class GoogleMapsController {
 
   // Translates a [CameraUpdate] into operations on a [Javascript].
   Future<void> _applyCameraUpdate(CameraUpdate update) async {
-    final List<dynamic> json = update.toJson() as List<dynamic>;
+    final json = update.toJson() as List<dynamic>;
     switch (json[0]) {
       case 'newCameraPosition':
         await _setMoveCamera(
           '{heading: ${json[1]['bearing']}, zoom: ${json[1]['zoom']}, tilt: ${json[1]['tilt']}}',
         );
-        await _setPanTo(
-          '{lat:${json[1]['target'][0]}, lng: ${json[1]['target'][1]}}',
-        );
+        await _setPanTo('{lat:${json[1]['target'][0]}, lng: ${json[1]['target'][1]}}');
       case 'newLatLng':
         await _setPanTo('{lat:${json[1][0]}, lng:${json[1][1]}}');
       case 'newLatLngZoom':
@@ -701,21 +645,16 @@ class GoogleMapsController {
         await _setPanBy(json[1] as num, json[2] as num);
       case 'zoomBy':
         String? focusLatLng;
-        double zoomDelta = 0.0;
+        var zoomDelta = 0.0;
         if (json[1] != null) {
           zoomDelta = (json[1] as num) + 0.0;
         }
         // Web only supports integer changes...
-        final int newZoomDelta = zoomDelta < 0
-            ? zoomDelta.floor()
-            : zoomDelta.ceil();
+        final int newZoomDelta = zoomDelta < 0 ? zoomDelta.floor() : zoomDelta.ceil();
         if (json.length == 3) {
           // With focus
           try {
-            focusLatLng = await _pixelToLatLng(
-              json[2][0] as double,
-              json[2][1] as double,
-            );
+            focusLatLng = await _pixelToLatLng(json[2][0] as double, json[2][1] as double);
           } catch (e) {
             debugPrint('Error computing focus LatLng. JS Error: $e');
           }
@@ -736,7 +675,7 @@ class GoogleMapsController {
   }
 
   Future<String> _pixelToLatLng(double x, double y) async {
-    final String command =
+    final command =
         '''
       function getPixelToLatLng() {
         var projection = map.getProjection();
@@ -755,7 +694,7 @@ class GoogleMapsController {
   }
 
   Future<String> _latLngToPoint(LatLng latLng) async {
-    final String command =
+    final command =
         '''
       function getLatLngToPixel() {
         var ne = map.getBounds().getNorthEast();
@@ -784,10 +723,7 @@ class GoogleMapsController {
 
   /// Applies [CircleUpdates] to the currently managed circles.
   void updateCircles(CircleUpdates updates) {
-    assert(
-      _circlesController != null,
-      'Cannot update circles after dispose().',
-    );
+    assert(_circlesController != null, 'Cannot update circles after dispose().');
     _circlesController?.addCircles(updates.circlesToAdd);
     _circlesController?.changeCircles(updates.circlesToChange);
     _circlesController?.removeCircles(updates.circleIdsToRemove);
@@ -795,10 +731,7 @@ class GoogleMapsController {
 
   /// Applies [PolygonUpdates] to the currently managed polygons.
   void updatePolygons(PolygonUpdates updates) {
-    assert(
-      _polygonsController != null,
-      'Cannot update polygons after dispose().',
-    );
+    assert(_polygonsController != null, 'Cannot update polygons after dispose().');
     _polygonsController?.addPolygons(updates.polygonsToAdd);
     _polygonsController?.changePolygons(updates.polygonsToChange);
     _polygonsController?.removePolygons(updates.polygonIdsToRemove);
@@ -806,10 +739,7 @@ class GoogleMapsController {
 
   /// Applies [PolylineUpdates] to the currently managed lines.
   void updatePolylines(PolylineUpdates updates) {
-    assert(
-      _polylinesController != null,
-      'Cannot update polylines after dispose().',
-    );
+    assert(_polylinesController != null, 'Cannot update polylines after dispose().');
     _polylinesController?.addPolylines(updates.polylinesToAdd);
     _polylinesController?.changePolylines(updates.polylinesToChange);
     _polylinesController?.removePolylines(updates.polylineIdsToRemove);
@@ -817,10 +747,7 @@ class GoogleMapsController {
 
   /// Applies [MarkerUpdates] to the currently managed markers.
   void updateMarkers(MarkerUpdates updates) {
-    assert(
-      _markersController != null,
-      'Cannot update markers after dispose().',
-    );
+    assert(_markersController != null, 'Cannot update markers after dispose().');
     _markersController?.addMarkers(updates.markersToAdd);
     _markersController?.changeMarkers(updates.markersToChange);
     _markersController?.removeMarkers(updates.markerIdsToRemove);
@@ -828,31 +755,17 @@ class GoogleMapsController {
 
   /// Applies [ClusterManagerUpdates] to the currently managed cluster managers.
   void updateClusterManagers(ClusterManagerUpdates updates) {
-    assert(
-      _clusterManagersController != null,
-      'Cannot update markers after dispose().',
-    );
-    _clusterManagersController?.addClusterManagers(
-      updates.clusterManagersToAdd,
-    );
-    _clusterManagersController?.removeClusterManagers(
-      updates.clusterManagerIdsToRemove,
-    );
+    assert(_clusterManagersController != null, 'Cannot update markers after dispose().');
+    _clusterManagersController?.addClusterManagers(updates.clusterManagersToAdd);
+    _clusterManagersController?.removeClusterManagers(updates.clusterManagerIdsToRemove);
   }
 
   /// Applies [GroundOverlayUpdates] to the currently managed ground overlays.
   void updateGroundOverlays(GroundOverlayUpdates updates) {
-    assert(
-      _groundOverlaysController != null,
-      'Cannot update ground overlays after dispose().',
-    );
+    assert(_groundOverlaysController != null, 'Cannot update ground overlays after dispose().');
     _groundOverlaysController?.addGroundOverlays(updates.groundOverlaysToAdd);
-    _groundOverlaysController?.changeGroundOverlays(
-      updates.groundOverlaysToChange,
-    );
-    _groundOverlaysController?.removeGroundOverlays(
-      updates.groundOverlayIdsToRemove,
-    );
+    _groundOverlaysController?.changeGroundOverlays(updates.groundOverlaysToChange);
+    _groundOverlaysController?.removeGroundOverlays(updates.groundOverlayIdsToRemove);
   }
 
   /// Shows the [InfoWindow] of the marker identified by its [MarkerId].

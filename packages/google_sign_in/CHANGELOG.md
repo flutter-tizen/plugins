@@ -1,3 +1,8 @@
+## NEXT
+
+* Omit obvious local variable types.
+* Reformat with a line length of 100.
+
 ## 0.2.2
 
 * Add an `implements` entry to the pubspec to improve discoverability on pub.dev.

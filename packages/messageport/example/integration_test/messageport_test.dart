@@ -73,7 +73,7 @@ void main() {
 
   test('Send simple message', () async {
     final LocalPort localPort = await LocalPort.create(kTestPort);
-    final Completer<dynamic> completer = Completer<dynamic>();
+    final completer = Completer<dynamic>();
     localPort.register((dynamic message, [RemotePort? remotePort]) {
       expect(remotePort, isNull);
       completer.complete(message);
@@ -90,7 +90,7 @@ void main() {
 
   test('Send message with local port', () async {
     final LocalPort localPort = await LocalPort.create(kTestPort);
-    final Completer<List<dynamic>> completer = Completer<List<dynamic>>();
+    final completer = Completer<List<dynamic>>();
     localPort.register((dynamic message, [RemotePort? remotePort]) {
       if (!completer.isCompleted) {
         completer.complete(<dynamic>[message, remotePort]);
@@ -101,8 +101,8 @@ void main() {
     await port.sendWithLocalPort('Test message 2', localPort);
 
     final List<dynamic> value = await completer.future;
-    final String message = value[0] as String;
-    final RemotePort? remotePort = value[1] as RemotePort?;
+    final message = value[0] as String;
+    final remotePort = value[1] as RemotePort?;
     expect(message, equals('Test message 2'));
     expect(remotePort?.remoteAppId, equals(kTestAppId));
     expect(remotePort?.portName, equals(kTestPort));
@@ -131,8 +131,7 @@ void main() {
       localPort.register((dynamic message, [RemotePort? remotePort]) {});
 
       expect(
-        () =>
-            localPort.register((dynamic message, [RemotePort? remotePort]) {}),
+        () => localPort.register((dynamic message, [RemotePort? remotePort]) {}),
         throwsException,
       );
     }, timeout: const Timeout(Duration(seconds: 5)));
@@ -178,7 +177,7 @@ void main() {
     Future<void> checkForMessage<T>(T message) async {
       await remotePort.send(message);
 
-      final T receivedMessage = await completer.future as T;
+      final receivedMessage = await completer.future as T;
       expect(receivedMessage, equals(message));
     }
 
@@ -187,42 +186,42 @@ void main() {
     }, timeout: const Timeout(Duration(seconds: 5)));
 
     test('bool', () async {
-      const bool value = true;
+      const value = true;
       await checkForMessage<bool>(value);
     }, timeout: const Timeout(Duration(seconds: 5)));
 
     test('int', () async {
-      const int value = 834;
+      const value = 834;
       await checkForMessage<int>(value);
     }, timeout: const Timeout(Duration(seconds: 5)));
 
     test('double', () async {
-      const double value = 12.847;
+      const value = 12.847;
       await checkForMessage<double>(value);
     }, timeout: const Timeout(Duration(seconds: 5)));
 
     test('string', () async {
-      const String value = 'Short string message';
+      const value = 'Short string message';
       await checkForMessage<String>(value);
     }, timeout: const Timeout(Duration(seconds: 5)));
 
     test('list', () async {
-      final List<int> value = <int>[1, 5, 8, 12, 0, 2];
+      final value = <int>[1, 5, 8, 12, 0, 2];
       await checkForMessage<List<dynamic>>(value);
     }, timeout: const Timeout(Duration(seconds: 5)));
 
     test('map', () async {
-      final Map<String, int> value = <String, int>{'a': 5, 'b': 12};
+      final value = <String, int>{'a': 5, 'b': 12};
       await checkForMessage<Map<dynamic, dynamic>>(value);
     }, timeout: const Timeout(Duration(seconds: 5)));
 
     test('empty string', () async {
-      const String value = '';
+      const value = '';
       await checkForMessage<String>(value);
     }, timeout: const Timeout(Duration(seconds: 5)));
 
     test('nested collection', () async {
-      final Map<String, dynamic> value = <String, dynamic>{
+      final value = <String, dynamic>{
         'numbers': <int>[1, 2, 3],
         'nested': <String, String>{'key': 'value'},
       };

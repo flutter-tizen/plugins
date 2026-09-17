@@ -98,7 +98,7 @@ class _CurrentAppScreenState extends State<_CurrentAppScreen> {
       builder: (BuildContext context, AsyncSnapshot<AppInfo> snapshot) {
         if (snapshot.hasData) {
           final AppInfo appInfo = snapshot.data!;
-          final AppRunningContext appContext = AppRunningContext(
+          final appContext = AppRunningContext(
             appId: appInfo.appId,
           );
           return ListView(
@@ -131,8 +131,7 @@ class _AppListScreen extends StatefulWidget {
   State<_AppListScreen> createState() => _AppListScreenState();
 }
 
-class _AppListScreenState extends State<_AppListScreen>
-    with AutomaticKeepAliveClientMixin {
+class _AppListScreenState extends State<_AppListScreen> with AutomaticKeepAliveClientMixin {
   @override
   bool get wantKeepAlive => true;
 
@@ -151,7 +150,7 @@ class _AppListScreenState extends State<_AppListScreen>
               final AppInfo appInfo = apps[index];
               Widget appIcon = const Icon(Icons.error_outline);
               if (appInfo.iconPath != null) {
-                final File iconFile = File(appInfo.iconPath!);
+                final iconFile = File(appInfo.iconPath!);
                 if (iconFile.existsSync()) {
                   appIcon = Image.file(iconFile);
                 }
@@ -196,8 +195,7 @@ class _AppEventsScreen extends StatefulWidget {
   State<_AppEventsScreen> createState() => _AppEventsScreenState();
 }
 
-class _AppEventsScreenState extends State<_AppEventsScreen>
-    with AutomaticKeepAliveClientMixin {
+class _AppEventsScreenState extends State<_AppEventsScreen> with AutomaticKeepAliveClientMixin {
   late final StreamSubscription<AppRunningContext>? _launchSubscription;
   late final StreamSubscription<AppRunningContext>? _terminateSubscription;
   final List<_AppEvent> _appEvents = <_AppEvent>[];
@@ -241,7 +239,7 @@ class _AppEventsScreenState extends State<_AppEventsScreen>
   }
 
   Future<void> _getDeviceInfo() async {
-    final DeviceInfoPluginTizen deviceInfo = DeviceInfoPluginTizen();
+    final deviceInfo = DeviceInfoPluginTizen();
     final TizenDeviceInfo tizenInfo = await deviceInfo.tizenInfo;
     setState(() {
       if (tizenInfo.profile == 'tv') {

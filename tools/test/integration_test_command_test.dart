@@ -33,10 +33,7 @@ void main() {
 
     // TODO(HakkyuKim): Relocate this step to setup functions for relevant groups
     // after subclassing [PackageLoopingCommand].
-    packagesDir
-        .childDirectory('a')
-        .childFile('pubspec.yaml')
-        .createSync(recursive: true);
+    packagesDir.childDirectory('a').childFile('pubspec.yaml').createSync(recursive: true);
   });
 
   group('conflicting options: ', () {
@@ -65,8 +62,7 @@ void main() {
       );
     });
 
-    test('--generate-emulators requires either --profiles or --recipe',
-        () async {
+    test('--generate-emulators requires either --profiles or --recipe', () async {
       Error? commandError;
       final List<String> output = await runCapturingPrint(
         commandRunner,
@@ -115,8 +111,7 @@ void main() {
     });
 
     test('handle invalid recipe files', () async {
-      final File recipeFile = packagesDir.childFile('recipe.yaml')
-        ..createSync(recursive: true);
+      final File recipeFile = packagesDir.childFile('recipe.yaml')..createSync(recursive: true);
       recipeFile.writeAsStringSync('''
 plugins: 
   a: [
@@ -145,8 +140,7 @@ plugins:
     });
 
     test('handle empty list packages as excluded', () async {
-      final File recipeFile = packagesDir.childFile('recipe.yaml')
-        ..createSync(recursive: true);
+      final File recipeFile = packagesDir.childFile('recipe.yaml')..createSync(recursive: true);
       recipeFile.writeAsStringSync('''
 plugins: 
   a: []

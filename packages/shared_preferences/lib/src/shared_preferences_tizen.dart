@@ -104,9 +104,9 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
   @override
   Future<bool> clearWithParameters(ClearParameters parameters) async {
     final PreferencesFilter filter = parameters.filter;
-    final List<String> keys = List<String>.of(_preferences.keys);
+    final keys = List<String>.of(_preferences.keys);
 
-    for (final String key in keys) {
+    for (final key in keys) {
       if (key.startsWith(filter.prefix) &&
           (filter.allowList == null || filter.allowList!.contains(key))) {
         if (!(await remove(key))) {
@@ -136,12 +136,12 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
     GetAllParameters parameters,
   ) async {
     final PreferencesFilter filter = parameters.filter;
-    final Map<String, Object> withPrefix = Map<String, Object>.from(
+    final withPrefix = Map<String, Object>.from(
       _preferences,
     );
     withPrefix.removeWhere(
-      (String key, _) => !(key.startsWith(filter.prefix) &&
-          (filter.allowList?.contains(key) ?? true)),
+      (String key, _) =>
+          !(key.startsWith(filter.prefix) && (filter.allowList?.contains(key) ?? true)),
     );
     return withPrefix;
   }
@@ -149,8 +149,7 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
   @override
   Future<bool> remove(String key) async {
     return using((Arena arena) {
-      final bool ret =
-          tizen.preference_remove(key.toNativeChar(allocator: arena)) == 0;
+      final ret = tizen.preference_remove(key.toNativeChar(allocator: arena)) == 0;
       if (ret) {
         _preferences.remove(key);
       }
@@ -193,8 +192,6 @@ class SharedPreferencesPlugin extends SharedPreferencesStorePlatform {
   }
 
   String _joinStringList(List<String> list) {
-    return list.isEmpty
-        ? _separator
-        : _separator + list.join(_separator) + _separator;
+    return list.isEmpty ? _separator : _separator + list.join(_separator) + _separator;
   }
 }

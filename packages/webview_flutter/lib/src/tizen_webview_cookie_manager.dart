@@ -18,16 +18,13 @@ class TizenWebViewCookieManager extends PlatformWebViewCookieManager {
 
   @override
   Future<bool> clearCookies() async {
-    return await _cookieManagerChannel.invokeMethod<bool>('clearCookies') ??
-        false;
+    return await _cookieManagerChannel.invokeMethod<bool>('clearCookies') ?? false;
   }
 
   @override
   Future<void> setCookie(WebViewCookie cookie) async {
     if (!_isValidPath(cookie.path)) {
-      throw ArgumentError(
-        'The path property for the provided cookie was not given a legal value.',
-      );
+      throw ArgumentError('The path property for the provided cookie was not given a legal value.');
     }
     throw UnimplementedError(
       'This version of `TizenWebViewCookieManager` currently has no '

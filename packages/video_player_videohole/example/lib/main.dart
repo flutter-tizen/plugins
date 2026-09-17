@@ -70,7 +70,7 @@ class _HlsRomoteVideoState extends State<_HlsRomoteVideo> {
   void initState() {
     super.initState();
     _controller = VideoPlayerController.network(
-      'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8',
+      'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
     );
 
     _controller.addListener(() {
@@ -325,8 +325,7 @@ class _DrmRemoteVideoState2 extends State<_DrmRemoteVideo2> {
       'https://test.playready.microsoft.com/smoothstreaming/SSWSS720H264PR/SuperSpeedway_720.ism/Manifest',
       drmConfigs: const DrmConfigs(
         type: DrmType.playready,
-        licenseServerUrl:
-            'https://test.playready.microsoft.com/service/rightsmanager.asmx',
+        licenseServerUrl: 'https://test.playready.microsoft.com/service/rightsmanager.asmx',
       ),
     );
 
@@ -388,7 +387,7 @@ class _TrackTestState extends State<_TrackTest> {
     super.initState();
 
     _controller = VideoPlayerController.network(
-      'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8',
+      'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
     );
 
     _controller.addListener(() {
@@ -761,7 +760,7 @@ class _TestRemoteVideoState extends State<_TestRemoteVideo> {
   void initState() {
     super.initState();
     _controller = VideoPlayerController.network(
-      'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8',
+      'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
     );
 
     _controller.addListener(() {
@@ -786,7 +785,7 @@ class _TestRemoteVideoState extends State<_TestRemoteVideo> {
   }
 
   DataSource restoreDataSource() {
-    final DataSource dataSource = DataSource(
+    final dataSource = DataSource(
       sourceType: DataSourceType.network,
       uri: 'https://media.w3.org/2010/05/bunny/trailer.mp4',
     );
@@ -796,7 +795,7 @@ class _TestRemoteVideoState extends State<_TestRemoteVideo> {
   int restoreTime() {
     /// if resumeTime >= 0 , it will restore from resumeTime
     /// if resumeTime is not set or <0, it will restore from the time when suspend is called
-    const int resumeTime = 0;
+    const resumeTime = 0;
     return resumeTime;
   }
 

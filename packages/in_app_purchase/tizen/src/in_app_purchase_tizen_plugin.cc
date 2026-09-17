@@ -168,11 +168,19 @@ void InAppPurchaseTizenPlugin::IsServiceAvailable(
 }
 
 ErrorOr<std::string> InAppPurchaseTizenPlugin::GetCustomId() {
-  return billing_->GetCustomId();
+  std::optional<std::string> custom_id = billing_->GetCustomId();
+  if (!custom_id.has_value()) {
+    return FlutterError("Operation failed", "get custom id failed");
+  }
+  return *custom_id;
 }
 
 ErrorOr<std::string> InAppPurchaseTizenPlugin::GetCountryCode() {
-  return billing_->GetCountryCode();
+  std::optional<std::string> country_code = billing_->GetCountryCode();
+  if (!country_code.has_value()) {
+    return FlutterError("Operation failed", "get country code failed");
+  }
+  return *country_code;
 }
 
 }  // namespace in_app_purchase_tizen

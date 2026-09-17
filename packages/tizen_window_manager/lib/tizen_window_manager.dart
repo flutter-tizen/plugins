@@ -37,7 +37,6 @@ class WindowManager {
     if (result is Map) {
       return Map<String, int>.from(result);
     }
-    throw Exception(
-        'Unexpected result type from getGeometry: ${result.runtimeType}');
+    throw Exception('Unexpected result type from getGeometry: ${result.runtimeType}');
   }
 }

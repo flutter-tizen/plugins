@@ -15,25 +15,21 @@ static int64_t player_index = 1;
 
 VideoPlayer::VideoPlayer(flutter::BinaryMessenger *messenger,
                          FlutterDesktopViewRef flutter_view)
-    : binary_messenger_(messenger), flutter_view_(flutter_view) {
-  sink_event_pipe_ = ecore_pipe_add(
-      [](void *data, void *buffer, unsigned int nbyte) -> void {
-        auto *self = static_cast<VideoPlayer *>(data);
-        self->ExecuteSinkEvents();
-      },
-      this);
-}
+    : binary_messenger_(messenger), flutter_view_(flutter_view) {}
 
 VideoPlayer::~VideoPlayer() {
-  if (sink_event_pipe_) {
-    ecore_pipe_del(sink_event_pipe_);
-    sink_event_pipe_ = nullptr;
+  std::lock_guard<std::mutex> lock(queue_mutex_);
+  if (sink_event_source_) {
+    g_source_remove(sink_event_source_);
   }
 }
 
 void VideoPlayer::ClearUpEventChannel() {
   is_initialized_ = false;
-  event_sink_ = nullptr;
+  {
+    std::lock_guard<std::mutex> lock(queue_mutex_);
+    event_sink_ = nullptr;
+  }
   if (event_channel_) {
     event_channel_->SetStreamHandler(nullptr);
   }
@@ -72,6 +68,7 @@ int64_t VideoPlayer::SetUpEventChannel() {
 
 void VideoPlayer::ExecuteSinkEvents() {
   std::lock_guard<std::mutex> lock(queue_mutex_);
+  sink_event_source_ = 0;
   while (!encodable_event_queue_.empty()) {
     if (event_sink_) {
       event_sink_->Success(encodable_event_queue_.front());
@@ -88,6 +85,19 @@ void VideoPlayer::ExecuteSinkEvents() {
   }
 }
 
+void VideoPlayer::RequestEventDispatch() {
+  if (sink_event_source_ == 0) {
+    sink_event_source_ = g_idle_add_full(
+        G_PRIORITY_DEFAULT,
+        [](gpointer data) -> gboolean {
+          auto *self = static_cast<VideoPlayer *>(data);
+          self->ExecuteSinkEvents();
+          return G_SOURCE_REMOVE;
+        },
+        this, nullptr);
+  }
+}
+
 void VideoPlayer::PushEvent(flutter::EncodableValue encodable_value) {
   std::lock_guard<std::mutex> lock(queue_mutex_);
   if (event_sink_ == nullptr) {
@@ -95,7 +105,7 @@ void VideoPlayer::PushEvent(flutter::EncodableValue encodable_value) {
     return;
   }
   encodable_event_queue_.push(encodable_value);
-  ecore_pipe_write(sink_event_pipe_, nullptr, 0);
+  RequestEventDispatch();
 }
 
 void VideoPlayer::SendInitialized() {
@@ -227,10 +237,10 @@ void VideoPlayer::SendManifestInfo(std::string manifest_info) {
 
 void VideoPlayer::SendError(const std::string &error_code,
                             const std::string &error_message) {
+  std::lock_guard<std::mutex> lock(queue_mutex_);
   if (event_sink_) {
-    std::lock_guard<std::mutex> lock(queue_mutex_);
     error_event_queue_.push(std::make_pair(error_code, error_message));
-    ecore_pipe_write(sink_event_pipe_, nullptr, 0);
+    RequestEventDispatch();
   }
 }
 

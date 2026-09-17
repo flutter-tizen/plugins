@@ -252,9 +252,8 @@ class VideoPlayerValue {
       isBuffering: isBuffering ?? this.isBuffering,
       volume: volume ?? this.volume,
       playbackSpeed: playbackSpeed ?? this.playbackSpeed,
-      errorDescription: errorDescription != _defaultErrorDescription
-          ? errorDescription
-          : this.errorDescription,
+      errorDescription:
+          errorDescription != _defaultErrorDescription ? errorDescription : this.errorDescription,
       isCompleted: isCompleted ?? this.isCompleted,
       adInfo: adInfo,
       manifestInfo: manifestInfo,
@@ -503,11 +502,10 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   );
 
   Future<void> _checkPlatformAndApiVersion() async {
-    final DeviceInfoPluginTizen deviceInfoPlugin = DeviceInfoPluginTizen();
+    final deviceInfoPlugin = DeviceInfoPluginTizen();
     final TizenDeviceInfo deviceInfo = await deviceInfoPlugin.tizenInfo;
 
-    if ((deviceInfo.platformVersion != null &&
-            deviceInfo.platformVersion!.isNotEmpty) &&
+    if ((deviceInfo.platformVersion != null && deviceInfo.platformVersion!.isNotEmpty) &&
         tizen.apiVersion != 'none') {
       if (deviceInfo.platformVersion != tizen.apiVersion) {
         final double? platformVersion = double.tryParse(
@@ -538,8 +536,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   Future<void> initialize() async {
     await _checkPlatformAndApiVersion();
 
-    final bool allowBackgroundPlayback =
-        videoPlayerOptions?.allowBackgroundPlayback ?? false;
+    final bool allowBackgroundPlayback = videoPlayerOptions?.allowBackgroundPlayback ?? false;
     if (!allowBackgroundPlayback) {
       _lifeCycleObserver = _VideoAppLifeCycleObserver(this);
     }
@@ -582,10 +579,10 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       );
     }
 
-    _playerId = (await _videoPlayerPlatform.create(dataSourceDescription)) ??
-        kUninitializedPlayerId;
+    _playerId =
+        (await _videoPlayerPlatform.create(dataSourceDescription)) ?? kUninitializedPlayerId;
     _creatingCompleter!.complete(null);
-    final Completer<void> initializingCompleter = Completer<void>();
+    final initializingCompleter = Completer<void>();
 
     void eventListener(VideoEvent event) {
       if (_isDisposed) {
@@ -619,8 +616,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           // NOTE(jsuya): The plusplayer's SetVolume() work when player is
           // paused or played, so it changes the order of _applyPlayPause()
           // and _applyVolume().
-          if (event.eventType == VideoEventType.restored &&
-              _onRestoreDataSource != null) {
+          if (event.eventType == VideoEventType.restored && _onRestoreDataSource != null) {
             play();
           } else {
             _applyPlayPause();
@@ -643,8 +639,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
         case VideoEventType.bufferingEnd:
           value = value.copyWith(isBuffering: false);
         case VideoEventType.subtitleUpdate:
-          final Captions? captions =
-              Captions.parseSubtitle(value.position, event.subtitlesInfo!);
+          final Captions? captions = Captions.parseSubtitle(value.position, event.subtitlesInfo!);
           value = value.copyWith(captions: captions);
         case VideoEventType.isPlayingStateUpdate:
           if (event.isPlaying ?? false) {
@@ -657,8 +652,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
             value = value.copyWith(isPlaying: event.isPlaying);
           }
         case VideoEventType.adFromDash:
-          final AdInfoFromDash? adInfo =
-              AdInfoFromDash.fromAdInfoMap(event.adInfo);
+          final AdInfoFromDash? adInfo = AdInfoFromDash.fromAdInfoMap(event.adInfo);
           value = value.copyWith(adInfo: adInfo);
         case VideoEventType.manifestInfoUpdated:
           value = value.copyWith(manifestInfo: event.manifestInfo);
@@ -678,9 +672,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     if (drmConfigs?.licenseCallback != null) {
       _channel.setMethodCallHandler((MethodCall call) async {
         if (call.method == 'requestLicense') {
-          final Map<dynamic, dynamic> argumentsMap =
-              call.arguments as Map<dynamic, dynamic>;
-          final Uint8List message = argumentsMap['message']! as Uint8List;
+          final argumentsMap = call.arguments as Map<dynamic, dynamic>;
+          final message = argumentsMap['message']! as Uint8List;
           return drmConfigs!.licenseCallback!(message);
         } else {
           throw Exception('not implemented ${call.method}');
@@ -689,7 +682,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     }
 
     void errorListener(Object obj) {
-      final PlatformException e = obj as PlatformException;
+      final e = obj as PlatformException;
       value = VideoPlayerValue.erroneous(e.message!);
       _timer?.cancel();
       _durationTimer?.cancel();
@@ -935,10 +928,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       return;
     }
     if (formatHint != VideoFormat.dash &&
-        (type == StreamingPropertyType.dashToken ||
-            type == StreamingPropertyType.openHttpHeader)) {
-      throw Exception(
-          'setStreamingProperty().$type only support for dash format!');
+        (type == StreamingPropertyType.dashToken || type == StreamingPropertyType.openHttpHeader)) {
+      throw Exception('setStreamingProperty().$type only support for dash format!');
     }
     return _videoPlayerPlatform.setStreamingProperty(_playerId, type, value);
   }
@@ -1014,8 +1005,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       return;
     }
 
-    final DataSource? dataSource =
-        (_onRestoreDataSource != null) ? _onRestoreDataSource!() : null;
+    final DataSource? dataSource = (_onRestoreDataSource != null) ? _onRestoreDataSource!() : null;
     final int resumeTime = (_onRestoreTime != null) ? _onRestoreTime!() : -1;
 
     await _videoPlayerPlatform.restore(
@@ -1157,8 +1147,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     final Duration delayedPosition = position + value.captionOffset;
     // TODO(johnsonmh): This would be more efficient as a binary search.
     for (final TextCaption textCaption in _closedCaptionFile!.textCaptions) {
-      if (textCaption.start <= delayedPosition &&
-          textCaption.end >= delayedPosition) {
+      if (textCaption.start <= delayedPosition && textCaption.end >= delayedPosition) {
         return <TextCaption>[textCaption];
       }
     }
@@ -1179,8 +1168,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     value = value.copyWith(
       position: position,
       captions: Captions(
-          textCaptions: _getCaptionAt(position),
-          pictureCaption: _getPictureCaptionAt(position)),
+          textCaptions: _getCaptionAt(position), pictureCaption: _getPictureCaptionAt(position)),
       isCompleted: position == value.duration.end,
     );
   }
@@ -1288,15 +1276,12 @@ class _VideoPlayerState extends State<VideoPlayer> {
         final double offsetHeight = rect.height.ceil() - rect.height;
         final int left = _isInvalid(rect.left) ? 0 : rect.left.floor();
         final int top = _isInvalid(rect.top) ? 0 : rect.top.floor();
-        final int width = _isInvalid(rect.width)
-            ? 1
-            : rect.width.ceil() + ((offsetLeft > offsetWidth) ? 1 : 0);
-        final int height = _isInvalid(rect.height)
-            ? 1
-            : rect.height.ceil() + ((offsetTop > offsetHeight) ? 1 : 0);
+        final int width =
+            _isInvalid(rect.width) ? 1 : rect.width.ceil() + ((offsetLeft > offsetWidth) ? 1 : 0);
+        final int height =
+            _isInvalid(rect.height) ? 1 : rect.height.ceil() + ((offsetTop > offsetHeight) ? 1 : 0);
 
-        _videoPlayerPlatform.setDisplayGeometry(
-            _playerId, left, top, width, height);
+        _videoPlayerPlatform.setDisplayGeometry(_playerId, left, top, width, height);
         _playerRect = rect;
       }
     }
@@ -1304,14 +1289,13 @@ class _VideoPlayerState extends State<VideoPlayer> {
   }
 
   Rect _getCurrentRect() {
-    final RenderObject? renderObject =
-        _videoBoxKey.currentContext?.findRenderObject();
+    final RenderObject? renderObject = _videoBoxKey.currentContext?.findRenderObject();
     if (renderObject == null) {
       return Rect.zero;
     }
     // ignore: deprecated_member_use
     final double pixelRatio = WidgetsBinding.instance.window.devicePixelRatio;
-    final RenderBox renderBox = renderObject as RenderBox;
+    final renderBox = renderObject as RenderBox;
     final Offset offset = renderBox.localToGlobal(Offset.zero) * pixelRatio;
     final Size size = renderBox.size * pixelRatio * widget.scale;
     return offset & size;
@@ -1420,7 +1404,7 @@ class _VideoScrubberState extends State<_VideoScrubber> {
   @override
   Widget build(BuildContext context) {
     void seekToRelativePosition(Offset globalPosition) {
-      final RenderBox box = context.findRenderObject()! as RenderBox;
+      final box = context.findRenderObject()! as RenderBox;
       final Offset tapPos = box.globalToLocal(globalPosition);
       final double relative = tapPos.dx / box.size.width;
       final Duration position = controller.value.duration.end * relative;
@@ -1446,8 +1430,7 @@ class _VideoScrubberState extends State<_VideoScrubber> {
         seekToRelativePosition(details.globalPosition);
       },
       onHorizontalDragEnd: (DragEndDetails details) {
-        if (_controllerWasPlaying &&
-            controller.value.position != controller.value.duration.end) {
+        if (_controllerWasPlaying && controller.value.position != controller.value.duration.end) {
           controller.play();
         }
       },
@@ -1609,10 +1592,9 @@ class ClosedCaption extends StatelessWidget {
   Widget build(BuildContext context) {
     if (captions?.pictureCaption?.picture?.isNotEmpty ?? false) {
       final PictureCaption pictureCaption = captions!.pictureCaption!;
-      final Image subtitleImage = Image.memory(pictureCaption.picture!,
-          width: pictureCaption.pictureWidth,
-          height: pictureCaption.pictureHeight, errorBuilder:
-              (BuildContext context, Object error, StackTrace? stackTrace) {
+      final subtitleImage = Image.memory(pictureCaption.picture!,
+          width: pictureCaption.pictureWidth, height: pictureCaption.pictureHeight,
+          errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
         FlutterError.reportError(
           FlutterErrorDetails(
             exception: error,
@@ -1630,8 +1612,7 @@ class ClosedCaption extends StatelessWidget {
             child: subtitleImage,
           ));
     } else {
-      if (captions?.textCaptions == null ||
-          captions?.textCaptions![0] == null) {
+      if (captions?.textCaptions == null || captions?.textCaptions![0] == null) {
         return const SizedBox.shrink();
       }
 
@@ -1639,10 +1620,7 @@ class ClosedCaption extends StatelessWidget {
 
       return Stack(
         alignment: AlignmentDirectional.bottomCenter,
-        children: textCaptions
-            .asMap()
-            .entries
-            .map((MapEntry<int, TextCaption?> entry) {
+        children: textCaptions.asMap().entries.map((MapEntry<int, TextCaption?> entry) {
           final int index = entry.key;
           final TextCaption? textCaption = entry.value;
           final String? text = textCaption?.text;
@@ -1650,8 +1628,8 @@ class ClosedCaption extends StatelessWidget {
             return const SizedBox.shrink();
           }
 
-          return Positioned.fill(child: LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
+          return Positioned.fill(
+              child: LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
             final double dynamicFontSize =
                 constraints.maxHeight * (textCaption?.fontSize ?? 1 / 15.0);
 
@@ -1660,23 +1638,19 @@ class ClosedCaption extends StatelessWidget {
                     ? DefaultTextStyle.of(
                         context,
                       ).style.copyWith(fontSize: 36.0, color: Colors.white)
-                    : textCaption!.textStyle!
-                        .copyWith(fontSize: dynamicFontSize));
+                    : textCaption!.textStyle!.copyWith(fontSize: dynamicFontSize));
 
-            if (customTextStyle != null ||
-                textCaption?.textOriginAndExtent == null) {
-              const double bottomOffset = 24.0;
-              const double lineHeight = 43.5;
+            if (customTextStyle != null || textCaption?.textOriginAndExtent == null) {
+              const bottomOffset = 24.0;
+              const lineHeight = 43.5;
               return Align(
                 alignment: Alignment.bottomCenter,
                 child: Padding(
                   padding: EdgeInsets.only(
-                      bottom: bottomOffset +
-                          (textCaptions.length - 1 - index) * lineHeight),
+                      bottom: bottomOffset + (textCaptions.length - 1 - index) * lineHeight),
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                        color: textCaption?.windowBgColor ??
-                            const Color(0xB8000000),
+                        color: textCaption?.windowBgColor ?? const Color(0xB8000000),
                         borderRadius: BorderRadius.circular(2.0)),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 2.0),
@@ -1701,11 +1675,9 @@ class ClosedCaption extends StatelessWidget {
                   child: Stack(
                     children: <Widget>[
                       ColoredBox(
-                        color: textCaption.windowBgColor ??
-                            const Color(0xB8000000),
+                        color: textCaption.windowBgColor ?? const Color(0xB8000000),
                         child: Align(
-                            alignment:
-                                textCaption.textAlign ?? Alignment.center,
+                            alignment: textCaption.textAlign ?? Alignment.center,
                             child: Text(
                               text,
                               style: effectiveTextStyle,
@@ -1715,8 +1687,7 @@ class ClosedCaption extends StatelessWidget {
                       ColoredBox(
                         color: Colors.transparent,
                         child: Align(
-                            alignment:
-                                textCaption.textAlign ?? Alignment.center,
+                            alignment: textCaption.textAlign ?? Alignment.center,
                             child: Text(
                               text,
                               style: effectiveTextStyle.copyWith(

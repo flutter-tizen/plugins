@@ -53,9 +53,23 @@ abstract class VideoPlayerPlatform extends PlatformInterface {
   }
 
   /// Creates an instance of a video player and returns its playerId.
+  ///
+  /// For two-phase initialization, this method only creates the player
+  /// without starting playback preparation. Call [prepare()] separately
+  /// after setting up event listeners.
   Future<int?> create(DataSource dataSource) {
     throw UnimplementedError('create() has not been implemented.');
   }
+
+  /// Prepares the player for playback (two-phase initialization).
+  ///
+  /// This method starts the asynchronous preparation for playback.
+  /// It must be called after [create()] and after setting up event listeners
+  /// to ensure the initialized event is not missed.
+  ///
+  /// For platforms that don't support two-phase initialization,
+  /// this method is a no-op.
+  Future<void> prepare(int playerId) async {}
 
   /// Returns a Stream of [VideoEventType]s.
   Stream<VideoEvent> videoEventsFor(int playerId) {
@@ -332,11 +346,7 @@ class VideoEvent {
 
   @override
   int get hashCode =>
-      eventType.hashCode ^
-      duration.hashCode ^
-      size.hashCode ^
-      buffered.hashCode ^
-      text.hashCode;
+      eventType.hashCode ^ duration.hashCode ^ size.hashCode ^ buffered.hashCode ^ text.hashCode;
 }
 
 /// Type of the event.
@@ -440,8 +450,7 @@ class DurationRange {
   }
 
   @override
-  String toString() =>
-      '${objectRuntimeType(this, 'DurationRange')}(start: $start, end: $end)';
+  String toString() => '${objectRuntimeType(this, 'DurationRange')}(start: $start, end: $end)';
 
   @override
   bool operator ==(Object other) =>

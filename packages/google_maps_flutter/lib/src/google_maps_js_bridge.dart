@@ -106,23 +106,22 @@ class GoogleMapsJsBridge {
   GoogleMapsJsBridge() : controller = WebViewController();
 
   /// The JS-side channel name for each event type, registered in [load].
-  static const Map<String, MapsJsEventType> _channelEventTypes =
-      <String, MapsJsEventType>{
-        'BoundChanged': MapsJsEventType.boundsChanged,
-        'Idle': MapsJsEventType.idle,
-        'Tilesloaded': MapsJsEventType.tilesLoaded,
-        'Click': MapsJsEventType.click,
-        'LongPress': MapsJsEventType.longPress,
-        'MarkerClick': MapsJsEventType.markerClick,
-        'ClusterClick': MapsJsEventType.clusterClick,
-        'MarkerDragStart': MapsJsEventType.markerDragStart,
-        'MarkerDrag': MapsJsEventType.markerDrag,
-        'MarkerDragEnd': MapsJsEventType.markerDragEnd,
-        'PolylineClick': MapsJsEventType.polylineClick,
-        'PolygonClick': MapsJsEventType.polygonClick,
-        'CircleClick': MapsJsEventType.circleClick,
-        'GroundOverlayClick': MapsJsEventType.groundOverlayClick,
-      };
+  static const Map<String, MapsJsEventType> _channelEventTypes = <String, MapsJsEventType>{
+    'BoundChanged': MapsJsEventType.boundsChanged,
+    'Idle': MapsJsEventType.idle,
+    'Tilesloaded': MapsJsEventType.tilesLoaded,
+    'Click': MapsJsEventType.click,
+    'LongPress': MapsJsEventType.longPress,
+    'MarkerClick': MapsJsEventType.markerClick,
+    'ClusterClick': MapsJsEventType.clusterClick,
+    'MarkerDragStart': MapsJsEventType.markerDragStart,
+    'MarkerDrag': MapsJsEventType.markerDrag,
+    'MarkerDragEnd': MapsJsEventType.markerDragEnd,
+    'PolylineClick': MapsJsEventType.polylineClick,
+    'PolygonClick': MapsJsEventType.polygonClick,
+    'CircleClick': MapsJsEventType.circleClick,
+    'GroundOverlayClick': MapsJsEventType.groundOverlayClick,
+  };
 
   /// Event types whose JS side posts an empty payload, so [MapsJsEvent] is
   /// created with a `null` [MapsJsEvent.message] instead of `''`.
@@ -136,8 +135,7 @@ class GoogleMapsJsBridge {
   /// [WebViewWidget] that hosts this bridge's JS runtime.
   final WebViewController controller;
 
-  final StreamController<MapsJsEvent> _events =
-      StreamController<MapsJsEvent>.broadcast();
+  final StreamController<MapsJsEvent> _events = StreamController<MapsJsEvent>.broadcast();
   final Completer<bool> _pageFinished = Completer<bool>();
 
   /// Broadcasts events received from the JS side.
@@ -174,17 +172,14 @@ class GoogleMapsJsBridge {
       )
       ..setJavaScriptMode(JavaScriptMode.unrestricted);
 
-    for (final MapEntry<String, MapsJsEventType> entry
-        in _channelEventTypes.entries) {
+    for (final MapEntry<String, MapsJsEventType> entry in _channelEventTypes.entries) {
       final MapsJsEventType type = entry.value;
       controller.addJavaScriptChannel(
         entry.key,
         onMessageReceived: (JavaScriptMessage message) {
           _emit((
             type: type,
-            message: _payloadlessEventTypes.contains(type)
-                ? null
-                : message.message,
+            message: _payloadlessEventTypes.contains(type) ? null : message.message,
           ));
         },
       );
@@ -198,7 +193,7 @@ class GoogleMapsJsBridge {
   /// Creates the top-level `map` JS variable using [optionsJs] (a JS object
   /// literal), plus its built-in map-level listeners.
   Future<void> createMap(String optionsJs) async {
-    final String command =
+    final command =
         '''
       map = new google.maps.Map(document.getElementById('map'), $optionsJs);
       map.addListener('bounds_changed', (event) => { BoundChanged.postMessage(''); });
@@ -237,10 +232,7 @@ class GoogleMapsJsBridge {
 
   /// Creates a JS object via `new <constructorExpression>`, assigns it to
   /// the JS-side variable [varName], and returns a [JsRef] handle to it.
-  Future<JsRef> createObject(
-    String varName,
-    String constructorExpression,
-  ) async {
+  Future<JsRef> createObject(String varName, String constructorExpression) async {
     await controller.runJavaScript('var $varName = $constructorExpression;');
     return JsRef(varName);
   }
@@ -263,53 +255,34 @@ class GoogleMapsJsBridge {
 
   /// Assigns `ref[property] = value` on the JS side.
   Future<void> setProperty(JsRef ref, String property, Object? value) async {
-    await controller.runJavaScript(
-      "JSON.stringify($ref['$property'] = ${_serializeArg(value)})",
-    );
+    await controller.runJavaScript("JSON.stringify($ref['$property'] = ${_serializeArg(value)})");
   }
 
   /// Calls `ref.method(...args)` on the JS side, discarding the result.
   Future<void> callMethod(JsRef ref, String method, List<Object?> args) async {
-    final String serializedArgs = '[${args.map(_serializeArg).join(', ')}]';
-    await controller.runJavaScript(
-      'JSON.stringify($ref.$method.apply($ref, $serializedArgs))',
-    );
+    final serializedArgs = '[${args.map(_serializeArg).join(', ')}]';
+    await controller.runJavaScript('JSON.stringify($ref.$method.apply($ref, $serializedArgs))');
   }
 
   /// Calls `ref.method(...args)` on the JS side and returns the JSON-encoded
   /// result.
-  Future<Object> callMethodReturningJson(
-    JsRef ref,
-    String method,
-    List<Object?> args,
-  ) async {
-    final String serializedArgs = '[${args.map(_serializeArg).join(', ')}]';
+  Future<Object> callMethodReturningJson(JsRef ref, String method, List<Object?> args) async {
+    final serializedArgs = '[${args.map(_serializeArg).join(', ')}]';
     return controller.runJavaScriptReturningResult(
       'JSON.stringify($ref.$method.apply($ref, $serializedArgs))',
     );
   }
 
   /// Calls `ref.method(...args)` on the JS side and returns the result.
-  Future<Object?> callMethodReturning(
-    JsRef ref,
-    String method,
-    List<Object?> args,
-  ) async {
-    final String serializedArgs = '[${args.map(_serializeArg).join(', ')}]';
-    return controller.runJavaScriptReturningResult(
-      '$ref.$method.apply($ref, $serializedArgs)',
-    );
+  Future<Object?> callMethodReturning(JsRef ref, String method, List<Object?> args) async {
+    final serializedArgs = '[${args.map(_serializeArg).join(', ')}]';
+    return controller.runJavaScriptReturningResult('$ref.$method.apply($ref, $serializedArgs)');
   }
 
   /// Registers `ref.addListener(eventName, ...)` on the JS side, so that
   /// [payloadJs] (a JS expression, evaluated with `event` bound to the
   /// listener's callback argument) is posted to [channel] whenever it fires.
-  Future<void> addListener(
-    JsRef ref,
-    String eventName,
-    String channel,
-    String payloadJs,
-  ) async {
+  Future<void> addListener(JsRef ref, String eventName, String channel, String payloadJs) async {
     await controller.runJavaScript(
       "$ref.addListener('$eventName', (event) => $channel.postMessage($payloadJs));",
     );

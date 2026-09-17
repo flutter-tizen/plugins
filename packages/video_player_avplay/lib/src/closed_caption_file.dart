@@ -3,8 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:typed_data' show Uint8List;
-import 'package:flutter/foundation.dart'
-    show immutable, listEquals, objectRuntimeType;
+import 'package:flutter/foundation.dart' show immutable, listEquals, objectRuntimeType;
 import 'package:flutter/material.dart';
 
 import '../video_player_platform_interface.dart';
@@ -157,22 +156,14 @@ class TextCaption extends Caption {
   }
 
   /// Process subtitle attributes and return the text alignment and text style.
-  static (
-    TextOriginAndExtent?,
-    TextStyle?,
-    AlignmentGeometry,
-    Color,
-    double,
-    Paint
-  ) processSubtitleAttributes(List<SubtitleAttribute> subtitleAttributes) {
+  static (TextOriginAndExtent?, TextStyle?, AlignmentGeometry, Color, double, Paint)
+      processSubtitleAttributes(List<SubtitleAttribute> subtitleAttributes) {
     TextOriginAndExtent actualTextOriginAndExtent = TextOriginAndExtent.none;
-    TextStyle actualTextStyle =
-        const TextStyle(height: 1.0, fontSize: 1 / 15.0);
+    var actualTextStyle = const TextStyle(height: 1.0, fontSize: 1 / 15.0);
     AlignmentGeometry actualTextAlign = Alignment.center;
-    Color actualWindowBgColor =
-        const Color(0x00000000); // default transparent color.
+    var actualWindowBgColor = const Color(0x00000000); // default transparent color.
     double actualFontSize = 1 / 15.0;
-    Paint foreground = Paint()..style = PaintingStyle.stroke;
+    var foreground = Paint()..style = PaintingStyle.stroke;
 
     if (subtitleAttributes.isEmpty) {
       return (
@@ -185,60 +176,54 @@ class TextCaption extends Caption {
       );
     }
 
-    for (final SubtitleAttribute attr in subtitleAttributes) {
+    for (final attr in subtitleAttributes) {
       switch (attr.attrType) {
         // For text origin and extent.
         case SubtitleAttrType.subAttrRegionXPos:
-          final double xPos = attr.attrValue as double;
+          final xPos = attr.attrValue as double;
           if (xPos > 0) {
-            actualTextOriginAndExtent =
-                actualTextOriginAndExtent.addValue(originX: xPos);
+            actualTextOriginAndExtent = actualTextOriginAndExtent.addValue(originX: xPos);
           }
         case SubtitleAttrType.subAttrRegionYPos:
-          final double yPos = attr.attrValue as double;
+          final yPos = attr.attrValue as double;
           if (yPos > 0) {
-            actualTextOriginAndExtent =
-                actualTextOriginAndExtent.addValue(originY: yPos);
+            actualTextOriginAndExtent = actualTextOriginAndExtent.addValue(originY: yPos);
           }
         case SubtitleAttrType.subAttrRegionWidth:
-          final double width = attr.attrValue as double;
+          final width = attr.attrValue as double;
           if (width > 0) {
-            actualTextOriginAndExtent =
-                actualTextOriginAndExtent.addValue(extentWidth: width);
+            actualTextOriginAndExtent = actualTextOriginAndExtent.addValue(extentWidth: width);
           }
         case SubtitleAttrType.subAttrRegionHeight:
-          final double height = attr.attrValue as double;
+          final height = attr.attrValue as double;
           if (height > 0) {
-            actualTextOriginAndExtent =
-                actualTextOriginAndExtent.addValue(extentHeight: height);
+            actualTextOriginAndExtent = actualTextOriginAndExtent.addValue(extentHeight: height);
           }
         // For text style.
         case SubtitleAttrType.subAttrFontFamily:
-          actualTextStyle =
-              actualTextStyle.copyWith(fontFamily: attr.attrValue as String);
+          actualTextStyle = actualTextStyle.copyWith(fontFamily: attr.attrValue as String);
         case SubtitleAttrType.subAttrFontSize:
-          final double fontSize = attr.attrValue as double;
+          final fontSize = attr.attrValue as double;
           if (fontSize > 0) {
             actualFontSize = fontSize;
           }
         case SubtitleAttrType.subAttrFontWeight:
-          actualTextStyle = actualTextStyle.copyWith(
-              fontWeight: _intToFontWeight(attr.attrValue as int));
+          actualTextStyle =
+              actualTextStyle.copyWith(fontWeight: _intToFontWeight(attr.attrValue as int));
         case SubtitleAttrType.subAttrFontStyle:
-          actualTextStyle = actualTextStyle.copyWith(
-              fontStyle: _intToFontStyle(attr.attrValue as int));
+          actualTextStyle =
+              actualTextStyle.copyWith(fontStyle: _intToFontStyle(attr.attrValue as int));
         case SubtitleAttrType.subAttrFontColor:
           if (actualTextStyle.foreground == null) {
-            actualTextStyle = actualTextStyle.copyWith(
-                color: _intToColor(attr.attrValue as int));
+            actualTextStyle = actualTextStyle.copyWith(color: _intToColor(attr.attrValue as int));
           }
         case SubtitleAttrType.subAttrFontBgColor:
           if (actualTextStyle.background == null) {
-            actualTextStyle = actualTextStyle.copyWith(
-                backgroundColor: _intToColor(attr.attrValue as int));
+            actualTextStyle =
+                actualTextStyle.copyWith(backgroundColor: _intToColor(attr.attrValue as int));
           }
         case SubtitleAttrType.subAttrFontOpacity:
-          final double fontOpacity = attr.attrValue as double;
+          final fontOpacity = attr.attrValue as double;
           if (fontOpacity >= 0.0 && fontOpacity <= 1.0) {
             if (actualTextStyle.color == null) {
               actualTextStyle = actualTextStyle.copyWith(color: Colors.white);
@@ -247,29 +232,25 @@ class TextCaption extends Caption {
                 color: actualTextStyle.color!.withValues(alpha: fontOpacity));
           }
         case SubtitleAttrType.subAttrFontBgOpacity:
-          final double fontBgOpacity = attr.attrValue as double;
+          final fontBgOpacity = attr.attrValue as double;
           if (fontBgOpacity >= 0.0 &&
               fontBgOpacity <= 1.0 &&
               actualTextStyle.backgroundColor != null) {
             actualTextStyle = actualTextStyle.copyWith(
-                backgroundColor: actualTextStyle.backgroundColor!
-                    .withValues(alpha: fontBgOpacity));
+                backgroundColor: actualTextStyle.backgroundColor!.withValues(alpha: fontBgOpacity));
           }
         // For text vertical and horizontal align.
         case SubtitleAttrType.subAttrFontVerticalAlign:
-          actualTextAlign = actualTextAlign
-              .add(_intToTextVerticalAlign(attr.attrValue as int));
+          actualTextAlign = actualTextAlign.add(_intToTextVerticalAlign(attr.attrValue as int));
         case SubtitleAttrType.subAttrFontHorizontalAlign:
-          actualTextAlign = actualTextAlign
-              .add(_intToTextHorizontalAlign(attr.attrValue as int));
+          actualTextAlign = actualTextAlign.add(_intToTextHorizontalAlign(attr.attrValue as int));
         // For text background window.
         case SubtitleAttrType.subAttrWindowBgColor:
           actualWindowBgColor = _intToColor(attr.attrValue as int);
         case SubtitleAttrType.subAttrWindowOpacity:
-          final double windowOpacity = attr.attrValue as double;
+          final windowOpacity = attr.attrValue as double;
           if (windowOpacity >= 0.0 && windowOpacity <= 1.0) {
-            actualWindowBgColor =
-                actualWindowBgColor.withValues(alpha: windowOpacity);
+            actualWindowBgColor = actualWindowBgColor.withValues(alpha: windowOpacity);
           }
         // For text outline.
         case SubtitleAttrType.subAttrFontTextOutlineColor:
@@ -300,12 +281,8 @@ class TextCaption extends Caption {
       }
     }
     return (
-      actualTextOriginAndExtent == TextOriginAndExtent.none
-          ? null
-          : actualTextOriginAndExtent,
-      actualTextStyle == const TextStyle(height: 1.0, fontSize: 1 / 15.0)
-          ? null
-          : actualTextStyle,
+      actualTextOriginAndExtent == TextOriginAndExtent.none ? null : actualTextOriginAndExtent,
+      actualTextStyle == const TextStyle(height: 1.0, fontSize: 1 / 15.0) ? null : actualTextStyle,
       actualTextAlign,
       actualWindowBgColor,
       actualFontSize,
@@ -337,8 +314,7 @@ class TextCaption extends Caption {
           textStyle == other.textStyle;
 
   @override
-  int get hashCode =>
-      Object.hash(number, start, end, text, subtitleAttributes, textStyle);
+  int get hashCode => Object.hash(number, start, end, text, subtitleAttributes, textStyle);
 }
 
 /// A representation of a picture-based caption.
@@ -397,8 +373,7 @@ class PictureCaption extends Caption {
           pictureHeight == other.pictureHeight;
 
   @override
-  int get hashCode =>
-      Object.hash(number, start, end, picture, pictureWidth, pictureHeight);
+  int get hashCode => Object.hash(number, start, end, picture, pictureWidth, pictureHeight);
 }
 
 /// This attribute defines the upper-left corner of a rectangular region using [originX] and [originY] coordinate values
@@ -408,10 +383,7 @@ class PictureCaption extends Caption {
 class TextOriginAndExtent {
   /// Creates a new [TextOriginAndExtent] object.
   const TextOriginAndExtent(
-      {required this.originX,
-      required this.originY,
-      this.extentWidth,
-      this.extentHeight});
+      {required this.originX, required this.originY, this.extentWidth, this.extentHeight});
 
   /// The x-coordinate of the upper-left corner of the rectangular region.
   final double originX;
@@ -427,10 +399,7 @@ class TextOriginAndExtent {
 
   /// Adds values to the current [TextOriginAndExtent] object.
   TextOriginAndExtent addValue(
-      {double? originX,
-      double? originY,
-      double? extentWidth,
-      double? extentHeight}) {
+      {double? originX, double? originY, double? extentWidth, double? extentHeight}) {
     return TextOriginAndExtent(
         originX: originX ?? this.originX,
         originY: originY ?? this.originY,
@@ -439,8 +408,8 @@ class TextOriginAndExtent {
   }
 
   /// A no text origin and extent object. This is a caption with [originX], [originY], [extentWidth], and [extentHeight] of zero.
-  static const TextOriginAndExtent none = TextOriginAndExtent(
-      originX: 0.0, originY: 0.0, extentWidth: 0.0, extentHeight: 0.0);
+  static const TextOriginAndExtent none =
+      TextOriginAndExtent(originX: 0.0, originY: 0.0, extentWidth: 0.0, extentHeight: 0.0);
 
   @override
   bool operator ==(Object other) =>
@@ -635,25 +604,22 @@ class SubtitleAttribute {
   static List<SubtitleAttribute> fromEventSubtitleAttrList(
     List<dynamic>? eventSubtitleAttrList,
   ) {
-    final List<SubtitleAttribute> subtitleAttributes = <SubtitleAttribute>[];
+    final subtitleAttributes = <SubtitleAttribute>[];
     final List<Map<Object?, Object?>?> subtitleAttrList =
         eventSubtitleAttrList!.cast<Map<Object?, Object?>?>();
 
-    for (final Map<Object?, Object?>? attr in subtitleAttrList) {
+    for (final attr in subtitleAttrList) {
       if (attr != null && attr['attrType'] != null) {
-        final int attrTypeNum = attr['attrType']! as int;
-        final int startTime = attr['startTime']! as int;
-        final int stopTime = attr['stopTime']! as int;
+        final attrTypeNum = attr['attrType']! as int;
+        final startTime = attr['startTime']! as int;
+        final stopTime = attr['stopTime']! as int;
 
         Object attrValue;
-        if (SubtitleAttrType.getValueType(attrTypeNum) ==
-            SubtitleAttrValueType.double) {
+        if (SubtitleAttrType.getValueType(attrTypeNum) == SubtitleAttrValueType.double) {
           attrValue = attr['attrValue']! as double;
-        } else if (SubtitleAttrType.getValueType(attrTypeNum) ==
-            SubtitleAttrValueType.int) {
+        } else if (SubtitleAttrType.getValueType(attrTypeNum) == SubtitleAttrValueType.int) {
           attrValue = attr['attrValue']! as int;
-        } else if (SubtitleAttrType.getValueType(attrTypeNum) ==
-            SubtitleAttrValueType.string) {
+        } else if (SubtitleAttrType.getValueType(attrTypeNum) == SubtitleAttrValueType.string) {
           attrValue = attr['attrValue']! as String;
         } else {
           attrValue = 'failed';
@@ -714,13 +680,12 @@ class Captions {
   final PictureCaption? pictureCaption;
 
   /// Parses a subtitle from a [VideoEvent.subtitlesInfo] into a [Captions] object.
-  static Captions? parseSubtitle(
-      Duration position, SubtitlesInfo subtitlesInfo) {
+  static Captions? parseSubtitle(Duration position, SubtitlesInfo subtitlesInfo) {
     final Duration textDuration = subtitlesInfo.textDuration == 0
         ? Duration.zero
         : Duration(milliseconds: subtitlesInfo.textDuration!);
     if (subtitlesInfo.pictureInfo?.isNotEmpty ?? false) {
-      final PictureCaption pictureCaption = PictureCaption(
+      final pictureCaption = PictureCaption(
         number: 0,
         start: position,
         end: position + textDuration,
@@ -729,22 +694,18 @@ class Captions {
         pictureHeight: subtitlesInfo.pictureInfo!['pictureHeight'] as double?,
       );
       return Captions(
-          textCaptions: const <TextCaption>[TextCaption.none],
-          pictureCaption: pictureCaption);
+          textCaptions: const <TextCaption>[TextCaption.none], pictureCaption: pictureCaption);
     } else {
-      final int textLines = (subtitlesInfo.textsInfo == null ||
-              subtitlesInfo.textsInfo![0] == null)
+      final int textLines = (subtitlesInfo.textsInfo == null || subtitlesInfo.textsInfo![0] == null)
           ? 0
           : subtitlesInfo.textsInfo!.length;
 
       if (textLines > 0) {
-        final List<TextCaption> textCaptions = <TextCaption>[];
-        for (int i = 0; i < textLines; i++) {
-          final Map<Object?, Object?> textInfo =
-              subtitlesInfo.textsInfo![i] as Map<Object?, Object?>;
-          final String? text = textInfo['text'] as String?;
-          final List<dynamic>? subtitleAttrList =
-              textInfo['attributes'] as List<dynamic>?;
+        final textCaptions = <TextCaption>[];
+        for (var i = 0; i < textLines; i++) {
+          final textInfo = subtitlesInfo.textsInfo![i] as Map<Object?, Object?>;
+          final text = textInfo['text'] as String?;
+          final subtitleAttrList = textInfo['attributes'] as List<dynamic>?;
 
           final List<SubtitleAttribute> subtitleAttributes =
               SubtitleAttribute.fromEventSubtitleAttrList(subtitleAttrList);
@@ -756,17 +717,15 @@ class Captions {
             Color,
             double,
             Paint
-          ) subtitleAttr =
-              TextCaption.processSubtitleAttributes(subtitleAttributes);
-          final TextOriginAndExtent? actualTextOriginAndExtent =
-              subtitleAttr.$1;
+          ) subtitleAttr = TextCaption.processSubtitleAttributes(subtitleAttributes);
+          final TextOriginAndExtent? actualTextOriginAndExtent = subtitleAttr.$1;
           final TextStyle? actualTextStyle = subtitleAttr.$2;
           final AlignmentGeometry actualTextAlign = subtitleAttr.$3;
           final Color actualWindowBgColor = subtitleAttr.$4;
           final double actualFontSize = subtitleAttr.$5;
           final Paint actualForeground = subtitleAttr.$6;
 
-          final TextCaption textCaption = TextCaption(
+          final textCaption = TextCaption(
               number: 0,
               start: position,
               end: position + textDuration,
@@ -781,17 +740,15 @@ class Captions {
 
           textCaptions.add(textCaption);
         }
-        return Captions(
-            textCaptions: textCaptions, pictureCaption: PictureCaption.none);
+        return Captions(textCaptions: textCaptions, pictureCaption: PictureCaption.none);
       }
     }
     return null;
   }
 
   /// A no captions object. This is a caption with a list of [TextCaption.none] and a [PictureCaption.none].
-  static const Captions none = Captions(
-      textCaptions: <TextCaption>[TextCaption.none],
-      pictureCaption: PictureCaption.none);
+  static const Captions none =
+      Captions(textCaptions: <TextCaption>[TextCaption.none], pictureCaption: PictureCaption.none);
 
   @override
   String toString() {

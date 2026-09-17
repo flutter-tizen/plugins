@@ -1,7 +1,16 @@
+## 0.6.0
+
+* Migrate from Platform Channels to Dart FFI.
+* Replace EventChannel with FFI port for event callbacks.
+* Add JSON serialization for complex parameters.
+* Add pending seekTo handling.
+
 ## 0.5.11
 
 * Replace ecore-wl2 code with tizen window manager plugin.
 * Resolve `strict_top_level_inference` lint.
+* Omit obvious local variable types.
+* Reformat with a line length of 100.
 
 ## 0.5.10
 

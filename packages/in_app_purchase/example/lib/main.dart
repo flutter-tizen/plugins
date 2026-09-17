@@ -41,8 +41,7 @@ class _MyAppState extends State<_MyApp> {
 
   @override
   void initState() {
-    final Stream<List<PurchaseDetails>> purchaseUpdated =
-        _inAppPurchase.purchaseStream;
+    final Stream<List<PurchaseDetails>> purchaseUpdated = _inAppPurchase.purchaseStream;
     _subscription = purchaseUpdated.listen(
       (List<PurchaseDetails> purchaseDetailsList) {
         _listenToPurchaseUpdated(purchaseDetailsList);
@@ -85,8 +84,9 @@ class _MyAppState extends State<_MyApp> {
 
     // The `identifiers` argument is not used on Tizen.
     // Use `InAppPurchaseTizenPlatformAddition.setRequestParameters` instead.
-    final ProductDetailsResponse productDetailResponse = await _inAppPurchase
-        .queryProductDetails(<String>{});
+    final ProductDetailsResponse productDetailResponse = await _inAppPurchase.queryProductDetails(
+      <String>{},
+    );
     if (productDetailResponse.error != null) {
       setState(() {
         _queryProductError = productDetailResponse.error!.message;
@@ -130,7 +130,7 @@ class _MyAppState extends State<_MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> stack = <Widget>[];
+    final stack = <Widget>[];
     if (_queryProductError == null) {
       stack.add(
         ListView(
@@ -148,10 +148,7 @@ class _MyAppState extends State<_MyApp> {
       stack.add(
         const Stack(
           children: <Widget>[
-            Opacity(
-              opacity: 0.3,
-              child: ModalBarrier(dismissible: false, color: Colors.grey),
-            ),
+            Opacity(opacity: 0.3, child: ModalBarrier(dismissible: false, color: Colors.grey)),
             Center(child: CircularProgressIndicator()),
           ],
         ),
@@ -173,15 +170,11 @@ class _MyAppState extends State<_MyApp> {
     final Widget storeHeader = ListTile(
       leading: Icon(
         _isAvailable ? Icons.check : Icons.block,
-        color: _isAvailable
-            ? Colors.green
-            : ThemeData.light().colorScheme.error,
+        color: _isAvailable ? Colors.green : ThemeData.light().colorScheme.error,
       ),
-      title: Text(
-        'The store is ${_isAvailable ? 'available' : 'unavailable'}.',
-      ),
+      title: Text('The store is ${_isAvailable ? 'available' : 'unavailable'}.'),
     );
-    final List<Widget> children = <Widget>[storeHeader];
+    final children = <Widget>[storeHeader];
 
     if (!_isAvailable) {
       children.addAll(<Widget>[
@@ -203,17 +196,14 @@ class _MyAppState extends State<_MyApp> {
   Card _buildProductList() {
     if (_loading) {
       return const Card(
-        child: ListTile(
-          leading: CircularProgressIndicator(),
-          title: Text('Fetching products...'),
-        ),
+        child: ListTile(leading: CircularProgressIndicator(), title: Text('Fetching products...')),
       );
     }
     if (!_isAvailable) {
       return const Card();
     }
-    const ListTile productHeader = ListTile(title: Text('Products for Sale'));
-    final List<ListTile> productList = <ListTile>[];
+    const productHeader = ListTile(title: Text('Products for Sale'));
+    final productList = <ListTile>[];
     if (_notFoundIds.isNotEmpty) {
       productList.add(
         ListTile(
@@ -239,13 +229,10 @@ class _MyAppState extends State<_MyApp> {
               foregroundColor: Colors.white,
             ),
             onPressed: () {
-              final PurchaseParam purchaseParam = PurchaseParam(
-                productDetails: productDetails,
-              );
+              final purchaseParam = PurchaseParam(productDetails: productDetails);
 
               if (productDetails is SamsungCheckoutProductDetails) {
-                if (productDetails.itemDetails.itemType ==
-                    ItemType.consumable) {
+                if (productDetails.itemDetails.itemType == ItemType.consumable) {
                   _inAppPurchase.buyConsumable(
                     purchaseParam: purchaseParam,
                     // ignore: avoid_redundant_argument_values
@@ -262,11 +249,7 @@ class _MyAppState extends State<_MyApp> {
       }),
     );
 
-    return Card(
-      child: Column(
-        children: <Widget>[productHeader, const Divider()] + productList,
-      ),
-    );
+    return Card(child: Column(children: <Widget>[productHeader, const Divider()] + productList));
   }
 
   Widget _buildRestoreButton() {
@@ -326,10 +309,8 @@ class _MyAppState extends State<_MyApp> {
     // handle invalid purchase here if  _verifyPurchase` failed.
   }
 
-  Future<void> _listenToPurchaseUpdated(
-    List<PurchaseDetails> purchaseDetailsList,
-  ) async {
-    for (final PurchaseDetails purchaseDetails in purchaseDetailsList) {
+  Future<void> _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) async {
+    for (final purchaseDetails in purchaseDetailsList) {
       if (purchaseDetails.status == PurchaseStatus.pending) {
         showPendingUI();
       } else {

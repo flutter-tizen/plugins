@@ -40,8 +40,9 @@ void showDeviceFlowWidget({
       final TextStyle bodyStyle = Theme.of(
         context,
       ).textTheme.bodyLarge!.copyWith(color: Colors.black);
-      final TextStyle titleStyle = Theme.of(context).textTheme.titleLarge!
-          .copyWith(color: Colors.black, fontWeight: FontWeight.bold);
+      final TextStyle titleStyle = Theme.of(
+        context,
+      ).textTheme.titleLarge!.copyWith(color: Colors.black, fontWeight: FontWeight.bold);
 
       return AlertDialog(
         scrollable: true,
@@ -49,18 +50,11 @@ void showDeviceFlowWidget({
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            FittedBox(
-              child: Text(
-                'From a PC, phone, or tablet go to:',
-                style: bodyStyle,
-              ),
-            ),
+            FittedBox(child: Text('From a PC, phone, or tablet go to:', style: bodyStyle)),
             const SizedBox(height: 5),
             FittedBox(child: Text('$verificationUrl', style: titleStyle)),
             const SizedBox(height: 15),
-            FittedBox(
-              child: Text('Or scan the following QR code:', style: bodyStyle),
-            ),
+            FittedBox(child: Text('Or scan the following QR code:', style: bodyStyle)),
             const SizedBox(height: 5),
             SvgPicture.asset(
               'assets/images/qrcode.svg',
@@ -69,9 +63,7 @@ void showDeviceFlowWidget({
               height: 100,
             ),
             const SizedBox(height: 15),
-            FittedBox(
-              child: Text('Then enter the code below:', style: bodyStyle),
-            ),
+            FittedBox(child: Text('Then enter the code below:', style: bodyStyle)),
             const SizedBox(height: 5),
             FittedBox(child: Text(code, style: titleStyle)),
             const SizedBox(height: 15),
@@ -101,11 +93,7 @@ void showDeviceFlowWidget({
 }
 
 class _CountdownTimer extends StatefulWidget {
-  const _CountdownTimer(
-    this.duration, {
-    required this.style,
-    required this.onFinished,
-  });
+  const _CountdownTimer(this.duration, {required this.style, required this.onFinished});
 
   final Duration duration;
   final TextStyle style;
@@ -139,10 +127,7 @@ class _CountdownTimerState extends State<_CountdownTimer> {
   @override
   Widget build(BuildContext context) {
     final String minutes = _remaining.inMinutes.toString().padLeft(2, '0');
-    final String seconds = _remaining.inSeconds
-        .remainder(60)
-        .toString()
-        .padLeft(2, '0');
+    final String seconds = _remaining.inSeconds.remainder(60).toString().padLeft(2, '0');
     return FittedBox(child: Text('$minutes:$seconds', style: widget.style));
   }
 

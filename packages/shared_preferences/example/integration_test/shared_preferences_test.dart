@@ -23,11 +23,11 @@ const String migrationCompletedKey = 'migrationCompleted';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  const String testString2 = 'goodbye world';
-  const bool testBool2 = false;
-  const int testInt2 = 1337;
-  const double testDouble2 = 2.71828;
-  const List<String> testList2 = <String>['baz', 'qux'];
+  const testString2 = 'goodbye world';
+  const testBool2 = false;
+  const testInt2 = 1337;
+  const testDouble2 = 2.71828;
+  const testList2 = <String>['baz', 'qux'];
 
   group('shared_preferences', () {
     late SharedPreferences preferences;
@@ -64,7 +64,7 @@ void main() {
       });
 
       test('removing', () async {
-        const String key = 'testKey';
+        const key = 'testKey';
         await preferences.setString(key, testString);
         await preferences.remove(key);
         expect(preferences.get('testKey'), isNull);
@@ -85,9 +85,9 @@ void main() {
       });
 
       test('simultaneous writes', () async {
-        final List<Future<bool>> writes = <Future<bool>>[];
-        const int writeCount = 100;
-        for (int i = 1; i <= writeCount; i++) {
+        final writes = <Future<bool>>[];
+        const writeCount = 100;
+        for (var i = 1; i <= writeCount; i++) {
           writes.add(preferences.setInt('int', i));
         }
         final List<bool> result = await Future.wait(writes, eagerError: true);
@@ -142,12 +142,12 @@ void main() {
     });
 
     test('allowList only gets allowed items', () async {
-      const String allowedString = 'stringKey';
-      const String allowedBool = 'boolKey';
-      const String notAllowedDouble = 'doubleKey';
-      const String resultString = 'resultString';
+      const allowedString = 'stringKey';
+      const allowedBool = 'boolKey';
+      const notAllowedDouble = 'doubleKey';
+      const resultString = 'resultString';
 
-      const Set<String> allowList = <String>{allowedString, allowedBool};
+      const allowList = <String>{allowedString, allowedBool};
 
       SharedPreferences.resetStatic();
       SharedPreferences.setPrefix('', allowList: allowList);
@@ -172,21 +172,21 @@ void main() {
   });
 
   group('shared_preferences_async', () {
-    const String stringKey = 'testString';
-    const String boolKey = 'testBool';
-    const String intKey = 'testInt';
-    const String doubleKey = 'testDouble';
-    const String listKey = 'testList';
+    const stringKey = 'testString';
+    const boolKey = 'testBool';
+    const intKey = 'testInt';
+    const doubleKey = 'testDouble';
+    const listKey = 'testList';
 
-    const String testString = 'hello world';
-    const bool testBool = true;
-    const int testInt = 42;
-    const double testDouble = 3.14159;
-    const List<String> testList = <String>['foo', 'bar'];
+    const testString = 'hello world';
+    const testBool = true;
+    const testInt = 42;
+    const testDouble = 3.14159;
+    const testList = <String>['foo', 'bar'];
 
     group('Async', () {
       Future<SharedPreferencesAsync> getPreferences() async {
-        final SharedPreferencesAsync preferences = SharedPreferencesAsync();
+        final preferences = SharedPreferencesAsync();
         await preferences.clear();
         return preferences;
       }
@@ -315,7 +315,7 @@ void main() {
 
       test('containsKey', () async {
         final SharedPreferencesAsync preferences = await getPreferences();
-        const String key = 'testKey';
+        const key = 'testKey';
 
         expect(false, await preferences.containsKey(key));
 
@@ -419,11 +419,9 @@ void main() {
     });
 
     group('withCache', () {
-      Future<(SharedPreferencesWithCache, Map<String, Object?>)>
-          getPreferences() async {
-        final Map<String, Object?> cache = <String, Object?>{};
-        final SharedPreferencesWithCache preferences =
-            await SharedPreferencesWithCache.create(
+      Future<(SharedPreferencesWithCache, Map<String, Object?>)> getPreferences() async {
+        final cache = <String, Object?>{};
+        final SharedPreferencesWithCache preferences = await SharedPreferencesWithCache.create(
           cache: cache,
           cacheOptions: const SharedPreferencesWithCacheOptions(),
         );
@@ -432,40 +430,35 @@ void main() {
       }
 
       test('set and get String', () async {
-        final (SharedPreferencesWithCache preferences, _) =
-            await getPreferences();
+        final (SharedPreferencesWithCache preferences, _) = await getPreferences();
 
         await preferences.setString(stringKey, testString);
         expect(preferences.getString(stringKey), testString);
       });
 
       test('set and get bool', () async {
-        final (SharedPreferencesWithCache preferences, _) =
-            await getPreferences();
+        final (SharedPreferencesWithCache preferences, _) = await getPreferences();
 
         await preferences.setBool(boolKey, testBool);
         expect(preferences.getBool(boolKey), testBool);
       });
 
       test('set and get int', () async {
-        final (SharedPreferencesWithCache preferences, _) =
-            await getPreferences();
+        final (SharedPreferencesWithCache preferences, _) = await getPreferences();
 
         await preferences.setInt(intKey, testInt);
         expect(preferences.getInt(intKey), testInt);
       });
 
       test('set and get double', () async {
-        final (SharedPreferencesWithCache preferences, _) =
-            await getPreferences();
+        final (SharedPreferencesWithCache preferences, _) = await getPreferences();
 
         await preferences.setDouble(doubleKey, testDouble);
         expect(preferences.getDouble(doubleKey), testDouble);
       });
 
       test('set and get StringList', () async {
-        final (SharedPreferencesWithCache preferences, _) =
-            await getPreferences();
+        final (SharedPreferencesWithCache preferences, _) = await getPreferences();
 
         await preferences.setStringList(listKey, testList);
         expect(preferences.getStringList(listKey), testList);
@@ -488,9 +481,8 @@ void main() {
       });
 
       test('containsKey', () async {
-        final (SharedPreferencesWithCache preferences, _) =
-            await getPreferences();
-        const String key = 'testKey';
+        final (SharedPreferencesWithCache preferences, _) = await getPreferences();
+        const key = 'testKey';
 
         expect(false, preferences.containsKey(key));
 
@@ -499,8 +491,7 @@ void main() {
       });
 
       test('getKeys', () async {
-        final (SharedPreferencesWithCache preferences, _) =
-            await getPreferences();
+        final (SharedPreferencesWithCache preferences, _) = await getPreferences();
         await Future.wait(<Future<void>>[
           preferences.setString(stringKey, testString),
           preferences.setBool(boolKey, testBool),
@@ -520,8 +511,7 @@ void main() {
       });
 
       test('clear', () async {
-        final (SharedPreferencesWithCache preferences, _) =
-            await getPreferences();
+        final (SharedPreferencesWithCache preferences, _) = await getPreferences();
         await Future.wait(<Future<void>>[
           preferences.setString(stringKey, testString),
           preferences.setBool(boolKey, testBool),
@@ -539,11 +529,9 @@ void main() {
     });
 
     group('withCache with filter', () {
-      Future<(SharedPreferencesWithCache, Map<String, Object?>)>
-          getPreferences() async {
-        final Map<String, Object?> cache = <String, Object?>{};
-        final SharedPreferencesWithCache preferences =
-            await SharedPreferencesWithCache.create(
+      Future<(SharedPreferencesWithCache, Map<String, Object?>)> getPreferences() async {
+        final cache = <String, Object?>{};
+        final SharedPreferencesWithCache preferences = await SharedPreferencesWithCache.create(
           cache: cache,
           cacheOptions: const SharedPreferencesWithCacheOptions(
             allowList: <String>{
@@ -562,9 +550,8 @@ void main() {
       test(
         'throws ArgumentError if key is not included in filter',
         () async {
-          final (SharedPreferencesWithCache preferences, _) =
-              await getPreferences();
-          const String key = 'testKey';
+          final (SharedPreferencesWithCache preferences, _) = await getPreferences();
+          const key = 'testKey';
 
           expect(
             () async => preferences.setString(key, 'test'),
@@ -574,40 +561,35 @@ void main() {
       );
 
       test('set and get String', () async {
-        final (SharedPreferencesWithCache preferences, _) =
-            await getPreferences();
+        final (SharedPreferencesWithCache preferences, _) = await getPreferences();
 
         await preferences.setString(stringKey, testString);
         expect(preferences.getString(stringKey), testString);
       });
 
       test('set and get bool', () async {
-        final (SharedPreferencesWithCache preferences, _) =
-            await getPreferences();
+        final (SharedPreferencesWithCache preferences, _) = await getPreferences();
 
         await preferences.setBool(boolKey, testBool);
         expect(preferences.getBool(boolKey), testBool);
       });
 
       test('set and get int', () async {
-        final (SharedPreferencesWithCache preferences, _) =
-            await getPreferences();
+        final (SharedPreferencesWithCache preferences, _) = await getPreferences();
 
         await preferences.setInt(intKey, testInt);
         expect(preferences.getInt(intKey), testInt);
       });
 
       test('set and get double', () async {
-        final (SharedPreferencesWithCache preferences, _) =
-            await getPreferences();
+        final (SharedPreferencesWithCache preferences, _) = await getPreferences();
 
         await preferences.setDouble(doubleKey, testDouble);
         expect(preferences.getDouble(doubleKey), testDouble);
       });
 
       test('set and get StringList', () async {
-        final (SharedPreferencesWithCache preferences, _) =
-            await getPreferences();
+        final (SharedPreferencesWithCache preferences, _) = await getPreferences();
 
         await preferences.setStringList(listKey, testList);
         expect(preferences.getStringList(listKey), testList);
@@ -618,7 +600,7 @@ void main() {
           SharedPreferencesWithCache preferences,
           Map<String, Object?> cache,
         ) = await getPreferences();
-        final List<Object?> listObject = <Object?>['one', 'two'];
+        final listObject = <Object?>['one', 'two'];
         cache[listKey] = listObject;
         expect(preferences.getStringList(listKey), listObject);
       });
@@ -640,8 +622,7 @@ void main() {
       });
 
       test('containsKey', () async {
-        final (SharedPreferencesWithCache preferences, _) =
-            await getPreferences();
+        final (SharedPreferencesWithCache preferences, _) = await getPreferences();
 
         expect(false, preferences.containsKey(stringKey));
 
@@ -650,8 +631,7 @@ void main() {
       });
 
       test('getKeys', () async {
-        final (SharedPreferencesWithCache preferences, _) =
-            await getPreferences();
+        final (SharedPreferencesWithCache preferences, _) = await getPreferences();
         await Future.wait(<Future<void>>[
           preferences.setString(stringKey, testString),
           preferences.setBool(boolKey, testBool),
@@ -671,8 +651,7 @@ void main() {
       });
 
       test('clear', () async {
-        final (SharedPreferencesWithCache preferences, _) =
-            await getPreferences();
+        final (SharedPreferencesWithCache preferences, _) = await getPreferences();
         await Future.wait(<Future<void>>[
           preferences.setString(stringKey, testString),
           preferences.setBool(boolKey, testBool),
@@ -709,7 +688,7 @@ void main() {
 
   group('SharedPreferences with setPrefix and allowList', () {
     runAllGroups(() {
-      final Set<String> allowList = <String>{
+      final allowList = <String>{
         'prefix.$boolKey',
         'prefix.$intKey',
         'prefix.$doubleKey',
@@ -745,8 +724,7 @@ void runTests(
   String? stringValue = testString,
   bool keysAndNamesCollide = false,
 }) {
-  const SharedPreferencesOptions sharedPreferencesAsyncOptions =
-      SharedPreferencesOptions();
+  const sharedPreferencesAsyncOptions = SharedPreferencesOptions();
 
   setUp(() async {
     // Configure and populate the source legacy shared preferences.
@@ -774,7 +752,7 @@ void runTests(
       migrationCompletedKey: migrationCompletedKey,
     );
 
-    final SharedPreferencesAsync asyncPreferences = SharedPreferencesAsync();
+    final asyncPreferences = SharedPreferencesAsync();
 
     expect(await asyncPreferences.getBool(boolKey), testBool);
     expect(await asyncPreferences.getInt(intKey), testInt);
@@ -791,7 +769,7 @@ void runTests(
       migrationCompletedKey: migrationCompletedKey,
     );
 
-    final SharedPreferencesAsync asyncPreferences = SharedPreferencesAsync();
+    final asyncPreferences = SharedPreferencesAsync();
 
     expect(await asyncPreferences.getBool(migrationCompletedKey), true);
   });
@@ -799,15 +777,14 @@ void runTests(
   test(
     're-running migration tool does not overwrite data',
     () async {
-      final SharedPreferences preferences =
-          await SharedPreferences.getInstance();
+      final SharedPreferences preferences = await SharedPreferences.getInstance();
       await migrateLegacySharedPreferencesToSharedPreferencesAsyncIfNecessary(
         legacySharedPreferencesInstance: preferences,
         sharedPreferencesAsyncOptions: sharedPreferencesAsyncOptions,
         migrationCompletedKey: migrationCompletedKey,
       );
 
-      final SharedPreferencesAsync asyncPreferences = SharedPreferencesAsync();
+      final asyncPreferences = SharedPreferencesAsync();
       await preferences.setInt(intKey, -0);
       await migrateLegacySharedPreferencesToSharedPreferencesAsyncIfNecessary(
         legacySharedPreferencesInstance: preferences,

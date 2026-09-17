@@ -71,7 +71,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<int?> create(DataSource dataSource) async {
-    final CreateMessage message = CreateMessage();
+    final message = CreateMessage();
 
     switch (dataSource.sourceType) {
       case DataSourceType.asset:
@@ -243,13 +243,13 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       TrackTypeMessage(playerId: playerId, trackType: TrackType.video.name),
     );
 
-    final List<VideoTrack> videoTracks = <VideoTrack>[];
+    final videoTracks = <VideoTrack>[];
     for (final Map<Object?, Object?>? trackMap in response.tracks) {
-      final int trackId = trackMap!['trackId']! as int;
-      final String mimetype = trackMap['mimetype']! as String;
-      final int bitrate = trackMap['bitrate']! as int;
-      final int width = trackMap['width']! as int;
-      final int height = trackMap['height']! as int;
+      final trackId = trackMap!['trackId']! as int;
+      final mimetype = trackMap['mimetype']! as String;
+      final bitrate = trackMap['bitrate']! as int;
+      final width = trackMap['width']! as int;
+      final height = trackMap['height']! as int;
 
       videoTracks.add(
         VideoTrack(
@@ -271,13 +271,13 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       TrackTypeMessage(playerId: playerId, trackType: TrackType.audio.name),
     );
 
-    final List<AudioTrack> audioTracks = <AudioTrack>[];
+    final audioTracks = <AudioTrack>[];
     for (final Map<Object?, Object?>? trackMap in response.tracks) {
-      final int trackId = trackMap!['trackId']! as int;
-      final String mimetype = trackMap['mimetype']! as String;
-      final String language = trackMap['language']! as String;
-      final int channel = trackMap['channel']! as int;
-      final int bitrate = trackMap['bitrate']! as int;
+      final trackId = trackMap!['trackId']! as int;
+      final mimetype = trackMap['mimetype']! as String;
+      final language = trackMap['language']! as String;
+      final channel = trackMap['channel']! as int;
+      final bitrate = trackMap['bitrate']! as int;
 
       audioTracks.add(
         AudioTrack(
@@ -299,11 +299,11 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       TrackTypeMessage(playerId: playerId, trackType: TrackType.text.name),
     );
 
-    final List<TextTrack> textTracks = <TextTrack>[];
+    final textTracks = <TextTrack>[];
     for (final Map<Object?, Object?>? trackMap in response.tracks) {
-      final int trackId = trackMap!['trackId']! as int;
-      final String mimetype = trackMap['mimetype']! as String;
-      final String language = trackMap['language']! as String;
+      final trackId = trackMap!['trackId']! as int;
+      final mimetype = trackMap['mimetype']! as String;
+      final language = trackMap['language']! as String;
 
       textTracks.add(
         TextTrack(trackId: trackId, mimetype: mimetype, language: language),
@@ -397,7 +397,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     DataSource? dataSource,
     int resumeTime = -1,
   }) async {
-    final CreateMessage message = CreateMessage();
+    final message = CreateMessage();
 
     if (dataSource != null) {
       switch (dataSource.sourceType) {
@@ -447,8 +447,8 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     int playerId,
     Set<DashPlayerProperty> keys,
   ) async {
-    final List<String?> keysList = <String?>[];
-    for (final DashPlayerProperty key in keys) {
+    final keysList = <String?>[];
+    for (final key in keys) {
       keysList.add(_dashPlayerPropertyMap[key]);
     }
     final DashPropertyMapMessage msg = await _api.getData(
@@ -473,15 +473,15 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     final TrackMessage msg = await _api.getActiveTrackInfo(
       PlayerMessage(playerId: playerId),
     );
-    final List<Track> tracks = <Track>[];
+    final tracks = <Track>[];
     for (final Map<Object?, Object?>? trackMap in msg.tracks) {
-      final String trackType = trackMap!['trackType']! as String;
-      final int trackId = trackMap['trackId']! as int;
-      final String mimetype = trackMap['mimetype']! as String;
+      final trackType = trackMap!['trackType']! as String;
+      final trackId = trackMap['trackId']! as int;
+      final mimetype = trackMap['mimetype']! as String;
       if (trackType == 'video') {
-        final int bitrate = trackMap['bitrate']! as int;
-        final int width = trackMap['width']! as int;
-        final int height = trackMap['height']! as int;
+        final bitrate = trackMap['bitrate']! as int;
+        final width = trackMap['width']! as int;
+        final height = trackMap['height']! as int;
         tracks.add(
           VideoTrack(
             trackId: trackId,
@@ -492,9 +492,9 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
           ),
         );
       } else if (trackType == 'audio') {
-        final String language = trackMap['language']! as String;
-        final int channel = trackMap['channel']! as int;
-        final int bitrate = trackMap['bitrate']! as int;
+        final language = trackMap['language']! as String;
+        final channel = trackMap['channel']! as int;
+        final bitrate = trackMap['bitrate']! as int;
         tracks.add(
           AudioTrack(
             trackId: trackId,
@@ -505,7 +505,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
           ),
         );
       } else if (trackType == 'text') {
-        final String language = trackMap['language']! as String;
+        final language = trackMap['language']! as String;
         tracks.add(
           TextTrack(trackId: trackId, mimetype: mimetype, language: language),
         );
@@ -534,11 +534,11 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     return _eventChannelFor(playerId).receiveBroadcastStream().map((
       dynamic event,
     ) {
-      final Map<dynamic, dynamic> map = event as Map<dynamic, dynamic>;
+      final map = event as Map<dynamic, dynamic>;
       switch (map['event']) {
         case 'initialized':
         case 'restored':
-          final List<dynamic>? durationVal = map['duration'] as List<dynamic>?;
+          final durationVal = map['duration'] as List<dynamic>?;
           VideoEventType videoEventType;
           if (map['event'] == 'initialized') {
             videoEventType = VideoEventType.initialized;
@@ -559,7 +559,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
         case 'completed':
           return VideoEvent(eventType: VideoEventType.completed);
         case 'bufferingUpdate':
-          final int value = map['value']! as int;
+          final value = map['value']! as int;
           return VideoEvent(
             buffered: value,
             eventType: VideoEventType.bufferingUpdate,

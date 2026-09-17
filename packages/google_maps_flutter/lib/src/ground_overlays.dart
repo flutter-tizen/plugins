@@ -15,13 +15,11 @@ class GroundOverlaysController extends GeometryController {
     required GoogleMapsJsBridge bridge,
   }) : _streamController = stream,
        _bridge = bridge,
-       _groundOverlayIdToController =
-           <GroundOverlayId, GroundOverlayController>{},
+       _groundOverlayIdToController = <GroundOverlayId, GroundOverlayController>{},
        _idToGroundOverlayId = <int, GroundOverlayId>{};
 
   // A cache of [GroundOverlayController]s indexed by their [GroundOverlayId].
-  final Map<GroundOverlayId, GroundOverlayController>
-  _groundOverlayIdToController;
+  final Map<GroundOverlayId, GroundOverlayController> _groundOverlayIdToController;
   final Map<int, GroundOverlayId> _idToGroundOverlayId;
 
   // The stream over which ground overlays broadcast events.
@@ -42,17 +40,15 @@ class GroundOverlaysController extends GeometryController {
       return;
     }
 
-    final util.GGroundOverlayOptions? populationOptions =
-        _groundOverlayOptionsFromGroundOverlay(groundOverlay);
+    final util.GGroundOverlayOptions? populationOptions = _groundOverlayOptionsFromGroundOverlay(
+      groundOverlay,
+    );
     if (populationOptions == null) {
       return;
     }
 
-    final util.GGroundOverlay gGroundOverlay = util.GGroundOverlay(
-      _bridge,
-      populationOptions,
-    );
-    final GroundOverlayController controller = GroundOverlayController(
+    final gGroundOverlay = util.GGroundOverlay(_bridge, populationOptions);
+    final controller = GroundOverlayController(
       groundOverlay: gGroundOverlay,
       onTap: () {
         _onGroundOverlayTap(groundOverlay.groundOverlayId);
@@ -71,8 +67,9 @@ class GroundOverlaysController extends GeometryController {
   void _changeGroundOverlay(GroundOverlay groundOverlay) {
     final GroundOverlayController? groundOverlayController =
         _groundOverlayIdToController[groundOverlay.groundOverlayId];
-    final util.GGroundOverlayOptions? options =
-        _groundOverlayOptionsFromGroundOverlay(groundOverlay);
+    final util.GGroundOverlayOptions? options = _groundOverlayOptionsFromGroundOverlay(
+      groundOverlay,
+    );
     if (groundOverlayController == null || options == null) {
       return;
     }
@@ -80,8 +77,7 @@ class GroundOverlaysController extends GeometryController {
     // url, bounds, and clickable cannot be mutated in place. Recreate the
     // overlay when any of these change so updates from updateGroundOverlays
     // are not silently dropped.
-    final util.GGroundOverlayOptions? current =
-        groundOverlayController._groundOverlay?.options;
+    final util.GGroundOverlayOptions? current = groundOverlayController._groundOverlay?.options;
     if (current == null ||
         current.url != options.url ||
         current.bounds != options.bounds ||

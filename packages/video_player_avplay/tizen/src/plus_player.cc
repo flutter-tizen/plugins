@@ -6,6 +6,7 @@
 
 #include <app_manager.h>
 #include <system_info.h>
+#include <unistd.h>
 
 #include <sstream>
 

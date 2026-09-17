@@ -17,8 +17,7 @@ class FirebaseApp extends FirebaseAppPlatform {
   }
 
   @override
-  bool get isAutomaticDataCollectionEnabled =>
-      _isAutomaticDataCollectionEnabled;
+  bool get isAutomaticDataCollectionEnabled => _isAutomaticDataCollectionEnabled;
 
   @override
   Future<void> setAutomaticDataCollectionEnabled(bool enabled) {
