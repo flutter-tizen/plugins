@@ -94,6 +94,7 @@ typedef struct {
   wv_modifier_e modifiers;
   int event_flags;
   unsigned int key_code;
+  const char* device_name;
 } wv_key_event_s;
 
 typedef struct {
@@ -135,8 +136,8 @@ typedef bool (*WvViewFocusSetFnPtr)(wv_view_h view, int focused);
 typedef bool (*WvViewUrlSetFnPtr)(wv_view_h view, const char* url);
 typedef const char* (*WvViewUrlGetFnPtr)(wv_view_h view);
 typedef bool (*WvViewUrlRequestSetFnPtr)(wv_view_h view, const char* url,
-                                         wv_http_method_e method, void* headers,
-                                         const char* body);
+                                         wv_http_method_e method,
+                                         GHashTable* headers, const char* body);
 typedef bool (*WvViewHtmlStringLoadFnPtr)(wv_view_h view, const char* html,
                                           const char* base_url,
                                           const char* unreachable_url);
@@ -163,10 +164,10 @@ typedef bool (*WvViewBgColorSetFnPtr)(wv_view_h view, int r, int g, int b,
                                       int a);
 typedef wv_context_h (*WvViewContextGetFnPtr)(wv_view_h view);
 typedef wv_settings_h (*WvViewSettingsGetFnPtr)(wv_view_h view);
-typedef int (*WvViewFeedTouchEventFnPtr)(wv_view_h view,
-                                         wv_touch_event_type_e event_type,
-                                         GList* points,
-                                         wv_modifier_e modifiers);
+typedef bool (*WvViewFeedTouchEventFnPtr)(wv_view_h view,
+                                          wv_touch_event_type_e event_type,
+                                          GList* points,
+                                          wv_modifier_e modifiers);
 typedef int (*WvViewFeedMouseDownFnPtr)(wv_view_h view,
                                         wv_mouse_button_type_e button, int x,
                                         int y);
@@ -176,10 +177,10 @@ typedef int (*WvViewFeedMouseUpFnPtr)(wv_view_h view,
 typedef int (*WvViewFeedMouseMoveFnPtr)(wv_view_h view, int x, int y);
 typedef int (*WvViewFeedMouseWheelFnPtr)(wv_view_h view, bool y_direction,
                                          int step, int x, int y);
-typedef int (*WvViewSendKeyEventFnPtr)(wv_view_h view,
-                                       const wv_key_event_s* key_event,
-                                       int is_press);
-typedef int (*WvViewTouchEventsEnabledSetFnPtr)(wv_view_h view, int enabled);
+typedef bool (*WvViewSendKeyEventFnPtr)(wv_view_h view,
+                                        const wv_key_event_s* key_event,
+                                        int is_press);
+typedef bool (*WvViewTouchEventsEnabledSetFnPtr)(wv_view_h view, int enabled);
 typedef bool (*WvViewMouseEventsEnabledSetFnPtr)(wv_view_h view, bool enabled);
 typedef bool (*WvViewKeyEventsEnabledSetFnPtr)(wv_view_h view, bool enabled);
 typedef void (*WvViewImeWindowSetFnPtr)(wv_view_h view, void* window);
@@ -257,10 +258,10 @@ typedef struct {
 
 typedef wv_cookie_manager_h (*WvContextCookieManagerGetFnPtr)(
     wv_context_h context);
-typedef int (*WvContextCacheModelSetFnPtr)(wv_context_h context,
-                                           wv_cache_model_e model);
-typedef int (*WvContextWebStorageDeleteAllFnPtr)(wv_context_h context);
-typedef int (*WvContextCacheClearFnPtr)(wv_context_h context);
+typedef bool (*WvContextCacheModelSetFnPtr)(wv_context_h context,
+                                            wv_cache_model_e model);
+typedef bool (*WvContextWebStorageDeleteAllFnPtr)(wv_context_h context);
+typedef bool (*WvContextCacheClearFnPtr)(wv_context_h context);
 
 typedef struct {
   WvContextCookieManagerGetFnPtr CookieManagerGet = nullptr;
@@ -269,9 +270,9 @@ typedef struct {
   WvContextCacheClearFnPtr CacheClear = nullptr;
 } WvContextProcTable;
 
-typedef int (*WvCookieManagerAcceptPolicySetFnPtr)(
+typedef void (*WvCookieManagerAcceptPolicySetFnPtr)(
     wv_cookie_manager_h manager, wv_cookie_accept_policy_e policy);
-typedef int (*WvCookieManagerCookiesClearFnPtr)(wv_cookie_manager_h manager);
+typedef void (*WvCookieManagerCookiesClearFnPtr)(wv_cookie_manager_h manager);
 
 typedef struct {
   WvCookieManagerAcceptPolicySetFnPtr AcceptPolicySet = nullptr;
@@ -301,7 +302,7 @@ typedef struct {
   WvErrorUrlGetFnPtr UrlGet = nullptr;
 } WvErrorProcTable;
 
-typedef int (*WvPolicyDecisionUseFnPtr)(wv_policy_decision_h policy_decision);
+typedef bool (*WvPolicyDecisionUseFnPtr)(wv_policy_decision_h policy_decision);
 typedef const char* (*WvPolicyDecisionUrlGetFnPtr)(
     wv_policy_decision_h policy_decision);
 typedef int (*WvPolicyDecisionResponseStatusCodeGetFnPtr)(

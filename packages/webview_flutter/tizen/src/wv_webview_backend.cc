@@ -4,12 +4,9 @@
 
 #include "wv_webview_backend.h"
 
-#include <Eina.h>
-#include <Evas.h>
 #include <glib.h>
 
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include <mutex>
 #include <vector>
@@ -371,25 +368,17 @@ bool WvWebViewBackend::LoadUrlRequest(
     wv_method = WV_HTTP_METHOD_POST;
   }
 
-  Eina_Hash* wv_headers = eina_hash_new(
-      [](const void* key) -> unsigned int {
-        return key ? strlen(static_cast<const char*>(key)) + 1 : 0;
-      },
-      [](const void* key1, int key1_length, const void* key2,
-         int key2_length) -> int {
-        return strcmp(static_cast<const char*>(key1),
-                      static_cast<const char*>(key2));
-      },
-      EINA_KEY_HASH(eina_hash_superfast), [](void* data) { free(data); }, 10);
+  GHashTable* wv_headers =
+      g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
   for (const auto& header : headers) {
-    eina_hash_add(wv_headers, header.first.c_str(),
-                  strdup(header.second.c_str()));
+    g_hash_table_insert(wv_headers, g_strdup(header.first.c_str()),
+                        g_strdup(header.second.c_str()));
   }
 
   bool ret = WvInternalApiBinding::GetInstance().view.UrlRequestSet(
       view_, url.c_str(), wv_method, wv_headers,
       reinterpret_cast<const char*>(body.data()));
-  eina_hash_free(wv_headers);
+  g_hash_table_destroy(wv_headers);
   return ret;
 }
 
