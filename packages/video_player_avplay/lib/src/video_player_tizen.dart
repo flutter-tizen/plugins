@@ -21,7 +21,7 @@ class _SeekOperation {
   final List<Completer<void>> _coalesced = <Completer<void>>[];
 
   Future<void> attach() {
-    final Completer<void> c = Completer<void>();
+    final c = Completer<void>();
     _coalesced.add(c);
     return c.future;
   }
@@ -164,13 +164,13 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     if (_activeSeeks.containsKey(playerId)) {
       final _SeekOperation? existing = _pendingSeeks[playerId];
       if (existing != null) {
-        final _SeekOperation op = _SeekOperation(targetPosition);
+        final op = _SeekOperation(targetPosition);
         op._coalesced.add(existing.completer);
         op._coalesced.addAll(existing._coalesced);
         _pendingSeeks[playerId] = op;
         return op.attach();
       }
-      final _SeekOperation op = _SeekOperation(targetPosition);
+      final op = _SeekOperation(targetPosition);
       _pendingSeeks[playerId] = op;
       return op.attach();
     }
@@ -179,12 +179,11 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
   }
 
   Future<void> _startSeek(int playerId, int position) async {
-    final _SeekOperation op = _SeekOperation(position);
+    final op = _SeekOperation(position);
     _activeSeeks[playerId] = op;
 
     try {
-      await _api
-          .seekTo(PositionMessage(playerId: playerId, position: position));
+      await _api.seekTo(PositionMessage(playerId: playerId, position: position));
     } catch (e) {
       _completeSeekWithError(playerId, e);
     }
@@ -571,10 +570,8 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
         case 'subtitleUpdate':
           return VideoEvent(
             eventType: VideoEventType.subtitleUpdate,
-            subtitlesInfo: SubtitlesInfo(
-                map['duration'] as int?,
-                map['textsInfo'] as List<dynamic>?,
-                map['pictureInfo'] as Map<Object?, Object?>?),
+            subtitlesInfo: SubtitlesInfo(map['duration'] as int?,
+                map['textsInfo'] as List<dynamic>?, map['pictureInfo'] as Map<Object?, Object?>?),
           );
         case 'isPlayingStateUpdate':
           return VideoEvent(
@@ -635,8 +632,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     return EventChannel('tizen/video_player/video_events_$playerId');
   }
 
-  static const Map<VideoFormat, String> _videoFormatStringMap =
-      <VideoFormat, String>{
+  static const Map<VideoFormat, String> _videoFormatStringMap = <VideoFormat, String>{
     VideoFormat.ss: 'ss',
     VideoFormat.hls: 'hls',
     VideoFormat.dash: 'dash',
@@ -668,17 +664,14 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     StreamingPropertyType.setAbr: 'SET_ABR',
   };
 
-  static const Map<BufferConfigType, String> _bufferConfigTypeMap =
-      <BufferConfigType, String>{
+  static const Map<BufferConfigType, String> _bufferConfigTypeMap = <BufferConfigType, String>{
     BufferConfigType.totalBufferSizeInByte: 'total_buffer_size_in_byte',
     BufferConfigType.totalBufferSizeInTime: 'total_buffer_size_in_time',
     BufferConfigType.bufferSizeInByteForPlay: 'buffer_size_in_byte_for_play',
     BufferConfigType.bufferSizeInSecForPlay: 'buffer_size_in_sec_for_play',
-    BufferConfigType.bufferSizeInByteForResume:
-        'buffer_size_in_byte_for_resume',
+    BufferConfigType.bufferSizeInByteForResume: 'buffer_size_in_byte_for_resume',
     BufferConfigType.bufferSizeInSecForResume: 'buffer_size_in_sec_for_resume',
-    BufferConfigType.bufferingTimeoutInSecForPlay:
-        'buffering_timeout_in_sec_for_play',
+    BufferConfigType.bufferingTimeoutInSecForPlay: 'buffering_timeout_in_sec_for_play',
   };
 
   static const Map<DashPlayerProperty, String> _dashPlayerPropertyMap =
