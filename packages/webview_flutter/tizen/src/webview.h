@@ -60,14 +60,11 @@ class WebView : public PlatformView, public WebViewBackend::Delegate {
   // Must be called exactly once, after every WebView has been destroyed.
   static void ShutdownEngine();
 
-  // NOTE: Routes to the most recently created WebView, and fails once that one
-  // is disposed.
-  static void HandleCookieMethodCall(const FlMethodCall& method_call,
-                                     std::unique_ptr<FlMethodResult> result);
-
  private:
   void HandleWebViewMethodCall(const FlMethodCall& method_call,
                                std::unique_ptr<FlMethodResult> result);
+  void HandleCookieMethodCall(const FlMethodCall& method_call,
+                              std::unique_ptr<FlMethodResult> result);
 
   template <typename T>
   void SetBackgroundColor(const T& color);

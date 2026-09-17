@@ -5,7 +5,6 @@
 * Update webview_flutter_platform_interface to 2.15.1.
 * Select the web engine backend from the device's platform version.
 * Fix a crash and missing request headers on the WV backend.
-* Fix cookie operations using a destroyed WebView.
 * Correct the WV API declarations.
 * Omit obvious local variable types.
 * Reformat with a line length of 100.

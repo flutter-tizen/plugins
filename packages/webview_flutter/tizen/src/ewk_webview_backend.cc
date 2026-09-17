@@ -517,9 +517,6 @@ void EwkWebViewBackend::SetScrollbarVisible(bool visible) {
 }
 
 bool EwkWebViewBackend::ClearCookies() {
-  if (!view_) {
-    return false;
-  }
   Ewk_Context* context = ewk_view_context_get(view_);
   Ewk_Cookie_Manager* cookie_manager = ewk_context_cookie_manager_get(context);
   if (cookie_manager) {
