@@ -1,6 +1,7 @@
 ## NEXT
 
 * Follow the analysis options of the frontend plugin.
+* Use wrapper API.
 
 ## 0.2.0
 
