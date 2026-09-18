@@ -3,6 +3,7 @@
 * Omit obvious local variable types.
 * Reformat with a line length of 100.
 * Replace Ecore pipes with GLib idle callbacks.
+* Apply clang-format-16 formatting.
 
 ## 0.8.18
 
