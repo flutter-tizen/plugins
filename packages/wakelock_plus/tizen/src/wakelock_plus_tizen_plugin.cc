@@ -4,23 +4,21 @@
 
 #include "wakelock_plus_tizen_plugin.h"
 
-#include <dlfcn.h>
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
 #include <glib.h>
 #include <tizen.h>
 
+#include <cerrno>
 #include <memory>
 #include <string>
 #include <variant>
 
+#include "ftpw_wakelock_plus.h"
 #include "log.h"
 
 namespace {
-
-typedef int (*FuncScreensaverResetTimeout)(void);
-typedef int (*FuncScreensaverOverrideReset)(bool onoff);
 
 class WakelockPlusTizenPlugin : public flutter::Plugin {
  public:
@@ -46,10 +44,6 @@ class WakelockPlusTizenPlugin : public flutter::Plugin {
       g_source_remove(timer_id_);
       timer_id_ = 0;
     }
-    if (screensaver_api_handle_) {
-      dlclose(screensaver_api_handle_);
-      screensaver_api_handle_ = nullptr;
-    }
   }
 
  private:
@@ -58,7 +52,11 @@ class WakelockPlusTizenPlugin : public flutter::Plugin {
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
     const auto &method_name = method_call.method_name();
     if (!is_initialized_screensaver_api_) {
-      InitScreensaverApi();
+      int ret = ftpw_wakelock_plus_screensaver_override_reset(false);
+      if (ret != 0) {
+        LOG_ERROR("screensaver_override_reset failed: %s",
+                  get_error_message(ret));
+      }
       is_initialized_screensaver_api_ = true;
     }
 
@@ -67,12 +65,12 @@ class WakelockPlusTizenPlugin : public flutter::Plugin {
       if (std::holds_alternative<bool>(arguments)) {
         bool enable = std::get<bool>(arguments);
         if (enable) {
-          if (!screensaver_reset_timeout_) {
+          int ret = ftpw_wakelock_plus_screensaver_reset_timeout();
+          if (ret == -ENOSYS) {
             result->Error("Not supported",
                           "The screensaver API is not supported.");
             return;
           }
-          int ret = screensaver_reset_timeout_();
           if (ret != 0) {
             result->Error(std::to_string(ret), get_error_message(ret));
             return;
@@ -101,40 +99,9 @@ class WakelockPlusTizenPlugin : public flutter::Plugin {
     }
   }
 
-  void InitScreensaverApi() {
-    screensaver_api_handle_ = dlopen("libcapi-screensaver.so", RTLD_LAZY);
-    if (!screensaver_api_handle_) {
-      LOG_ERROR("dlopen failed: %s", dlerror());
-      return;
-    }
-    screensaver_reset_timeout_ = reinterpret_cast<FuncScreensaverResetTimeout>(
-        dlsym(screensaver_api_handle_, "screensaver_reset_timeout"));
-    if (!screensaver_reset_timeout_) {
-      LOG_ERROR("Symbol not found: %s", dlerror());
-      return;
-    }
-    FuncScreensaverOverrideReset screensaver_override_reset =
-        reinterpret_cast<FuncScreensaverOverrideReset>(
-            dlsym(screensaver_api_handle_, "screensaver_override_reset"));
-    if (!screensaver_override_reset) {
-      LOG_ERROR("Symbol not found: %s", dlerror());
-      return;
-    }
-    int ret = screensaver_override_reset(false);
-    if (ret != 0) {
-      LOG_ERROR("screensaver_override_reset failed: %s",
-                get_error_message(ret));
-      return;
-    }
-  }
-
   static gboolean OnResetScreensaverTimeout(gpointer data) {
     auto *plugin = static_cast<WakelockPlusTizenPlugin *>(data);
-    if (!plugin->screensaver_reset_timeout_) {
-      plugin->timer_id_ = 0;
-      return G_SOURCE_REMOVE;
-    }
-    int ret = plugin->screensaver_reset_timeout_();
+    int ret = ftpw_wakelock_plus_screensaver_reset_timeout();
     if (ret != 0) {
       LOG_ERROR("screensaver_reset_timeout failed: %s", get_error_message(ret));
       plugin->timer_id_ = 0;
@@ -145,9 +112,7 @@ class WakelockPlusTizenPlugin : public flutter::Plugin {
   }
 
   bool is_initialized_screensaver_api_ = false;
-  void *screensaver_api_handle_ = nullptr;
   guint timer_id_ = 0;
-  FuncScreensaverResetTimeout screensaver_reset_timeout_ = nullptr;
   bool is_enabled_ = false;
 };
 
