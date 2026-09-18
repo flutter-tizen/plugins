@@ -1,3 +1,7 @@
+## NEXT
+
+* Use wrapper API.
+
 ## 2.1.5
 
 * Update wakelock_plus to 1.8.0.
