@@ -7,10 +7,8 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "ewk_internal_api_binding.h"
 #include "ewk_webview_backend.h"
 #include "log.h"
-#include "wv_internal_api_binding.h"
 #include "wv_webview_backend.h"
 
 namespace {
@@ -55,15 +53,7 @@ std::unique_ptr<WebViewBackend> WebViewBackendFactory::Create(
       LOG_ERROR("WV engine is not initialized; cannot create WebView.");
       return nullptr;
     }
-    if (!WvInternalApiBinding::GetInstance().Initialize()) {
-      LOG_ERROR("Failed to initialize WV APIs.");
-      return nullptr;
-    }
     return std::make_unique<WvWebViewBackend>(delegate);
-  }
-  if (!EwkInternalApiBinding::GetInstance().Initialize()) {
-    LOG_ERROR("Failed to initialize EWK internal APIs.");
-    return nullptr;
   }
   return std::make_unique<EwkWebViewBackend>(delegate);
 }
@@ -71,10 +61,6 @@ std::unique_ptr<WebViewBackend> WebViewBackendFactory::Create(
 void WebViewBackendFactory::InitializeEngine() {
   BackendKind kind = kSelectedBackend;
   if (kind != BackendKind::kEwk) {
-    if (!WvInternalApiBinding::GetInstance().Initialize()) {
-      LOG_ERROR("Failed to initialize WV APIs; engine not started.");
-      return;
-    }
     if (!WvWebViewBackend::GlobalInitialize(kind ==
                                             BackendKind::kWvStandalone)) {
       LOG_ERROR("wv_init() failed; engine not started.");

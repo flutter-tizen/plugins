@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 
-#include "ewk_internal_api_binding.h"
+#include "ftpw_webview_flutter.h"
 #include "webview_backend.h"
 
 typedef struct _Ecore_Evas Ecore_Evas;
@@ -96,11 +96,11 @@ class EwkWebViewBackend : public WebViewBackend {
   static void OnEvaluateJavaScript(Evas_Object* obj, const char* result_value,
                                    void* user_data);
   static void OnJavaScriptMessage(Evas_Object* obj, Ewk_Script_Message message);
-  static Eina_Bool OnJavaScriptAlertDialog(Evas_Object* o, const char* message,
+  static Eina_Bool OnJavaScriptAlertDialog(void* o, const char* message,
                                            void* data);
-  static Eina_Bool OnJavaScriptConfirmDialog(Evas_Object* o,
-                                             const char* message, void* data);
-  static Eina_Bool OnJavaScriptPromptDialog(Evas_Object* o, const char* message,
+  static Eina_Bool OnJavaScriptConfirmDialog(void* o, const char* message,
+                                             void* data);
+  static Eina_Bool OnJavaScriptPromptDialog(void* o, const char* message,
                                             const char* default_text,
                                             void* data);
 
