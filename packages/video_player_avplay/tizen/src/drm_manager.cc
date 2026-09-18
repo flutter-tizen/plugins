@@ -8,7 +8,7 @@
 #include <flutter/standard_method_codec.h>
 
 #include "drm_license_helper.h"
-#include "drm_manager_proxy.h"
+#include "ftpw_video_player_avplay.h"
 #include "log.h"
 
 static std::string GetDrmSubType(int drm_type) {
@@ -21,7 +21,7 @@ static std::string GetDrmSubType(int drm_type) {
   }
 }
 
-DrmManager::DrmManager() : drm_type_(DM_TYPE_NONE) {}
+DrmManager::DrmManager() : drm_type_(DRM_TYPE_NONE) {}
 
 DrmManager::~DrmManager() {
   ReleaseDrmSession();
@@ -33,14 +33,14 @@ DrmManager::~DrmManager() {
 
 bool DrmManager::CreateDrmSession(int drm_type, bool local_mode) {
   if (local_mode) {
-    DrmManagerProxy::GetInstance().DMGRSetDRMLocalMode();
+    ftpw_video_player_avplay_DMGRSetDRMLocalMode();
   }
 
   drm_type_ = drm_type;
   std::string sub_type = GetDrmSubType(drm_type);
   LOG_INFO("[DrmManager] drm type is %s", sub_type.c_str());
-  drm_session_ = DrmManagerProxy::GetInstance().DMGRCreateDRMSession(
-      DM_TYPE_EME, sub_type.c_str());
+  drm_session_ =
+      ftpw_video_player_avplay_DMGRCreateDRMSession(sub_type.c_str());
   if (!drm_session_) {
     LOG_ERROR("[DrmManager] Fail to create drm session.");
     return false;
@@ -51,7 +51,7 @@ bool DrmManager::CreateDrmSession(int drm_type, bool local_mode) {
   SetDataParam_t configure_param = {};
   configure_param.param1 = reinterpret_cast<void *>(OnDrmManagerError);
   configure_param.param2 = drm_session_;
-  int ret = DrmManagerProxy::GetInstance().DMGRSetData(
+  int ret = ftpw_video_player_avplay_DMGRSetData(
       drm_session_, "error_event_callback", &configure_param);
   if (ret != DM_ERROR_NONE) {
     LOG_ERROR(
@@ -88,15 +88,14 @@ void DrmManager::StopDrmSession() {
   SetDataParam_t challenge_data_param = {};
   challenge_data_param.param1 = nullptr;
   challenge_data_param.param2 = nullptr;
-  int ret = DrmManagerProxy::GetInstance().DMGRSetData(
+  int ret = ftpw_video_player_avplay_DMGRSetData(
       drm_session_, "eme_request_key_callback", &challenge_data_param);
   if (ret != DM_ERROR_NONE) {
     LOG_ERROR("[DrmManager] Fail to unset eme_request_key_callback: %s",
               get_error_message(ret));
   }
 
-  ret = DrmManagerProxy::GetInstance().DMGRSetData(drm_session_, "Finalize",
-                                                   nullptr);
+  ret = ftpw_video_player_avplay_DMGRSetData(drm_session_, "Finalize", nullptr);
 
   if (ret != DM_ERROR_NONE) {
     LOG_ERROR("[DrmManager] Fail to set finalize to drm session: %s",
@@ -110,7 +109,7 @@ void DrmManager::ReleaseDrmSession() {
     return;
   }
 
-  int ret = DrmManagerProxy::GetInstance().DMGRReleaseDRMSession(drm_session_);
+  int ret = ftpw_video_player_avplay_DMGRReleaseDRMSession(drm_session_);
   if (ret != DM_ERROR_NONE) {
     LOG_ERROR("[DrmManager] Fail to release drm session: %s",
               get_error_message(ret));
@@ -121,8 +120,8 @@ void DrmManager::ReleaseDrmSession() {
 bool DrmManager::GetDrmHandle(int *handle) {
   if (drm_session_) {
     *handle = 0;
-    int ret = DrmManagerProxy::GetInstance().DMGRGetData(drm_session_,
-                                                         "drm_handle", handle);
+    int ret = ftpw_video_player_avplay_DMGRGetData(drm_session_, "drm_handle",
+                                                   handle);
     if (ret != DM_ERROR_NONE) {
       LOG_ERROR("[DrmManager] Fail to get drm_handle from drm session: %s",
                 get_error_message(ret));
@@ -145,7 +144,7 @@ int DrmManager::UpdatePsshData(const void *data, int length) {
   SetDataParam_t pssh_data_param = {};
   pssh_data_param.param1 = const_cast<void *>(data);
   pssh_data_param.param2 = reinterpret_cast<void *>(length);
-  int ret = DrmManagerProxy::GetInstance().DMGRSetData(
+  int ret = ftpw_video_player_avplay_DMGRSetData(
       drm_session_, "update_pssh_data", &pssh_data_param);
   if (DM_ERROR_NONE != ret) {
     LOG_ERROR("[DrmManager] Fail to set update_pssh_data to drm session: %s",
@@ -166,7 +165,7 @@ bool DrmManager::SecurityInitCompleteCB(int *drm_handle, unsigned int len,
   }
   security_param.param2 = drm_session_;
 
-  return DrmManagerProxy::GetInstance().DMGRSecurityInitCompleteCB(
+  return ftpw_video_player_avplay_DMGRSecurityInitCompleteCB(
       drm_handle, len, pssh_data, &security_param);
 }
 
@@ -179,7 +178,7 @@ int DrmManager::SetChallenge(const std::string &media_url) {
   SetDataParam_t challenge_data_param = {};
   challenge_data_param.param1 = reinterpret_cast<void *>(OnChallengeData);
   challenge_data_param.param2 = this;
-  int ret = DrmManagerProxy::GetInstance().DMGRSetData(
+  int ret = ftpw_video_player_avplay_DMGRSetData(
       drm_session_, "eme_request_key_callback", &challenge_data_param);
   if (ret != DM_ERROR_NONE) {
     LOG_ERROR(
@@ -189,7 +188,7 @@ int DrmManager::SetChallenge(const std::string &media_url) {
     return ret;
   }
 
-  ret = DrmManagerProxy::GetInstance().DMGRSetData(
+  ret = ftpw_video_player_avplay_DMGRSetData(
       drm_session_, "set_playready_manifest",
       static_cast<void *>(const_cast<char *>(media_url.c_str())));
   if (ret != DM_ERROR_NONE) {
@@ -199,8 +198,8 @@ int DrmManager::SetChallenge(const std::string &media_url) {
     return ret;
   }
 
-  ret = DrmManagerProxy::GetInstance().DMGRSetData(drm_session_, "Initialize",
-                                                   nullptr);
+  ret =
+      ftpw_video_player_avplay_DMGRSetData(drm_session_, "Initialize", nullptr);
   if (ret != DM_ERROR_NONE) {
     LOG_ERROR("[DrmManager] Fail to set initialize to drm session: %s",
               get_error_message(ret));
@@ -269,7 +268,7 @@ bool DrmManager::InstallKey(void *session_id, void *response_data,
   license_param.param1 = session_id;
   license_param.param2 = response_data;
   license_param.param3 = response_len;
-  int ret = DrmManagerProxy::GetInstance().DMGRSetData(
+  int ret = ftpw_video_player_avplay_DMGRSetData(
       drm_session_, "install_eme_key", &license_param);
   if (ret != DM_ERROR_NONE) {
     LOG_ERROR("[DrmManager] Fail to install eme key: %s",
