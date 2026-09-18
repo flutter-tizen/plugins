@@ -2,6 +2,7 @@
 
 * Omit obvious local variable types.
 * Reformat with a line length of 100.
+* Use wrapper API.
 
 ## 0.11.0
 
