@@ -4,8 +4,6 @@
 
 #include "media_player.h"
 
-#include <dlfcn.h>
-
 #include <sstream>
 
 #include "log.h"
@@ -51,10 +49,7 @@ static player_stream_type_e ConvertTrackType(std::string track_type) {
 
 MediaPlayer::MediaPlayer(flutter::BinaryMessenger *messenger,
                          FlutterDesktopViewRef flutter_view)
-    : VideoPlayer(messenger, flutter_view) {
-  media_player_proxy_ = std::make_unique<MediaPlayerProxy>();
-  device_proxy_ = std::make_unique<DeviceProxy>();
-}
+    : VideoPlayer(messenger, flutter_view) {}
 
 MediaPlayer::~MediaPlayer() {
   if (player_) {
@@ -114,7 +109,7 @@ int64_t MediaPlayer::Create(const std::string &uri,
   std::string adaptive_info = flutter_common::GetValue(
       create_message.streaming_property(), "ADAPTIVE_INFO", std::string());
   if (!adaptive_info.empty()) {
-    media_player_proxy_->player_set_adaptive_streaming_info(
+    ftpw_video_player_avplay_player_set_adaptive_streaming_info(
         player_,
         const_cast<void *>(
             reinterpret_cast<const void *>(adaptive_info.c_str())),
@@ -331,7 +326,7 @@ int64_t MediaPlayer::GetPosition() {
 
 bool MediaPlayer::IsLive() {
   int is_live = 0;
-  int ret = media_player_proxy_->player_get_adaptive_streaming_info(
+  int ret = ftpw_video_player_avplay_player_get_adaptive_streaming_info(
       player_, &is_live, PLAYER_ADAPTIVE_INFO_IS_LIVE);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[MediaPlayer] player_get_adaptive_streaming_info failed: %s",
@@ -345,7 +340,7 @@ std::pair<int64_t, int64_t> MediaPlayer::GetLiveDuration() {
   std::string live_duration_str = "";
   char *live_duration_buff = static_cast<char *>(malloc(sizeof(char) * 64));
   memset(live_duration_buff, 0, sizeof(char) * 64);
-  int ret = media_player_proxy_->player_get_adaptive_streaming_info(
+  int ret = ftpw_video_player_avplay_player_get_adaptive_streaming_info(
       player_, (void *)&live_duration_buff, PLAYER_ADAPTIVE_INFO_LIVE_DURATION);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[MediaPlayer] player_get_adaptive_streaming_info failed: %s",
@@ -443,7 +438,7 @@ bool MediaPlayer::SetDisplay(const flutter::EncodableMap *window_geometry) {
     return false;
   }
 
-  int ret = media_player_proxy_->player_set_ecore_wl_display(
+  int ret = ftpw_video_player_avplay_player_set_ecore_wl_display(
       player_, PLAYER_DISPLAY_TYPE_OVERLAY, native_window, x, y, width, height);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[MediaPlayer] player_set_ecore_wl_display failed: %s.",
@@ -475,8 +470,8 @@ flutter::EncodableList MediaPlayer::GetTrackInfo(std::string track_type) {
 
   player_stream_type_e type = ConvertTrackType(track_type);
   int track_count = 0;
-  ret = media_player_proxy_->player_get_track_count_v2(player_, type,
-                                                       &track_count);
+  ret = ftpw_video_player_avplay_player_get_track_count_v2(player_, type,
+                                                           &track_count);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[MediaPlayer] player_get_track_count_v2 failed: %s",
               get_error_message(ret));
@@ -496,7 +491,7 @@ flutter::EncodableList MediaPlayer::GetTrackInfo(std::string track_type) {
     for (int video_index = 0; video_index < track_count; video_index++) {
       player_video_track_info_v2 *video_track_info = nullptr;
 
-      ret = media_player_proxy_->player_get_video_track_info_v2(
+      ret = ftpw_video_player_avplay_player_get_video_track_info_v2(
           player_, video_index, &video_track_info);
       if (ret != PLAYER_ERROR_NONE) {
         LOG_ERROR("[MediaPlayer] player_get_video_track_info_v2 failed: %s",
@@ -530,7 +525,7 @@ flutter::EncodableList MediaPlayer::GetTrackInfo(std::string track_type) {
     for (int audio_index = 0; audio_index < track_count; audio_index++) {
       player_audio_track_info_v2 *audio_track_info = nullptr;
 
-      ret = media_player_proxy_->player_get_audio_track_info_v2(
+      ret = ftpw_video_player_avplay_player_get_audio_track_info_v2(
           player_, audio_index, &audio_track_info);
       if (ret != PLAYER_ERROR_NONE) {
         LOG_ERROR("[MediaPlayer] player_get_audio_track_info_v2 failed: %s",
@@ -564,7 +559,7 @@ flutter::EncodableList MediaPlayer::GetTrackInfo(std::string track_type) {
     for (int sub_index = 0; sub_index < track_count; sub_index++) {
       player_subtitle_track_info_v2 *sub_track_info = nullptr;
 
-      ret = media_player_proxy_->player_get_subtitle_track_info_v2(
+      ret = ftpw_video_player_avplay_player_get_subtitle_track_info_v2(
           player_, sub_index, &sub_track_info);
       if (ret != PLAYER_ERROR_NONE) {
         LOG_ERROR("[MediaPlayer] player_get_subtitle_track_info_v2 failed: %s",
@@ -627,7 +622,7 @@ bool MediaPlayer::SetDrm(const std::string &uri, int drm_type,
     return false;
   }
 
-  int ret = media_player_proxy_->player_set_drm_handle(
+  int ret = ftpw_video_player_avplay_player_set_drm_handle(
       player_, PLAYER_DRM_TYPE_EME, drm_handle);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[MediaPlayer] player_set_drm_handle failed : %s.",
@@ -635,7 +630,7 @@ bool MediaPlayer::SetDrm(const std::string &uri, int drm_type,
     return false;
   }
 
-  ret = media_player_proxy_->player_set_drm_init_complete_cb(
+  ret = ftpw_video_player_avplay_player_set_drm_init_complete_cb(
       player_, OnDrmSecurityInitComplete, this);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[MediaPlayer] player_set_drm_init_complete_cb failed : %s.",
@@ -643,7 +638,7 @@ bool MediaPlayer::SetDrm(const std::string &uri, int drm_type,
     return false;
   }
 
-  ret = media_player_proxy_->player_set_drm_init_data_cb(
+  ret = ftpw_video_player_avplay_player_set_drm_init_data_cb(
       player_, OnDrmUpdatePsshData, this);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[MediaPlayer] player_set_drm_init_complete_cb failed : %s.",
@@ -866,8 +861,7 @@ bool MediaPlayer::Suspend() {
       "[MediaPlayer] Saved current player state: %d, playing time: %llu ms",
       pre_state_, pre_playing_time_);
 
-  res = device_proxy_->device_power_get_state();
-  if (res == POWER_STATE_STANDBY) {
+  if (ftpw_video_player_avplay_device_power_is_standby()) {
     LOG_INFO("[MediaPlayer] Power state is standby.");
     if (!StopAndDestroy()) {
       LOG_ERROR("[MediaPlayer] Player StopAndDestroy fail.");
@@ -876,7 +870,7 @@ bool MediaPlayer::Suspend() {
     LOG_INFO("[MediaPlayer] Standby state: close done successfully.");
     return true;
   } else {
-    LOG_INFO("[MediaPlayer] Player state is not standby: %d, do nothing.", res);
+    LOG_INFO("[MediaPlayer] Power state is not standby.");
   }
 
   if (player_state == PLAYER_STATE_IDLE) {
