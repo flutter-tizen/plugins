@@ -11,8 +11,6 @@
 #include <mutex>
 #include <queue>
 
-#include "drm_manager_proxy.h"
-
 class DrmManager {
  public:
   typedef enum {
@@ -61,7 +59,6 @@ class DrmManager {
       request_license_channel_;
 
   void *drm_session_ = nullptr;
-  void *drm_manager_proxy_ = nullptr;
 
   int drm_type_;
   std::string license_server_url_;
