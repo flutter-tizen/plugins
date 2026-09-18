@@ -18,3 +18,7 @@ USER_CPP_UNDEFS =
 USER_INC_DIRS = inc src
 USER_INC_FILES =
 USER_CPP_INC_FILES =
+
+# User libraries
+USER_LIB_DIRS += lib/${BUILD_ARCH}
+USER_LIBS += ftpw_video_player
