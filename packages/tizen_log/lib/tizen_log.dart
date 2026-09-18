@@ -6,8 +6,8 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 
-typedef _DlogPrintNative = Void Function(Int32, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>);
-typedef _DlogPrint = void Function(int, Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>);
+typedef _DlogPrintNative = Int Function(Int, Pointer<Utf8>, Pointer<Utf8>);
+typedef _DlogPrint = int Function(int, Pointer<Utf8>, Pointer<Utf8>);
 
 /// Provides the ability to use Tizen's logging service, dlog.
 ///
@@ -20,10 +20,10 @@ typedef _DlogPrint = void Function(int, Pointer<Utf8>, Pointer<Utf8>, Pointer<Ut
 class Log {
   Log._();
 
-  static final DynamicLibrary _library = DynamicLibrary.open('libdlog.so.0');
+  static final DynamicLibrary _library = DynamicLibrary.open('libftpw_tizen_log.so');
 
   static final _DlogPrint _dlogPrint =
-      _library.lookup<NativeFunction<_DlogPrintNative>>('dlog_print').asFunction();
+      _library.lookup<NativeFunction<_DlogPrintNative>>('ftpw_tizen_log_dlog_print').asFunction();
 
   static final RegExp _stackTraceRegExp = RegExp(
     r'^#(\d+)\s+(.+)\((.+\.dart):(\d+)(:\d+)?\)$',
@@ -166,11 +166,9 @@ class Log {
       message = '${file ?? "-"}: ${func ?? "-"}(${line ?? "-"}) > $message';
     }
     final Pointer<Utf8> tagPtr = tag.toNativeUtf8();
-    final Pointer<Utf8> formatPtr = '%s'.toNativeUtf8();
     final Pointer<Utf8> messagePtr = message.toNativeUtf8();
-    _dlogPrint(priority.value, tagPtr, formatPtr, messagePtr);
+    _dlogPrint(priority.value, tagPtr, messagePtr);
     malloc.free(tagPtr);
-    malloc.free(formatPtr);
     malloc.free(messagePtr);
   }
 
