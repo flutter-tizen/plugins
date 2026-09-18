@@ -22,7 +22,7 @@
 #include <set>
 #include <string>
 
-#include "ewk_internal_api_binding.h"
+#include "ftpw_flutter_inappwebview.h"
 
 typedef flutter::MethodCall<flutter::EncodableValue> FlMethodCall;
 typedef flutter::MethodResult<flutter::EncodableValue> FlMethodResult;
@@ -107,13 +107,13 @@ class WebView : public PlatformView {
   static void OnTitleChange(void* data, Evas_Object* obj, void* event_info);
   static void OnEvaluateJavaScript(Evas_Object* obj, const char* result_value,
                                    void* user_data);
-  static Eina_Bool OnJavaScriptAlertDialog(Evas_Object* o, const char* message,
+  static Eina_Bool OnJavaScriptAlertDialog(void* o, const char* message,
+                                         void* data);
+  static Eina_Bool OnJavaScriptConfirmDialog(void* o, const char* message,
                                            void* data);
-  static Eina_Bool OnJavaScriptConfirmDialog(Evas_Object* o,
-                                             const char* message, void* data);
-  static Eina_Bool OnJavaScriptPromptDialog(Evas_Object* o, const char* message,
-                                            const char* default_text,
-                                            void* data);
+  static Eina_Bool OnJavaScriptPromptDialog(void* o, const char* message,
+                                          const char* default_text,
+                                          void* data);
 
   void SendTouchEvent(int type, double x, double y);
   void SendMouseEvent(int type, int button, double x, double y, double dx,

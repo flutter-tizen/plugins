@@ -274,11 +274,6 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
       height_(height),
       window_(window),
       lifetime_(std::make_shared<WebViewLifetimeState>()) {
-  if (!EwkInternalApiBinding::GetInstance().Initialize()) {
-    LOG_ERROR("Failed to initialize EWK internal APIs.");
-    return;
-  }
-
   tbm_pool_ = std::make_unique<SingleBufferPool>(width, height);
 
   texture_variant_ =
@@ -406,16 +401,12 @@ void WebView::Dispose() {
                                    &WebView::OnUrlChange);
     evas_object_smart_callback_del(webview_instance_, "title,changed",
                                    &WebView::OnTitleChange);
-    auto& ewk_view = EwkInternalApiBinding::GetInstance().view;
-    if (ewk_view.OnJavaScriptAlert) {
-      ewk_view.OnJavaScriptAlert(webview_instance_, nullptr, nullptr);
-    }
-    if (ewk_view.OnJavaScriptConfirm) {
-      ewk_view.OnJavaScriptConfirm(webview_instance_, nullptr, nullptr);
-    }
-    if (ewk_view.OnJavaScriptPrompt) {
-      ewk_view.OnJavaScriptPrompt(webview_instance_, nullptr, nullptr);
-    }
+    ftpw_flutter_inappwebview_ewk_view_javascript_alert_callback_set(
+        webview_instance_, nullptr, nullptr);
+    ftpw_flutter_inappwebview_ewk_view_javascript_confirm_callback_set(
+        webview_instance_, nullptr, nullptr);
+    ftpw_flutter_inappwebview_ewk_view_javascript_prompt_callback_set(
+        webview_instance_, nullptr, nullptr);
     evas_object_del(webview_instance_);
     webview_instance_ = nullptr;
   }
@@ -485,7 +476,7 @@ void WebView::SendTouchEvent(int event_type, double x, double y) {
   point->state = state;
   points = eina_list_append(points, point);
 
-  EwkInternalApiBinding::GetInstance().view.FeedTouchEvent(
+  ftpw_flutter_inappwebview_ewk_view_feed_touch_event(
       webview_instance_, mouse_event_type, points, 0);
   eina_list_free(points);
   delete point;
@@ -511,15 +502,15 @@ void WebView::SendMouseEvent(int event_type, int button_type, double x,
 
   if (event_type == 0) {  // down event
     mouse_button_type_ = mouse_button_type;
-    EwkInternalApiBinding::GetInstance().view.FeedMouseDown(
+    ftpw_flutter_inappwebview_ewk_view_feed_mouse_down(
         webview_instance_, mouse_button_type_, px, py);
   } else if (event_type == 1) {
     if (dy != 0) {
-      EwkInternalApiBinding::GetInstance().view.FeedMouseWheel(
+      ftpw_flutter_inappwebview_ewk_view_feed_mouse_wheel(
           webview_instance_, true, dy > 0 ? 1 : -1, px, py);
     }
   } else if (event_type == 2) {  // up event
-    EwkInternalApiBinding::GetInstance().view.FeedMouseUp(
+    ftpw_flutter_inappwebview_ewk_view_feed_mouse_up(
         webview_instance_, mouse_button_type_, px, py);
     mouse_button_type_ = mouse_button_type;
   } else {
@@ -551,14 +542,14 @@ bool WebView::SendKey(const char* key, const char* string, const char* compose,
     Evas_Event_Key_Down down_event = {};
     down_event.key = key;
     down_event.string = string;
-    EwkInternalApiBinding::GetInstance().view.SendKeyEvent(
+    ftpw_flutter_inappwebview_ewk_view_send_key_event(
         webview_instance_, &down_event, is_down);
   } else {
     Evas_Event_Key_Up up_event = {};
     up_event.key = key;
     up_event.string = string;
-    EwkInternalApiBinding::GetInstance().view.SendKeyEvent(webview_instance_,
-                                                           &up_event, is_down);
+    ftpw_flutter_inappwebview_ewk_view_send_key_event(
+        webview_instance_, &up_event, is_down);
   }
   return true;
 }
@@ -577,8 +568,7 @@ bool WebView::InitWebView() {
         const_cast<char*>("--no-zygote"),
     };
     int chromium_argc = sizeof(chromium_argv) / sizeof(chromium_argv[0]);
-    EwkInternalApiBinding::GetInstance().main.SetArguments(chromium_argc,
-                                                           chromium_argv);
+    ftpw_flutter_inappwebview_ewk_set_arguments(chromium_argc, chromium_argv);
   });
 
   // ewk_init()/ewk_shutdown() are called once per process by
@@ -601,7 +591,7 @@ bool WebView::InitWebView() {
   }
   ecore_evas_focus_set(ecore_evas_, true);
   ewk_view_focus_set(webview_instance_, true);
-  EwkInternalApiBinding::GetInstance().view.OffscreenRenderingEnabledSet(
+  ftpw_flutter_inappwebview_ewk_view_offscreen_rendering_enabled_set(
       webview_instance_, true);
 
   Ewk_Context* context = ewk_view_context_get(webview_instance_);
@@ -617,35 +607,34 @@ bool WebView::InitWebView() {
     LOG_WARN("Unable to access the EWK context; skipping cookie/cache setup.");
   }
 
-  EwkInternalApiBinding::GetInstance().settings.ImePanelEnabledSet(
+  ftpw_flutter_inappwebview_ewk_settings_ime_panel_enabled_set(
       ewk_view_settings_get(webview_instance_), true);
-  EwkInternalApiBinding::GetInstance().settings.ForceZoomSet(
+  ftpw_flutter_inappwebview_ewk_settings_force_zoom_set(
       ewk_view_settings_get(webview_instance_), true);
-  EwkInternalApiBinding::GetInstance().view.ImeWindowSet(webview_instance_,
-                                                         window_);
-  EwkInternalApiBinding::GetInstance().view.KeyEventsEnabledSet(
+  ftpw_flutter_inappwebview_ewk_view_ime_window_set(webview_instance_, window_);
+  ftpw_flutter_inappwebview_ewk_view_key_events_enabled_set(
       webview_instance_, true);
 #ifdef WEBVIEW_TIZEN_TOUCH_EVENTS_ENABLED
-  EwkInternalApiBinding::GetInstance().view.TouchEventsEnabledSet(
+  ftpw_flutter_inappwebview_ewk_view_touch_events_enabled_set(
       webview_instance_, true);
-  EwkInternalApiBinding::GetInstance().view.MouseEventsEnabledSet(
+  ftpw_flutter_inappwebview_ewk_view_mouse_events_enabled_set(
       webview_instance_, false);
 #else
-  EwkInternalApiBinding::GetInstance().view.TouchEventsEnabledSet(
+  ftpw_flutter_inappwebview_ewk_view_touch_events_enabled_set(
       webview_instance_, false);
-  EwkInternalApiBinding::GetInstance().view.MouseEventsEnabledSet(
+  ftpw_flutter_inappwebview_ewk_view_mouse_events_enabled_set(
       webview_instance_, true);
 #endif
 
-  EwkInternalApiBinding::GetInstance().view.OnJavaScriptAlert(
+  ftpw_flutter_inappwebview_ewk_view_javascript_alert_callback_set(
       webview_instance_, &WebView::OnJavaScriptAlertDialog, this);
-  EwkInternalApiBinding::GetInstance().view.OnJavaScriptConfirm(
+  ftpw_flutter_inappwebview_ewk_view_javascript_confirm_callback_set(
       webview_instance_, &WebView::OnJavaScriptConfirmDialog, this);
-  EwkInternalApiBinding::GetInstance().view.OnJavaScriptPrompt(
+  ftpw_flutter_inappwebview_ewk_view_javascript_prompt_callback_set(
       webview_instance_, &WebView::OnJavaScriptPromptDialog, this);
 
 #ifdef TV_PROFILE
-  EwkInternalApiBinding::GetInstance().view.SupportVideoHoleSet(
+  ftpw_flutter_inappwebview_ewk_view_set_support_video_hole(
       webview_instance_, window_, true, false);
 #endif
 
@@ -676,7 +665,7 @@ bool WebView::InitWebView() {
 
 template <typename T>
 void WebView::SetBackgroundColor(const T& color) {
-  EwkInternalApiBinding::GetInstance().view.SetBackgroundColor(
+  ftpw_flutter_inappwebview_ewk_view_bg_color_set(
       webview_instance_, color >> 16 & 0xff, color >> 8 & 0xff, color & 0xff,
       color >> 24 & 0xff);
 }
@@ -689,7 +678,7 @@ void WebView::ApplySettings(const flutter::EncodableMap& settings) {
   }
 
   if (GetValueFromEncodableMap(settings, "supportZoom", &bool_value)) {
-    EwkInternalApiBinding::GetInstance().settings.ForceZoomSet(
+    ftpw_flutter_inappwebview_ewk_settings_force_zoom_set(
         ewk_view_settings_get(webview_instance_), bool_value);
   }
 
@@ -1044,13 +1033,13 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
       result->Error("Invalid argument", "No settings provided.");
     }
   } else if (method_name == "javaScriptAlertReply") {
-    EwkInternalApiBinding::GetInstance().view.JavaScriptAlertReply(
+    ftpw_flutter_inappwebview_ewk_view_javascript_alert_reply(
         webview_instance_);
     result->Success();
   } else if (method_name == "javaScriptConfirmReply") {
     const auto* value = std::get_if<bool>(arguments);
     if (value) {
-      EwkInternalApiBinding::GetInstance().view.JavaScriptConfirmReply(
+      ftpw_flutter_inappwebview_ewk_view_javascript_confirm_reply(
           webview_instance_, *value);
       result->Success();
     } else {
@@ -1060,7 +1049,7 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
     // A null argument signals that the prompt was cancelled; pass nullptr to
     // EWK so the JavaScript prompt() call resolves to null.
     const auto* value = std::get_if<std::string>(arguments);
-    EwkInternalApiBinding::GetInstance().view.JavaScriptPromptReply(
+    ftpw_flutter_inappwebview_ewk_view_javascript_prompt_reply(
         webview_instance_, value ? value->c_str() : nullptr);
     result->Success();
   } else {
@@ -1170,17 +1159,17 @@ void WebView::OnLoadError(void* data, Evas_Object* obj, void* event_info) {
 }
 
 void WebView::OnConsoleMessage(void* data, Evas_Object* obj, void* event_info) {
-  Ewk_Console_Message* message = static_cast<Ewk_Console_Message*>(event_info);
   Ewk_Console_Message_Level log_level =
-      EwkInternalApiBinding::GetInstance().console_message.LevelGet(message);
-  std::string text =
-      EwkInternalApiBinding::GetInstance().console_message.TextGet(message);
+      ftpw_flutter_inappwebview_ewk_console_message_level_get(event_info);
+  const char* text =
+      ftpw_flutter_inappwebview_ewk_console_message_text_get(event_info);
   WebView* webview = static_cast<WebView*>(data);
   if (webview->webview_channel_) {
     flutter::EncodableMap args = {
         {flutter::EncodableValue("messageLevel"),
          flutter::EncodableValue(ConvertLogLevel(log_level))},
-        {flutter::EncodableValue("message"), flutter::EncodableValue(text)},
+        {flutter::EncodableValue("message"),
+         flutter::EncodableValue(text ? text : "")},
     };
     webview->webview_channel_->InvokeMethod(
         "onConsoleMessage", std::make_unique<flutter::EncodableValue>(args));
@@ -1269,8 +1258,8 @@ void WebView::OnEvaluateJavaScript(Evas_Object* obj, const char* result_value,
   delete result;
 }
 
-Eina_Bool WebView::OnJavaScriptAlertDialog(Evas_Object* o, const char* message,
-                                           void* data) {
+Eina_Bool WebView::OnJavaScriptAlertDialog(void* o, const char* message,
+                                         void* data) {
   WebView* webview = static_cast<WebView*>(data);
   flutter::EncodableMap args = {
       {flutter::EncodableValue("message"),
@@ -1283,8 +1272,8 @@ Eina_Bool WebView::OnJavaScriptAlertDialog(Evas_Object* o, const char* message,
   return true;
 }
 
-Eina_Bool WebView::OnJavaScriptConfirmDialog(Evas_Object* o,
-                                             const char* message, void* data) {
+Eina_Bool WebView::OnJavaScriptConfirmDialog(void* o, const char* message,
+                                           void* data) {
   WebView* webview = static_cast<WebView*>(data);
   flutter::EncodableMap args = {
       {flutter::EncodableValue("message"),
@@ -1297,9 +1286,9 @@ Eina_Bool WebView::OnJavaScriptConfirmDialog(Evas_Object* o,
   return true;
 }
 
-Eina_Bool WebView::OnJavaScriptPromptDialog(Evas_Object* o, const char* message,
-                                            const char* default_text,
-                                            void* data) {
+Eina_Bool WebView::OnJavaScriptPromptDialog(void* o, const char* message,
+                                          const char* default_text,
+                                          void* data) {
   WebView* webview = static_cast<WebView*>(data);
   flutter::EncodableMap args = {
       {flutter::EncodableValue("message"),
