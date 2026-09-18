@@ -1,3 +1,8 @@
+## NEXT
+
+* Use wrapper API.
+
+
 ## 1.4.3
 
 * Add `DeviceInfoPluginTizen.duid` to retrieve the device's DUID (Device Unique ID).
