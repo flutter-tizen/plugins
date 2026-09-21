@@ -28,8 +28,7 @@ class WebViewBackend {
                              const std::string& failing_url) = 0;
     virtual void OnConsoleMessage(const std::string& level,
                                   const std::string& message) = 0;
-    // `current_url` is the view's URL captured BEFORE the policy decision was
-    // accepted; accepting can fire "url,changed" for the new URL immediately.
+    // NOTE: Capture current_url before accepting; it may emit "url,changed".
     virtual void OnNavigationPolicyDecide(const std::string& url,
                                           const std::string& current_url) = 0;
     virtual void OnUrlChanged(const std::string& url) = 0;
@@ -63,8 +62,7 @@ class WebViewBackend {
   virtual void SetJavaScriptEnabled(bool enabled) = 0;
 
   virtual bool LoadUrl(const std::string& url) = 0;
-  // `method` is 0 for GET, 1 for POST. `body` is the raw request body with no
-  // trailing NUL; empty means no body.
+  // NOTE: method is 0 for GET and 1 for POST; body has no trailing NUL.
   virtual bool LoadUrlRequest(const std::string& url, int32_t method,
                               const std::map<std::string, std::string>& headers,
                               const std::vector<uint8_t>& body) = 0;
@@ -89,8 +87,7 @@ class WebViewBackend {
   virtual void EnableZoom(bool enabled) = 0;
   virtual void JavaScriptAlertReply() = 0;
   virtual void JavaScriptConfirmReply(bool result) = 0;
-  // `nullptr` means the prompt was cancelled, so JavaScript `prompt()` resolves
-  // to null. An empty string is a confirmed empty answer, not a cancellation.
+  // NOTE: nullptr cancels the prompt; an empty string confirms an empty value.
   virtual void JavaScriptPromptReply(const char* result) = 0;
   virtual bool ClearCookies() = 0;
 

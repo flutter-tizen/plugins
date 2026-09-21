@@ -60,16 +60,13 @@ class WebView : public PlatformView, public WebViewBackend::Delegate {
   void ResumeNavigation();
   void StopNavigation();
 
-  // Process-wide helpers used by static channels. They iterate live WebView
-  // instances and rely on the shared engine context.
   static void ClearAllCache();
   static bool ClearAllCookies();
   static std::string GetDefaultUserAgent();
 
-  // Must be called exactly once, before any WebView is constructed.
+  // NOTE: Call exactly once before constructing any WebView.
   static void InitializeEngine();
-  // Must be called exactly once, after every WebView has been destroyed.
-  // ewk_shutdown() fatally CHECKs if any view is still alive.
+  // NOTE: Call exactly once after destroying every WebView.
   static void ShutdownEngine();
 
  private:
@@ -82,8 +79,6 @@ class WebView : public PlatformView, public WebViewBackend::Delegate {
 
   bool InitWebView();
 
-  // Marks an app-initiated navigation so OnNavigationPolicyDecide skips
-  // shouldOverrideUrlLoading; cleared immediately if it never started.
   bool NavigateProgrammatically(const std::function<bool()>& backend_call);
 
   void OnFrameRendered(void* tbm_surface) override;
@@ -114,14 +109,8 @@ class WebView : public PlatformView, public WebViewBackend::Delegate {
   bool has_navigation_delegate_ = false;
   std::unique_ptr<FlMethodChannel> webview_channel_;
   std::unique_ptr<flutter::TextureVariant> texture_variant_;
-  // Extracted from WebView so the raster thread's populate callback reaches
-  // only these fields, never the WebView the embedder deletes right after
-  // Dispose(). The pool is also kept alive past the view by the deferred
-  // teardown.
   std::shared_ptr<RenderState> render_state_;
   std::shared_ptr<WebViewLifetimeState> lifetime_;
-  // In-flight evaluateJavascript replies, failed by Dispose(); see the
-  // JavaScriptReply comment in webview.cc.
   std::vector<std::weak_ptr<JavaScriptReply>> pending_js_replies_;
   bool texture_registered_ = false;
   bool disposed_ = false;

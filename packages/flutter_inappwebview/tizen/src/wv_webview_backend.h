@@ -74,9 +74,6 @@ class WvWebViewBackend : public WebViewBackend {
   static void GlobalShutdown();
 
  private:
-  // Detaches every callback from the view and hands ownership of the raw
-  // wv_view_h back to the caller, which must destroy it. Returns nullptr if
-  // the view was already detached.
   wv_view_h DetachView();
 
   static void OnFrameRendered(wv_view_h obj, void* event_info, void* user_data);

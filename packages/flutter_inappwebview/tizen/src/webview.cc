@@ -25,9 +25,7 @@ struct WebViewLifetimeState {
   std::atomic_bool disposed = false;
 };
 
-// Owned by a shared_ptr so the raster thread's GpuSurfaceTexture callback
-// never touches the WebView, which the embedder deletes one statement after
-// Dispose() while frames can still be in flight.
+// NOTE: This state outlives WebView while raster callbacks are in flight.
 struct RenderState {
   std::mutex mutex;
   BufferUnit* working = nullptr;
@@ -80,8 +78,6 @@ constexpr int kConsoleMessageDebug = 4;
 constexpr int kConsoleMessageInfo = 0;
 constexpr int kWebResourceErrorUnknown = -1;
 
-// The backend reports the level as one of the strings defined by
-// WebViewBackend::Delegate::OnConsoleMessage.
 int ConvertLogLevel(const std::string& level) {
   if (level == "warning") {
     return kConsoleMessageWarning;
@@ -216,8 +212,6 @@ flutter::EncodableMap CreateErrorMap(
   return map;
 }
 
-// The engine reports a missing URL or title as an empty string; the Dart API
-// expects null in that case.
 flutter::EncodableValue ToNullableString(const std::string& value) {
   return value.empty() ? flutter::EncodableValue()
                        : flutter::EncodableValue(value);
@@ -245,8 +239,6 @@ bool WebView::ClearAllCookies() {
     if (!instance || !instance->backend_) {
       continue;
     }
-    // Views in this plugin share the default engine context, so any live view
-    // can provide the process-wide cookie manager.
     if (instance->backend_->ClearCookies()) {
       return true;
     }
@@ -257,9 +249,7 @@ bool WebView::ClearAllCookies() {
 void WebView::InitializeEngine() { WebViewBackendFactory::InitializeEngine(); }
 
 void WebView::ShutdownEngine() {
-  // The engine shutdown fatally CHECKs (SIGTRAP) on a live view. Dispose()
-  // normally empties instances_ already; past the deadline, force-dispose
-  // the stragglers instead of shutting down anyway.
+  // NOTE: Every view must be disposed before engine shutdown.
   constexpr gint64 kDeadlineUsec = 2 * G_USEC_PER_SEC;
   const gint64 deadline = g_get_monotonic_time() + kDeadlineUsec;
   for (;;) {
@@ -377,7 +367,7 @@ void WebView::StopNavigation() {
   if (!url_before_navigation_.empty()) {
     committed_url_ = url_before_navigation_;
   }
-  // Stop() has no effect while the view is suspended.
+  // NOTE: A suspended view must be resumed before it can be stopped.
   backend_->Resume();
   backend_->Stop();
 }
@@ -426,9 +416,7 @@ void WebView::Dispose() {
       if (!teardown) {
         return;
       }
-      // Must stay a high-priority timeout: the completion runs off the
-      // platform thread, and g_idle_add() runs too late -- the delete then
-      // races the raster thread on the TV emulator.
+      // NOTE: High priority avoids a raster teardown race on the TV emulator.
       g_timeout_add_full(
           G_PRIORITY_HIGH, 0,
           [](gpointer data) -> gboolean {
@@ -443,8 +431,6 @@ void WebView::Dispose() {
     });
     texture_registered_ = false;
   } else if (teardown) {
-    // No texture was ever registered, so nothing can still be reading the
-    // buffers.
     teardown();
   }
 
@@ -669,7 +655,6 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
       return;
     }
     GetValueFromEncodableMap(arguments, "baseUrl", &base_url);
-    // Bypasses the navigation policy, so clear any stale cancellation here.
     is_navigation_cancelled_ = false;
     if (!NavigateProgrammatically([this, &data, &base_url] {
           return backend_->LoadHtmlString(data, base_url);
@@ -769,8 +754,7 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
     } else {
       int32_t current_x = 0, current_y = 0;
       backend_->GetScrollPosition(&current_x, &current_y);
-      // Only trust a pending target briefly; it can go stale (manual
-      // scroll, engine clamping) since ScrollTo() applies asynchronously.
+      // NOTE: Asynchronous scrolling makes older targets unreliable.
       constexpr auto kTargetTtl = std::chrono::milliseconds(100);
       const bool target_fresh =
           std::chrono::steady_clock::now() - target_scroll_set_time_ <
@@ -849,8 +833,6 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
       result->Error("Invalid argument", "The argument must be a bool.");
     }
   } else if (method_name == "javaScriptPromptReply") {
-    // A null argument signals that the prompt was cancelled; pass nullptr so
-    // the JavaScript prompt() call resolves to null.
     const auto* value = std::get_if<std::string>(arguments);
     backend_->JavaScriptPromptReply(value ? value->c_str() : nullptr);
     result->Success();
@@ -962,8 +944,6 @@ void WebView::OnNavigationPolicyDecide(const std::string& url,
   is_navigation_cancelled_ = false;
 
   if (is_programmatic_navigation_) {
-    // App-initiated navigations skip shouldOverrideUrlLoading, and must not be
-    // suspended.
     is_programmatic_navigation_ = false;
     return;
   }
@@ -972,8 +952,6 @@ void WebView::OnNavigationPolicyDecide(const std::string& url,
     return;
   }
 
-  // Captured before the decision was accepted, so it is the URL to roll back
-  // to if Dart cancels this navigation.
   url_before_navigation_ = current_url;
 
   // Suspended until NavigationRequestResult resumes or stops it.

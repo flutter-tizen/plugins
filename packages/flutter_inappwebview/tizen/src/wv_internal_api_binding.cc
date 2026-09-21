@@ -7,7 +7,7 @@
 #include <dlfcn.h>
 
 WvInternalApiBinding::WvInternalApiBinding() {
-  // The wv_* dispatcher lives in the same library as the ewk_* one.
+  // NOTE: WV symbols are exported by the Chromium EWK library.
   handle_ = dlopen("libchromium-ewk.so", RTLD_LAZY);
 }
 

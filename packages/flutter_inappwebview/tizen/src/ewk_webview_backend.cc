@@ -37,14 +37,11 @@ std::string ConvertLogLevelToString(Ewk_Console_Message_Level level) {
   }
 }
 
-// Every engine getter below may return null; a std::string built from null is
-// undefined behavior.
 std::string ToString(const char* value) {
   return value ? std::string(value) : std::string();
 }
 
-// Never freed: ecore_evas_free() eglTerminate()s the shared EGL display and
-// takes the whole app down with it.
+// NOTE: Freeing this host terminates the EGL display shared by the app.
 Ecore_Evas* g_offscreen_host = nullptr;
 
 }  // namespace
@@ -61,8 +58,6 @@ EwkWebViewBackend::~EwkWebViewBackend() {
 void EwkWebViewBackend::GlobalInitialize() { ewk_init(); }
 
 void EwkWebViewBackend::GlobalShutdown() {
-  // ewk_shutdown() fatally CHECKs on a live view, so drain deferred teardowns
-  // first.
   FlushPendingTeardowns();
   ewk_shutdown();
 }
@@ -177,8 +172,7 @@ Evas_Object* EwkWebViewBackend::DetachView() {
     return nullptr;
   }
 
-  // The view may still be suspended while waiting on a Dart navigation reply
-  // that will never arrive. Resume so destruction does not stall.
+  // NOTE: A suspended view must be resumed before it can be stopped.
   ewk_view_resume(instance);
   ewk_view_stop(instance);
   evas_object_hide(instance);
@@ -327,7 +321,6 @@ bool EwkWebViewBackend::SendKey(const char* key, const char* string,
 
   if (key && strcmp(key, "XF86Back") == 0 && !is_down) {
     if (ewk_view_back_possible(view_)) {
-      // Not programmatic: must still reach shouldOverrideUrlLoading.
       ewk_view_back(view_);
       return true;
     }
@@ -401,8 +394,7 @@ bool EwkWebViewBackend::LoadUrlRequest(
                   strdup(header.second.c_str()));
   }
 
-  // ewk_view_url_request_set() takes the body as a C string, so it has to be
-  // NUL-terminated; `body` carries no terminator.
+  // NOTE: The EWK API requires a NUL-terminated request body.
   std::string body_str(body.begin(), body.end());
   bool ret =
       ewk_view_url_request_set(view_, url.c_str(), ewk_method, ewk_headers,
@@ -504,8 +496,6 @@ bool EwkWebViewBackend::ClearCookies() {
   if (!view_) {
     return false;
   }
-  // EWK views in this plugin share the default context, so any live view can
-  // provide the process-wide cookie manager.
   Ewk_Context* context = ewk_view_context_get(view_);
   Ewk_Cookie_Manager* cookie_manager =
       context ? ewk_context_cookie_manager_get(context) : nullptr;
@@ -520,8 +510,6 @@ int32_t EwkWebViewBackend::GetProgress() {
   if (!view_) {
     return 0;
   }
-  // The engine returns a negative value when progress is unreadable; report it
-  // as 0 rather than handing Dart a negative percentage.
   double progress = ewk_view_load_progress_get(view_);
   if (progress < 0) {
     return 0;
@@ -533,8 +521,6 @@ double EwkWebViewBackend::GetScale() {
   if (!view_) {
     return 1.0;
   }
-  // The engine returns -1 on failure; zoomBy() multiplies this value and
-  // applies the result, so fall back to the identity scale.
   double scale = ewk_view_scale_get(view_);
   return scale > 0 ? scale : 1.0;
 }
@@ -602,13 +588,9 @@ void EwkWebViewBackend::OnNavigationPolicy(void* data, Evas_Object* obj,
   Ewk_Policy_Decision* policy_decision =
       static_cast<Ewk_Policy_Decision*>(event_info);
 
-  // Snapshot before accepting: ewk_policy_decision_use() can trigger
-  // "url,changed" for the new URL immediately.
   const std::string current_url = ToString(ewk_view_url_get(backend->view_));
   ewk_policy_decision_use(policy_decision);
 
-  // The delegate runs synchronously inside this smart-callback frame, so a
-  // suspend it requests still lands before the navigation can proceed.
   backend->delegate_->OnNavigationPolicyDecide(
       ToString(ewk_policy_decision_url_get(policy_decision)), current_url);
 }
@@ -622,7 +604,6 @@ void EwkWebViewBackend::OnUrlChange(void* data, Evas_Object* obj,
 void EwkWebViewBackend::OnTitleChange(void* data, Evas_Object* obj,
                                       void* event_info) {
   const char* title = static_cast<const char*>(event_info);
-  // A null title is dropped, not reported as an empty one.
   if (!title) {
     return;
   }

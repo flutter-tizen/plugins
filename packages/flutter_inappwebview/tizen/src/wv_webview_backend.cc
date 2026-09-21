@@ -209,8 +209,7 @@ wv_view_h WvWebViewBackend::DetachView() {
   wv.view.OnJavaScriptConfirm(instance, nullptr, nullptr);
   wv.view.OnJavaScriptPrompt(instance, nullptr, nullptr);
 
-  // A pending navigation reply may have left the view suspended. Resume it
-  // before stopping so deferred destruction cannot stall.
+  // NOTE: A suspended view must be resumed before it can be stopped.
   wv.view.Resume(instance);
   wv.view.Stop(instance);
 
@@ -232,8 +231,7 @@ std::function<void()> WvWebViewBackend::PrepareTeardown(
 }
 
 void WvWebViewBackend::Offset(double /* left */, double /* top */) {
-  // WV input coordinates are relative to the offscreen view. Unlike EWK,
-  // there is no positioned Evas object whose canvas offset must be added.
+  // NOTE: WV input coordinates are relative to the offscreen view.
 }
 
 void WvWebViewBackend::Resize(double width, double height) {
@@ -384,9 +382,7 @@ bool WvWebViewBackend::LoadUrlRequest(
                         g_strdup(header.second.c_str()));
   }
 
-  // wv_view_url_request_set() takes a C string, but `body` carries no trailing
-  // NUL; an empty body must be passed as nullptr, not as data() on an empty
-  // vector.
+  // NOTE: The WV API requires a NUL-terminated non-empty request body.
   std::string body_str(body.begin(), body.end());
   bool ret = WvInternalApiBinding::GetInstance().view.UrlRequestSet(
       view_, url.c_str(), wv_method, wv_headers,
@@ -430,8 +426,6 @@ int32_t WvWebViewBackend::GetProgress() {
   if (!view_) {
     return 0;
   }
-  // wv_view_load_progress_get() reports 0.0-1.0, or -1.0 on failure; the upper
-  // layer expects a percentage.
   double progress =
       WvInternalApiBinding::GetInstance().view.LoadProgressGet(view_);
   if (progress < 0) {
@@ -444,8 +438,6 @@ double WvWebViewBackend::GetScale() {
   if (!view_) {
     return 1.0;
   }
-  // The engine returns -1 on failure; zoomBy() multiplies this value and
-  // applies the result, so fall back to the identity scale.
   double scale = WvInternalApiBinding::GetInstance().view.ScaleGet(view_);
   return scale > 0 ? scale : 1.0;
 }
@@ -519,7 +511,6 @@ void WvWebViewBackend::JavaScriptConfirmReply(bool result) {
 }
 
 void WvWebViewBackend::JavaScriptPromptReply(const char* result) {
-  // `result` is passed through as-is: nullptr means the prompt was cancelled.
   WvInternalApiBinding::GetInstance().view.JavaScriptPromptReply(view_, result);
 }
 
@@ -603,9 +594,6 @@ void WvWebViewBackend::OnNavigationPolicy(wv_view_h obj, void* event_info,
       static_cast<wv_policy_decision_h>(event_info);
   auto& wv = WvInternalApiBinding::GetInstance();
 
-  // Snapshot before accepting: wv_policy_decision_use() can fire "url,changed"
-  // for the new URL immediately. Suspending is the upper layer's call, so this
-  // never suspends the view itself.
   const char* current_url = wv.view.UrlGet(backend->view_);
   const std::string url_before_navigation = current_url ? current_url : "";
   const char* url = wv.policy_decision.UrlGet(policy_decision);

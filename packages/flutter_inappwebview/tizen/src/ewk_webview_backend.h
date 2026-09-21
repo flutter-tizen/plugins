@@ -74,16 +74,12 @@ class EwkWebViewBackend : public WebViewBackend {
   double GetScale() override;
   void SetScale(double scale, int32_t x, int32_t y) override;
 
-  // ewk_init()/ewk_shutdown() are process-wide and must bracket every view.
   static void GlobalInitialize();
   static void GlobalShutdown();
 
  private:
   static Ecore_Evas* GetOffscreenHost();
 
-  // Detaches every callback from the view and hands ownership of the raw
-  // Evas_Object back to the caller, which must delete it. Returns nullptr if
-  // the view was already detached.
   Evas_Object* DetachView();
 
   static void OnFrameRendered(void* data, Evas_Object* obj, void* event_info);

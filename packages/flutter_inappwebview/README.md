@@ -8,9 +8,9 @@ This package follows the same offscreen rendering approach as
 [`webview_flutter_tizen`](https://pub.dev/packages/webview_flutter_tizen) and
 maps it onto the `flutter_inappwebview` platform interface. It uses EWK through
 Tizen 10.0, WV's EWK-wrapper mode on Tizen 10.1, and WV standalone mode from
-Tizen 11.0. Only the surface that maps cleanly onto the Tizen WebView
-(chromium-efl) is implemented; every other API raises `UnsupportedError` (or
-the `UnimplementedError` produced by the
+Tizen 11.0. The WV modes are experimental. Only the surface that maps cleanly
+onto the Tizen WebView (chromium-efl) is implemented; every other API raises
+`UnsupportedError` (or the `UnimplementedError` produced by the
 `flutter_inappwebview_platform_interface` defaults).
 
 ## Required privileges
