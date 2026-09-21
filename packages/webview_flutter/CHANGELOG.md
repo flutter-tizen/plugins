@@ -1,5 +1,11 @@
-## NEXT
+## 0.11.1
 
+* Update minimum supported SDK version to Flutter 3.38/Dart 3.10.
+* Update webview_flutter to 4.14.1.
+* Update webview_flutter_platform_interface to 2.15.1.
+* Select the web engine backend from the device's platform version.
+* Fix a crash and missing request headers on the WV backend.
+* Correct the WV API declarations.
 * Omit obvious local variable types.
 * Reformat with a line length of 100.
 
