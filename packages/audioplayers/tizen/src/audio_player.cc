@@ -15,6 +15,7 @@ namespace {
 struct IdleData {
   AudioPlayer *player;
   std::shared_ptr<bool> is_alive;
+  unsigned int generation;
 };
 
 }  // namespace
@@ -50,6 +51,10 @@ AudioPlayer::~AudioPlayer() {
 }
 
 void AudioPlayer::Play() {
+  if (seeking_) {
+    pending_action_ = PendingAction::kPlay;
+    return;
+  }
   player_state_e state = GetPlayerState();
   if (state == PLAYER_STATE_IDLE && preparing_) {
     // Player is preparing, play will be called in prepared callback.
@@ -97,6 +102,10 @@ void AudioPlayer::Play() {
 }
 
 void AudioPlayer::Pause() {
+  if (seeking_) {
+    pending_action_ = PendingAction::kPause;
+    return;
+  }
   if (GetPlayerState() == PLAYER_STATE_PLAYING) {
     int ret = player_pause(player_);
     if (ret != PLAYER_ERROR_NONE) {
@@ -108,30 +117,27 @@ void AudioPlayer::Pause() {
 }
 
 void AudioPlayer::Stop() {
+  should_play_ = false;
+  if (release_mode_ == ReleaseMode::kRelease) {
+    ReleaseMediaSource();
+    return;
+  }
+  if (seeking_) {
+    pending_action_ = PendingAction::kPause;
+    should_seek_to_ = 0;
+    return;
+  }
   player_state_e state = GetPlayerState();
   if (state == PLAYER_STATE_PLAYING || state == PLAYER_STATE_PAUSED) {
-    int ret = player_stop(player_);
-    if (ret != PLAYER_ERROR_NONE) {
-      throw AudioPlayerError("player_stop failed", get_error_message(ret));
-    }
-    // Reset the play position to 0 to match other platforms, per the
-    // AudioPlayer.stop() contract:
-    // https://pub.dev/documentation/audioplayers/latest/audioplayers/AudioPlayer/stop.html
-    // This is best-effort: on some devices (e.g. TV with network sources)
-    // player_set_play_position right after stop can fail with an invalid
-    // state, which must not crash the app.
+    Pause();
     try {
       Seek(0);
     } catch (const AudioPlayerError &error) {
       OnLog("Failed to reset position on stop: " + error.message());
     }
-  }
-
-  should_play_ = false;
-  seeking_ = false;
-
-  if (release_mode_ == ReleaseMode::kRelease) {
-    ReleaseMediaSource();
+  } else if (state == PLAYER_STATE_READY) {
+    ResetPlayer();
+    PreparePlayer();
   }
 }
 
@@ -143,6 +149,7 @@ void AudioPlayer::ReleaseMediaSource() {
 
 void AudioPlayer::Seek(int32_t position) {
   if (seeking_) {
+    should_seek_to_ = position;
     return;
   }
 
@@ -359,6 +366,12 @@ void AudioPlayer::ResetPlayer() {
       }
       break;
   }
+  ++generation_;
+  preparing_ = false;
+  seeking_ = false;
+  should_play_ = false;
+  should_seek_to_ = -1;
+  pending_action_ = PendingAction::kNone;
 }
 
 player_state_e AudioPlayer::GetPlayerState() {
@@ -381,7 +394,7 @@ void AudioPlayer::OnPrepared(void *data) {
       G_PRIORITY_DEFAULT_IDLE,
       [](gpointer data) -> gboolean {
         auto *idle = static_cast<IdleData *>(data);
-        if (!*idle->is_alive) {
+        if (!*idle->is_alive || idle->generation != idle->player->generation_) {
           return G_SOURCE_REMOVE;
         }
         auto *player = idle->player;
@@ -396,17 +409,7 @@ void AudioPlayer::OnPrepared(void *data) {
         }
         player_set_playback_rate(player->player_, player->playback_rate_);
 
-        if (player->should_play_) {
-          int ret = player_start(player->player_);
-          if (ret != PLAYER_ERROR_NONE) {
-            player->log_listener_(player->player_id_, "player_start failed.");
-            return G_SOURCE_REMOVE;
-          }
-          player->StartPositionUpdates();
-          player->should_play_ = false;
-        }
-
-        if (player->should_seek_to_ > 0) {
+        if (player->should_seek_to_ >= 0) {
           player->seeking_ = true;
           int ret =
               player_set_play_position(player->player_, player->should_seek_to_,
@@ -418,10 +421,25 @@ void AudioPlayer::OnPrepared(void *data) {
             return G_SOURCE_REMOVE;
           }
           player->should_seek_to_ = -1;
+          if (player->should_play_) {
+            player->pending_action_ = PendingAction::kPlay;
+            player->should_play_ = false;
+          }
+          return G_SOURCE_REMOVE;
+        }
+
+        if (player->should_play_) {
+          int ret = player_start(player->player_);
+          if (ret != PLAYER_ERROR_NONE) {
+            player->log_listener_(player->player_id_, "player_start failed.");
+            return G_SOURCE_REMOVE;
+          }
+          player->StartPositionUpdates();
+          player->should_play_ = false;
         }
         return G_SOURCE_REMOVE;
       },
-      new IdleData{self, self->is_alive_},
+      new IdleData{self, self->is_alive_, self->generation_},
       [](gpointer data) { delete static_cast<IdleData *>(data); });
 }
 
@@ -434,15 +452,37 @@ void AudioPlayer::OnSeekCompleted(void *data) {
       G_PRIORITY_DEFAULT_IDLE,
       [](gpointer data) -> gboolean {
         auto *idle = static_cast<IdleData *>(data);
-        if (!*idle->is_alive) {
+        if (!*idle->is_alive || idle->generation != idle->player->generation_) {
           return G_SOURCE_REMOVE;
         }
         auto *player = idle->player;
-        player->seek_completed_listener_(player->player_id_);
         player->seeking_ = false;
+        try {
+          if (player->should_seek_to_ >= 0) {
+            int position = player->should_seek_to_;
+            player->should_seek_to_ = -1;
+            player->Seek(position);
+            return G_SOURCE_REMOVE;
+          }
+          auto action = player->pending_action_;
+          player->pending_action_ = PendingAction::kNone;
+          switch (action) {
+            case PendingAction::kPlay:
+              player->Play();
+              break;
+            case PendingAction::kPause:
+              player->Pause();
+              break;
+            case PendingAction::kNone:
+              break;
+          }
+          player->seek_completed_listener_(player->player_id_);
+        } catch (const AudioPlayerError &error) {
+          player->OnLog(error.code() + ": " + error.message());
+        }
         return G_SOURCE_REMOVE;
       },
-      new IdleData{self, self->is_alive_},
+      new IdleData{self, self->is_alive_, self->generation_},
       [](gpointer data) { delete static_cast<IdleData *>(data); });
 }
 
@@ -455,12 +495,11 @@ void AudioPlayer::OnPlayCompleted(void *data) {
       G_PRIORITY_DEFAULT_IDLE,
       [](gpointer data) -> gboolean {
         auto *idle = static_cast<IdleData *>(data);
-        if (!*idle->is_alive) {
+        if (!*idle->is_alive || idle->generation != idle->player->generation_) {
           return G_SOURCE_REMOVE;
         }
         auto *player = idle->player;
         try {
-          player->Seek(0);
           player->Stop();
           player->play_completed_listener_(player->player_id_);
         } catch (const AudioPlayerError &error) {
@@ -468,7 +507,7 @@ void AudioPlayer::OnPlayCompleted(void *data) {
         }
         return G_SOURCE_REMOVE;
       },
-      new IdleData{self, self->is_alive_},
+      new IdleData{self, self->is_alive_, self->generation_},
       [](gpointer data) { delete static_cast<IdleData *>(data); });
 }
 
@@ -480,14 +519,14 @@ void AudioPlayer::OnInterrupted(player_interrupted_code_e code, void *data) {
       G_PRIORITY_DEFAULT_IDLE,
       [](gpointer data) -> gboolean {
         auto *idle = static_cast<IdleData *>(data);
-        if (!*idle->is_alive) {
+        if (!*idle->is_alive || idle->generation != idle->player->generation_) {
           return G_SOURCE_REMOVE;
         }
         idle->player->log_listener_(idle->player->player_id_,
                                     "Player interrupted.");
         return G_SOURCE_REMOVE;
       },
-      new IdleData{self, self->is_alive_},
+      new IdleData{self, self->is_alive_, self->generation_},
       [](gpointer data) { delete static_cast<IdleData *>(data); });
 }
 
@@ -499,20 +538,23 @@ void AudioPlayer::OnError(int code, void *data) {
   struct ErrorData {
     AudioPlayer *player;
     std::shared_ptr<bool> is_alive;
+    unsigned int generation;
     std::string message;
   };
   g_idle_add_full(
       G_PRIORITY_DEFAULT_IDLE,
       [](gpointer data) -> gboolean {
         auto *error_data = static_cast<ErrorData *>(data);
-        if (!*error_data->is_alive) {
+        if (!*error_data->is_alive ||
+            error_data->generation != error_data->player->generation_) {
           return G_SOURCE_REMOVE;
         }
         error_data->player->log_listener_(error_data->player->player_id_,
                                           error_data->message);
         return G_SOURCE_REMOVE;
       },
-      new ErrorData{self, self->is_alive_, get_error_message(code)},
+      new ErrorData{self, self->is_alive_, self->generation_,
+                    get_error_message(code)},
       [](gpointer data) { delete static_cast<ErrorData *>(data); });
 }
 
