@@ -7,6 +7,8 @@
 
 #include <Evas.h>
 
+#include <optional>
+
 typedef enum {
   EWK_TOUCH_START,
   EWK_TOUCH_MOVE,
@@ -168,6 +170,7 @@ class EwkInternalApiBinding {
   EwkInternalApiBinding();
 
   void* handle_ = nullptr;
+  std::optional<bool> initialize_result_;
 };
 
 #endif  // FLUTTER_PLUGIN_EWK_INTERNAL_API_BINDING_H_
