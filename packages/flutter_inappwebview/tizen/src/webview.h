@@ -5,8 +5,6 @@
 #ifndef FLUTTER_PLUGIN_WEBVIEW_H_
 #define FLUTTER_PLUGIN_WEBVIEW_H_
 
-#include <EWebKit.h>
-#include <Evas.h>
 #include <flutter/encodable_value.h>
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
@@ -16,24 +14,25 @@
 
 #include <chrono>
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <mutex>
 #include <set>
 #include <string>
+#include <vector>
 
-#include "ewk_internal_api_binding.h"
+#include "webview_backend.h"
 
 typedef flutter::MethodCall<flutter::EncodableValue> FlMethodCall;
 typedef flutter::MethodResult<flutter::EncodableValue> FlMethodResult;
 typedef flutter::MethodChannel<flutter::EncodableValue> FlMethodChannel;
-typedef struct _Ecore_Evas Ecore_Evas;
 
-class BufferPool;
-class BufferUnit;
 struct WebViewLifetimeState;
+struct RenderState;
+class JavaScriptReply;
 
-class WebView : public PlatformView {
+class WebView : public PlatformView, public WebViewBackend::Delegate {
  public:
   WebView(flutter::PluginRegistrar* registrar, int view_id,
           flutter::TextureRegistrar* texture_registrar, double width,
@@ -41,7 +40,7 @@ class WebView : public PlatformView {
   ~WebView();
 
   virtual void Dispose() override;
-  bool IsInitialized() const { return initialized_; }
+  bool IsInitialized() const { return backend_ != nullptr; }
 
   virtual void Offset(double left, double top) override;
   virtual void Resize(double width, double height) override;
@@ -61,13 +60,8 @@ class WebView : public PlatformView {
   void ResumeNavigation();
   void StopNavigation();
 
-  Evas_Object* GetWebViewInstance() { return webview_instance_; }
-
-  FlutterDesktopGpuSurfaceDescriptor* ObtainGpuSurface(size_t width,
-                                                       size_t height);
-
   // Process-wide helpers used by static channels. They iterate live WebView
-  // instances and rely on the shared EWK context.
+  // instances and rely on the shared engine context.
   static void ClearAllCache();
   static bool ClearAllCookies();
   static std::string GetDefaultUserAgent();
@@ -75,7 +69,7 @@ class WebView : public PlatformView {
   // Must be called exactly once, before any WebView is constructed.
   static void InitializeEngine();
   // Must be called exactly once, after every WebView has been destroyed.
-  // ewk_shutdown() fatally CHECKs if any Ewk_View is still alive.
+  // ewk_shutdown() fatally CHECKs if any view is still alive.
   static void ShutdownEngine();
 
  private:
@@ -84,62 +78,53 @@ class WebView : public PlatformView {
   void ApplyInitialParams(const flutter::EncodableValue& params);
   void ApplySettings(const flutter::EncodableMap& settings);
 
-  template <typename T>
-  void SetBackgroundColor(const T& color);
-
   std::string GetWebViewChannelName();
 
   bool InitWebView();
 
-  // Marks an app-initiated navigation so OnNavigationPolicy skips
+  // Marks an app-initiated navigation so OnNavigationPolicyDecide skips
   // shouldOverrideUrlLoading; cleared immediately if it never started.
-  bool NavigateProgrammatically(const std::function<bool()>& ewk_call);
+  bool NavigateProgrammatically(const std::function<bool()>& backend_call);
 
-  static void OnFrameRendered(void* data, Evas_Object* obj, void* event_info);
-  static void OnLoadStarted(void* data, Evas_Object* obj, void* event_info);
-  static void OnLoadFinished(void* data, Evas_Object* obj, void* event_info);
-  static void OnProgress(void* data, Evas_Object* obj, void* event_info);
-  static void OnLoadError(void* data, Evas_Object* obj, void* event_info);
-  static void OnConsoleMessage(void* data, Evas_Object* obj, void* event_info);
-  static void OnNavigationPolicy(void* data, Evas_Object* obj,
-                                 void* event_info);
-  static void OnUrlChange(void* data, Evas_Object* obj, void* event_info);
-  static void OnTitleChange(void* data, Evas_Object* obj, void* event_info);
-  static void OnEvaluateJavaScript(Evas_Object* obj, const char* result_value,
-                                   void* user_data);
-  static Eina_Bool OnJavaScriptAlertDialog(Evas_Object* o, const char* message,
-                                           void* data);
-  static Eina_Bool OnJavaScriptConfirmDialog(Evas_Object* o,
-                                             const char* message, void* data);
-  static Eina_Bool OnJavaScriptPromptDialog(Evas_Object* o, const char* message,
-                                            const char* default_text,
-                                            void* data);
+  void OnFrameRendered(void* tbm_surface) override;
+  void OnLoadStarted(const std::string& url) override;
+  void OnLoadFinished(const std::string& url) override;
+  void OnProgress(int32_t progress) override;
+  void OnLoadError(int32_t error_code, const std::string& description,
+                   const std::string& failing_url) override;
+  void OnConsoleMessage(const std::string& level,
+                        const std::string& message) override;
+  void OnNavigationPolicyDecide(const std::string& url,
+                                const std::string& current_url) override;
+  void OnUrlChanged(const std::string& url) override;
+  void OnTitleChanged(const std::string& title) override;
+  void OnJavaScriptAlertDialog(const std::string& message,
+                               const std::string& url) override;
+  void OnJavaScriptConfirmDialog(const std::string& message,
+                                 const std::string& url) override;
+  void OnJavaScriptPromptDialog(const std::string& message,
+                                const std::string& default_text,
+                                const std::string& url) override;
 
-  void SendTouchEvent(int type, double x, double y);
-  void SendMouseEvent(int type, int button, double x, double y, double dx,
-                      double dy);
-
-  Evas_Object* webview_instance_ = nullptr;
-  Ecore_Evas* ecore_evas_ = nullptr;
+  std::unique_ptr<WebViewBackend> backend_;
   flutter::TextureRegistrar* texture_registrar_;
   double width_ = 0.0;
   double height_ = 0.0;
-  double left_ = 0.0;
-  double top_ = 0.0;
   void* window_ = nullptr;
-  BufferUnit* working_surface_ = nullptr;
-  BufferUnit* candidate_surface_ = nullptr;
-  BufferUnit* rendered_surface_ = nullptr;
   bool has_navigation_delegate_ = false;
   std::unique_ptr<FlMethodChannel> webview_channel_;
   std::unique_ptr<flutter::TextureVariant> texture_variant_;
-  std::mutex mutex_;
-  std::unique_ptr<BufferPool> tbm_pool_;
+  // Extracted from WebView so the raster thread's populate callback reaches
+  // only these fields, never the WebView the embedder deletes right after
+  // Dispose(). The pool is also kept alive past the view by the deferred
+  // teardown.
+  std::shared_ptr<RenderState> render_state_;
   std::shared_ptr<WebViewLifetimeState> lifetime_;
-  bool initialized_ = false;
+  // In-flight evaluateJavascript replies, failed by Dispose(); see the
+  // JavaScriptReply comment in webview.cc.
+  std::vector<std::weak_ptr<JavaScriptReply>> pending_js_replies_;
   bool texture_registered_ = false;
   bool disposed_ = false;
-  Ewk_Mouse_Button_Type mouse_button_type_ = (Ewk_Mouse_Button_Type)0;
   bool is_programmatic_navigation_ = false;
   bool is_navigation_cancelled_ = false;
   std::string committed_url_;
