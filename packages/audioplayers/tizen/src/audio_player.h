@@ -8,6 +8,7 @@
 #include <glib.h>
 #include <player.h>
 
+#include <atomic>
 #include <functional>
 #include <memory>
 #include <string>
@@ -58,6 +59,7 @@ class AudioPlayer {
   bool IsSourcePrepared();
 
  private:
+  enum class PendingAction { kNone, kPlay, kPause };
   // The player state should be none before calling this function.
   void CreatePlayer();
   // The player state should be idle before calling this function.
@@ -86,6 +88,8 @@ class AudioPlayer {
   bool preparing_ = false;
   bool seeking_ = false;
   bool should_play_ = false;
+  PendingAction pending_action_ = PendingAction::kNone;
+  std::atomic<unsigned int> generation_{0};
   guint timer_id_ = 0;
   std::shared_ptr<bool> is_alive_ = std::make_shared<bool>(true);
 
