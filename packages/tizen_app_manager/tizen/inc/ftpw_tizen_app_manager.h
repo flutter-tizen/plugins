@@ -14,4 +14,4 @@ int ftpw_tizen_app_manager_app_manager_terminate_app(void *context);
 }
 #endif
 
-#endif
+#endif  // FLUTTER_TIZEN_PLUGINS_WRAPPER_TIZEN_APP_MANAGER_H_
