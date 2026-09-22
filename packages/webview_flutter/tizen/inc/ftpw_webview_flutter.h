@@ -102,6 +102,7 @@ typedef struct {
   wv_modifier_e modifiers;
   int event_flags;
   unsigned int key_code;
+  const char *device_name;
 } wv_key_event_s;
 
 typedef struct {
