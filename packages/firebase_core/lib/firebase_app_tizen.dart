@@ -6,23 +6,26 @@ part of 'firebase_core_tizen.dart';
 
 /// A Dart only implementation of a Firebase app instance.
 class FirebaseApp extends FirebaseAppPlatform {
-  FirebaseApp._(super.name, super.options);
+  FirebaseApp._(this._app, FirebaseOptions options) : super(_app.name, options);
 
-  bool _isAutomaticDataCollectionEnabled = false;
+  final core_dart.FirebaseApp _app;
 
   @override
-  Future<void> delete() {
-    core_dart.Firebase.app(name).delete();
-    return Future<void>.value();
+  Future<void> delete() async {
+    if (name == defaultFirebaseAppName) {
+      throw noDefaultAppDelete();
+    }
+    if (core_dart.Firebase.apps.any((app) => identical(app, _app))) {
+      _app.delete();
+    }
   }
 
   @override
-  bool get isAutomaticDataCollectionEnabled => _isAutomaticDataCollectionEnabled;
+  bool get isAutomaticDataCollectionEnabled => _app.isAutomaticDataCollectionEnabled;
 
   @override
   Future<void> setAutomaticDataCollectionEnabled(bool enabled) {
-    _isAutomaticDataCollectionEnabled = enabled;
-    return Future<void>.value();
+    return _app.setAutomaticDataCollectionEnabled(enabled);
   }
 
   /// Sets whether automatic resource management is enabled or disabled.
