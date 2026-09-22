@@ -25,13 +25,14 @@ AudioPlayer::AudioPlayer(const std::string &player_id,
                          DurationListener duration_listener,
                          SeekCompletedListener seek_completed_listener,
                          PlayCompletedListener play_completed_listener,
-                         LogListener log_listener)
+                         LogListener log_listener, ErrorListener error_listener)
     : player_id_(player_id),
       prepared_listener_(prepared_listener),
       duration_listener_(duration_listener),
       seek_completed_listener_(seek_completed_listener),
       play_completed_listener_(play_completed_listener),
-      log_listener_(log_listener) {
+      log_listener_(log_listener),
+      error_listener_(error_listener) {
   CreatePlayer();
 }
 
@@ -51,6 +52,7 @@ AudioPlayer::~AudioPlayer() {
 }
 
 void AudioPlayer::Play() {
+  completing_ = false;
   if (seeking_) {
     pending_action_ = PendingAction::kPlay;
     return;
@@ -58,7 +60,7 @@ void AudioPlayer::Play() {
   player_state_e state = GetPlayerState();
   if (state == PLAYER_STATE_IDLE && preparing_) {
     // Player is preparing, play will be called in prepared callback.
-    should_play_ = true;
+    pending_action_ = PendingAction::kPlay;
     return;
   }
 
@@ -72,7 +74,7 @@ void AudioPlayer::Play() {
           throw AudioPlayerError("player_set_memory_buffer failed",
                                  get_error_message(ret));
         }
-        should_play_ = true;
+        pending_action_ = PendingAction::kPlay;
         PreparePlayer();
       } else if (url_.size() > 0) {
         int ret = player_set_uri(player_, url_.c_str());
@@ -80,7 +82,7 @@ void AudioPlayer::Play() {
           throw AudioPlayerError("player_set_uri failed",
                                  get_error_message(ret));
         }
-        should_play_ = true;
+        pending_action_ = PendingAction::kPlay;
         PreparePlayer();
       }
       break;
@@ -91,7 +93,7 @@ void AudioPlayer::Play() {
       if (ret != PLAYER_ERROR_NONE) {
         throw AudioPlayerError("player_start failed", get_error_message(ret));
       }
-      should_play_ = false;
+      pending_action_ = PendingAction::kNone;
       StartPositionUpdates();
       break;
     }
@@ -102,6 +104,7 @@ void AudioPlayer::Play() {
 }
 
 void AudioPlayer::Pause() {
+  completing_ = false;
   if (seeking_) {
     pending_action_ = PendingAction::kPause;
     return;
@@ -113,11 +116,12 @@ void AudioPlayer::Pause() {
     }
   }
 
-  should_play_ = false;
+  pending_action_ = PendingAction::kNone;
 }
 
 void AudioPlayer::Stop() {
-  should_play_ = false;
+  completing_ = false;
+  pending_action_ = PendingAction::kNone;
   if (release_mode_ == ReleaseMode::kRelease) {
     ReleaseMediaSource();
     return;
@@ -148,6 +152,7 @@ void AudioPlayer::ReleaseMediaSource() {
 }
 
 void AudioPlayer::Seek(int32_t position) {
+  completing_ = false;
   if (seeking_) {
     should_seek_to_ = position;
     return;
@@ -291,7 +296,7 @@ bool AudioPlayer::IsPlaying() {
 }
 
 void AudioPlayer::CreatePlayer() {
-  should_play_ = false;
+  pending_action_ = PendingAction::kNone;
   preparing_ = false;
 
   int ret = player_create(&player_);
@@ -366,12 +371,16 @@ void AudioPlayer::ResetPlayer() {
       }
       break;
   }
+  bool seek_cancelled = seeking_ || should_seek_to_ >= 0;
   ++generation_;
   preparing_ = false;
+  completing_ = false;
   seeking_ = false;
-  should_play_ = false;
   should_seek_to_ = -1;
   pending_action_ = PendingAction::kNone;
+  if (seek_cancelled) {
+    seek_completed_listener_(player_id_);
+  }
 }
 
 player_state_e AudioPlayer::GetPlayerState() {
@@ -399,6 +408,10 @@ void AudioPlayer::OnPrepared(void *data) {
         }
         auto *player = idle->player;
         player->preparing_ = false;
+        if (player->completing_) {
+          player->completing_ = false;
+          player->play_completed_listener_(player->player_id_);
+        }
 
         try {
           player->duration_listener_(player->player_id_, player->GetDuration());
@@ -410,33 +423,30 @@ void AudioPlayer::OnPrepared(void *data) {
         player_set_playback_rate(player->player_, player->playback_rate_);
 
         if (player->should_seek_to_ >= 0) {
+          int position = player->should_seek_to_;
+          player->should_seek_to_ = -1;
           player->seeking_ = true;
-          int ret =
-              player_set_play_position(player->player_, player->should_seek_to_,
-                                       true, OnSeekCompleted, player);
+          int ret = player_set_play_position(player->player_, position, true,
+                                             OnSeekCompleted, player);
           if (ret != PLAYER_ERROR_NONE) {
             player->seeking_ = false;
-            player->log_listener_(player->player_id_,
-                                  "player_set_play_position failed.");
+            player->error_listener_(player->player_id_,
+                                    "player_set_play_position failed",
+                                    get_error_message(ret));
+          } else {
             return G_SOURCE_REMOVE;
           }
-          player->should_seek_to_ = -1;
-          if (player->should_play_) {
-            player->pending_action_ = PendingAction::kPlay;
-            player->should_play_ = false;
-          }
-          return G_SOURCE_REMOVE;
         }
 
-        if (player->should_play_) {
+        if (player->pending_action_ == PendingAction::kPlay) {
           int ret = player_start(player->player_);
           if (ret != PLAYER_ERROR_NONE) {
             player->log_listener_(player->player_id_, "player_start failed.");
             return G_SOURCE_REMOVE;
           }
           player->StartPositionUpdates();
-          player->should_play_ = false;
         }
+        player->pending_action_ = PendingAction::kNone;
         return G_SOURCE_REMOVE;
       },
       new IdleData{self, self->is_alive_, self->generation_},
@@ -457,15 +467,19 @@ void AudioPlayer::OnSeekCompleted(void *data) {
         }
         auto *player = idle->player;
         player->seeking_ = false;
-        try {
-          if (player->should_seek_to_ >= 0) {
+        if (player->should_seek_to_ >= 0) {
+          try {
             int position = player->should_seek_to_;
             player->should_seek_to_ = -1;
             player->Seek(position);
             return G_SOURCE_REMOVE;
+          } catch (const AudioPlayerError &error) {
+            player->OnLog(error.code() + ": " + error.message());
           }
-          auto action = player->pending_action_;
-          player->pending_action_ = PendingAction::kNone;
+        }
+        auto action = player->pending_action_;
+        player->pending_action_ = PendingAction::kNone;
+        try {
           switch (action) {
             case PendingAction::kPlay:
               player->Play();
@@ -476,10 +490,10 @@ void AudioPlayer::OnSeekCompleted(void *data) {
             case PendingAction::kNone:
               break;
           }
-          player->seek_completed_listener_(player->player_id_);
         } catch (const AudioPlayerError &error) {
           player->OnLog(error.code() + ": " + error.message());
         }
+        player->seek_completed_listener_(player->player_id_);
         return G_SOURCE_REMOVE;
       },
       new IdleData{self, self->is_alive_, self->generation_},
@@ -500,9 +514,19 @@ void AudioPlayer::OnPlayCompleted(void *data) {
         }
         auto *player = idle->player;
         try {
-          player->Stop();
-          player->play_completed_listener_(player->player_id_);
+          if (player->release_mode_ == ReleaseMode::kRelease) {
+            player->Stop();
+            player->play_completed_listener_(player->player_id_);
+          } else {
+            player->ResetPlayer();
+            player->completing_ = true;
+            player->PreparePlayer();
+          }
         } catch (const AudioPlayerError &error) {
+          if (player->completing_) {
+            player->completing_ = false;
+            player->play_completed_listener_(player->player_id_);
+          }
           player->log_listener_(player->player_id_, error.code());
         }
         return G_SOURCE_REMOVE;
@@ -513,8 +537,6 @@ void AudioPlayer::OnPlayCompleted(void *data) {
 
 void AudioPlayer::OnInterrupted(player_interrupted_code_e code, void *data) {
   auto *self = reinterpret_cast<AudioPlayer *>(data);
-  // On TV devices, callbacks are not executed on the main loop. Transfer to
-  // the main loop so the log event is sent on the platform thread.
   g_idle_add_full(
       G_PRIORITY_DEFAULT_IDLE,
       [](gpointer data) -> gboolean {
@@ -532,9 +554,6 @@ void AudioPlayer::OnInterrupted(player_interrupted_code_e code, void *data) {
 
 void AudioPlayer::OnError(int code, void *data) {
   auto *self = reinterpret_cast<AudioPlayer *>(data);
-  // On TV devices, callbacks are not executed on the main loop. Transfer to
-  // the main loop so the log event is sent on the platform thread. The error
-  // message is resolved here and carried via a heap-allocated context.
   struct ErrorData {
     AudioPlayer *player;
     std::shared_ptr<bool> is_alive;
@@ -551,6 +570,11 @@ void AudioPlayer::OnError(int code, void *data) {
         }
         error_data->player->log_listener_(error_data->player->player_id_,
                                           error_data->message);
+        if (error_data->player->completing_) {
+          error_data->player->completing_ = false;
+          error_data->player->play_completed_listener_(
+              error_data->player->player_id_);
+        }
         return G_SOURCE_REMOVE;
       },
       new ErrorData{self, self->is_alive_, self->generation_,

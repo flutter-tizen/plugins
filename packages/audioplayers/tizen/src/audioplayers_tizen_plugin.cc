@@ -393,9 +393,16 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
       event_sinks_[player_id]->Success(flutter::EncodableValue(map));
     };
 
+    ErrorListener error_listener = [this](const std::string &player_id,
+                                          const std::string &code,
+                                          const std::string &message) {
+      event_sinks_[player_id]->Error(code, message, flutter::EncodableValue());
+    };
+
     auto player = std::make_unique<AudioPlayer>(
         player_id, prepared_listener, duration_listener,
-        seek_completed_listener, play_completed_listener, log_listener);
+        seek_completed_listener, play_completed_listener, log_listener,
+        error_listener);
     audio_players_[player_id] = std::move(player);
   }
 
