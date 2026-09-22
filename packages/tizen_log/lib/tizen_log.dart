@@ -6,7 +6,7 @@ import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
 
-typedef _DlogPrintNative = Int Function(Int, Pointer<Utf8>, Pointer<Utf8>);
+typedef _DlogPrintNative = Int32 Function(Int32, Pointer<Utf8>, Pointer<Utf8>);
 typedef _DlogPrint = int Function(int, Pointer<Utf8>, Pointer<Utf8>);
 
 /// Provides the ability to use Tizen's logging service, dlog.
