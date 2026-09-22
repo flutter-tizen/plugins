@@ -25,4 +25,4 @@ int ftpw_video_player_screensaver_override_reset(bool onoff);
 }
 #endif
 
-#endif
+#endif  // FLUTTER_TIZEN_PLUGINS_WRAPPER_VIDEO_PLAYER_H_
