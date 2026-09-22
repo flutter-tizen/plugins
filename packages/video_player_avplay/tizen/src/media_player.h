@@ -6,14 +6,14 @@
 #define FLUTTER_PLUGIN_MEDIA_PLAYER_H_
 
 #include <flutter/plugin_registrar.h>
+#include <player.h>
 
 #include <memory>
 #include <string>
 #include <utility>
 
-#include "device_proxy.h"
 #include "drm_manager.h"
-#include "media_player_proxy.h"
+#include "ftpw_video_player_avplay.h"
 #include "video_player.h"
 
 namespace video_player_avplay_tizen {
@@ -73,8 +73,6 @@ class MediaPlayer : public VideoPlayer {
                                  int data_length, void *user_data);
 
   player_h player_ = nullptr;
-  std::unique_ptr<MediaPlayerProxy> media_player_proxy_ = nullptr;
-  std::unique_ptr<DeviceProxy> device_proxy_ = nullptr;
   std::unique_ptr<DrmManager> drm_manager_;
   bool is_buffering_ = false;
   SeekCompletedCallback on_seek_completed_;

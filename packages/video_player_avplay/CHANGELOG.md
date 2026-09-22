@@ -4,6 +4,7 @@
 * Reformat with a line length of 100.
 * Replace Ecore pipes with GLib idle callbacks.
 * Apply clang-format-16 formatting.
+* Use wrapper api.
 * Handle consecutive seekTo calls.
 * Ignore redundant play/pause calls instead of reporting an error.
 

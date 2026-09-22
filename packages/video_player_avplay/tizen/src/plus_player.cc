@@ -10,6 +10,7 @@
 
 #include <sstream>
 
+#include "ftpw_video_player_avplay.h"
 #include "log.h"
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
@@ -67,7 +68,6 @@ PlusPlayer::PlusPlayer(flutter::BinaryMessenger *messenger,
                        FlutterDesktopViewRef flutter_view)
     : VideoPlayer(messenger, flutter_view) {
   memento_ = std::make_unique<plusplayer::PlayerMemento>();
-  device_proxy_ = std::make_unique<DeviceProxy>();
 }
 
 PlusPlayer::~PlusPlayer() {
@@ -888,8 +888,7 @@ bool PlusPlayer::Suspend() {
     return true;
   }
 
-  int power_state = device_proxy_->device_power_get_state();
-  if (power_state == POWER_STATE_STANDBY) {
+  if (ftpw_video_player_avplay_device_power_is_standby()) {
     LOG_INFO("[PlusPlayer] Power state is standby.");
     if (!StopAndClose()) {
       LOG_ERROR("[PlusPlayer] Player need to stop and close, but failed.");
@@ -898,8 +897,7 @@ bool PlusPlayer::Suspend() {
     LOG_INFO("[PlusPlayer] Standby state: close done successfully.");
     return true;
   } else {
-    LOG_INFO("[PlusPlayer] Player state is not standby: %d, do nothing.",
-             power_state);
+    LOG_INFO("[PlusPlayer] Power state is not standby.");
   }
 
   plusplayer::State player_state = GetState(player_);
