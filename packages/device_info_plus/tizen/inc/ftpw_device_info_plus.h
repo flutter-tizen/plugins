@@ -14,4 +14,4 @@ char *ftpw_device_info_plus_get_duid(void);
 }
 #endif
 
-#endif
+#endif  // FLUTTER_TIZEN_PLUGINS_WRAPPER_DEVICE_INFO_PLUS_H_
