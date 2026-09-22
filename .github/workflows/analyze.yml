@@ -28,8 +28,7 @@ jobs:
           channel: stable
       - name: Install clang-format
         run: |
-          sudo apt-get update
-          sudo apt-get install clang-format-11
+          pip install clang-format==16.0.6
       - name: Check format
         run: |
           ./tools/tools_runner.sh format --fail-on-change --no-kotlin --no-java --no-swift --clang-format-path=clang-format-11 \

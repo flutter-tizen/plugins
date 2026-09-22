@@ -1,3 +1,7 @@
+## NEXT
+
+* Apply clang-format-16 formatting.
+
 ## 0.1.9
 
 * Fix the return type of `sso_get_login_info` and clear the login info after use.

@@ -50,8 +50,8 @@ class TextToSpeech {
     return supported_lanaguages_;
   }
 
-  const std::vector<std::map<std::string, std::string>>
-      &GetSupportedVoiceTypes() {
+  const std::vector<std::map<std::string, std::string>> &
+  GetSupportedVoiceTypes() {
     return supported_voice_types_;
   }
 

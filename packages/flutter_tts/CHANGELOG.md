@@ -1,6 +1,7 @@
 ## NEXT
 
 * Follow the analysis options of the frontend plugin.
+* Apply clang-format-16 formatting.
 
 ## 1.7.1
 
