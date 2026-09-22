@@ -122,4 +122,4 @@ int ftpw_video_player_avplay_DMGRReleaseDRMSession(
 }
 #endif
 
-#endif
+#endif  // FLUTTER_TIZEN_PLUGINS_WRAPPER_VIDEO_PLAYER_AVPLAY_H_
