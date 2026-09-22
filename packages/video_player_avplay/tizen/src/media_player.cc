@@ -740,6 +740,8 @@ void MediaPlayer::OnError(int error_code, void *user_data) {
             get_error_message(error_code));
 
   MediaPlayer *self = static_cast<MediaPlayer *>(user_data);
+  self->on_seek_completed_ = nullptr;
+  self->is_seeking_ = false;
   self->SendError("Media Player error",
                   std::string("Error: ") + get_error_message(error_code));
 }

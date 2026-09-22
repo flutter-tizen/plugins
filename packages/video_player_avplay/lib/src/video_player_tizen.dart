@@ -17,35 +17,30 @@ class _SeekOperation {
   _SeekOperation(this.position);
 
   final int position;
-  final Completer<void> completer = Completer<void>();
-  final List<Completer<void>> _coalesced = <Completer<void>>[];
+  final List<Completer<void>> _waiters = <Completer<void>>[];
 
   Future<void> attach() {
-    final c = Completer<void>();
-    _coalesced.add(c);
-    return c.future;
+    final completer = Completer<void>();
+    _waiters.add(completer);
+    return completer.future;
   }
 
-  void _complete() {
-    if (!completer.isCompleted) {
-      completer.complete();
-    }
-    for (final Completer<void> c in _coalesced) {
-      if (!c.isCompleted) {
-        c.complete();
+  void completeAll() {
+    for (final Completer<void> completer in _waiters) {
+      if (!completer.isCompleted) {
+        completer.complete();
       }
     }
+    _waiters.clear();
   }
 
-  void _completeError(Object error) {
-    if (!completer.isCompleted) {
-      completer.completeError(error);
-    }
-    for (final Completer<void> c in _coalesced) {
-      if (!c.isCompleted) {
-        c.completeError(error);
+  void completeErrorAll(Object error) {
+    for (final Completer<void> completer in _waiters) {
+      if (!completer.isCompleted) {
+        completer.completeError(error);
       }
     }
+    _waiters.clear();
   }
 }
 
@@ -165,8 +160,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
       final _SeekOperation? existing = _pendingSeeks[playerId];
       if (existing != null) {
         final op = _SeekOperation(targetPosition);
-        op._coalesced.add(existing.completer);
-        op._coalesced.addAll(existing._coalesced);
+        op._waiters.addAll(existing._waiters);
         _pendingSeeks[playerId] = op;
         return op.attach();
       }
@@ -178,62 +172,53 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     return _startSeek(playerId, targetPosition);
   }
 
-  Future<void> _startSeek(int playerId, int position) async {
+  Future<void> _startSeek(int playerId, int position) {
     final op = _SeekOperation(position);
+    final Future<void> future = op.attach();
     _activeSeeks[playerId] = op;
+    unawaited(_runNativeSeek(playerId, op));
+    return future;
+  }
 
+  Future<void> _runNativeSeek(int playerId, _SeekOperation op) async {
     try {
-      await _api.seekTo(PositionMessage(playerId: playerId, position: position));
-    } catch (e) {
-      _completeSeekWithError(playerId, e);
+      await _api.seekTo(PositionMessage(playerId: playerId, position: op.position));
+    } catch (error) {
+      if (identical(_activeSeeks[playerId], op)) {
+        _completeSeekWithError(playerId, error);
+      }
     }
-
-    return op.completer.future;
   }
 
   void _handleSeekCompleted(int playerId) {
     final _SeekOperation? op = _activeSeeks.remove(playerId);
     if (op != null) {
-      op._complete();
+      op.completeAll();
     }
     _startPendingSeekIfAny(playerId);
   }
 
-  Future<void> _startPendingSeekIfAny(int playerId) async {
+  void _startPendingSeekIfAny(int playerId) {
     final _SeekOperation? pending = _pendingSeeks.remove(playerId);
     if (pending != null) {
       _activeSeeks[playerId] = pending;
-
-      try {
-        await _api.seekTo(
-          PositionMessage(playerId: playerId, position: pending.position),
-        );
-      } catch (e) {
-        _completeSeekWithError(playerId, e);
-      }
+      unawaited(_runNativeSeek(playerId, pending));
     }
   }
 
   void _completeSeekWithError(int playerId, Object error) {
     final _SeekOperation? op = _activeSeeks.remove(playerId);
     if (op != null) {
-      op._completeError(error);
+      op.completeErrorAll(error);
     }
     final _SeekOperation? pending = _pendingSeeks.remove(playerId);
     if (pending != null) {
-      pending._completeError(error);
+      pending.completeErrorAll(error);
     }
   }
 
   void _cancelAllSeeks(int playerId) {
-    final _SeekOperation? op = _activeSeeks.remove(playerId);
-    if (op != null) {
-      op._completeError('Player was disposed.');
-    }
-    final _SeekOperation? pending = _pendingSeeks.remove(playerId);
-    if (pending != null) {
-      pending._completeError('Player was disposed.');
-    }
+    _completeSeekWithError(playerId, 'Player was disposed.');
   }
 
   @override
@@ -594,6 +579,9 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
         default:
           return VideoEvent(eventType: VideoEventType.unknown);
       }
+    }).handleError((Object error, StackTrace stackTrace) {
+      _completeSeekWithError(playerId, error);
+      Error.throwWithStackTrace(error, stackTrace);
     });
   }
 

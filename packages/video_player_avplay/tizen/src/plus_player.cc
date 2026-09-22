@@ -837,9 +837,11 @@ bool PlusPlayer::StopAndClose() {
   }
 
   if (player_state != plusplayer::State::kNone) {
-    if (!::Stop(player_)) {
-      LOG_ERROR("[PlusPlayer] Player fail to stop.");
-      success = false;
+    if (player_state >= plusplayer::State::kReady) {
+      if (!::Stop(player_)) {
+        LOG_ERROR("[PlusPlayer] Player fail to stop.");
+        success = false;
+      }
     }
 
     if (!::Close(player_)) {
@@ -1472,6 +1474,8 @@ void PlusPlayer::OnError(const plusplayer::ErrorType &error_code,
   LOG_ERROR("[PlusPlayer] Error code: %d", error_code);
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
+  self->on_seek_completed_ = nullptr;
+  self->is_seeking_ = false;
   self->SendError("[PlusPlayer] error",
                   std::string("Error: ") + GetErrorMessage(error_code));
 }
@@ -1481,6 +1485,8 @@ void PlusPlayer::OnErrorMsg(const plusplayer::ErrorType &error_code,
   LOG_ERROR("[PlusPlayer] Error code: %d, message: %s.", error_code, error_msg);
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
+  self->on_seek_completed_ = nullptr;
+  self->is_seeking_ = false;
   self->SendError("PlusPlayer error", std::string("Error: ") + error_msg);
 }
 
