@@ -60,7 +60,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<void> dispose(int playerId) {
-    _cancelAllSeeks(playerId);
+    _cancelAllSeeks(playerId, 'Player was disposed.');
     return _api.dispose(PlayerMessage(playerId: playerId));
   }
 
@@ -217,8 +217,8 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     }
   }
 
-  void _cancelAllSeeks(int playerId) {
-    _completeSeekWithError(playerId, 'Player was disposed.');
+  void _cancelAllSeeks(int playerId, String reason) {
+    _completeSeekWithError(playerId, StateError(reason));
   }
 
   @override
@@ -371,7 +371,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
 
   @override
   Future<void> suspend(int playerId) {
-    _cancelAllSeeks(playerId);
+    _cancelAllSeeks(playerId, 'Player was suspended.');
     return _api.suspend(playerId);
   }
 
@@ -381,6 +381,7 @@ class VideoPlayerTizen extends VideoPlayerPlatform {
     DataSource? dataSource,
     int resumeTime = -1,
   }) async {
+    _cancelAllSeeks(playerId, 'Player was restored.');
     final message = CreateMessage();
 
     if (dataSource != null) {

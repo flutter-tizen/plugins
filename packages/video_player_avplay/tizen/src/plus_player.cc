@@ -825,9 +825,6 @@ bool PlusPlayer::StopAndClose() {
 
   bool success = true;
   is_buffering_ = false;
-  if (is_seeking_) {
-    SendSeekCompleted();
-  }
   on_seek_completed_ = nullptr;
   is_seeking_ = false;
   plusplayer::State player_state = GetState(player_);

@@ -5,6 +5,7 @@
 * Replace Ecore pipes with GLib idle callbacks.
 * Apply clang-format-16 formatting.
 * Handle consecutive seekTo calls.
+* Ignore redundant play/pause calls instead of reporting an error.
 
 ## 0.8.18
 
