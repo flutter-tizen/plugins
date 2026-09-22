@@ -49,7 +49,7 @@ std::optional<std::string> BillingManager::GetCustomId() {
 
 std::optional<std::string> BillingManager::GetCountryCode() {
   std::optional<std::string> country_code;
-  char *value = ftpw_in_app_purchase_get_county_code();
+  char *value = ftpw_in_app_purchase_get_country_code();
   if (value) {
     country_code = value;
     free(value);

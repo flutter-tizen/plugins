@@ -45,7 +45,7 @@ bool ftpw_in_app_purchase_service_billing_verify_invoice(
     const char *app_id, const char *custom_id, const char *invoice_id,
     const char *country_code, billing_payment_api_cb callback, void *user_data);
 bool ftpw_in_app_purchase_sso_get_login_info(sso_login_info_s *login_info);
-char *ftpw_in_app_purchase_get_county_code();
+char *ftpw_in_app_purchase_get_country_code();
 
 #ifdef __cplusplus
 }
