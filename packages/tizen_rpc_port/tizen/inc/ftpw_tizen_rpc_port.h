@@ -24,4 +24,4 @@ int ftpw_tizen_rpc_port_rpc_port_parcel_reserve(void *parcel, uint32_t value);
 }
 #endif
 
-#endif
+#endif  // FLUTTER_TIZEN_PLUGINS_WRAPPER_TIZEN_RPC_PORT_H_
