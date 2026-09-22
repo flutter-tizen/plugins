@@ -17,4 +17,4 @@ int ftpw_wakelock_plus_screensaver_override_reset(bool onoff);
 }
 #endif
 
-#endif
+#endif  // FLUTTER_TIZEN_PLUGINS_WRAPPER_WAKELOCK_PLUS_H_
