@@ -15,4 +15,4 @@ int ftpw_tizen_log_dlog_print(int priority, const char *tag,
 }
 #endif
 
-#endif
+#endif  // FLUTTER_TIZEN_PLUGINS_WRAPPER_TIZEN_LOG_H_
