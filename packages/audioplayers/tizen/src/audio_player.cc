@@ -67,23 +67,9 @@ void AudioPlayer::Play() {
   switch (state) {
     case PLAYER_STATE_NONE:
     case PLAYER_STATE_IDLE: {
-      if (audio_data_.size() > 0) {
-        int ret = player_set_memory_buffer(player_, audio_data_.data(),
-                                           audio_data_.size());
-        if (ret != PLAYER_ERROR_NONE) {
-          throw AudioPlayerError("player_set_memory_buffer failed",
-                                 get_error_message(ret));
-        }
+      if (audio_data_.size() > 0 || url_.size() > 0) {
         pending_action_ = PendingAction::kPlay;
-        PreparePlayer();
-      } else if (url_.size() > 0) {
-        int ret = player_set_uri(player_, url_.c_str());
-        if (ret != PLAYER_ERROR_NONE) {
-          throw AudioPlayerError("player_set_uri failed",
-                                 get_error_message(ret));
-        }
-        pending_action_ = PendingAction::kPlay;
-        PreparePlayer();
+        PrepareSource();
       }
       break;
     }
@@ -141,7 +127,7 @@ void AudioPlayer::Stop() {
     }
   } else if (state == PLAYER_STATE_READY) {
     ResetPlayer();
-    PreparePlayer();
+    PrepareSource();
   }
 }
 
@@ -152,7 +138,6 @@ void AudioPlayer::ReleaseMediaSource() {
 }
 
 void AudioPlayer::Seek(int32_t position) {
-  completing_ = false;
   if (seeking_) {
     should_seek_to_ = position;
     return;
@@ -344,6 +329,26 @@ void AudioPlayer::PreparePlayer() {
   seeking_ = false;
 }
 
+void AudioPlayer::PrepareSource() {
+  int ret;
+  if (audio_data_.size() > 0) {
+    ret = player_set_memory_buffer(player_, audio_data_.data(),
+                                   audio_data_.size());
+    if (ret != PLAYER_ERROR_NONE) {
+      throw AudioPlayerError("player_set_memory_buffer failed",
+                             get_error_message(ret));
+    }
+  } else if (url_.size() > 0) {
+    ret = player_set_uri(player_, url_.c_str());
+    if (ret != PLAYER_ERROR_NONE) {
+      throw AudioPlayerError("player_set_uri failed", get_error_message(ret));
+    }
+  } else {
+    return;
+  }
+  PreparePlayer();
+}
+
 void AudioPlayer::ResetPlayer() {
   player_state_e state = GetPlayerState();
   switch (state) {
@@ -467,6 +472,14 @@ void AudioPlayer::OnSeekCompleted(void *data) {
         }
         auto *player = idle->player;
         player->seeking_ = false;
+        if (player->pending_action_ == PendingAction::kPause) {
+          player->pending_action_ = PendingAction::kNone;
+          try {
+            player->Pause();
+          } catch (const AudioPlayerError &error) {
+            player->OnLog(error.code() + ": " + error.message());
+          }
+        }
         if (player->should_seek_to_ >= 0) {
           try {
             int position = player->should_seek_to_;
@@ -474,7 +487,9 @@ void AudioPlayer::OnSeekCompleted(void *data) {
             player->Seek(position);
             return G_SOURCE_REMOVE;
           } catch (const AudioPlayerError &error) {
-            player->OnLog(error.code() + ": " + error.message());
+            player->error_listener_(player->player_id_, error.code(),
+                                    error.message());
+            return G_SOURCE_REMOVE;
           }
         }
         auto action = player->pending_action_;
@@ -485,7 +500,6 @@ void AudioPlayer::OnSeekCompleted(void *data) {
               player->Play();
               break;
             case PendingAction::kPause:
-              player->Pause();
               break;
             case PendingAction::kNone:
               break;
@@ -520,7 +534,7 @@ void AudioPlayer::OnPlayCompleted(void *data) {
           } else {
             player->ResetPlayer();
             player->completing_ = true;
-            player->PreparePlayer();
+            player->PrepareSource();
           }
         } catch (const AudioPlayerError &error) {
           if (player->completing_) {
