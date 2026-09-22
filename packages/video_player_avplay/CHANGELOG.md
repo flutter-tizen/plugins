@@ -4,6 +4,7 @@
 * Reformat with a line length of 100.
 * Replace Ecore pipes with GLib idle callbacks.
 * Apply clang-format-16 formatting.
+* Use wrapper api.
 
 ## 0.8.18
 
