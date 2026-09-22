@@ -1,6 +1,9 @@
-## NEXT
+## 0.3.0
 
-* Follow the analysis options of the frontend plugin.
+- Move the native web engine code behind a `WebViewBackend` interface.
+- Add an experimental WV API backend with EWK-wrapper and standalone modes.
+- Select EWK through Tizen 10.0, WV EWK-wrapper mode on Tizen 10.1, and WV standalone mode from Tizen 11.0.
+- Follow the analysis options of the frontend plugin.
 
 ## 0.2.0
 

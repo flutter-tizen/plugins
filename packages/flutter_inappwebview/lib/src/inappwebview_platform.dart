@@ -8,7 +8,7 @@ import 'cookie_manager.dart';
 import 'in_app_webview/in_app_webview.dart';
 import 'in_app_webview/in_app_webview_controller.dart';
 
-/// Implementation of [InAppWebViewPlatform] using the Tizen WebView EWK API.
+/// Implementation of [InAppWebViewPlatform] using the Tizen WebView API.
 ///
 /// Only the implemented surface is overridden; calls to unsupported
 /// features fall through to the platform interface defaults, which raise

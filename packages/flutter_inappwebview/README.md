@@ -4,12 +4,14 @@
 
 The Tizen implementation of [`flutter_inappwebview`](https://pub.dev/packages/flutter_inappwebview).
 
-This package follows the same EWK-backed offscreen rendering approach as
+This package follows the same offscreen rendering approach as
 [`webview_flutter_tizen`](https://pub.dev/packages/webview_flutter_tizen) and
-maps it onto the `flutter_inappwebview` platform interface. Only the surface
-that maps cleanly onto the Tizen WebView (chromium-efl) is implemented; every
-other API raises `UnsupportedError` (or the `UnimplementedError` produced by
-the `flutter_inappwebview_platform_interface` defaults).
+maps it onto the `flutter_inappwebview` platform interface. It uses EWK through
+Tizen 10.0, WV's EWK-wrapper mode on Tizen 10.1, and WV standalone mode from
+Tizen 11.0. The WV modes are experimental. Only the surface that maps cleanly
+onto the Tizen WebView (chromium-efl) is implemented; every other API raises
+`UnsupportedError` (or the `UnimplementedError` produced by the
+`flutter_inappwebview_platform_interface` defaults).
 
 ## Required privileges
 
@@ -26,7 +28,7 @@ Add the internet privilege to the app manifest:
 ```yaml
 dependencies:
   flutter_inappwebview: ^6.1.5
-  flutter_inappwebview_tizen: ^0.2.0
+  flutter_inappwebview_tizen: ^0.3.0
 ```
 
 ```dart
@@ -81,10 +83,10 @@ class WebViewExample extends StatelessWidget {
 - `clearCache`, `clearAllCache`, `getDefaultUserAgent`, `handlesURLScheme`
 - `CookieManager.deleteAllCookies()`
 
-`InAppWebViewController.getDefaultUserAgent()` returns the EWK user agent that
-was captured the first time an `InAppWebView` was created in the process; the
-value is cached so it remains available after every webview is disposed.
-Calling it before any `InAppWebView` has been created returns an empty string.
+`InAppWebViewController.getDefaultUserAgent()` returns the user agent that was
+captured the first time an `InAppWebView` was created in the process; the value
+is cached so it remains available after every webview is disposed. Calling it
+before any `InAppWebView` has been created returns an empty string.
 
 ## Not supported
 

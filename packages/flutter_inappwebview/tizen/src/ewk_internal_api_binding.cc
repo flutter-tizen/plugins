@@ -41,9 +41,14 @@ EwkInternalApiBinding::~EwkInternalApiBinding() {
 }
 
 bool EwkInternalApiBinding::Initialize() {
+  if (initialize_result_.has_value()) {
+    return *initialize_result_;
+  }
+
   if (!handle_) {
     LOG_ERROR(
         "EWK internal API binding was initialized without a library handle.");
+    initialize_result_ = false;
     return false;
   }
 
@@ -113,15 +118,17 @@ bool EwkInternalApiBinding::Initialize() {
   console_message.TextGet = ResolveEwkSymbol<EwkConsoleMessageTextGetFnPtr>(
       handle_, "ewk_console_message_text_get");
 
-  return view.SetBackgroundColor && view.TouchEventsEnabledSet &&
-         view.FeedTouchEvent && view.MouseEventsEnabledSet &&
-         view.FeedMouseDown && view.FeedMouseUp && view.FeedMouseWheel &&
-         view.SendKeyEvent && view.OffscreenRenderingEnabledSet &&
-         view.ImeWindowSet && view.KeyEventsEnabledSet &&
-         view.SupportVideoHoleSet && view.OnJavaScriptAlert &&
-         view.OnJavaScriptConfirm && view.OnJavaScriptPrompt &&
-         view.JavaScriptAlertReply && view.JavaScriptConfirmReply &&
-         view.JavaScriptPromptReply && main.SetArguments &&
-         settings.ImePanelEnabledSet && settings.ForceZoomSet &&
-         console_message.LevelGet && console_message.TextGet;
+  initialize_result_ = view.SetBackgroundColor && view.TouchEventsEnabledSet &&
+                       view.FeedTouchEvent && view.MouseEventsEnabledSet &&
+                       view.FeedMouseDown && view.FeedMouseUp &&
+                       view.FeedMouseWheel && view.SendKeyEvent &&
+                       view.OffscreenRenderingEnabledSet && view.ImeWindowSet &&
+                       view.KeyEventsEnabledSet && view.SupportVideoHoleSet &&
+                       view.OnJavaScriptAlert && view.OnJavaScriptConfirm &&
+                       view.OnJavaScriptPrompt && view.JavaScriptAlertReply &&
+                       view.JavaScriptConfirmReply &&
+                       view.JavaScriptPromptReply && main.SetArguments &&
+                       settings.ImePanelEnabledSet && settings.ForceZoomSet &&
+                       console_message.LevelGet && console_message.TextGet;
+  return *initialize_result_;
 }

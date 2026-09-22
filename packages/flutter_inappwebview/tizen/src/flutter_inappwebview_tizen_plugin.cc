@@ -84,9 +84,6 @@ class FlutterInappwebviewTizenPlugin : public flutter::Plugin {
                                 url_scheme == "javascript";
       result->Success(flutter::EncodableValue(is_supported));
     } else if (method_name == "getDefaultUserAgent") {
-      // Returns the cached EWK user agent. The value is captured the first
-      // time an InAppWebView is created in this process; before that the
-      // returned string is empty.
       result->Success(flutter::EncodableValue(WebView::GetDefaultUserAgent()));
     } else {
       result->NotImplemented();
@@ -119,9 +116,9 @@ void FlutterInappwebviewTizenPluginRegisterWithRegistrar(
           ->GetRegistrar<flutter::PluginRegistrar>(core_registrar);
   FlutterDesktopViewRef view =
       FlutterDesktopPluginRegistrarGetView(core_registrar);
+  FlutterInappwebviewTizenPlugin::RegisterWithRegistrar(registrar);
   FlutterDesktopRegisterViewFactory(
       core_registrar, kViewType,
       std::make_unique<WebViewFactory>(
           registrar, FlutterDesktopViewGetNativeHandle(view)));
-  FlutterInappwebviewTizenPlugin::RegisterWithRegistrar(registrar);
 }

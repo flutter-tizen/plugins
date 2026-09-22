@@ -79,7 +79,7 @@ class TizenWebResourceError extends WebResourceError {
   /// User authentication failed on server.
   static const int authenticationFailed = 13;
 
-  /// Raw EWK error code.
+  /// Raw Tizen WebView error code.
   final int errorCode;
 
   static WebResourceErrorType _errorCodeToErrorType(int errorCode) {
@@ -314,7 +314,6 @@ class TizenInAppWebViewController extends PlatformInAppWebViewController
             alertRequest,
           );
         }
-        // Always reply: EWK suspends JS execution until the alert is acknowledged.
         await channel?.invokeMethod<void>('javaScriptAlertReply');
       case 'onJsConfirm':
         final JsConfirmRequest confirmRequest = JsConfirmRequest.fromMap(
