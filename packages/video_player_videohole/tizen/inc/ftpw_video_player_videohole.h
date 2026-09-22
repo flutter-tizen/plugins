@@ -118,4 +118,4 @@ int ftpw_video_player_videohole_DMGRReleaseDRMSession(
 }
 #endif
 
-#endif
+#endif  // FLUTTER_TIZEN_PLUGINS_WRAPPER_VIDEO_PLAYER_VIDEOHOLE_H_
