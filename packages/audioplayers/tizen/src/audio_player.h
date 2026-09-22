@@ -67,6 +67,7 @@ class AudioPlayer {
   void CreatePlayer();
   // The player state should be idle before calling this function.
   void PreparePlayer();
+  void PrepareSource();
   void ResetPlayer();
   void StartPositionUpdates();
   player_state_e GetPlayerState();
