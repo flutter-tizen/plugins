@@ -195,6 +195,8 @@ int64_t PlusPlayer::Create(const std::string &uri,
 
 void PlusPlayer::Dispose() {
   LOG_INFO("[PlusPlayer] Player disposing.");
+  on_seek_completed_ = nullptr;
+  is_seeking_ = false;
   ClearUpEventChannel();
 }
 
@@ -232,7 +234,7 @@ bool PlusPlayer::Play() {
     }
     return true;
   }
-  return false;
+  return true;
 }
 
 bool PlusPlayer::Activate() {
@@ -286,7 +288,7 @@ bool PlusPlayer::Pause() {
 
   if (state != plusplayer::State::kPlaying) {
     LOG_INFO("[PlusPlayer] Player not playing.");
-    return false;
+    return true;
   }
 
   if (!::Pause(player_)) {
@@ -340,14 +342,16 @@ bool PlusPlayer::SeekTo(int64_t position, SeekCompletedCallback callback) {
     return false;
   }
 
-  if (on_seek_completed_) {
+  if (is_seeking_) {
     LOG_ERROR("[PlusPlayer] Player is already seeking.");
     return false;
   }
 
   on_seek_completed_ = std::move(callback);
+  is_seeking_ = true;
   if (!Seek(player_, position)) {
     on_seek_completed_ = nullptr;
+    is_seeking_ = false;
     LOG_ERROR("[PlusPlayer] Player fail to seek.");
     return false;
   }
@@ -819,25 +823,28 @@ bool PlusPlayer::StopAndClose() {
     return false;
   }
 
+  bool success = true;
   is_buffering_ = false;
+  on_seek_completed_ = nullptr;
+  is_seeking_ = false;
   plusplayer::State player_state = GetState(player_);
-  if (player_state < plusplayer::State::kReady) {
-    LOG_INFO("[PlusPlayer] Player already stop, nothing to do.");
-    return true;
-  }
 
   if (drm_manager_) {
     drm_manager_->StopDrmSession();
   }
 
-  if (!::Stop(player_)) {
-    LOG_ERROR("[PlusPlayer] Player fail to stop.");
-    return false;
-  }
+  if (player_state != plusplayer::State::kNone) {
+    if (player_state >= plusplayer::State::kReady) {
+      if (!::Stop(player_)) {
+        LOG_ERROR("[PlusPlayer] Player fail to stop.");
+        success = false;
+      }
+    }
 
-  if (!::Close(player_)) {
-    LOG_ERROR("[PlusPlayer] Player fail to close.");
-    return false;
+    if (!::Close(player_)) {
+      LOG_ERROR("[PlusPlayer] Player fail to close.");
+      success = false;
+    }
   }
 
   if (drm_manager_) {
@@ -845,7 +852,7 @@ bool PlusPlayer::StopAndClose() {
     drm_manager_.reset();
   }
 
-  return true;
+  return success;
 }
 
 bool PlusPlayer::Suspend() {
@@ -1172,10 +1179,12 @@ void PlusPlayer::OnSeekDone(void *user_data) {
   LOG_INFO("[PlusPlayer] Seek completed.");
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
+  self->is_seeking_ = false;
   if (self->on_seek_completed_) {
     self->on_seek_completed_();
     self->on_seek_completed_ = nullptr;
   }
+  self->SendSeekCompleted();
 }
 
 void PlusPlayer::OnEos(void *user_data) {
@@ -1460,6 +1469,8 @@ void PlusPlayer::OnError(const plusplayer::ErrorType &error_code,
   LOG_ERROR("[PlusPlayer] Error code: %d", error_code);
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
+  self->on_seek_completed_ = nullptr;
+  self->is_seeking_ = false;
   self->SendError("[PlusPlayer] error",
                   std::string("Error: ") + GetErrorMessage(error_code));
 }
@@ -1469,6 +1480,8 @@ void PlusPlayer::OnErrorMsg(const plusplayer::ErrorType &error_code,
   LOG_ERROR("[PlusPlayer] Error code: %d, message: %s.", error_code, error_msg);
   PlusPlayer *self = reinterpret_cast<PlusPlayer *>(user_data);
 
+  self->on_seek_completed_ = nullptr;
+  self->is_seeking_ = false;
   self->SendError("PlusPlayer error", std::string("Error: ") + error_msg);
 }
 

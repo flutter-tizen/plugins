@@ -226,7 +226,7 @@ bool MediaPlayer::Play() {
   }
   if (state == PLAYER_STATE_PLAYING) {
     LOG_INFO("[MediaPlayer] Player already playing.");
-    return false;
+    return true;
   }
   ret = player_start(player_);
   if (ret != PLAYER_ERROR_NONE) {
@@ -251,7 +251,7 @@ bool MediaPlayer::Pause() {
   }
   if (state != PLAYER_STATE_PLAYING) {
     LOG_INFO("[MediaPlayer] Player not playing.");
-    return false;
+    return true;
   }
   ret = player_pause(player_);
   if (ret != PLAYER_ERROR_NONE) {
@@ -301,11 +301,18 @@ bool MediaPlayer::SetPlaybackSpeed(double speed) {
 bool MediaPlayer::SeekTo(int64_t position, SeekCompletedCallback callback) {
   LOG_INFO("[MediaPlayer] position: %lld.", position);
 
+  if (is_seeking_) {
+    LOG_ERROR("[MediaPlayer] Seek is already in progress.");
+    return false;
+  }
+
   on_seek_completed_ = std::move(callback);
+  is_seeking_ = true;
   int ret =
       player_set_play_position(player_, position, true, OnSeekCompleted, this);
   if (ret != PLAYER_ERROR_NONE) {
     on_seek_completed_ = nullptr;
+    is_seeking_ = false;
     LOG_ERROR("[MediaPlayer] player_set_play_position failed: %s.",
               get_error_message(ret));
     return false;
@@ -700,10 +707,12 @@ void MediaPlayer::OnSeekCompleted(void *user_data) {
   LOG_INFO("[MediaPlayer] Seek completed.");
 
   MediaPlayer *self = static_cast<MediaPlayer *>(user_data);
+  self->is_seeking_ = false;
   if (self->on_seek_completed_) {
     self->on_seek_completed_();
     self->on_seek_completed_ = nullptr;
   }
+  self->SendSeekCompleted();
 }
 
 void MediaPlayer::OnPlayCompleted(void *user_data) {
@@ -726,6 +735,8 @@ void MediaPlayer::OnError(int error_code, void *user_data) {
             get_error_message(error_code));
 
   MediaPlayer *self = static_cast<MediaPlayer *>(user_data);
+  self->on_seek_completed_ = nullptr;
+  self->is_seeking_ = false;
   self->SendError("Media Player error",
                   std::string("Error: ") + get_error_message(error_code));
 }
@@ -804,36 +815,40 @@ bool MediaPlayer::StopAndDestroy() {
     return false;
   }
 
+  bool success = true;
   is_buffering_ = false;
+  on_seek_completed_ = nullptr;
+  is_seeking_ = false;
   player_state_e player_state = PLAYER_STATE_NONE;
   int ret = player_get_state(player_, &player_state);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[MediaPlayer] player_get_state failed: %s.",
               get_error_message(ret));
-    return false;
-  }
-  if (player_state == PLAYER_STATE_NONE || player_state == PLAYER_STATE_IDLE) {
-    LOG_INFO("[MediaPlayer] Player already stop, nothing to do.");
-    return true;
+    success = false;
   }
 
-  if (player_stop(player_) != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] Player fail to stop.");
-    return false;
+  if (player_state == PLAYER_STATE_PLAYING ||
+      player_state == PLAYER_STATE_PAUSED) {
+    if (player_stop(player_) != PLAYER_ERROR_NONE) {
+      LOG_ERROR("[MediaPlayer] Player fail to stop.");
+      success = false;
+    }
   }
 
-  if (player_unprepare(player_) != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] Player fail to unprepare.");
-    return false;
+  if (player_state != PLAYER_STATE_NONE && player_state != PLAYER_STATE_IDLE) {
+    if (player_unprepare(player_) != PLAYER_ERROR_NONE) {
+      LOG_ERROR("[MediaPlayer] Player fail to unprepare.");
+      success = false;
+    }
   }
 
   if (player_destroy(player_) != PLAYER_ERROR_NONE) {
     LOG_ERROR("[MediaPlayer] Player fail to destroy.");
-    return false;
+    success = false;
   }
   player_ = nullptr;
 
-  return true;
+  return success;
 }
 
 bool MediaPlayer::Suspend() {

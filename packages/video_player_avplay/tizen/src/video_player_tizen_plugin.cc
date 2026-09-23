@@ -302,10 +302,11 @@ void VideoPlayerTizenPlugin::SeekTo(
     result(FlutterError("Invalid argument", "Player not found"));
     return;
   }
-  if (!player->SeekTo(msg.position(),
-                      [result]() -> void { result(std::nullopt); })) {
+  if (!player->SeekTo(msg.position(), nullptr)) {
     result(FlutterError("SeekTo", "Player seek to failed"));
+    return;
   }
+  result(std::nullopt);
 }
 
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetDisplayGeometry(
