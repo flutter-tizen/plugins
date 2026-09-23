@@ -1,3 +1,10 @@
+## 0.8.20
+
+* Update plusplayer
+  1. [HLS] Disable MPEGTS codec discontinuity handling.
+  2. [HLS] Fix codec disc index race condition on seek.
+  3. [HLS] Extend live endlist for normal linear channels.
+
 ## 0.8.19
 
 * Omit obvious local variable types.
