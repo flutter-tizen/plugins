@@ -155,6 +155,14 @@ void VideoPlayer::SendBufferingEnd() {
   PushEvent(flutter::EncodableValue(result));
 }
 
+void VideoPlayer::SendSeekCompleted() {
+  flutter::EncodableMap result = {
+      {flutter::EncodableValue("event"),
+       flutter::EncodableValue("seekCompleted")},
+  };
+  PushEvent(flutter::EncodableValue(result));
+}
+
 void VideoPlayer::SendSubtitleUpdate(int32_t duration,
                                      flutter::EncodableList texts_info,
                                      flutter::EncodableMap picture_info) {
