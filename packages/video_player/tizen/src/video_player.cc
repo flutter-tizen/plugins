@@ -4,13 +4,13 @@
 
 #include "video_player.h"
 
-#include <dlfcn.h>
 #include <flutter/event_stream_handler_functions.h>
 #include <flutter/standard_method_codec.h>
 
 #include <algorithm>
 #include <sstream>
 
+#include "ftpw_video_player.h"
 #include "log.h"
 #include "video_player_error.h"
 
@@ -82,38 +82,6 @@ FlutterDesktopGpuSurfaceDescriptor *VideoPlayer::ObtainGpuSurface(
   return gpu_surface_.get();
 }
 
-#ifdef TV_PROFILE
-void VideoPlayer::InitScreenSaverApi() {
-  LOG_INFO("[VideoPlayer] InitScreenSaverApi()");
-  screensaver_handle_ = dlopen("libcapi-screensaver.so", RTLD_LAZY);
-  if (!screensaver_handle_) {
-    LOG_ERROR("[VideoPlayer] dlopen failed: %s", dlerror());
-    return;
-  }
-
-  screensaver_reset_timeout_ = reinterpret_cast<ScreensaverResetTimeout>(
-      dlsym(screensaver_handle_, "screensaver_reset_timeout"));
-  if (!screensaver_reset_timeout_) {
-    LOG_ERROR("[VideoPlayer] Symbol not found: %s", dlerror());
-    return;
-  }
-
-  ScreensaverOverrideReset screensaver_override_reset =
-      reinterpret_cast<ScreensaverOverrideReset>(
-          dlsym(screensaver_handle_, "screensaver_override_reset"));
-  if (!screensaver_override_reset) {
-    LOG_ERROR("[VideoPlayer] Symbol not found: %s", dlerror());
-    return;
-  }
-
-  int ret = screensaver_override_reset(false);
-  if (ret != 0) {
-    LOG_ERROR("screensaver_override_reset failed: %s", get_error_message(ret));
-    return;
-  }
-}
-#endif
-
 VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
                          flutter::TextureRegistrar *texture_registrar,
                          const std::string &uri, VideoPlayerOptions &options,
@@ -136,8 +104,6 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
           }));
   gpu_surface_ = std::make_unique<FlutterDesktopGpuSurfaceDescriptor>();
   texture_id_ = texture_registrar->RegisterTexture(texture_variant_.get());
-
-  media_player_proxy_ = std::make_unique<MediaPlayerProxy>();
 
   int ret = player_create(&player_);
   if (ret != PLAYER_ERROR_NONE) {
@@ -231,7 +197,10 @@ VideoPlayer::VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
   }
 
 #ifdef TV_PROFILE
-  InitScreenSaverApi();
+  ret = ftpw_video_player_screensaver_override_reset(false);
+  if (ret != 0) {
+    LOG_ERROR("screensaver_override_reset failed: %s", get_error_message(ret));
+  }
 #endif
   SetUpEventChannel(plugin_registrar->messenger());
 }
@@ -485,11 +454,6 @@ void VideoPlayer::Dispose() {
   }
 
 #ifdef TV_PROFILE
-  if (screensaver_handle_) {
-    dlclose(screensaver_handle_);
-    screensaver_handle_ = nullptr;
-  }
-
   if (timer_id_ != 0) {
     g_source_remove(timer_id_);
   }
@@ -562,8 +526,8 @@ void VideoPlayer::SendInitialized() {
       }
     }
 
-    // TODO(jsuya): Since media_player_proxy is not supported in Tizen
-    // profile(common), we cannot know whether the content is live or not. When
+    // TODO(jsuya): The adaptive streaming API is unavailable on the common
+    // profile, so we cannot know whether the content is live or not. When
     // the content is live, duration is always returned as 0, so we check if
     // duration is 1(Because of we set it to 1 to prevent video_player from
     // crashing when duration is returned as 0).
@@ -597,14 +561,10 @@ void VideoPlayer::SendIsPlayingStateUpdate(bool is_playing) {
 }
 
 #ifdef TV_PROFILE
-gboolean VideoPlayer::ResetScreensaverTimeout(gpointer data) {
+gboolean VideoPlayer::ResetScreensaverTimeout(gpointer) {
   LOG_DEBUG("[VideoPlayer] Reset screen saver timeout.");
 
-  auto *player = static_cast<VideoPlayer *>(data);
-  if (!player->screensaver_reset_timeout_) {
-    return G_SOURCE_REMOVE;
-  }
-  int ret = player->screensaver_reset_timeout_();
+  int ret = ftpw_video_player_screensaver_reset_timeout();
   if (ret != 0) {
     LOG_ERROR("screensaver_reset_timeout failed: %s", get_error_message(ret));
     return G_SOURCE_REMOVE;
@@ -745,7 +705,7 @@ int64_t VideoPlayer::GetLiveDuration() {
   std::string live_duration_str = "";
   char *live_duration_buff = static_cast<char *>(malloc(sizeof(char) * 64));
   memset(live_duration_buff, 0, sizeof(char) * 64);
-  int ret = media_player_proxy_->player_get_adaptive_streaming_info(
+  int ret = ftpw_video_player_player_get_adaptive_streaming_info(
       player_, (void *)&live_duration_buff, PLAYER_ADAPTIVE_INFO_LIVE_DURATION);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[MediaPlayer] player_get_adaptive_streaming_info failed: %s",
@@ -766,7 +726,7 @@ int64_t VideoPlayer::GetLiveDuration() {
 
 bool VideoPlayer::IsLive() {
   int is_live = 0;
-  int ret = media_player_proxy_->player_get_adaptive_streaming_info(
+  int ret = ftpw_video_player_player_get_adaptive_streaming_info(
       player_, &is_live, PLAYER_ADAPTIVE_INFO_IS_LIVE);
   if (ret != PLAYER_ERROR_NONE) {
     LOG_ERROR("[MediaPlayer] player_get_adaptive_streaming_info failed: %s",
