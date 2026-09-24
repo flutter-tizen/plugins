@@ -10,3 +10,10 @@ environment:
 
 dependencies:
   ffi: ">=1.1.2 <3.0.0"
+
+flutter:
+  plugin:
+    platforms:
+      tizen:
+        pluginClass: TizenLogPlugin
+        fileName: tizen_log_plugin.h
