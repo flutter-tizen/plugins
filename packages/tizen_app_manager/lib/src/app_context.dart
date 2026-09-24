@@ -13,12 +13,12 @@ import 'package:tizen_interop/6.0/tizen.dart';
 typedef _TerminateAppNative = Int Function(app_context_h);
 typedef _TerminateApp = int Function(app_context_h);
 
-final DynamicLibrary _libAppMananger = DynamicLibrary.open(
-  'libcapi-appfw-app-manager.so.0',
+final DynamicLibrary _libAppManager = DynamicLibrary.open(
+  'libftpw_tizen_app_manager.so',
 );
 final _TerminateApp _terminateApp =
-    _libAppMananger.lookupFunction<_TerminateAppNative, _TerminateApp>(
-  'app_manager_terminate_app',
+    _libAppManager.lookupFunction<_TerminateAppNative, _TerminateApp>(
+  'ftpw_tizen_app_manager_app_manager_terminate_app',
 );
 
 class AppContext {
