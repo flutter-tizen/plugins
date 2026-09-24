@@ -79,8 +79,7 @@ bool EwkWebViewBackend::Create(double width, double height, void* window) {
         const_cast<char*>("--no-zygote"),
     };
     int chromium_argc = sizeof(chromium_argv) / sizeof(chromium_argv[0]);
-    EwkInternalApiBinding::GetInstance().main.SetArguments(chromium_argc,
-                                                           chromium_argv);
+    ftpw_flutter_inappwebview_ewk_set_arguments(chromium_argc, chromium_argv);
   });
 
   Ecore_Evas* evas = GetOffscreenHost();
@@ -95,8 +94,8 @@ bool EwkWebViewBackend::Create(double width, double height, void* window) {
   }
   ecore_evas_focus_set(evas, true);
   ewk_view_focus_set(view_, true);
-  EwkInternalApiBinding::GetInstance().view.OffscreenRenderingEnabledSet(view_,
-                                                                         true);
+  ftpw_flutter_inappwebview_ewk_view_offscreen_rendering_enabled_set(view_,
+                                                                     true);
 
   Ewk_Context* context = ewk_view_context_get(view_);
   if (context) {
@@ -111,30 +110,30 @@ bool EwkWebViewBackend::Create(double width, double height, void* window) {
     LOG_WARN("Unable to access the EWK context; skipping cookie/cache setup.");
   }
 
-  EwkInternalApiBinding::GetInstance().settings.ImePanelEnabledSet(
+  ftpw_flutter_inappwebview_ewk_settings_ime_panel_enabled_set(
       ewk_view_settings_get(view_), true);
-  EwkInternalApiBinding::GetInstance().settings.ForceZoomSet(
+  ftpw_flutter_inappwebview_ewk_settings_force_zoom_set(
       ewk_view_settings_get(view_), true);
-  EwkInternalApiBinding::GetInstance().view.ImeWindowSet(view_, window);
-  EwkInternalApiBinding::GetInstance().view.KeyEventsEnabledSet(view_, true);
+  ftpw_flutter_inappwebview_ewk_view_ime_window_set(view_, window);
+  ftpw_flutter_inappwebview_ewk_view_key_events_enabled_set(view_, true);
 #ifdef WEBVIEW_TIZEN_TOUCH_EVENTS_ENABLED
-  EwkInternalApiBinding::GetInstance().view.TouchEventsEnabledSet(view_, true);
-  EwkInternalApiBinding::GetInstance().view.MouseEventsEnabledSet(view_, false);
+  ftpw_flutter_inappwebview_ewk_view_touch_events_enabled_set(view_, true);
+  ftpw_flutter_inappwebview_ewk_view_mouse_events_enabled_set(view_, false);
 #else
-  EwkInternalApiBinding::GetInstance().view.TouchEventsEnabledSet(view_, false);
-  EwkInternalApiBinding::GetInstance().view.MouseEventsEnabledSet(view_, true);
+  ftpw_flutter_inappwebview_ewk_view_touch_events_enabled_set(view_, false);
+  ftpw_flutter_inappwebview_ewk_view_mouse_events_enabled_set(view_, true);
 #endif
 
-  EwkInternalApiBinding::GetInstance().view.OnJavaScriptAlert(
+  ftpw_flutter_inappwebview_ewk_view_javascript_alert_callback_set(
       view_, &EwkWebViewBackend::OnJavaScriptAlertDialog, this);
-  EwkInternalApiBinding::GetInstance().view.OnJavaScriptConfirm(
+  ftpw_flutter_inappwebview_ewk_view_javascript_confirm_callback_set(
       view_, &EwkWebViewBackend::OnJavaScriptConfirmDialog, this);
-  EwkInternalApiBinding::GetInstance().view.OnJavaScriptPrompt(
+  ftpw_flutter_inappwebview_ewk_view_javascript_prompt_callback_set(
       view_, &EwkWebViewBackend::OnJavaScriptPromptDialog, this);
 
 #ifdef TV_PROFILE
-  EwkInternalApiBinding::GetInstance().view.SupportVideoHoleSet(view_, window,
-                                                                true, false);
+  ftpw_flutter_inappwebview_ewk_view_set_support_video_hole(view_, window, true,
+                                                            false);
 #endif
 
   evas_object_smart_callback_add(view_, "offscreen,frame,rendered",
@@ -196,16 +195,12 @@ Evas_Object* EwkWebViewBackend::DetachView() {
   evas_object_smart_callback_del(instance, "title,changed",
                                  &EwkWebViewBackend::OnTitleChange);
 
-  auto& ewk_view = EwkInternalApiBinding::GetInstance().view;
-  if (ewk_view.OnJavaScriptAlert) {
-    ewk_view.OnJavaScriptAlert(instance, nullptr, nullptr);
-  }
-  if (ewk_view.OnJavaScriptConfirm) {
-    ewk_view.OnJavaScriptConfirm(instance, nullptr, nullptr);
-  }
-  if (ewk_view.OnJavaScriptPrompt) {
-    ewk_view.OnJavaScriptPrompt(instance, nullptr, nullptr);
-  }
+  ftpw_flutter_inappwebview_ewk_view_javascript_alert_callback_set(
+      instance, nullptr, nullptr);
+  ftpw_flutter_inappwebview_ewk_view_javascript_confirm_callback_set(
+      instance, nullptr, nullptr);
+  ftpw_flutter_inappwebview_ewk_view_javascript_prompt_callback_set(
+      instance, nullptr, nullptr);
 
   evas_object_data_del(instance, kEwkInstance);
 
@@ -269,8 +264,8 @@ void EwkWebViewBackend::SendTouchEvent(int event_type, double x, double y) {
   point->state = state;
   points = eina_list_append(points, point);
 
-  EwkInternalApiBinding::GetInstance().view.FeedTouchEvent(
-      view_, mouse_event_type, points, 0);
+  ftpw_flutter_inappwebview_ewk_view_feed_touch_event(view_, mouse_event_type,
+                                                      points, 0);
   eina_list_free(points);
   delete point;
 }
@@ -296,16 +291,16 @@ void EwkWebViewBackend::SendMouseEvent(int event_type, int button_type,
 
   if (event_type == 0) {  // down event
     mouse_button_type_ = mouse_button_type;
-    EwkInternalApiBinding::GetInstance().view.FeedMouseDown(
+    ftpw_flutter_inappwebview_ewk_view_feed_mouse_down(
         view_, mouse_button_type_, px, py);
   } else if (event_type == 1) {
     if (dy != 0) {
-      EwkInternalApiBinding::GetInstance().view.FeedMouseWheel(
+      ftpw_flutter_inappwebview_ewk_view_feed_mouse_wheel(
           view_, true, dy > 0 ? 1 : -1, px, py);
     }
   } else if (event_type == 2) {  // up event
-    EwkInternalApiBinding::GetInstance().view.FeedMouseUp(
-        view_, mouse_button_type_, px, py);
+    ftpw_flutter_inappwebview_ewk_view_feed_mouse_up(view_, mouse_button_type_,
+                                                     px, py);
     mouse_button_type_ = mouse_button_type;
   } else {
     LOG_WARN("Unknown mouse event type: %d", event_type);
@@ -332,14 +327,14 @@ bool EwkWebViewBackend::SendKey(const char* key, const char* string,
     Evas_Event_Key_Down down_event = {};
     down_event.key = key;
     down_event.string = string;
-    EwkInternalApiBinding::GetInstance().view.SendKeyEvent(view_, &down_event,
-                                                           is_down);
+    ftpw_flutter_inappwebview_ewk_view_send_key_event(view_, &down_event,
+                                                      is_down);
   } else {
     Evas_Event_Key_Up up_event = {};
     up_event.key = key;
     up_event.string = string;
-    EwkInternalApiBinding::GetInstance().view.SendKeyEvent(view_, &up_event,
-                                                           is_down);
+    ftpw_flutter_inappwebview_ewk_view_send_key_event(view_, &up_event,
+                                                      is_down);
   }
   return true;
 }
@@ -461,8 +456,7 @@ void EwkWebViewBackend::GetScrollPosition(int32_t* x, int32_t* y) {
 }
 
 void EwkWebViewBackend::SetBackgroundColor(int r, int g, int b, int a) {
-  EwkInternalApiBinding::GetInstance().view.SetBackgroundColor(view_, r, g, b,
-                                                               a);
+  ftpw_flutter_inappwebview_ewk_view_bg_color_set(view_, r, g, b, a);
 }
 
 void EwkWebViewBackend::SetUserAgent(const std::string& user_agent) {
@@ -474,22 +468,20 @@ std::string EwkWebViewBackend::GetUserAgent() {
 }
 
 void EwkWebViewBackend::EnableZoom(bool enabled) {
-  EwkInternalApiBinding::GetInstance().settings.ForceZoomSet(
+  ftpw_flutter_inappwebview_ewk_settings_force_zoom_set(
       ewk_view_settings_get(view_), enabled);
 }
 
 void EwkWebViewBackend::JavaScriptAlertReply() {
-  EwkInternalApiBinding::GetInstance().view.JavaScriptAlertReply(view_);
+  ftpw_flutter_inappwebview_ewk_view_javascript_alert_reply(view_);
 }
 
 void EwkWebViewBackend::JavaScriptConfirmReply(bool result) {
-  EwkInternalApiBinding::GetInstance().view.JavaScriptConfirmReply(view_,
-                                                                   result);
+  ftpw_flutter_inappwebview_ewk_view_javascript_confirm_reply(view_, result);
 }
 
 void EwkWebViewBackend::JavaScriptPromptReply(const char* result) {
-  EwkInternalApiBinding::GetInstance().view.JavaScriptPromptReply(view_,
-                                                                  result);
+  ftpw_flutter_inappwebview_ewk_view_javascript_prompt_reply(view_, result);
 }
 
 bool EwkWebViewBackend::ClearCookies() {
@@ -573,11 +565,11 @@ void EwkWebViewBackend::OnLoadError(void* data, Evas_Object* obj,
 void EwkWebViewBackend::OnConsoleMessage(void* data, Evas_Object* obj,
                                          void* event_info) {
   EwkWebViewBackend* backend = static_cast<EwkWebViewBackend*>(data);
-  Ewk_Console_Message* message = static_cast<Ewk_Console_Message*>(event_info);
+  void* message = event_info;
   Ewk_Console_Message_Level log_level =
-      EwkInternalApiBinding::GetInstance().console_message.LevelGet(message);
-  std::string text = ToString(
-      EwkInternalApiBinding::GetInstance().console_message.TextGet(message));
+      ftpw_flutter_inappwebview_ewk_console_message_level_get(message);
+  std::string text =
+      ToString(ftpw_flutter_inappwebview_ewk_console_message_text_get(message));
   backend->delegate_->OnConsoleMessage(ConvertLogLevelToString(log_level),
                                        text);
 }
@@ -619,7 +611,7 @@ void EwkWebViewBackend::OnEvaluateJavaScript(Evas_Object* obj,
   delete callback;
 }
 
-Eina_Bool EwkWebViewBackend::OnJavaScriptAlertDialog(Evas_Object* o,
+Eina_Bool EwkWebViewBackend::OnJavaScriptAlertDialog(void* o,
                                                      const char* message,
                                                      void* data) {
   EwkWebViewBackend* backend = static_cast<EwkWebViewBackend*>(data);
@@ -628,7 +620,7 @@ Eina_Bool EwkWebViewBackend::OnJavaScriptAlertDialog(Evas_Object* o,
   return true;
 }
 
-Eina_Bool EwkWebViewBackend::OnJavaScriptConfirmDialog(Evas_Object* o,
+Eina_Bool EwkWebViewBackend::OnJavaScriptConfirmDialog(void* o,
                                                        const char* message,
                                                        void* data) {
   EwkWebViewBackend* backend = static_cast<EwkWebViewBackend*>(data);
@@ -637,7 +629,7 @@ Eina_Bool EwkWebViewBackend::OnJavaScriptConfirmDialog(Evas_Object* o,
   return true;
 }
 
-Eina_Bool EwkWebViewBackend::OnJavaScriptPromptDialog(Evas_Object* o,
+Eina_Bool EwkWebViewBackend::OnJavaScriptPromptDialog(void* o,
                                                       const char* message,
                                                       const char* default_text,
                                                       void* data) {

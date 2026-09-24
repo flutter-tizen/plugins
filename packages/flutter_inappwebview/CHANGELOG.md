@@ -1,5 +1,6 @@
 ## 0.3.0
 
+- Use wrapper APIs for the EWK and WV backends.
 - Move the native web engine code behind a `WebViewBackend` interface.
 - Add an experimental WV API backend with EWK-wrapper and standalone modes.
 - Select EWK through Tizen 10.0, WV EWK-wrapper mode on Tizen 10.1, and WV standalone mode from Tizen 11.0.
