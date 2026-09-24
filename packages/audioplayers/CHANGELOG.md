@@ -1,3 +1,9 @@
+## 3.1.9
+
+* Serialize seeks and defer playback controls until seeking completes.
+* Avoid missing network seek completion callbacks after stop by rewinding while paused.
+* Reset the playback position before reporting completion in stop mode.
+
 ## 3.1.8
 
 * Update audioplayers to 6.8.1.

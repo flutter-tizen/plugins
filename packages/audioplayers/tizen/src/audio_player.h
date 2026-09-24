@@ -8,6 +8,7 @@
 #include <glib.h>
 #include <player.h>
 
+#include <atomic>
 #include <functional>
 #include <memory>
 #include <string>
@@ -25,6 +26,9 @@ using SeekCompletedListener = std::function<void(const std::string &player_id)>;
 using PlayCompletedListener = std::function<void(const std::string &player_id)>;
 using LogListener = std::function<void(const std::string &player_id,
                                        const std::string &message)>;
+using ErrorListener =
+    std::function<void(const std::string &player_id, const std::string &code,
+                       const std::string &message)>;
 
 class AudioPlayer {
  public:
@@ -32,7 +36,7 @@ class AudioPlayer {
               DurationListener duration_listener,
               SeekCompletedListener seek_completed_listener,
               PlayCompletedListener play_completed_listener,
-              LogListener log_listener);
+              LogListener log_listener, ErrorListener error_listener);
 
   ~AudioPlayer();
 
@@ -58,10 +62,12 @@ class AudioPlayer {
   bool IsSourcePrepared();
 
  private:
+  enum class PendingAction { kNone, kPlay, kPause };
   // The player state should be none before calling this function.
   void CreatePlayer();
   // The player state should be idle before calling this function.
   void PreparePlayer();
+  void PrepareSource();
   void ResetPlayer();
   void StartPositionUpdates();
   player_state_e GetPlayerState();
@@ -84,8 +90,10 @@ class AudioPlayer {
   ReleaseMode release_mode_ = ReleaseMode::kRelease;
   int should_seek_to_ = -1;
   bool preparing_ = false;
+  bool completing_ = false;
   bool seeking_ = false;
-  bool should_play_ = false;
+  PendingAction pending_action_ = PendingAction::kNone;
+  std::atomic<unsigned int> generation_{0};
   guint timer_id_ = 0;
   std::shared_ptr<bool> is_alive_ = std::make_shared<bool>(true);
 
@@ -94,6 +102,7 @@ class AudioPlayer {
   SeekCompletedListener seek_completed_listener_;
   PlayCompletedListener play_completed_listener_;
   LogListener log_listener_;
+  ErrorListener error_listener_;
 };
 
 #endif  // FLUTTER_PLUGIN_AUDIO_PLAYER_H_
