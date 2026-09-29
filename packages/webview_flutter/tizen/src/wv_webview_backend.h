@@ -12,8 +12,8 @@
 #include <string>
 #include <vector>
 
+#include "ftpw_webview_flutter.h"
 #include "webview_backend.h"
-#include "wv_internal_api_binding.h"
 
 class WvWebViewBackend : public WebViewBackend {
  public:
@@ -75,26 +75,23 @@ class WvWebViewBackend : public WebViewBackend {
   static void GlobalShutdown();
 
  private:
-  static void OnFrameRendered(wv_view_h obj, void* event_info, void* user_data);
-  static void OnLoadStarted(wv_view_h obj, void* event_info, void* user_data);
-  static void OnLoadFinished(wv_view_h obj, void* event_info, void* user_data);
-  static void OnProgress(wv_view_h obj, void* event_info, void* user_data);
-  static void OnLoadError(wv_view_h obj, void* event_info, void* user_data);
-  static void OnConsoleMessage(wv_view_h obj, void* event_info,
-                               void* user_data);
-  static void OnNavigationPolicy(wv_view_h obj, void* event_info,
-                                 void* user_data);
-  static void OnResponsePolicy(wv_view_h obj, void* event_info,
-                               void* user_data);
-  static void OnUrlChange(wv_view_h obj, void* event_info, void* user_data);
-  static void OnEvaluateJavaScript(wv_view_h obj, const char* result_value,
+  static void OnFrameRendered(void* obj, void* event_info, void* user_data);
+  static void OnLoadStarted(void* obj, void* event_info, void* user_data);
+  static void OnLoadFinished(void* obj, void* event_info, void* user_data);
+  static void OnProgress(void* obj, void* event_info, void* user_data);
+  static void OnLoadError(void* obj, void* event_info, void* user_data);
+  static void OnConsoleMessage(void* obj, void* event_info, void* user_data);
+  static void OnNavigationPolicy(void* obj, void* event_info, void* user_data);
+  static void OnResponsePolicy(void* obj, void* event_info, void* user_data);
+  static void OnUrlChange(void* obj, void* event_info, void* user_data);
+  static void OnEvaluateJavaScript(void* obj, const char* result_value,
                                    void* user_data);
-  static void OnJavaScriptMessage(wv_view_h obj, wv_script_message_s message);
-  static bool OnJavaScriptAlertDialog(wv_view_h view, const char* message,
+  static void OnJavaScriptMessage(void* obj, wv_script_message_s message);
+  static bool OnJavaScriptAlertDialog(void* view, const char* message,
                                       void* data);
-  static bool OnJavaScriptConfirmDialog(wv_view_h view, const char* message,
+  static bool OnJavaScriptConfirmDialog(void* view, const char* message,
                                         void* data);
-  static bool OnJavaScriptPromptDialog(wv_view_h view, const char* message,
+  static bool OnJavaScriptPromptDialog(void* view, const char* message,
                                        const char* default_text, void* data);
 
   void SendTouchEvent(int type, double x, double y);
@@ -103,7 +100,7 @@ class WvWebViewBackend : public WebViewBackend {
 
   Delegate* delegate_;
   bool scrollbar_enabled_ = true;
-  wv_view_h view_ = nullptr;
+  void* view_ = nullptr;
   void* window_ = nullptr;
   bool has_navigation_delegate_ = false;
   wv_mouse_button_type_e mouse_button_type_ =
