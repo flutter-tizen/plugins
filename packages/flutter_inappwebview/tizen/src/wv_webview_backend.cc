@@ -74,7 +74,6 @@ wv_modifier_e ConvertModifiers(unsigned int modifiers) {
 WvWebViewBackend::WvWebViewBackend(Delegate* delegate) : delegate_(delegate) {}
 
 bool WvWebViewBackend::GlobalInitialize(bool standalone) {
-  auto& wv = WvInternalApiBinding::GetInstance();
   std::vector<const char*> argv = {
       "--disable-pinch",
       "--js-flags=--expose-gc",
@@ -84,12 +83,13 @@ bool WvWebViewBackend::GlobalInitialize(bool standalone) {
   if (standalone) {
     argv.push_back("--enable-wv-standalone");
   }
-  int result = wv.main.SetArguments(static_cast<int>(argv.size()), argv.data());
+  int result = ftpw_flutter_inappwebview_wv_set_arguments(
+      static_cast<int>(argv.size()), argv.data());
   if (result != 0) {
     LOG_ERROR("wv_set_arguments() returned %d.", result);
     return false;
   }
-  result = wv.main.Init();
+  result = ftpw_flutter_inappwebview_wv_init();
   if (result <= 0) {
     LOG_ERROR("wv_init() returned %d.", result);
     return false;
@@ -99,131 +99,139 @@ bool WvWebViewBackend::GlobalInitialize(bool standalone) {
 
 void WvWebViewBackend::GlobalShutdown() {
   FlushPendingTeardowns();
-  WvInternalApiBinding::GetInstance().main.Shutdown();
+  ftpw_flutter_inappwebview_wv_shutdown();
 }
 
 bool WvWebViewBackend::Create(double width, double height, void* window) {
-  auto& wv = WvInternalApiBinding::GetInstance();
-
-  view_ = wv.view.Create();
+  view_ = ftpw_flutter_inappwebview_wv_view_create();
   if (!view_) {
     return false;
   }
-  wv.view.FocusSet(view_, 1);
+  ftpw_flutter_inappwebview_wv_view_focus_set(view_, 1);
 
-  wv_context_h context = wv.view.ContextGet(view_);
+  void* context = ftpw_flutter_inappwebview_wv_view_context_get(view_);
   if (context) {
-    wv_cookie_manager_h cookie_manager = wv.context.CookieManagerGet(context);
+    void* cookie_manager =
+        ftpw_flutter_inappwebview_wv_context_cookie_manager_get(context);
     if (cookie_manager) {
-      wv.cookie_manager.AcceptPolicySet(cookie_manager,
-                                        WV_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY);
+      ftpw_flutter_inappwebview_wv_cookie_manager_accept_policy_set(
+          cookie_manager, WV_COOKIE_ACCEPT_POLICY_NO_THIRD_PARTY);
     }
-    wv.context.CacheModelSet(context, WV_CACHE_MODEL_PRIMARY_WEBBROWSER);
+    ftpw_flutter_inappwebview_wv_context_cache_model_set(
+        context, WV_CACHE_MODEL_PRIMARY_WEBBROWSER);
   } else {
     LOG_WARN("Unable to access the WV context; skipping cookie/cache setup.");
   }
 
-  wv_settings_h settings = wv.view.SettingsGet(view_);
-  wv.settings.ImePanelEnabledSet(settings, true);
-  wv.settings.ForceZoomSet(settings, true);
-  wv.view.ImeWindowSet(view_, window);
-  wv.view.KeyEventsEnabledSet(view_, true);
+  void* settings = ftpw_flutter_inappwebview_wv_view_settings_get(view_);
+  ftpw_flutter_inappwebview_wv_settings_ime_panel_enabled_set(settings, true);
+  ftpw_flutter_inappwebview_wv_settings_force_zoom_set(settings, true);
+  ftpw_flutter_inappwebview_wv_view_ime_window_set(view_, window);
+  ftpw_flutter_inappwebview_wv_view_key_events_enabled_set(view_, true);
 #ifdef WEBVIEW_TIZEN_TOUCH_EVENTS_ENABLED
-  wv.view.TouchEventsEnabledSet(view_, true);
-  wv.view.MouseEventsEnabledSet(view_, false);
+  ftpw_flutter_inappwebview_wv_view_touch_events_enabled_set(view_, true);
+  ftpw_flutter_inappwebview_wv_view_mouse_events_enabled_set(view_, false);
 #else
-  wv.view.TouchEventsEnabledSet(view_, false);
-  wv.view.MouseEventsEnabledSet(view_, true);
+  ftpw_flutter_inappwebview_wv_view_touch_events_enabled_set(view_, false);
+  ftpw_flutter_inappwebview_wv_view_mouse_events_enabled_set(view_, true);
 #endif
 
-  wv.view.OnJavaScriptAlert(view_, &WvWebViewBackend::OnJavaScriptAlertDialog,
-                            this);
-  wv.view.OnJavaScriptConfirm(
+  ftpw_flutter_inappwebview_wv_view_javascript_alert_callback_set(
+      view_, &WvWebViewBackend::OnJavaScriptAlertDialog, this);
+  ftpw_flutter_inappwebview_wv_view_javascript_confirm_callback_set(
       view_, &WvWebViewBackend::OnJavaScriptConfirmDialog, this);
-  wv.view.OnJavaScriptPrompt(view_, &WvWebViewBackend::OnJavaScriptPromptDialog,
-                             this);
+  ftpw_flutter_inappwebview_wv_view_javascript_prompt_callback_set(
+      view_, &WvWebViewBackend::OnJavaScriptPromptDialog, this);
 
 #ifdef TV_PROFILE
-  wv.view.SetSupportVideoHole(view_, window, true, false);
+  ftpw_flutter_inappwebview_wv_view_set_support_video_hole(view_, window, true,
+                                                           false);
 #endif
 
-  wv.view.AddCallback(view_, "offscreen,frame,rendered",
-                      &WvWebViewBackend::OnFrameRendered, this);
-  wv.view.AddCallback(view_, "load,started", &WvWebViewBackend::OnLoadStarted,
-                      this);
-  wv.view.AddCallback(view_, "load,finished", &WvWebViewBackend::OnLoadFinished,
-                      this);
-  wv.view.AddCallback(view_, "load,progress", &WvWebViewBackend::OnProgress,
-                      this);
-  wv.view.AddCallback(view_, "load,error", &WvWebViewBackend::OnLoadError,
-                      this);
-  wv.view.AddCallback(view_, "console,message",
-                      &WvWebViewBackend::OnConsoleMessage, this);
-  wv.view.AddCallback(view_, "policy,navigation,decide",
-                      &WvWebViewBackend::OnNavigationPolicy, this);
-  wv.view.AddCallback(view_, "url,changed", &WvWebViewBackend::OnUrlChange,
-                      this);
-  wv.view.AddCallback(view_, "title,changed", &WvWebViewBackend::OnTitleChange,
-                      this);
+  ftpw_flutter_inappwebview_wv_view_add_cb(view_, "offscreen,frame,rendered",
+                                           &WvWebViewBackend::OnFrameRendered,
+                                           this);
+  ftpw_flutter_inappwebview_wv_view_add_cb(
+      view_, "load,started", &WvWebViewBackend::OnLoadStarted, this);
+  ftpw_flutter_inappwebview_wv_view_add_cb(
+      view_, "load,finished", &WvWebViewBackend::OnLoadFinished, this);
+  ftpw_flutter_inappwebview_wv_view_add_cb(view_, "load,progress",
+                                           &WvWebViewBackend::OnProgress, this);
+  ftpw_flutter_inappwebview_wv_view_add_cb(
+      view_, "load,error", &WvWebViewBackend::OnLoadError, this);
+  ftpw_flutter_inappwebview_wv_view_add_cb(
+      view_, "console,message", &WvWebViewBackend::OnConsoleMessage, this);
+  ftpw_flutter_inappwebview_wv_view_add_cb(
+      view_, "policy,navigation,decide", &WvWebViewBackend::OnNavigationPolicy,
+      this);
+  ftpw_flutter_inappwebview_wv_view_add_cb(
+      view_, "url,changed", &WvWebViewBackend::OnUrlChange, this);
+  ftpw_flutter_inappwebview_wv_view_add_cb(
+      view_, "title,changed", &WvWebViewBackend::OnTitleChange, this);
 
-  wv.view.Resize(view_, static_cast<int>(std::round(width)),
-                 static_cast<int>(std::round(height)));
+  ftpw_flutter_inappwebview_wv_view_resize(
+      view_, static_cast<int>(std::round(width)),
+      static_cast<int>(std::round(height)));
 
   return true;
 }
 
 WvWebViewBackend::~WvWebViewBackend() {
-  if (wv_view_h instance = DetachView()) {
-    WvInternalApiBinding::GetInstance().view.Destroy(instance);
+  if (void* instance = DetachView()) {
+    ftpw_flutter_inappwebview_wv_view_destroy(instance);
   }
 }
 
-wv_view_h WvWebViewBackend::DetachView() {
-  wv_view_h instance = view_;
+void* WvWebViewBackend::DetachView() {
+  void* instance = view_;
   view_ = nullptr;
   if (!instance) {
     return nullptr;
   }
 
-  auto& wv = WvInternalApiBinding::GetInstance();
-  wv.view.RemoveFullCallback(instance, "offscreen,frame,rendered",
-                             &WvWebViewBackend::OnFrameRendered, this);
-  wv.view.RemoveFullCallback(instance, "load,started",
-                             &WvWebViewBackend::OnLoadStarted, this);
-  wv.view.RemoveFullCallback(instance, "load,finished",
-                             &WvWebViewBackend::OnLoadFinished, this);
-  wv.view.RemoveFullCallback(instance, "load,progress",
-                             &WvWebViewBackend::OnProgress, this);
-  wv.view.RemoveFullCallback(instance, "load,error",
-                             &WvWebViewBackend::OnLoadError, this);
-  wv.view.RemoveFullCallback(instance, "console,message",
-                             &WvWebViewBackend::OnConsoleMessage, this);
-  wv.view.RemoveFullCallback(instance, "policy,navigation,decide",
-                             &WvWebViewBackend::OnNavigationPolicy, this);
-  wv.view.RemoveFullCallback(instance, "url,changed",
-                             &WvWebViewBackend::OnUrlChange, this);
-  wv.view.RemoveFullCallback(instance, "title,changed",
-                             &WvWebViewBackend::OnTitleChange, this);
+  ftpw_flutter_inappwebview_wv_view_remove_full_cb(
+      instance, "offscreen,frame,rendered", &WvWebViewBackend::OnFrameRendered,
+      this);
+  ftpw_flutter_inappwebview_wv_view_remove_full_cb(
+      instance, "load,started", &WvWebViewBackend::OnLoadStarted, this);
+  ftpw_flutter_inappwebview_wv_view_remove_full_cb(
+      instance, "load,finished", &WvWebViewBackend::OnLoadFinished, this);
+  ftpw_flutter_inappwebview_wv_view_remove_full_cb(
+      instance, "load,progress", &WvWebViewBackend::OnProgress, this);
+  ftpw_flutter_inappwebview_wv_view_remove_full_cb(
+      instance, "load,error", &WvWebViewBackend::OnLoadError, this);
+  ftpw_flutter_inappwebview_wv_view_remove_full_cb(
+      instance, "console,message", &WvWebViewBackend::OnConsoleMessage, this);
+  ftpw_flutter_inappwebview_wv_view_remove_full_cb(
+      instance, "policy,navigation,decide",
+      &WvWebViewBackend::OnNavigationPolicy, this);
+  ftpw_flutter_inappwebview_wv_view_remove_full_cb(
+      instance, "url,changed", &WvWebViewBackend::OnUrlChange, this);
+  ftpw_flutter_inappwebview_wv_view_remove_full_cb(
+      instance, "title,changed", &WvWebViewBackend::OnTitleChange, this);
 
-  wv.view.OnJavaScriptAlert(instance, nullptr, nullptr);
-  wv.view.OnJavaScriptConfirm(instance, nullptr, nullptr);
-  wv.view.OnJavaScriptPrompt(instance, nullptr, nullptr);
+  ftpw_flutter_inappwebview_wv_view_javascript_alert_callback_set(
+      instance, nullptr, nullptr);
+  ftpw_flutter_inappwebview_wv_view_javascript_confirm_callback_set(
+      instance, nullptr, nullptr);
+  ftpw_flutter_inappwebview_wv_view_javascript_prompt_callback_set(
+      instance, nullptr, nullptr);
 
   // NOTE: A suspended view must be resumed before it can be stopped.
-  wv.view.Resume(instance);
-  wv.view.Stop(instance);
+  ftpw_flutter_inappwebview_wv_view_resume(instance);
+  ftpw_flutter_inappwebview_wv_view_stop(instance);
 
   return instance;
 }
 
 std::function<void()> WvWebViewBackend::PrepareTeardown(
     std::shared_ptr<BufferPool> pool) {
-  wv_view_h instance = DetachView();
+  void* instance = DetachView();
 
   std::function<void()> destroy;
   if (instance) {
     destroy = [instance]() {
-      WvInternalApiBinding::GetInstance().view.Destroy(instance);
+      ftpw_flutter_inappwebview_wv_view_destroy(instance);
     };
   }
 
@@ -235,7 +243,7 @@ void WvWebViewBackend::Offset(double /* left */, double /* top */) {
 }
 
 void WvWebViewBackend::Resize(double width, double height) {
-  WvInternalApiBinding::GetInstance().view.Resize(
+  ftpw_flutter_inappwebview_wv_view_resize(
       view_, static_cast<int>(std::round(width)),
       static_cast<int>(std::round(height)));
 }
@@ -272,8 +280,8 @@ void WvWebViewBackend::SendTouchEvent(int event_type, double x, double y) {
   point.state = state;
 
   GList* points = g_list_append(nullptr, &point);
-  WvInternalApiBinding::GetInstance().view.FeedTouchEvent(
-      view_, touch_event_type, points, WV_MODIFIER_NONE);
+  ftpw_flutter_inappwebview_wv_view_feed_touch_event(view_, touch_event_type,
+                                                     points, WV_MODIFIER_NONE);
   g_list_free(points);
 }
 
@@ -296,16 +304,18 @@ void WvWebViewBackend::SendMouseEvent(int event_type, int button_type, double x,
   int px = static_cast<int>(std::round(x));
   int py = static_cast<int>(std::round(y));
 
-  auto& wv = WvInternalApiBinding::GetInstance();
   if (event_type == 0) {
     mouse_button_type_ = mouse_button_type;
-    wv.view.FeedMouseDown(view_, mouse_button_type_, px, py);
+    ftpw_flutter_inappwebview_wv_view_feed_mouse_down(view_, mouse_button_type_,
+                                                      px, py);
   } else if (event_type == 1) {
     if (dy != 0) {
-      wv.view.FeedMouseWheel(view_, true, dy > 0 ? 1 : -1, px, py);
+      ftpw_flutter_inappwebview_wv_view_feed_mouse_wheel(
+          view_, true, dy > 0 ? 1 : -1, px, py);
     }
   } else if (event_type == 2) {
-    wv.view.FeedMouseUp(view_, mouse_button_type_, px, py);
+    ftpw_flutter_inappwebview_wv_view_feed_mouse_up(view_, mouse_button_type_,
+                                                    px, py);
     mouse_button_type_ = mouse_button_type;
   } else {
     LOG_WARN("Unknown mouse event type: %d", event_type);
@@ -319,10 +329,9 @@ bool WvWebViewBackend::SendKey(const char* key, const char* string,
     return false;
   }
 
-  auto& wv = WvInternalApiBinding::GetInstance();
   if (key && strcmp(key, "XF86Back") == 0 && !is_down) {
-    if (wv.view.BackPossible(view_)) {
-      wv.view.Back(view_);
+    if (ftpw_flutter_inappwebview_wv_view_back_possible(view_)) {
+      ftpw_flutter_inappwebview_wv_view_back(view_);
       return true;
     }
     return false;
@@ -335,35 +344,36 @@ bool WvWebViewBackend::SendKey(const char* key, const char* string,
   key_event.compose = compose;
   key_event.modifiers = ConvertModifiers(modifiers);
   key_event.key_code = scan_code;
-  wv.view.SendKeyEvent(view_, &key_event, is_down ? 1 : 0);
+  ftpw_flutter_inappwebview_wv_view_send_key_event(view_, &key_event,
+                                                   is_down ? 1 : 0);
   return true;
 }
 
 void WvWebViewBackend::Resume() {
   if (view_) {
-    WvInternalApiBinding::GetInstance().view.Resume(view_);
+    ftpw_flutter_inappwebview_wv_view_resume(view_);
   }
 }
 
 void WvWebViewBackend::Suspend() {
   if (view_) {
-    WvInternalApiBinding::GetInstance().view.Suspend(view_);
+    ftpw_flutter_inappwebview_wv_view_suspend(view_);
   }
 }
 
 void WvWebViewBackend::Stop() {
   if (view_) {
-    WvInternalApiBinding::GetInstance().view.Stop(view_);
+    ftpw_flutter_inappwebview_wv_view_stop(view_);
   }
 }
 
 void WvWebViewBackend::SetJavaScriptEnabled(bool enabled) {
-  auto& wv = WvInternalApiBinding::GetInstance();
-  wv.settings.JavaScriptEnabledSet(wv.view.SettingsGet(view_), enabled);
+  ftpw_flutter_inappwebview_wv_settings_javascript_enabled_set(
+      ftpw_flutter_inappwebview_wv_view_settings_get(view_), enabled);
 }
 
 bool WvWebViewBackend::LoadUrl(const std::string& url) {
-  return WvInternalApiBinding::GetInstance().view.UrlSet(view_, url.c_str());
+  return ftpw_flutter_inappwebview_wv_view_url_set(view_, url.c_str());
 }
 
 bool WvWebViewBackend::LoadUrlRequest(
@@ -384,7 +394,7 @@ bool WvWebViewBackend::LoadUrlRequest(
 
   // NOTE: The WV API requires a NUL-terminated non-empty request body.
   std::string body_str(body.begin(), body.end());
-  bool ret = WvInternalApiBinding::GetInstance().view.UrlRequestSet(
+  bool ret = ftpw_flutter_inappwebview_wv_view_url_request_set(
       view_, url.c_str(), wv_method, wv_headers,
       body.empty() ? nullptr : body_str.c_str());
   g_hash_table_destroy(wv_headers);
@@ -393,32 +403,32 @@ bool WvWebViewBackend::LoadUrlRequest(
 
 bool WvWebViewBackend::LoadHtmlString(const std::string& html,
                                       const std::string& base_url) {
-  return WvInternalApiBinding::GetInstance().view.HtmlStringLoad(
+  return ftpw_flutter_inappwebview_wv_view_html_string_load(
       view_, html.c_str(), base_url.c_str(), nullptr);
 }
 
 bool WvWebViewBackend::CanGoBack() {
-  return WvInternalApiBinding::GetInstance().view.BackPossible(view_);
+  return ftpw_flutter_inappwebview_wv_view_back_possible(view_);
 }
 
 bool WvWebViewBackend::CanGoForward() {
-  return WvInternalApiBinding::GetInstance().view.ForwardPossible(view_);
+  return ftpw_flutter_inappwebview_wv_view_forward_possible(view_);
 }
 
 bool WvWebViewBackend::GoBack() {
-  return WvInternalApiBinding::GetInstance().view.Back(view_);
+  return ftpw_flutter_inappwebview_wv_view_back(view_);
 }
 
 bool WvWebViewBackend::GoForward() {
-  return WvInternalApiBinding::GetInstance().view.Forward(view_);
+  return ftpw_flutter_inappwebview_wv_view_forward(view_);
 }
 
 bool WvWebViewBackend::Reload() {
-  return WvInternalApiBinding::GetInstance().view.Reload(view_);
+  return ftpw_flutter_inappwebview_wv_view_reload(view_);
 }
 
 std::string WvWebViewBackend::GetCurrentUrl() {
-  const char* url = WvInternalApiBinding::GetInstance().view.UrlGet(view_);
+  const char* url = ftpw_flutter_inappwebview_wv_view_url_get(view_);
   return url ? url : "";
 }
 
@@ -426,8 +436,7 @@ int32_t WvWebViewBackend::GetProgress() {
   if (!view_) {
     return 0;
   }
-  double progress =
-      WvInternalApiBinding::GetInstance().view.LoadProgressGet(view_);
+  double progress = ftpw_flutter_inappwebview_wv_view_load_progress_get(view_);
   if (progress < 0) {
     return 0;
   }
@@ -438,12 +447,12 @@ double WvWebViewBackend::GetScale() {
   if (!view_) {
     return 1.0;
   }
-  double scale = WvInternalApiBinding::GetInstance().view.ScaleGet(view_);
+  double scale = ftpw_flutter_inappwebview_wv_view_scale_get(view_);
   return scale > 0 ? scale : 1.0;
 }
 
 void WvWebViewBackend::SetScale(double scale, int32_t x, int32_t y) {
-  WvInternalApiBinding::GetInstance().view.ScaleSet(view_, scale, x, y);
+  ftpw_flutter_inappwebview_wv_view_scale_set(view_, scale, x, y);
 }
 
 void WvWebViewBackend::EvaluateJavaScript(
@@ -451,7 +460,7 @@ void WvWebViewBackend::EvaluateJavaScript(
     std::function<void(bool success, const char* result_value)> callback) {
   auto* callback_ptr =
       new std::function<void(bool, const char*)>(std::move(callback));
-  if (!WvInternalApiBinding::GetInstance().view.ScriptExecute(
+  if (!ftpw_flutter_inappwebview_wv_view_script_execute(
           view_, javascript.c_str(), &WvWebViewBackend::OnEvaluateJavaScript,
           callback_ptr)) {
     LOG_WARN("wv_view_script_execute failed.");
@@ -461,75 +470,72 @@ void WvWebViewBackend::EvaluateJavaScript(
 }
 
 void WvWebViewBackend::ClearCache() {
-  auto& wv = WvInternalApiBinding::GetInstance();
-  wv_context_h context = wv.view.ContextGet(view_);
+  void* context = ftpw_flutter_inappwebview_wv_view_context_get(view_);
   if (context) {
-    wv.context.CacheClear(context);
+    ftpw_flutter_inappwebview_wv_context_cache_clear(context);
   }
 }
 
 std::string WvWebViewBackend::GetTitle() {
-  const char* title = WvInternalApiBinding::GetInstance().view.TitleGet(view_);
+  const char* title = ftpw_flutter_inappwebview_wv_view_title_get(view_);
   return title ? title : "";
 }
 
 void WvWebViewBackend::ScrollTo(int32_t x, int32_t y) {
-  WvInternalApiBinding::GetInstance().view.ScrollSet(view_, x, y);
+  ftpw_flutter_inappwebview_wv_view_scroll_set(view_, x, y);
 }
 
 void WvWebViewBackend::GetScrollPosition(int32_t* x, int32_t* y) {
-  WvInternalApiBinding::GetInstance().view.ScrollPosGet(view_, x, y);
+  ftpw_flutter_inappwebview_wv_view_scroll_pos_get(view_, x, y);
 }
 
 void WvWebViewBackend::SetBackgroundColor(int r, int g, int b, int a) {
-  WvInternalApiBinding::GetInstance().view.BgColorSet(view_, r, g, b, a);
+  ftpw_flutter_inappwebview_wv_view_bg_color_set(view_, r, g, b, a);
 }
 
 void WvWebViewBackend::SetUserAgent(const std::string& user_agent) {
-  WvInternalApiBinding::GetInstance().view.UserAgentSet(view_,
-                                                        user_agent.c_str());
+  ftpw_flutter_inappwebview_wv_view_user_agent_set(view_, user_agent.c_str());
 }
 
 std::string WvWebViewBackend::GetUserAgent() {
   const char* user_agent =
-      WvInternalApiBinding::GetInstance().view.UserAgentGet(view_);
+      ftpw_flutter_inappwebview_wv_view_user_agent_get(view_);
   return user_agent ? user_agent : "";
 }
 
 void WvWebViewBackend::EnableZoom(bool enabled) {
-  auto& wv = WvInternalApiBinding::GetInstance();
-  wv.settings.ForceZoomSet(wv.view.SettingsGet(view_), enabled);
+  ftpw_flutter_inappwebview_wv_settings_force_zoom_set(
+      ftpw_flutter_inappwebview_wv_view_settings_get(view_), enabled);
 }
 
 void WvWebViewBackend::JavaScriptAlertReply() {
-  WvInternalApiBinding::GetInstance().view.JavaScriptAlertReply(view_);
+  ftpw_flutter_inappwebview_wv_view_javascript_alert_reply(view_);
 }
 
 void WvWebViewBackend::JavaScriptConfirmReply(bool result) {
-  WvInternalApiBinding::GetInstance().view.JavaScriptConfirmReply(view_,
-                                                                  result);
+  ftpw_flutter_inappwebview_wv_view_javascript_confirm_reply(view_, result);
 }
 
 void WvWebViewBackend::JavaScriptPromptReply(const char* result) {
-  WvInternalApiBinding::GetInstance().view.JavaScriptPromptReply(view_, result);
+  ftpw_flutter_inappwebview_wv_view_javascript_prompt_reply(view_, result);
 }
 
 bool WvWebViewBackend::ClearCookies() {
   if (!view_) {
     return false;
   }
-  auto& wv = WvInternalApiBinding::GetInstance();
-  wv_context_h context = wv.view.ContextGet(view_);
-  wv_cookie_manager_h cookie_manager =
-      context ? wv.context.CookieManagerGet(context) : nullptr;
+  void* context = ftpw_flutter_inappwebview_wv_view_context_get(view_);
+  void* cookie_manager =
+      context ? ftpw_flutter_inappwebview_wv_context_cookie_manager_get(context)
+              : nullptr;
   if (cookie_manager) {
-    wv.cookie_manager.CookiesClear(cookie_manager);
+    ftpw_flutter_inappwebview_wv_cookie_manager_cookies_clear(cookie_manager);
     return true;
   }
   return false;
 }
 
-void WvWebViewBackend::OnFrameRendered(wv_view_h obj, void* event_info,
+void WvWebViewBackend::OnFrameRendered(void* obj, void* event_info,
                                        void* user_data) {
   if (event_info) {
     static_cast<WvWebViewBackend*>(user_data)->delegate_->OnFrameRendered(
@@ -537,24 +543,23 @@ void WvWebViewBackend::OnFrameRendered(wv_view_h obj, void* event_info,
   }
 }
 
-void WvWebViewBackend::OnLoadStarted(wv_view_h obj, void* event_info,
+void WvWebViewBackend::OnLoadStarted(void* obj, void* event_info,
                                      void* user_data) {
   WvWebViewBackend* backend = static_cast<WvWebViewBackend*>(user_data);
-  auto& wv = WvInternalApiBinding::GetInstance();
-  wv.view.MainFrameScrollbarVisibleSet(backend->view_, true);
-  const char* url = wv.view.UrlGet(backend->view_);
+  ftpw_flutter_inappwebview_wv_view_main_frame_scrollbar_visible_set(
+      backend->view_, true);
+  const char* url = ftpw_flutter_inappwebview_wv_view_url_get(backend->view_);
   backend->delegate_->OnLoadStarted(url ? url : "");
 }
 
-void WvWebViewBackend::OnLoadFinished(wv_view_h obj, void* event_info,
+void WvWebViewBackend::OnLoadFinished(void* obj, void* event_info,
                                       void* user_data) {
   WvWebViewBackend* backend = static_cast<WvWebViewBackend*>(user_data);
-  const char* url =
-      WvInternalApiBinding::GetInstance().view.UrlGet(backend->view_);
+  const char* url = ftpw_flutter_inappwebview_wv_view_url_get(backend->view_);
   backend->delegate_->OnLoadFinished(url ? url : "");
 }
 
-void WvWebViewBackend::OnProgress(wv_view_h obj, void* event_info,
+void WvWebViewBackend::OnProgress(void* obj, void* event_info,
                                   void* user_data) {
   if (!event_info) {
     return;
@@ -565,54 +570,55 @@ void WvWebViewBackend::OnProgress(wv_view_h obj, void* event_info,
   backend->delegate_->OnProgress(progress);
 }
 
-void WvWebViewBackend::OnLoadError(wv_view_h obj, void* event_info,
+void WvWebViewBackend::OnLoadError(void* obj, void* event_info,
                                    void* user_data) {
   WvWebViewBackend* backend = static_cast<WvWebViewBackend*>(user_data);
-  wv_error_h error = static_cast<wv_error_h>(event_info);
-  auto& wv = WvInternalApiBinding::GetInstance();
-  const char* description = wv.error.DescriptionGet(error);
-  const char* url = wv.error.UrlGet(error);
+  void* error = static_cast<void*>(event_info);
+  const char* description =
+      ftpw_flutter_inappwebview_wv_error_description_get(error);
+  const char* url = ftpw_flutter_inappwebview_wv_error_url_get(error);
   backend->delegate_->OnLoadError(
-      wv.error.CodeGet(error), description ? description : "", url ? url : "");
+      ftpw_flutter_inappwebview_wv_error_code_get(error),
+      description ? description : "", url ? url : "");
 }
 
-void WvWebViewBackend::OnConsoleMessage(wv_view_h obj, void* event_info,
+void WvWebViewBackend::OnConsoleMessage(void* obj, void* event_info,
                                         void* user_data) {
   WvWebViewBackend* backend = static_cast<WvWebViewBackend*>(user_data);
-  wv_console_message_h message = static_cast<wv_console_message_h>(event_info);
-  auto& wv = WvInternalApiBinding::GetInstance();
-  wv_console_message_level_e log_level = wv.console_message.LevelGet(message);
-  const char* text = wv.console_message.TextGet(message);
+  void* message = static_cast<void*>(event_info);
+  wv_console_message_level_e log_level =
+      ftpw_flutter_inappwebview_wv_console_message_level_get(message);
+  const char* text =
+      ftpw_flutter_inappwebview_wv_console_message_text_get(message);
   backend->delegate_->OnConsoleMessage(ConvertLogLevelToString(log_level),
                                        text ? text : "");
 }
 
-void WvWebViewBackend::OnNavigationPolicy(wv_view_h obj, void* event_info,
+void WvWebViewBackend::OnNavigationPolicy(void* obj, void* event_info,
                                           void* user_data) {
   WvWebViewBackend* backend = static_cast<WvWebViewBackend*>(user_data);
-  wv_policy_decision_h policy_decision =
-      static_cast<wv_policy_decision_h>(event_info);
-  auto& wv = WvInternalApiBinding::GetInstance();
+  void* policy_decision = static_cast<void*>(event_info);
 
-  const char* current_url = wv.view.UrlGet(backend->view_);
+  const char* current_url =
+      ftpw_flutter_inappwebview_wv_view_url_get(backend->view_);
   const std::string url_before_navigation = current_url ? current_url : "";
-  const char* url = wv.policy_decision.UrlGet(policy_decision);
+  const char* url =
+      ftpw_flutter_inappwebview_wv_policy_decision_url_get(policy_decision);
   const std::string requested_url = url ? url : "";
-  wv.policy_decision.Use(policy_decision);
+  ftpw_flutter_inappwebview_wv_policy_decision_use(policy_decision);
 
   backend->delegate_->OnNavigationPolicyDecide(requested_url,
                                                url_before_navigation);
 }
 
-void WvWebViewBackend::OnUrlChange(wv_view_h obj, void* event_info,
+void WvWebViewBackend::OnUrlChange(void* obj, void* event_info,
                                    void* user_data) {
   WvWebViewBackend* backend = static_cast<WvWebViewBackend*>(user_data);
-  const char* url =
-      WvInternalApiBinding::GetInstance().view.UrlGet(backend->view_);
+  const char* url = ftpw_flutter_inappwebview_wv_view_url_get(backend->view_);
   backend->delegate_->OnUrlChanged(url ? url : "");
 }
 
-void WvWebViewBackend::OnTitleChange(wv_view_h obj, void* event_info,
+void WvWebViewBackend::OnTitleChange(void* obj, void* event_info,
                                      void* user_data) {
   const char* title = static_cast<const char*>(event_info);
   if (!title) {
@@ -621,8 +627,7 @@ void WvWebViewBackend::OnTitleChange(wv_view_h obj, void* event_info,
   static_cast<WvWebViewBackend*>(user_data)->delegate_->OnTitleChanged(title);
 }
 
-void WvWebViewBackend::OnEvaluateJavaScript(wv_view_h obj,
-                                            const char* result_value,
+void WvWebViewBackend::OnEvaluateJavaScript(void* obj, const char* result_value,
                                             void* user_data) {
   auto* callback =
       static_cast<std::function<void(bool, const char*)>*>(user_data);
@@ -630,35 +635,30 @@ void WvWebViewBackend::OnEvaluateJavaScript(wv_view_h obj,
   delete callback;
 }
 
-bool WvWebViewBackend::OnJavaScriptAlertDialog(wv_view_h view,
-                                               const char* message,
+bool WvWebViewBackend::OnJavaScriptAlertDialog(void* view, const char* message,
                                                void* data) {
   WvWebViewBackend* backend = static_cast<WvWebViewBackend*>(data);
-  const char* url =
-      WvInternalApiBinding::GetInstance().view.UrlGet(backend->view_);
+  const char* url = ftpw_flutter_inappwebview_wv_view_url_get(backend->view_);
   backend->delegate_->OnJavaScriptAlertDialog(message ? message : "",
                                               url ? url : "");
   return true;
 }
 
-bool WvWebViewBackend::OnJavaScriptConfirmDialog(wv_view_h view,
+bool WvWebViewBackend::OnJavaScriptConfirmDialog(void* view,
                                                  const char* message,
                                                  void* data) {
   WvWebViewBackend* backend = static_cast<WvWebViewBackend*>(data);
-  const char* url =
-      WvInternalApiBinding::GetInstance().view.UrlGet(backend->view_);
+  const char* url = ftpw_flutter_inappwebview_wv_view_url_get(backend->view_);
   backend->delegate_->OnJavaScriptConfirmDialog(message ? message : "",
                                                 url ? url : "");
   return true;
 }
 
-bool WvWebViewBackend::OnJavaScriptPromptDialog(wv_view_h view,
-                                                const char* message,
+bool WvWebViewBackend::OnJavaScriptPromptDialog(void* view, const char* message,
                                                 const char* default_text,
                                                 void* data) {
   WvWebViewBackend* backend = static_cast<WvWebViewBackend*>(data);
-  const char* url =
-      WvInternalApiBinding::GetInstance().view.UrlGet(backend->view_);
+  const char* url = ftpw_flutter_inappwebview_wv_view_url_get(backend->view_);
   backend->delegate_->OnJavaScriptPromptDialog(
       message ? message : "", default_text ? default_text : "", url ? url : "");
   return true;
