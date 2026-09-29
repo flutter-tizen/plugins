@@ -18,13 +18,9 @@
 #include <queue>
 #include <string>
 
-#include "media_player_proxy.h"
 #include "video_player_options.h"
 
 namespace video_player_tizen {
-
-typedef int (*ScreensaverResetTimeout)(void);
-typedef int (*ScreensaverOverrideReset)(bool onoff);
 
 class VideoPlayer {
  public:
@@ -60,9 +56,6 @@ class VideoPlayer {
   void Initialize();
   void SendInitialized();
   void SendIsPlayingStateUpdate(bool is_playing);
-#ifdef TV_PROFILE
-  void InitScreenSaverApi();
-#endif
 
   static void OnPrepared(void *data);
   static void OnBuffering(int percent, void *data);
@@ -94,7 +87,6 @@ class VideoPlayer {
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
 
   player_h player_ = nullptr;
-  std::unique_ptr<MediaPlayerProxy> media_player_proxy_ = nullptr;
   int64_t texture_id_ = -1;
   std::string uri_;
 
@@ -107,8 +99,6 @@ class VideoPlayer {
   SeekCompletedCallback on_seek_completed_;
 
 #ifdef TV_PROFILE
-  void *screensaver_handle_ = nullptr;
-  ScreensaverResetTimeout screensaver_reset_timeout_;
   guint timer_id_ = 0;
 #endif
 
