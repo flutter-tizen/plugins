@@ -52,7 +52,7 @@ AudioPlayer::~AudioPlayer() {
 }
 
 void AudioPlayer::Play() {
-  completing_ = false;
+  NotifyPendingCompletion();
   if (seeking_) {
     pending_action_ = PendingAction::kPlay;
     return;
@@ -90,7 +90,6 @@ void AudioPlayer::Play() {
 }
 
 void AudioPlayer::Pause() {
-  completing_ = false;
   if (seeking_) {
     pending_action_ = PendingAction::kPause;
     return;
@@ -106,7 +105,7 @@ void AudioPlayer::Pause() {
 }
 
 void AudioPlayer::Stop() {
-  completing_ = false;
+  NotifyPendingCompletion();
   pending_action_ = PendingAction::kNone;
   if (release_mode_ == ReleaseMode::kRelease) {
     ReleaseMediaSource();
@@ -214,7 +213,7 @@ void AudioPlayer::SetVolume(double volume) {
 
 void AudioPlayer::SetPlaybackRate(double playback_rate) {
   // TODO(seungsoo47): The player_set_playback_rate() API has a limitation of
-  // 0.5-2x on TV and is not supported on RPI.
+  // 0.5-2x on TV. On RPI, it supports 0.5-5x for local files only.
   playback_rate_ = playback_rate;
   player_state_e state = GetPlayerState();
   if (state == PLAYER_STATE_READY || state == PLAYER_STATE_PLAYING ||
@@ -379,12 +378,19 @@ void AudioPlayer::ResetPlayer() {
   bool seek_cancelled = seeking_ || should_seek_to_ >= 0;
   ++generation_;
   preparing_ = false;
-  completing_ = false;
+  NotifyPendingCompletion();
   seeking_ = false;
   should_seek_to_ = -1;
   pending_action_ = PendingAction::kNone;
   if (seek_cancelled) {
     seek_completed_listener_(player_id_);
+  }
+}
+
+void AudioPlayer::NotifyPendingCompletion() {
+  if (completing_) {
+    completing_ = false;
+    play_completed_listener_(player_id_);
   }
 }
 
@@ -413,10 +419,7 @@ void AudioPlayer::OnPrepared(void *data) {
         }
         auto *player = idle->player;
         player->preparing_ = false;
-        if (player->completing_) {
-          player->completing_ = false;
-          player->play_completed_listener_(player->player_id_);
-        }
+        player->NotifyPendingCompletion();
 
         try {
           player->duration_listener_(player->player_id_, player->GetDuration());
@@ -489,20 +492,13 @@ void AudioPlayer::OnSeekCompleted(void *data) {
           } catch (const AudioPlayerError &error) {
             player->error_listener_(player->player_id_, error.code(),
                                     error.message());
-            return G_SOURCE_REMOVE;
           }
         }
         auto action = player->pending_action_;
         player->pending_action_ = PendingAction::kNone;
         try {
-          switch (action) {
-            case PendingAction::kPlay:
-              player->Play();
-              break;
-            case PendingAction::kPause:
-              break;
-            case PendingAction::kNone:
-              break;
+          if (action == PendingAction::kPlay) {
+            player->Play();
           }
         } catch (const AudioPlayerError &error) {
           player->OnLog(error.code() + ": " + error.message());
@@ -537,10 +533,8 @@ void AudioPlayer::OnPlayCompleted(void *data) {
             player->PrepareSource();
           }
         } catch (const AudioPlayerError &error) {
-          if (player->completing_) {
-            player->completing_ = false;
-            player->play_completed_listener_(player->player_id_);
-          }
+          player->completing_ = false;
+          player->play_completed_listener_(player->player_id_);
           player->log_listener_(player->player_id_, error.code());
         }
         return G_SOURCE_REMOVE;
@@ -584,11 +578,7 @@ void AudioPlayer::OnError(int code, void *data) {
         }
         error_data->player->log_listener_(error_data->player->player_id_,
                                           error_data->message);
-        if (error_data->player->completing_) {
-          error_data->player->completing_ = false;
-          error_data->player->play_completed_listener_(
-              error_data->player->player_id_);
-        }
+        error_data->player->NotifyPendingCompletion();
         return G_SOURCE_REMOVE;
       },
       new ErrorData{self, self->is_alive_, self->generation_,

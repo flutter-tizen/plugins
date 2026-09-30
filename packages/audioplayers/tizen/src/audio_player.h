@@ -69,6 +69,8 @@ class AudioPlayer {
   void PreparePlayer();
   void PrepareSource();
   void ResetPlayer();
+  // Reports a completion deferred while re-preparing in stop mode.
+  void NotifyPendingCompletion();
   void StartPositionUpdates();
   player_state_e GetPlayerState();
 
