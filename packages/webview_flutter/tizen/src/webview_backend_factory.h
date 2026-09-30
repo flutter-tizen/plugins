@@ -16,6 +16,8 @@ class WebViewBackendFactory {
 
   static void InitializeEngine();
 
+  static bool EnsureEngineInitialized(bool engine_policy);
+
   static void ShutdownEngine();
 };
 

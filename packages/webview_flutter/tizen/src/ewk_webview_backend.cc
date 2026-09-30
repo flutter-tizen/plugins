@@ -520,6 +520,16 @@ bool EwkWebViewBackend::ClearCookies() {
   return false;
 }
 
+std::string EwkWebViewBackend::GetCookies(const std::string& url) {
+  return TakeEngineString(
+      ftpw_webview_flutter_ewk_view_get_cookies_for_url(view_, url.c_str()));
+}
+
+bool EwkWebViewBackend::SetCookie(const std::string& /*cookie_line*/,
+                                  const std::string& /*url*/) {
+  return false;
+}
+
 void EwkWebViewBackend::OnFrameRendered(void* data, Evas_Object* obj,
                                         void* event_info) {
   if (event_info) {

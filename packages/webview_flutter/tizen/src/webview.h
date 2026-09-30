@@ -16,6 +16,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <vector>
 
 #include "webview_backend.h"
 
@@ -60,11 +61,14 @@ class WebView : public PlatformView, public WebViewBackend::Delegate {
   // Must be called exactly once, after every WebView has been destroyed.
   static void ShutdownEngine();
 
+  // NOTE: Cookies are shared by the web context, so calls go to the most
+  // recently created WebView that has been initialized.
+  static void HandleCookieMethodCall(const FlMethodCall& method_call,
+                                     std::unique_ptr<FlMethodResult> result);
+
  private:
   void HandleWebViewMethodCall(const FlMethodCall& method_call,
                                std::unique_ptr<FlMethodResult> result);
-  void HandleCookieMethodCall(const FlMethodCall& method_call,
-                              std::unique_ptr<FlMethodResult> result);
 
   template <typename T>
   void SetBackgroundColor(const T& color);
@@ -94,6 +98,9 @@ class WebView : public PlatformView, public WebViewBackend::Delegate {
   void OnJavaScriptPromptDialog(const std::string& message,
                                 const std::string& default_text,
                                 const std::string& url) override;
+
+  // Live WebViews, in creation order. Only touched on the platform thread.
+  static std::vector<WebView*> webviews_;
 
   std::unique_ptr<WebViewBackend> backend_;
   bool webview_created_ = false;

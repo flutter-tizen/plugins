@@ -1,3 +1,10 @@
+## 0.12.0
+
+* Add `getCookies` to the cookie manager using the EWK and WV cookie getters.
+* Add `setCookie` to the cookie manager on the WV backend.
+* Apply `tizenEnginePolicy` before WV initialization.
+* Fix cookie operations using a destroyed WebView.
+
 ## 0.11.1
 
 * Update minimum supported SDK version to Flutter 3.38/Dart 3.10.

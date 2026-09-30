@@ -164,6 +164,8 @@ void ftpw_webview_flutter_ewk_view_javascript_prompt_reply(void *o,
                                                            const char *result);
 unsigned char ftpw_webview_flutter_ewk_view_main_frame_scrollbar_visible_set(
     void *obj, unsigned char enabled);
+char *ftpw_webview_flutter_ewk_view_get_cookies_for_url(void *view,
+                                                        const char *url);
 void ftpw_webview_flutter_ewk_set_arguments(int argc, char **argv);
 int ftpw_webview_flutter_ewk_set_version_policy(int preference);
 void ftpw_webview_flutter_ewk_settings_ime_panel_enabled_set(
@@ -177,12 +179,15 @@ const char *ftpw_webview_flutter_ewk_console_message_text_get(
 int ftpw_webview_flutter_wv_init(void);
 int ftpw_webview_flutter_wv_shutdown(void);
 int ftpw_webview_flutter_wv_set_arguments(int argc, const char **argv);
+int ftpw_webview_flutter_wv_set_version_policy(int preference);
 void *ftpw_webview_flutter_wv_view_create(void);
 void ftpw_webview_flutter_wv_view_destroy(void *view);
 void ftpw_webview_flutter_wv_view_resize(void *view, int w, int h);
 bool ftpw_webview_flutter_wv_view_focus_set(void *view, int focused);
 bool ftpw_webview_flutter_wv_view_url_set(void *view, const char *url);
 const char *ftpw_webview_flutter_wv_view_url_get(void *view);
+char *ftpw_webview_flutter_wv_view_get_cookies_for_url(void *view,
+                                                       const char *url);
 bool ftpw_webview_flutter_wv_view_url_request_set(void *view, const char *url,
                                                   wv_http_method_e method,
                                                   void *headers,
@@ -263,6 +268,8 @@ int ftpw_webview_flutter_wv_context_web_storage_delete_all(void *context);
 int ftpw_webview_flutter_wv_context_cache_clear(void *context);
 int ftpw_webview_flutter_wv_cookie_manager_accept_policy_set(void *manager);
 int ftpw_webview_flutter_wv_cookie_manager_cookies_clear(void *manager);
+void ftpw_webview_flutter_wv_cookie_manager_set_cookie_for_url(
+    void *manager, const char *cookie_line, const char *url);
 bool ftpw_webview_flutter_wv_settings_javascript_enabled_set(void *settings,
                                                              bool enable);
 void ftpw_webview_flutter_wv_settings_ime_panel_enabled_set(void *settings,
