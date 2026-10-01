@@ -140,7 +140,7 @@ void FlutterWebRTCBase::ParseConstraints(
       value = GetValue<bool>(v) ? RTCMediaConstraints::kValueTrue
                                 : RTCMediaConstraints::kValueFalse;
     } else {
-      value = std::to_string(GetValue<int>(v));
+      continue;
     }
     if (type == kMandatory) {
       mediaConstraints->AddMandatoryConstraint(key.c_str(), value.c_str());

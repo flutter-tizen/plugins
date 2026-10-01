@@ -49,6 +49,15 @@ void main() {
       timeout: const Timeout(Duration(seconds: 10)),
     );
 
+    test('createOffer ignores constraints with unsupported values', () async {
+      final pc = await createPeerConnection(_kConfig);
+      final offer = await pc.createOffer(<String, dynamic>{
+        'mandatory': <String, dynamic>{'unsupported': null},
+      });
+      expect(offer.type, equals('offer'));
+      await pc.close();
+    }, timeout: const Timeout(Duration(seconds: 10)));
+
     test('setLocalDescription succeeds', () async {
       final pc = await createPeerConnection(_kConfig);
       final offer = await pc.createOffer();
