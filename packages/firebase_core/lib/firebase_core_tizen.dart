@@ -20,7 +20,7 @@ class FirebaseCore extends FirebasePlatform {
     final core_dart.FirebaseOptions options = app.options;
 
     return FirebaseApp._(
-      app.name,
+      app,
       FirebaseOptions(
         apiKey: options.apiKey,
         appId: options.appId,
@@ -50,14 +50,18 @@ class FirebaseCore extends FirebasePlatform {
     String? name,
     FirebaseOptions? options,
   }) async {
+    name ??= defaultFirebaseAppName;
+    if (name == defaultFirebaseAppName && options == null) {
+      if (core_dart.Firebase.apps.any((app) => app.name == name)) {
+        return app(name);
+      }
+      throw coreNotInitialized();
+    }
+
     assert(
       options != null,
-      'options should be provided to initialize the default app.',
+      'options should be provided to initialize a new app.',
     );
-
-    /// Ensures the name isn't null, in case no name
-    /// passed, [defaultFirebaseAppName] will be used
-    name ??= defaultFirebaseAppName;
 
     try {
       // Initialize the app in firebase_core_dart

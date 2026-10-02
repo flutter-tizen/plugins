@@ -1,7 +1,8 @@
-## NEXT
+## 0.2.1
 
-* Omit obvious local variable types.
-* Reformat with a line length of 100.
+* Update firebase_core to 4.15.0.
+* Fix app reinitialization, deletion, and data collection state.
+* Fix code formatting and lint issues.
 
 ## 0.2.0
 

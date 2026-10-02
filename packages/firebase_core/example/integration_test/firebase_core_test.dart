@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// Integration tests ported from upstream firebase_core v4.14.0:
-// https://github.com/firebase/flutterfire/blob/firebase_core-v4.14.0/tests/integration_test/firebase_core/firebase_core_e2e_test.dart
+// Integration tests ported from upstream firebase_core v4.15.0:
+// https://github.com/firebase/flutterfire/blob/firebase_core-v4.15.0/tests/integration_test/firebase_core/firebase_core_e2e_test.dart
 // Originally authored by the Chromium project authors under a BSD-style
 // license.
 
@@ -75,6 +75,8 @@ void main() {
       await app.setAutomaticDataCollectionEnabled(true);
 
       expect(app.isAutomaticDataCollectionEnabled, true);
+      expect(Firebase.app().isAutomaticDataCollectionEnabled, true);
+      expect(Firebase.apps.single.isAutomaticDataCollectionEnabled, true);
     });
 
     test('FirebaseApp.setAutomaticResourceManagementEnabled()', () async {
