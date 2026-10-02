@@ -1,6 +1,8 @@
-## NEXT
+## 0.2.5
 
 * Follow the analysis options of the frontend plugin.
+* Fix a crash when parsing media constraints with unsupported value types.
+* Fix a mismatched `delete` of the video frame buffer.
 
 ## 0.2.4
 
