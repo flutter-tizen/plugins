@@ -483,6 +483,7 @@ void AudioPlayer::OnSeekCompleted(void *data) {
             player->OnLog(error.code() + ": " + error.message());
           }
         }
+        bool seek_failed = false;
         if (player->should_seek_to_ >= 0) {
           try {
             int position = player->should_seek_to_;
@@ -490,6 +491,7 @@ void AudioPlayer::OnSeekCompleted(void *data) {
             player->Seek(position);
             return G_SOURCE_REMOVE;
           } catch (const AudioPlayerError &error) {
+            seek_failed = true;
             player->error_listener_(player->player_id_, error.code(),
                                     error.message());
           }
@@ -503,7 +505,9 @@ void AudioPlayer::OnSeekCompleted(void *data) {
         } catch (const AudioPlayerError &error) {
           player->OnLog(error.code() + ": " + error.message());
         }
-        player->seek_completed_listener_(player->player_id_);
+        if (!seek_failed) {
+          player->seek_completed_listener_(player->player_id_);
+        }
         return G_SOURCE_REMOVE;
       },
       new IdleData{self, self->is_alive_, self->generation_},
