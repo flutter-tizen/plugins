@@ -77,7 +77,10 @@ std::map<void*, WvWebViewBackend*> g_view_registry;
 
 WvWebViewBackend::WvWebViewBackend(Delegate* delegate) : delegate_(delegate) {}
 
-bool WvWebViewBackend::GlobalInitialize(bool standalone) {
+bool WvWebViewBackend::GlobalInitialize(bool standalone, bool engine_policy) {
+  if (engine_policy && ftpw_webview_flutter_wv_set_version_policy(1) <= 0) {
+    LOG_WARN("wv_set_version_policy() failed.");
+  }
   std::vector<const char*> argv = {
       "--disable-pinch",
       "--js-flags=--expose-gc",
@@ -506,6 +509,23 @@ bool WvWebViewBackend::ClearCookies() {
     return true;
   }
   return false;
+}
+
+std::string WvWebViewBackend::GetCookies(const std::string& url) {
+  return TakeEngineString(
+      ftpw_webview_flutter_wv_view_get_cookies_for_url(view_, url.c_str()));
+}
+
+bool WvWebViewBackend::SetCookie(const std::string& cookie_line,
+                                 const std::string& url) {
+  void* manager = ftpw_webview_flutter_wv_context_cookie_manager_get(
+      ftpw_webview_flutter_wv_view_context_get(view_));
+  if (!manager) {
+    return false;
+  }
+  ftpw_webview_flutter_wv_cookie_manager_set_cookie_for_url(
+      manager, cookie_line.c_str(), url.c_str());
+  return true;
 }
 
 void WvWebViewBackend::OnFrameRendered(void* obj, void* event_info,

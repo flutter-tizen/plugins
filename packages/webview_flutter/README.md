@@ -23,7 +23,7 @@ This package is not an _endorsed_ implementation of `webview_flutter`. Therefore
 ```yaml
 dependencies:
   webview_flutter: ^4.14.1
-  webview_flutter_tizen: ^0.11.1
+  webview_flutter_tizen: ^0.12.0
 ```
 
 ## Example
@@ -71,11 +71,13 @@ The plugin chooses a backend from the platform version reported by the device:
 | 10.1             | WV API, EWK wrapper mode    |
 | 11.0 and later   | WV API, standalone mode     |
 
-The WV backends are experimental. `WebViewController.tizenEnginePolicy` has no WV equivalent, so it is ignored (with a warning) on Tizen 10.1 and later.
+The WV backends are experimental. `WebViewController.tizenEnginePolicy` calls `wv_set_version_policy()` before WV engine initialization. The first WV view's setting applies to the engine for its lifetime.
 
 ## Cookies
 
-- `WebViewCookieManager.getCookies` throws `UnimplementedError`: neither backend can read cookies yet. On the EWK backend the web engine's cookie API returns nothing, a defect being fixed; on the WV backends that API is not yet in the platform library.
+- `WebViewCookieManager.getCookies` calls the EWK or WV cookie getter. On the EWK backend (Tizen 10.0 and earlier), the getter currently returns no cookies because of an engine defect.
+- `WebViewCookieManager.setCookie` uses the WV cookie manager. EWK has no cookie setter, so it throws `UnimplementedError` on the EWK backend.
+- Cookie operations need a WebView that has been created, and fail before the first one is.
 
 ## Note
 

@@ -22,11 +22,27 @@ class TizenWebViewCookieManager extends PlatformWebViewCookieManager {
   }
 
   @override
-  Future<List<WebViewCookie>> getCookies(Uri url) {
-    throw UnimplementedError(
-      'This version of `TizenWebViewCookieManager` currently has no '
-      'implementation for getCookies method.',
+  Future<List<WebViewCookie>> getCookies(Uri url) async {
+    final String? cookies = await _cookieManagerChannel.invokeMethod<String>(
+      'getCookies',
+      url.toString(),
     );
+    if (cookies == null || cookies.isEmpty) {
+      return <WebViewCookie>[];
+    }
+    return cookies
+        .split(';')
+        .map((String cookie) => cookie.trim())
+        .where((String cookie) => cookie.isNotEmpty)
+        .map((String cookie) {
+          final int separator = cookie.indexOf('=');
+          return WebViewCookie(
+            name: separator < 0 ? cookie : cookie.substring(0, separator),
+            value: separator < 0 ? '' : cookie.substring(separator + 1),
+            domain: url.host,
+          );
+        })
+        .toList();
   }
 
   @override
@@ -34,10 +50,21 @@ class TizenWebViewCookieManager extends PlatformWebViewCookieManager {
     if (!_isValidPath(cookie.path)) {
       throw ArgumentError('The path property for the provided cookie was not given a legal value.');
     }
-    throw UnimplementedError(
-      'This version of `TizenWebViewCookieManager` currently has no '
-      'implementation for setCookie method.',
-    );
+    final String host = cookie.domain.startsWith('.') ? cookie.domain.substring(1) : cookie.domain;
+    final url = Uri(scheme: 'https', host: host, path: cookie.path).toString();
+    final line =
+        '${Uri.encodeComponent(cookie.name)}=${Uri.encodeComponent(cookie.value)}; path=${cookie.path}';
+    try {
+      await _cookieManagerChannel.invokeMethod<void>('setCookie', <String, String>{
+        'url': url,
+        'cookie': line,
+      });
+    } on PlatformException catch (e) {
+      if (e.code == 'Unsupported') {
+        throw UnimplementedError('setCookie is not supported by this web engine.');
+      }
+      rethrow;
+    }
   }
 
   bool _isValidPath(String path) {

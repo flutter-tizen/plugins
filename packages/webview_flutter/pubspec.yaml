@@ -2,7 +2,7 @@ name: webview_flutter_tizen
 description: Tizen implementation of the webview_flutter plugin.
 homepage: https://github.com/flutter-tizen/plugins
 repository: https://github.com/flutter-tizen/plugins/tree/main/packages/webview_flutter
-version: 0.11.1
+version: 0.12.0
 
 environment:
   sdk: ^3.10.0

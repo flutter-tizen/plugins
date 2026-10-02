@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cstdlib>
 #include <mutex>
 #include <vector>
 
@@ -80,4 +81,14 @@ void WebViewBackend::FlushPendingTeardowns() {
       g_usleep(1000);
     }
   }
+}
+
+std::string WebViewBackend::TakeEngineString(char* value) {
+  // The engine returns NULL when the URL has no cookies.
+  if (!value) {
+    return std::string();
+  }
+  std::string result(value);
+  free(value);
+  return result;
 }
