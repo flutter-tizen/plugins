@@ -29,6 +29,11 @@ Future<void> main() async {
     expect(await Geolocator.getCurrentPosition(), isA<Position>());
   }, timeout: const Timeout(Duration(seconds: 10)));
 
+  test('position timestamp is in milliseconds', () async {
+    final Position position = await Geolocator.getCurrentPosition();
+    expect(position.timestamp.year, greaterThan(2000));
+  }, timeout: const Timeout(Duration(seconds: 10)));
+
   test('get last known position', () async {
     expect(await Geolocator.getLastKnownPosition(), isA<Position>());
   }, timeout: const Timeout(Duration(seconds: 10)));

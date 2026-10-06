@@ -21,7 +21,7 @@ struct Position {
         {flutter::EncodableValue("latitude"),
          flutter::EncodableValue(latitude)},
         {flutter::EncodableValue("timestamp"),
-         flutter::EncodableValue(static_cast<int64_t>(timestamp))},
+         flutter::EncodableValue(static_cast<int64_t>(timestamp) * 1000)},
         {flutter::EncodableValue("altitude"),
          flutter::EncodableValue(altitude)},
     };
@@ -38,7 +38,7 @@ struct Position {
           flutter::EncodableValue(*speed);
     }
     if (speedAccuracy) {
-      values[flutter::EncodableValue("speedAccuracy")] =
+      values[flutter::EncodableValue("speed_accuracy")] =
           flutter::EncodableValue(*speedAccuracy);
     }
     return flutter::EncodableValue(values);

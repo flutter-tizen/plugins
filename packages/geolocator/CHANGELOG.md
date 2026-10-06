@@ -1,3 +1,8 @@
+## 1.0.12
+
+* Fix `Position.timestamp` being reported in seconds instead of milliseconds.
+* Fix `Position.speed` being reported in km/h instead of m/s.
+
 ## 1.0.11
 
 * Update geolocator to 14.0.3.
