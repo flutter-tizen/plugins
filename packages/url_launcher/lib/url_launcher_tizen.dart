@@ -49,6 +49,12 @@ class UrlLauncherPlugin extends UrlLauncherPlatform {
   }
 
   @override
+  Future<bool> supportsMode(PreferredLaunchMode mode) async {
+    return mode == PreferredLaunchMode.platformDefault ||
+        mode == PreferredLaunchMode.externalApplication;
+  }
+
+  @override
   Future<bool> supportsCloseForMode(PreferredLaunchMode mode) {
     return Future<bool>.value(false);
   }

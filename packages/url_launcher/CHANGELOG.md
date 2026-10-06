@@ -1,5 +1,6 @@
-## NEXT
+## 2.1.8
 
+* Implement `supportsMode` to report `externalApplication` as supported.
 * Omit obvious local variable types.
 * Reformat with a line length of 100.
 
