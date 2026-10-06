@@ -40,13 +40,18 @@ class TizenStt {
   /// Otherwise use a value returned by [getLanguages], such as `en_US`.
   /// Recognition types and partial results depend on the installed engine.
   /// The returned state is a snapshot; use [events] for later transitions.
+  /// Set [silenceDetection] to false for hold-to-record controls that stop on
+  /// release. If omitted, the session's engine setting is unchanged. Unsupported
+  /// settings throw [PlatformException]. Engine recording time limits still apply.
   Future<TizenSttState> startListening({
     String? language,
     String recognitionType = TizenSttRecognitionType.free,
+    bool? silenceDetection,
   }) =>
       _invokeState('start', <String, Object?>{
         'language': language,
         'type': recognitionType,
+        if (silenceDetection != null) 'silenceDetection': silenceDetection,
       });
 
   /// Stops recording and requests a final result (or error) through [events].

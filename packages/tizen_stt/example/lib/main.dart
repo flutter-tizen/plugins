@@ -34,6 +34,9 @@ class _SttPageState extends State<SttPage> with WidgetsBindingObserver {
   TizenSttState _state = TizenSttState.notCreated;
   bool _busy = false;
   bool _partial = false;
+  LogicalKeyboardKey? _heldKey;
+  bool _starting = false;
+  bool _stopRequested = false;
   List<String> _languages = <String>[];
   String? _language;
   String _text = '';
@@ -50,14 +53,23 @@ class _SttPageState extends State<SttPage> with WidgetsBindingObserver {
       setState(() {
         if (event.isStateChange) {
           _state = event.state!;
+          if (_state != TizenSttState.ready) {
+            _starting = false;
+          }
+          if (!_starting && _state != TizenSttState.recording) {
+            _stopRequested = false;
+          }
         }
         if (event.isPartialResult || event.isFinalResult) {
           _text = event.text ?? '';
         }
         if (event.isError) {
+          _starting = false;
+          _stopRequested = false;
           _error = event.errorName ?? event.message ?? 'Recognition failed';
         }
       });
+      _stopIfReleased();
     }, onError: (Object error) {
       if (mounted) {
         setState(() => _error = error.toString());
@@ -78,10 +90,13 @@ class _SttPageState extends State<SttPage> with WidgetsBindingObserver {
     } on PlatformException catch (error) {
       if (mounted) {
         setState(() => _error = '${error.code}: ${error.message ?? ''}');
+        _stopRequested = false;
+        _starting = false;
       }
     } finally {
       if (mounted) {
         setState(() => _busy = false);
+        _stopIfReleased();
       }
     }
   }
@@ -89,7 +104,15 @@ class _SttPageState extends State<SttPage> with WidgetsBindingObserver {
   Future<void> _refresh() async {
     final TizenSttState state = await _stt.getState();
     if (mounted) {
-      setState(() => _state = state);
+      setState(() {
+        _state = state;
+        if (state != TizenSttState.ready) {
+          _starting = false;
+        }
+        if (!_starting && state != TizenSttState.recording) {
+          _stopRequested = false;
+        }
+      });
     }
   }
 
@@ -106,22 +129,66 @@ class _SttPageState extends State<SttPage> with WidgetsBindingObserver {
   }
 
   Future<void> _record() async {
-    if (_state == TizenSttState.recording) {
-      await _stt.stopListening();
-    } else {
-      setState(() => _text = '');
-      await _stt.startListening(
-          language: _language,
-          recognitionType: _partial
-              ? TizenSttRecognitionType.freePartial
-              : TizenSttRecognitionType.free);
-    }
+    setState(() => _text = '');
+    await _stt.startListening(
+        language: _language,
+        silenceDetection: false,
+        recognitionType: _partial
+            ? TizenSttRecognitionType.freePartial
+            : TizenSttRecognitionType.free);
     await _refresh();
+  }
+
+  KeyEventResult _onRecordKey(FocusNode node, KeyEvent event) {
+    final LogicalKeyboardKey key = event.logicalKey;
+    if (key != LogicalKeyboardKey.select &&
+        key != LogicalKeyboardKey.enter &&
+        key != LogicalKeyboardKey.numpadEnter) {
+      return KeyEventResult.ignored;
+    }
+    if (event is KeyDownEvent &&
+        _heldKey == null &&
+        !_starting &&
+        !_stopRequested &&
+        !_busy &&
+        _state == TizenSttState.ready) {
+      _heldKey = key;
+      _starting = true;
+      unawaited(_run(_record));
+    } else if (event is KeyUpEvent && key == _heldKey) {
+      _releaseRecord();
+    }
+    // Consume repeats and activation keys before button shortcuts see them.
+    return KeyEventResult.handled;
+  }
+
+  void _releaseRecord() {
+    if (_heldKey == null) {
+      return;
+    }
+    _heldKey = null;
+    _stopRequested = _starting || _state == TizenSttState.recording;
+    _stopIfReleased();
+  }
+
+  void _stopIfReleased() {
+    // A quick release can arrive before start completes or RECORDING arrives.
+    if (!_stopRequested || _busy || _state != TizenSttState.recording) {
+      return;
+    }
+    _stopRequested = false;
+    unawaited(_run(() async {
+      await _stt.stopListening();
+      await _refresh();
+    }));
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused) {
+    if (state != AppLifecycleState.resumed) {
+      _heldKey = null;
+      _starting = false;
+      _stopRequested = false;
       // Release the microphone even if a command is in flight.
       unawaited(
           _stt.dispose().then((_) => _refresh()).catchError((Object error) {
@@ -148,7 +215,8 @@ class _SttPageState extends State<SttPage> with WidgetsBindingObserver {
           Text('State: ${_state.name}', key: const Key('state')),
           if (_busy) const Text('Working…'),
           if (_error.isNotEmpty) Text(_error, key: const Key('error')),
-          Wrap(spacing: 12, children: <Widget>[
+          // Preserve button focus when the busy/error messages appear above.
+          Wrap(key: const Key('controls'), spacing: 12, children: <Widget>[
             ElevatedButton(
                 autofocus: true,
                 onPressed: !_busy &&
@@ -157,15 +225,24 @@ class _SttPageState extends State<SttPage> with WidgetsBindingObserver {
                     ? () => _run(_initialize)
                     : null,
                 child: const Text('Initialize')),
-            ElevatedButton(
-                key: const Key('record_button'),
-                onPressed: !_busy &&
-                        (_state == TizenSttState.ready ||
-                            _state == TizenSttState.recording)
-                    ? () => _run(_record)
-                    : null,
-                child: Text(
-                    _state == TizenSttState.recording ? 'Stop' : 'Record')),
+            Focus(
+                canRequestFocus: false,
+                onKeyEvent: _onRecordKey,
+                onFocusChange: (bool focused) {
+                  if (!focused) {
+                    _releaseRecord();
+                  }
+                },
+                child: ElevatedButton(
+                    key: const Key('record_button'),
+                    // Keep focus while starting/stopping so key-up is received.
+                    onPressed: _state == TizenSttState.notCreated ||
+                            _state == TizenSttState.created
+                        ? null
+                        : () {},
+                    child: Text(_state == TizenSttState.recording
+                        ? 'Recording… release Select to transcribe'
+                        : 'Hold Select to record'))),
             ElevatedButton(
                 onPressed: !_busy &&
                         (_state == TizenSttState.recording ||
@@ -202,6 +279,8 @@ class _SttPageState extends State<SttPage> with WidgetsBindingObserver {
                   ? (bool? value) => setState(() => _partial = value!)
                   : null),
           const SizedBox(height: 24),
+          const Text('Focus the record button, then hold Select (or Enter) '
+              'while speaking. Release it to recognize speech.'),
           SelectableText(
               _text.isEmpty ? 'Recognized text appears here.' : _text),
         ]),

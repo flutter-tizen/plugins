@@ -38,5 +38,10 @@ await subscription.cancel();
 ```
 
 Use `getLanguages()` to select a language and `cancel()` to discard recognition.
+For hold-to-record controls, use `startListening(silenceDetection: false)` on
+key-down and `stopListening()` on key-up, once the state is `recording`.
+Unsupported silence-detection settings throw `PlatformException`; engine recording
+time limits still apply. This controls the STT session, not remote microphone
+activation or TV audio routing.
 All instances share one session. Handle `PlatformException` from control calls.
 See the [example](example) for a complete app.

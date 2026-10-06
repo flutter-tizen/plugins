@@ -319,6 +319,15 @@ class TizenSttPlugin : public flutter::Plugin {
         type_value.empty() || type_value.find('\0') != std::string::npos) {
       return STT_ERROR_INVALID_PARAMETER;
     }
+    auto silence_detection = args.find(EncodableValue("silenceDetection"));
+    if (silence_detection != args.end()) {
+      const auto* enabled = std::get_if<bool>(&silence_detection->second);
+      if (!enabled) return STT_ERROR_INVALID_PARAMETER;
+      int ret = stt_set_silence_detection(
+          stt_, *enabled ? STT_OPTION_SILENCE_DETECTION_TRUE
+                         : STT_OPTION_SILENCE_DETECTION_FALSE);
+      if (ret != STT_ERROR_NONE) return ret;
+    }
     return stt_start(stt_, language_value ? language_value->c_str() : nullptr,
                      type_value.c_str());
   }

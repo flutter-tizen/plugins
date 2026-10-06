@@ -45,11 +45,13 @@ void main() {
     expect(
         await stt.startListening(
             language: 'ko_KR',
+            silenceDetection: false,
             recognitionType: TizenSttRecognitionType.freePartial),
         TizenSttState.ready);
     expect(calls.last.arguments, <String, Object?>{
       'language': 'ko_KR',
-      'type': TizenSttRecognitionType.freePartial
+      'type': TizenSttRecognitionType.freePartial,
+      'silenceDetection': false,
     });
     await stt.startListening();
     expect(calls.last.arguments, <String, Object?>{
