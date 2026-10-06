@@ -9,6 +9,7 @@
 #include <glib.h>
 #include <tbm_surface.h>
 
+#include <algorithm>
 #include <functional>
 #include <map>
 #include <vector>
@@ -86,6 +87,8 @@ bool GetValueFromEncodableMap(const flutter::EncodableValue* arguments,
 
 }  // namespace
 
+std::vector<WebView*> WebView::webviews_;
+
 WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
                  flutter::TextureRegistrar* texture_registrar, double width,
                  double height, const flutter::EncodableValue& params,
@@ -96,11 +99,6 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
       height_(height),
       window_(window) {
   backend_ = WebViewBackendFactory::Create(this);
-  if (!backend_) {
-    LOG_ERROR("Failed to create a webview backend.");
-    return;
-  }
-
   tbm_pool_ = std::make_shared<SingleBufferPool>(width, height);
 
   texture_variant_ =
@@ -128,14 +126,7 @@ WebView::WebView(flutter::PluginRegistrar* registrar, int view_id,
       GetPluginRegistrar()->messenger(), GetNavigationDelegateChannelName(),
       &flutter::StandardMethodCodec::GetInstance());
 
-  auto cookie_channel = std::make_unique<FlMethodChannel>(
-      GetPluginRegistrar()->messenger(),
-      "plugins.flutter.io/tizen_cookie_manager",
-      &flutter::StandardMethodCodec::GetInstance());
-  cookie_channel->SetMethodCallHandler(
-      [webview = this](const auto& call, auto result) {
-        webview->HandleCookieMethodCall(call, std::move(result));
-      });
+  webviews_.push_back(this);
 }
 
 WebView::~WebView() { Dispose(); }
@@ -164,9 +155,8 @@ void WebView::Dispose() {
   }
   *is_alive_ = false;
 
-  if (!backend_) {
-    return;
-  }
+  webviews_.erase(std::remove(webviews_.begin(), webviews_.end(), this),
+                  webviews_.end());
 
   std::shared_ptr<BufferPool> pool;
   {
@@ -200,17 +190,9 @@ void WebView::InitializeEngine() { WebViewBackendFactory::InitializeEngine(); }
 
 void WebView::ShutdownEngine() { WebViewBackendFactory::ShutdownEngine(); }
 
-void WebView::Offset(double left, double top) {
-  if (!backend_) {
-    return;
-  }
-  backend_->Offset(left, top);
-}
+void WebView::Offset(double left, double top) { backend_->Offset(left, top); }
 
 void WebView::Resize(double width, double height) {
-  if (!backend_) {
-    return;
-  }
   width_ = width;
   height_ = height;
 
@@ -224,36 +206,20 @@ void WebView::Resize(double width, double height) {
 
 void WebView::Touch(int event_type, int button_type, double x, double y,
                     double dx, double dy) {
-  if (!backend_) {
-    return;
-  }
   backend_->Touch(event_type, button_type, x, y, dx, dy);
 }
 
 bool WebView::SendKey(const char* key, const char* string, const char* compose,
                       uint32_t modifiers, uint32_t scan_code, bool is_down) {
-  if (!backend_) {
-    return false;
-  }
   if (!IsFocused()) {
     return false;
   }
   return backend_->SendKey(key, string, compose, modifiers, scan_code, is_down);
 }
 
-void WebView::Resume() {
-  if (!backend_) {
-    return;
-  }
-  backend_->Resume();
-}
+void WebView::Resume() { backend_->Resume(); }
 
-void WebView::Stop() {
-  if (!backend_) {
-    return;
-  }
-  backend_->Stop();
-}
+void WebView::Stop() { backend_->Stop(); }
 
 void WebView::SetDirection(int direction) {
   // TODO: Implement if necessary.
@@ -289,7 +255,8 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
   }
 
   if (!webview_created_) {
-    if (!backend_->Create(width_, height_, window_, engine_policy_)) {
+    if (!WebViewBackendFactory::EnsureEngineInitialized(engine_policy_) ||
+        !backend_->Create(width_, height_, window_, engine_policy_)) {
       result->Error("Invalid operation",
                     "The webview instance initialize failed.");
       return;
@@ -523,19 +490,43 @@ void WebView::HandleWebViewMethodCall(const FlMethodCall& method_call,
 
 void WebView::HandleCookieMethodCall(const FlMethodCall& method_call,
                                      std::unique_ptr<FlMethodResult> result) {
-  if (!webview_created_) {
-    result->Error("Invalid operation",
-                  "The webview instance has not been initialized.");
+  auto it = std::find_if(webviews_.rbegin(), webviews_.rend(),
+                         [](WebView* view) { return view->webview_created_; });
+  if (it == webviews_.rend()) {
+    result->Error("Invalid operation", "No webview instance is available.");
     return;
   }
+  WebView* webview = *it;
 
   const std::string& method_name = method_call.method_name();
 
   if (method_name == "clearCookies") {
-    if (backend_->ClearCookies()) {
+    if (webview->backend_->ClearCookies()) {
       result->Success(flutter::EncodableValue(true));
     } else {
       result->Error("Operation failed", "Failed to get cookie manager");
+    }
+  } else if (method_name == "getCookies") {
+    const auto* url = std::get_if<std::string>(method_call.arguments());
+    if (!url) {
+      result->Error("Invalid argument", "The argument must be a string.");
+      return;
+    }
+    result->Success(
+        flutter::EncodableValue(webview->backend_->GetCookies(*url)));
+  } else if (method_name == "setCookie") {
+    std::string url;
+    std::string cookie;
+    if (!GetValueFromEncodableMap(method_call.arguments(), "url", &url) ||
+        !GetValueFromEncodableMap(method_call.arguments(), "cookie", &cookie)) {
+      result->Error("Invalid argument", "The URL and cookie must be strings.");
+      return;
+    }
+    if (webview->backend_->SetCookie(cookie, url)) {
+      result->Success();
+    } else {
+      result->Error("Unsupported",
+                    "Setting cookies is not supported by this webview engine.");
     }
   } else {
     result->NotImplemented();

@@ -74,6 +74,9 @@ class EwkWebViewBackend : public WebViewBackend {
   void JavaScriptPromptReply(const std::string& result) override;
   void SetScrollbarVisible(bool visible) override;
   bool ClearCookies() override;
+  std::string GetCookies(const std::string& url) override;
+  bool SetCookie(const std::string& cookie_line,
+                 const std::string& url) override;
 
   static void GlobalInitialize();
 

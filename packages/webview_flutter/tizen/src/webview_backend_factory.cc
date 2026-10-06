@@ -49,7 +49,9 @@ BackendKind DetectBackend() {
 
 const BackendKind kSelectedBackend = DetectBackend();
 
-bool g_wv_engine_initialized = false;
+enum class WvEngineState { kNotStarted, kInitialized, kFailed };
+
+WvEngineState g_wv_engine_state = WvEngineState::kNotStarted;
 
 }  // namespace
 
@@ -57,34 +59,41 @@ std::unique_ptr<WebViewBackend> WebViewBackendFactory::Create(
     WebViewBackend::Delegate* delegate) {
   BackendKind kind = kSelectedBackend;
   if (kind != BackendKind::kEwk) {
-    if (!g_wv_engine_initialized) {
-      LOG_ERROR("WV engine is not initialized; cannot create WebView.");
-      return nullptr;
-    }
     return std::make_unique<WvWebViewBackend>(delegate);
   }
   return std::make_unique<EwkWebViewBackend>(delegate);
 }
 
 void WebViewBackendFactory::InitializeEngine() {
-  BackendKind kind = kSelectedBackend;
-  if (kind != BackendKind::kEwk) {
-    if (!WvWebViewBackend::GlobalInitialize(kind ==
-                                            BackendKind::kWvStandalone)) {
-      LOG_ERROR("wv_init() failed; engine not started.");
-      return;
-    }
-    g_wv_engine_initialized = true;
-    return;
+  if (kSelectedBackend == BackendKind::kEwk) {
+    EwkWebViewBackend::GlobalInitialize();
   }
-  EwkWebViewBackend::GlobalInitialize();
+}
+
+bool WebViewBackendFactory::EnsureEngineInitialized(bool engine_policy) {
+  if (kSelectedBackend == BackendKind::kEwk ||
+      g_wv_engine_state == WvEngineState::kInitialized) {
+    return true;
+  }
+  // Do not retry wv_init() on a possibly half-initialized engine.
+  if (g_wv_engine_state == WvEngineState::kFailed) {
+    return false;
+  }
+  if (!WvWebViewBackend::GlobalInitialize(
+          kSelectedBackend == BackendKind::kWvStandalone, engine_policy)) {
+    LOG_ERROR("wv_init() failed; engine not started.");
+    g_wv_engine_state = WvEngineState::kFailed;
+    return false;
+  }
+  g_wv_engine_state = WvEngineState::kInitialized;
+  return true;
 }
 
 void WebViewBackendFactory::ShutdownEngine() {
   if (kSelectedBackend != BackendKind::kEwk) {
-    if (g_wv_engine_initialized) {
+    if (g_wv_engine_state == WvEngineState::kInitialized) {
       WvWebViewBackend::GlobalShutdown();
-      g_wv_engine_initialized = false;
+      g_wv_engine_state = WvEngineState::kNotStarted;
     }
     return;
   }

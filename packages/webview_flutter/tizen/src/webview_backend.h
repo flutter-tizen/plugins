@@ -95,12 +95,17 @@ class WebViewBackend {
   virtual void JavaScriptPromptReply(const std::string& result) = 0;
   virtual void SetScrollbarVisible(bool visible) = 0;
   virtual bool ClearCookies() = 0;
+  virtual std::string GetCookies(const std::string& url) = 0;
+  virtual bool SetCookie(const std::string& cookie_line,
+                         const std::string& url) = 0;
 
  protected:
   static std::function<void()> RegisterPendingTeardown(
       std::shared_ptr<BufferPool> pool, std::function<void()> destroy);
 
   static void FlushPendingTeardowns();
+
+  static std::string TakeEngineString(char* value);
 };
 
 #endif  // FLUTTER_PLUGIN_WEBVIEW_BACKEND_H_
