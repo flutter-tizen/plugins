@@ -128,6 +128,8 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
       OnGetDefaultVoice();
     } else if (method_name == "setVoice") {
       OnSetVoice(arguments);
+    } else if (method_name == "clearVoice") {
+      OnClearVoice();
     } else if (method_name == "getVoices") {
       OnGetVoices();
     } else if (method_name == "getMaxSpeechInputLength") {
@@ -260,6 +262,11 @@ class FlutterTtsTizenPlugin : public flutter::Plugin {
       }
     }
     SendResult(flutter::EncodableValue(0));
+  }
+
+  void OnClearVoice() {
+    tts_->ClearDefaultVoiceType();
+    SendResult(flutter::EncodableValue(1));
   }
 
   void OnGetVoices() {

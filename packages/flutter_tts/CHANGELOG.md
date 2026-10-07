@@ -1,5 +1,6 @@
-## NEXT
+## 1.8.0
 
+* Add `clearVoice`.
 * Follow the analysis options of the frontend plugin.
 * Apply clang-format-16 formatting.
 

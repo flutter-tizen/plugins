@@ -67,6 +67,10 @@ void main() {
     );
   });
 
+  test('clearVoice returns 1', () async {
+    expect(await flutterTts.clearVoice(), 1);
+  });
+
   test('setSpeechRate returns 1', () async {
     expect(await flutterTts.setSpeechRate(0.5), 1);
   });

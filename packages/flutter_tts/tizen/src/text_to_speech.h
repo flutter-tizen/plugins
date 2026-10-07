@@ -59,6 +59,8 @@ class TextToSpeech {
 
   void SetDefaultVoiceType(const std::string &voice);
 
+  void ClearDefaultVoiceType() { default_voice_type_ = TTS_VOICE_TYPE_AUTO; }
+
   std::optional<int32_t> GetMaxSpeechInputLength();
 
   std::optional<TtsState> GetState();

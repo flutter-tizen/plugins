@@ -11,7 +11,7 @@ This package is not an _endorsed_ implementation of `flutter_tts`. Therefore, yo
 ```yaml
 dependencies:
   flutter_tts: ^4.2.5
-  flutter_tts_tizen: ^1.7.1
+  flutter_tts_tizen: ^1.8.0
 ```
 
 Then you can import `flutter_tts` in your Dart code:
@@ -34,6 +34,7 @@ The features supported by Tizen are as follows. Other features are not supported
  - [x] is language available
  - [x] get voices
  - [x] set voice
+ - [x] clear voice
  - [x] set speech rate
  - [x] set speech volume (requires privilege `http://tizen.org/privilege/volume.set` in `tizen_manifest.xml`)
  - [x] get default voice
