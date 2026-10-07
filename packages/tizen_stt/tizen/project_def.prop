@@ -1,0 +1,23 @@
+# See https://docs.tizen.org/application/tizen-studio/native-tools/project-conversion
+# for details.
+
+APPNAME = tizen_stt_plugin
+type = staticLib
+profile = common-6.0
+
+# Source files
+USER_SRCS += src/*.cc
+
+# User defines
+USER_DEFS =
+USER_UNDEFS =
+USER_CPP_DEFS = FLUTTER_PLUGIN_IMPL
+USER_CPP_UNDEFS =
+
+# User includes
+USER_INC_DIRS = inc src
+USER_INC_FILES =
+USER_CPP_INC_FILES =
+
+# Tizen Native API dependencies
+USER_PKGS = stt glib-2.0
