@@ -1,7 +1,8 @@
-## NEXT
+## 2.5.16
 
 * Omit obvious local variable types.
 * Reformat with a line length of 100.
+* Update pigeon to 29.0.4.
 
 ## 2.5.15
 
