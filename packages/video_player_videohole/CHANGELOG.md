@@ -1,6 +1,7 @@
 ## 0.6.1
 
 * Fix a "used after being disposed" error when a seek, position, or duration update completes after the controller is disposed.
+* Fix multi-line WebVTT cues without an identifier being dropped.
 
 ## 0.6.0
 
