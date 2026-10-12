@@ -1,6 +1,7 @@
 ## 0.8.21
 
 * Fix a "used after being disposed" error when a position or duration update completes after the controller is disposed.
+* Fix multi-line WebVTT cues without an identifier being dropped.
 
 ## 0.8.20
 
