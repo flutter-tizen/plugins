@@ -1,3 +1,7 @@
+## 0.8.21
+
+* Fix a "used after being disposed" error when a position or duration update completes after the controller is disposed.
+
 ## 0.8.20
 
 * Update plusplayer

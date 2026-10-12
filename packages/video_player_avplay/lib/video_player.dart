@@ -1165,6 +1165,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   }
 
   void _updatePosition(Duration position) {
+    if (_isDisposed) {
+      return;
+    }
     value = value.copyWith(
       position: position,
       captions: Captions(
@@ -1174,6 +1177,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   }
 
   void _updateDuration(DurationRange duration) {
+    if (_isDisposed) {
+      return;
+    }
     value = value.copyWith(duration: duration);
   }
 
