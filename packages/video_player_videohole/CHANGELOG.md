@@ -1,3 +1,7 @@
+## 0.6.1
+
+* Fix a "used after being disposed" error when a seek, position, or duration update completes after the controller is disposed.
+
 ## 0.6.0
 
 * Migrate from Platform Channels to Dart FFI.

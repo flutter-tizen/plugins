@@ -574,6 +574,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   Future<void> play() async {
     if (value.position == value.duration.end) {
       await seekTo(Duration.zero);
+      if (_isDisposed) {
+        return;
+      }
     }
     value = value.copyWith(isPlaying: true);
     await _applyPlayPause();
@@ -844,6 +847,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   }
 
   void _updatePosition(Duration position) {
+    if (_isDisposed) {
+      return;
+    }
     value = value.copyWith(
       position: position,
       caption: _getCaptionAt(position),
@@ -852,6 +858,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   }
 
   void _updateDuration(DurationRange duration) {
+    if (_isDisposed) {
+      return;
+    }
     value = value.copyWith(duration: duration);
   }
 
