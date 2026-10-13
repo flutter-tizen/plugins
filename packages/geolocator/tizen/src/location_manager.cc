@@ -61,8 +61,10 @@ Position LocationManager::GetLastKnownPosition() {
   position.timestamp = timestamp;
   position.accuracy = horizontal;
   position.altitude = altitude;
+  position.altitudeAccuracy = vertical;
   position.heading = direction;
   position.speed = KmPerHourToMetersPerSecond(speed);
+  position.verticalSpeed = KmPerHourToMetersPerSecond(climb);
 
   return position;
 }
@@ -88,6 +90,7 @@ void LocationManager::GetCurrentPosition(LocationCallback on_location,
           position.timestamp = timestamp;
           position.speed = KmPerHourToMetersPerSecond(speed);
           position.heading = direction;
+          position.verticalSpeed = KmPerHourToMetersPerSecond(climb);
 
           self->location_callback_(position);
         }
