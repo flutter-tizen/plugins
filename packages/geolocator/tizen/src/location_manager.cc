@@ -4,6 +4,12 @@
 
 #include "location_manager.h"
 
+namespace {
+
+double KmPerHourToMetersPerSecond(double speed) { return speed / 3.6; }
+
+}  // namespace
+
 LocationManager::LocationManager() {
   location_manager_create(LOCATIONS_METHOD_HYBRID, &manager_);
   location_manager_create(LOCATIONS_METHOD_HYBRID,
@@ -56,7 +62,7 @@ Position LocationManager::GetLastKnownPosition() {
   position.accuracy = horizontal;
   position.altitude = altitude;
   position.heading = direction;
-  position.speed = speed;
+  position.speed = KmPerHourToMetersPerSecond(speed);
 
   return position;
 }
@@ -80,7 +86,7 @@ void LocationManager::GetCurrentPosition(LocationCallback on_location,
           position.longitude = longitude;
           position.altitude = altitude;
           position.timestamp = timestamp;
-          position.speed = speed;
+          position.speed = KmPerHourToMetersPerSecond(speed);
           position.heading = direction;
 
           self->location_callback_(position);
