@@ -1,0 +1,24 @@
+name: tizen_stt_example
+description: Demonstrates how to use the tizen_stt plugin.
+publish_to: none
+
+environment:
+  sdk: ">=3.1.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  tizen_stt:
+    path: ../
+
+dev_dependencies:
+  flutter_driver:
+    sdk: flutter
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  integration_test_tizen: ^2.0.1
+
+flutter:
+  uses-material-design: true
