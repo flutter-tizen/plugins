@@ -1,7 +1,8 @@
-## NEXT
+## 2.1.8
 
 * Omit obvious local variable types.
 * Reformat with a line length of 100.
+* Fall back to `org.tizen.browser` when no app handles the view request.
 
 ## 2.1.7
 
