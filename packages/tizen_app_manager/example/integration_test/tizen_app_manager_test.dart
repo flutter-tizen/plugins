@@ -11,7 +11,7 @@ import 'package:tizen_app_manager_example/main.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Can get current app info', (WidgetTester tester) async {
+  test('Can get current app info', () async {
     // These test are based on the example app.
     final String appId = await AppManager.currentAppId;
     expect(appId, 'org.tizen.tizen_app_manager_example');
@@ -39,12 +39,12 @@ void main() {
 
   group('AppManager', () {
     group('getInstalledApps', () {
-      testWidgets('returns non-empty list', (WidgetTester _) async {
+      test('returns non-empty list', () async {
         final List<AppInfo> apps = await AppManager.getInstalledApps();
         expect(apps, isNotEmpty);
       });
 
-      testWidgets('includes the current app', (WidgetTester _) async {
+      test('includes the current app', () async {
         final String appId = await AppManager.currentAppId;
         final List<AppInfo> apps = await AppManager.getInstalledApps();
         expect(apps.any((AppInfo app) => app.appId == appId), isTrue);
@@ -52,25 +52,25 @@ void main() {
     });
 
     group('isRunning', () {
-      testWidgets('returns true for running app', (WidgetTester _) async {
+      test('returns true for running app', () async {
         final String appId = await AppManager.currentAppId;
         expect(await AppManager.isRunning(appId), isTrue);
       });
 
-      testWidgets('returns false for non-running app', (WidgetTester _) async {
+      test('returns false for non-running app', () async {
         expect(
           await AppManager.isRunning('org.tizen.nonexistent'),
           isFalse,
         );
       });
 
-      testWidgets('throws ArgumentError for empty appId', (WidgetTester _) async {
+      test('throws ArgumentError for empty appId', () async {
         await expectLater(AppManager.isRunning(''), throwsArgumentError);
       });
     });
 
     group('getAppInfo', () {
-      testWidgets('returns all AppInfo fields', (WidgetTester _) async {
+      test('returns all AppInfo fields', () async {
         final String appId = await AppManager.currentAppId;
         final AppInfo appInfo = await AppManager.getAppInfo(appId);
         expect(appInfo.appId, appId);
@@ -78,22 +78,20 @@ void main() {
         expect(appInfo.sharedResourcePath, isNotEmpty);
       });
 
-      testWidgets('throws ArgumentError for empty appId', (WidgetTester _) async {
+      test('throws ArgumentError for empty appId', () async {
         await expectLater(AppManager.getAppInfo(''), throwsArgumentError);
       });
     });
   });
 
   group('AppRunningContext', () {
-    testWidgets('packageId matches current app', (WidgetTester _) async {
+    test('packageId matches current app', () async {
       final String appId = await AppManager.currentAppId;
       final context = AppRunningContext(appId: appId);
       expect(context.packageId, 'org.tizen.tizen_app_manager_example');
     });
 
-    testWidgets('throws PlatformException for non-running appId', (
-      WidgetTester _,
-    ) async {
+    test('throws PlatformException for non-running appId', () async {
       expect(
         () => AppRunningContext(appId: 'org.tizen.nonexistent'),
         throwsA(isA<PlatformException>()),
