@@ -1,3 +1,7 @@
+## 3.1.10
+
+* Fix a crash when disposing players on hot restart.
+
 ## 3.1.9
 
 * Serialize seeks and defer playback controls until seeking completes.
