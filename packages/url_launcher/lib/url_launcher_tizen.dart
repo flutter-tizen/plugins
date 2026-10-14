@@ -44,6 +44,9 @@ class UrlLauncherPlugin extends UrlLauncherPlatform {
     try {
       await appControl.sendLaunchRequest();
     } on PlatformException catch (error, stackTrace) {
+      if (!_supportedSchemes.contains(_getUrlScheme(url))) {
+        rethrow;
+      }
       appControl.appId = 'org.tizen.browser';
       try {
         await appControl.sendLaunchRequest();
