@@ -37,4 +37,4 @@ For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](h
 ## Notes
 
 - A `PlatformException` is raised if no application on the device can open the provided URL.
-- Only the default launch mode (`LaunchMode.platformDefault`) is supported on Tizen.
+- Only `LaunchMode.platformDefault` and `LaunchMode.externalApplication` are supported on Tizen. Both open the URL in an external application.
