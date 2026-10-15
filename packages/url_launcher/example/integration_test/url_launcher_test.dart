@@ -34,4 +34,10 @@ void main() {
     // ignore: deprecated_member_use
     expect(await canLaunch('https://flutter.dev'), true);
   });
+
+  test('supportsLaunchMode', () async {
+    expect(await supportsLaunchMode(LaunchMode.platformDefault), true);
+    expect(await supportsLaunchMode(LaunchMode.externalApplication), true);
+    expect(await supportsLaunchMode(LaunchMode.inAppWebView), false);
+  });
 }
