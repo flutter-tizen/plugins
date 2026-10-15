@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:flutter/services.dart';
 import 'package:tizen_app_control/tizen_app_control.dart';
 import 'package:url_launcher_platform_interface/link.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
@@ -36,10 +37,23 @@ class UrlLauncherPlugin extends UrlLauncherPlatform {
     required Map<String, String> headers,
     String? webOnlyWindowName,
   }) async {
-    await AppControl(
+    final appControl = AppControl(
       operation: 'http://tizen.org/appcontrol/operation/view',
       uri: url,
-    ).sendLaunchRequest();
+    );
+    try {
+      await appControl.sendLaunchRequest();
+    } on PlatformException catch (error, stackTrace) {
+      if (!_supportedSchemes.contains(_getUrlScheme(url))) {
+        rethrow;
+      }
+      appControl.appId = 'org.tizen.browser';
+      try {
+        await appControl.sendLaunchRequest();
+      } on PlatformException {
+        Error.throwWithStackTrace(error, stackTrace);
+      }
+    }
     return true;
   }
 
