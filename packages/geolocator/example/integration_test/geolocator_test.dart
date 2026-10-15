@@ -67,4 +67,11 @@ Future<void> main() async {
     expect(await completer.future, isA<Position>());
     await subscription.cancel();
   }, timeout: const Timeout(Duration(seconds: 10)));
+
+  test('listen location has speed, heading and accuracy', () async {
+    final Position position = await Geolocator.getPositionStream().first;
+    expect(position.hasSpeed, true);
+    expect(position.hasHeading, true);
+    expect(position.hasAccuracy, true);
+  }, timeout: const Timeout(Duration(seconds: 10)));
 }

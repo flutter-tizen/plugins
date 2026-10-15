@@ -136,9 +136,10 @@ void LocationManager::StartListenLocationUpdate(
     LocationCallback on_location_update) {
   location_update_callback_ = on_location_update;
 
-  int ret = location_manager_set_position_updated_cb(
+  int ret = location_manager_set_location_changed_cb(
       manager_,
-      [](double latitude, double longitude, double altitude, time_t timestamp,
+      [](double latitude, double longitude, double altitude, double speed,
+         double direction, double horizontal_accuracy, time_t timestamp,
          void *user_data) {
         LocationManager *self = static_cast<LocationManager *>(user_data);
         if (self->location_update_callback_) {
@@ -146,7 +147,10 @@ void LocationManager::StartListenLocationUpdate(
           position.longitude = longitude;
           position.latitude = latitude;
           position.timestamp = timestamp;
+          position.accuracy = horizontal_accuracy;
           position.altitude = altitude;
+          position.heading = direction;
+          position.speed = KmPerHourToMetersPerSecond(speed);
           self->location_update_callback_(position);
         }
       },
@@ -161,7 +165,7 @@ void LocationManager::StartListenLocationUpdate(
 }
 
 void LocationManager::StopListenLocationUpdate() {
-  int ret = location_manager_unset_position_updated_cb(manager_);
+  int ret = location_manager_unset_location_changed_cb(manager_);
   if (LOCATIONS_ERROR_NONE != ret) {
     throw LocationManagerError(ret);
   }

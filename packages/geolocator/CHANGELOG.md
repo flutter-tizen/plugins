@@ -3,6 +3,7 @@
 * Update geolocator_platform_interface to 4.4.0.
 * Report `Position.altitudeAccuracy` for the last known position.
 * Report `Position.verticalSpeed` for the current and last known positions.
+* Report `Position.speed`, `Position.heading` and `Position.accuracy` for the position stream.
 
 ## 1.0.12
 
