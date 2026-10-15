@@ -31,7 +31,7 @@ jobs:
             --base-sha=HEAD~
       - name: Wait on all tests
         if: ${{ github.event_name == 'push' }}
-        uses: lewagon/wait-on-check-action@v1.3.3
+        uses: lewagon/wait-on-check-action@v1.9.1
         with:
           ref: ${{ github.sha }}
           running-workflow-name: "release"

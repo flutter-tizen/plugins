@@ -1,77 +1,151 @@
 # Packages
 "p: audioplayers":
-  - packages/audioplayers/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/audioplayers/**/*
 "p: connectivity_plus":
-  - packages/connectivity_plus/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/connectivity_plus/**/*
 "p: device_info_plus":
-  - packages/device_info_plus/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/device_info_plus/**/*
 "p: firebase_core":
-  - packages/firebase_core/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/firebase_core/**/*
 "p: flutter_inappwebview":
-  - packages/flutter_inappwebview/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/flutter_inappwebview/**/*
 "p: flutter_secure_storage":
-  - packages/flutter_secure_storage/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/flutter_secure_storage/**/*
 "p: flutter_tts":
-  - packages/flutter_tts/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/flutter_tts/**/*
 "p: flutter_webrtc":
-  - packages/flutter_webrtc/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/flutter_webrtc/**/*
 "p: geolocator":
-  - packages/geolocator/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/geolocator/**/*
 "p: google_maps_flutter":
-  - packages/google_maps_flutter/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/google_maps_flutter/**/*
 "p: google_sign_in":
-  - packages/google_sign_in/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/google_sign_in/**/*
 "p: in_app_purchase":
-  - packages/in_app_purchase/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/in_app_purchase/**/*
 "p: integration_test":
-  - packages/integration_test/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/integration_test/**/*
 "p: messageport":
-  - packages/messageport/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/messageport/**/*
 "p: network_info_plus":
-  - packages/network_info_plus/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/network_info_plus/**/*
 "p: package_info_plus":
-  - packages/package_info_plus/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/package_info_plus/**/*
 "p: path_provider":
-  - packages/path_provider/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/path_provider/**/*
 "p: permission_handler":
-  - packages/permission_handler/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/permission_handler/**/*
 "p: shared_preferences":
-  - packages/shared_preferences/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/shared_preferences/**/*
 "p: sqflite":
-  - packages/sqflite/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/sqflite/**/*
 "p: tizen_app_control":
-  - packages/tizen_app_control/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/tizen_app_control/**/*
 "p: tizen_app_manager":
-  - packages/tizen_app_manager/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/tizen_app_manager/**/*
 "p: tizen_audio_manager":
-  - packages/tizen_audio_manager/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/tizen_audio_manager/**/*
 "p: tizen_bundle":
-  - packages/tizen_bundle/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/tizen_bundle/**/*
 "p: tizen_log":
-  - packages/tizen_log/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/tizen_log/**/*
 "p: tizen_notification":
-  - packages/tizen_notification/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/tizen_notification/**/*
 "p: tizen_package_manager":
-  - packages/tizen_package_manager/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/tizen_package_manager/**/*
 "p: tizen_rpc_port":
-  - packages/tizen_rpc_port/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/tizen_rpc_port/**/*
 "p: tizen_window_manager":
-  - packages/tizen_window_manager/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/tizen_window_manager/**/*
 "p: url_launcher":
-  - packages/url_launcher/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/url_launcher/**/*
 "p: video_player":
-  - packages/video_player/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/video_player/**/*
 "p: video_player_avplay":
-  - packages/video_player_avplay/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/video_player_avplay/**/*
 "p: video_player_videohole":
-  - packages/video_player_videohole/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/video_player_videohole/**/*
 "p: wakelock_plus":
-  - packages/wakelock_plus/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/wakelock_plus/**/*
 "p: webview_flutter":
-  - packages/webview_flutter/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/webview_flutter/**/*
 "p: webview_flutter_lwe":
-  - packages/webview_flutter_lwe/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - packages/webview_flutter_lwe/**/*
 
 # Tools
 "tools":
-  - tools/**/*
+  - changed-files:
+    - any-glob-to-any-file:
+      - tools/**/*
