@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-22.04
     if: ${{ github.repository_owner == 'flutter-tizen' }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 2
       - uses: subosito/flutter-action@v2
@@ -31,7 +31,7 @@ jobs:
             --base-sha=HEAD~
       - name: Wait on all tests
         if: ${{ github.event_name == 'push' }}
-        uses: lewagon/wait-on-check-action@v1.3.3
+        uses: lewagon/wait-on-check-action@v1.9.1
         with:
           ref: ${{ github.sha }}
           running-workflow-name: "release"
