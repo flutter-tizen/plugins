@@ -278,6 +278,77 @@ class MixWithOthersMessage {
   bool mix_with_others_;
 };
 
+// Generated class from Pigeon that represents data sent in messages.
+class AudioTrackMessage {
+ public:
+  // Constructs an object setting all non-nullable fields.
+  explicit AudioTrackMessage(int64_t track_index, bool is_selected);
+
+  // Constructs an object setting all fields.
+  explicit AudioTrackMessage(int64_t track_index, const std::string* language,
+                             bool is_selected);
+
+  int64_t track_index() const;
+  void set_track_index(int64_t value_arg);
+
+  const std::string* language() const;
+  void set_language(const std::string_view* value_arg);
+  void set_language(std::string_view value_arg);
+
+  bool is_selected() const;
+  void set_is_selected(bool value_arg);
+
+  bool operator==(const AudioTrackMessage& other) const;
+  bool operator!=(const AudioTrackMessage& other) const;
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
+  size_t Hash() const;
+  /// Stream output operator for formatted string representation.
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const AudioTrackMessage& obj);
+
+ private:
+  static AudioTrackMessage FromEncodableList(
+      const ::flutter::EncodableList& list);
+  ::flutter::EncodableList ToEncodableList() const;
+  friend class TizenVideoPlayerApi;
+  friend class PigeonInternalCodecSerializer;
+  int64_t track_index_;
+  std::optional<std::string> language_;
+  bool is_selected_;
+};
+
+// Generated class from Pigeon that represents data sent in messages.
+class SelectAudioTrackMessage {
+ public:
+  // Constructs an object setting all fields.
+  explicit SelectAudioTrackMessage(int64_t texture_id, int64_t track_index);
+
+  int64_t texture_id() const;
+  void set_texture_id(int64_t value_arg);
+
+  int64_t track_index() const;
+  void set_track_index(int64_t value_arg);
+
+  bool operator==(const SelectAudioTrackMessage& other) const;
+  bool operator!=(const SelectAudioTrackMessage& other) const;
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
+  size_t Hash() const;
+  /// Stream output operator for formatted string representation.
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const SelectAudioTrackMessage& obj);
+
+ private:
+  static SelectAudioTrackMessage FromEncodableList(
+      const ::flutter::EncodableList& list);
+  ::flutter::EncodableList ToEncodableList() const;
+  friend class TizenVideoPlayerApi;
+  friend class PigeonInternalCodecSerializer;
+  int64_t texture_id_;
+  int64_t track_index_;
+};
+
 class PigeonInternalCodecSerializer
     : public ::flutter::StandardCodecSerializer {
  public:
@@ -317,6 +388,10 @@ class TizenVideoPlayerApi {
   virtual std::optional<FlutterError> Pause(const TextureMessage& msg) = 0;
   virtual std::optional<FlutterError> SetMixWithOthers(
       const MixWithOthersMessage& msg) = 0;
+  virtual ErrorOr<::flutter::EncodableList> GetAudioTracks(
+      const TextureMessage& msg) = 0;
+  virtual std::optional<FlutterError> SelectAudioTrack(
+      const SelectAudioTrackMessage& msg) = 0;
 
   // The codec used by TizenVideoPlayerApi.
   static const ::flutter::StandardMessageCodec& GetCodec();

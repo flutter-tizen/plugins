@@ -407,6 +407,98 @@ class MixWithOthersMessage {
   }
 }
 
+class AudioTrackMessage {
+  AudioTrackMessage({required this.trackIndex, this.language, required this.isSelected});
+
+  int trackIndex;
+
+  String? language;
+
+  bool isSelected;
+
+  List<Object?> _toList() {
+    return <Object?>[trackIndex, language, isSelected];
+  }
+
+  Object encode() {
+    return _toList();
+  }
+
+  static AudioTrackMessage decode(Object result) {
+    result as List<Object?>;
+    return AudioTrackMessage(
+      trackIndex: result[0]! as int,
+      language: result[1] as String?,
+      isSelected: result[2]! as bool,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! AudioTrackMessage || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(trackIndex, other.trackIndex) &&
+        _deepEquals(language, other.language) &&
+        _deepEquals(isSelected, other.isSelected);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+
+  @override
+  String toString() {
+    return 'AudioTrackMessage(trackIndex: $trackIndex, language: $language, isSelected: $isSelected)';
+  }
+}
+
+class SelectAudioTrackMessage {
+  SelectAudioTrackMessage({required this.textureId, required this.trackIndex});
+
+  int textureId;
+
+  int trackIndex;
+
+  List<Object?> _toList() {
+    return <Object?>[textureId, trackIndex];
+  }
+
+  Object encode() {
+    return _toList();
+  }
+
+  static SelectAudioTrackMessage decode(Object result) {
+    result as List<Object?>;
+    return SelectAudioTrackMessage(textureId: result[0]! as int, trackIndex: result[1]! as int);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! SelectAudioTrackMessage || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(textureId, other.textureId) && _deepEquals(trackIndex, other.trackIndex);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+
+  @override
+  String toString() {
+    return 'SelectAudioTrackMessage(textureId: $textureId, trackIndex: $trackIndex)';
+  }
+}
+
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
   @override
@@ -435,6 +527,12 @@ class _PigeonCodec extends StandardMessageCodec {
     } else if (value is MixWithOthersMessage) {
       buffer.putUint8(135);
       writeValue(buffer, value.encode());
+    } else if (value is AudioTrackMessage) {
+      buffer.putUint8(136);
+      writeValue(buffer, value.encode());
+    } else if (value is SelectAudioTrackMessage) {
+      buffer.putUint8(137);
+      writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
     }
@@ -457,6 +555,10 @@ class _PigeonCodec extends StandardMessageCodec {
         return CreateMessage.decode(readValue(buffer)!);
       case 135:
         return MixWithOthersMessage.decode(readValue(buffer)!);
+      case 136:
+        return AudioTrackMessage.decode(readValue(buffer)!);
+      case 137:
+        return SelectAudioTrackMessage.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -631,6 +733,39 @@ class TizenVideoPlayerApi {
   Future<void> setMixWithOthers(MixWithOthersMessage msg) async {
     final pigeonVar_channelName =
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setMixWithOthers$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[msg]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(pigeonVar_replyList, pigeonVar_channelName, isNullValid: true);
+  }
+
+  Future<List<AudioTrackMessage>> getAudioTracks(TextureMessage msg) async {
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.getAudioTracks$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[msg]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: false,
+    );
+    return (pigeonVar_replyValue! as List<Object?>).cast<AudioTrackMessage>();
+  }
+
+  Future<void> selectAudioTrack(SelectAudioTrackMessage msg) async {
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.selectAudioTrack$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,

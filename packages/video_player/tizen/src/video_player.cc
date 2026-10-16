@@ -8,6 +8,7 @@
 #include <flutter/standard_method_codec.h>
 
 #include <algorithm>
+#include <cstdlib>
 #include <sstream>
 
 #include "ftpw_video_player.h"
@@ -409,6 +410,73 @@ int32_t VideoPlayer::GetPosition() {
                            get_error_message(ret));
   }
   return position;
+}
+
+std::vector<AudioTrack> VideoPlayer::GetAudioTracks() {
+  int count = 0;
+  int ret = player_get_track_count(player_, PLAYER_STREAM_TYPE_AUDIO, &count);
+  if (ret != PLAYER_ERROR_NONE) {
+    throw VideoPlayerError("player_get_track_count failed",
+                           get_error_message(ret));
+  }
+  if (count <= 0) {
+    return {};
+  }
+
+  int current = -1;
+  ret = player_get_current_track(player_, PLAYER_STREAM_TYPE_AUDIO, &current);
+  if (ret != PLAYER_ERROR_NONE) {
+    throw VideoPlayerError("player_get_current_track failed",
+                           get_error_message(ret));
+  }
+
+  std::vector<AudioTrack> tracks;
+  for (int i = 0; i < count; i++) {
+    std::optional<std::string> language;
+    char *code = nullptr;
+    ret = player_get_track_language_code(player_, PLAYER_STREAM_TYPE_AUDIO, i,
+                                         &code);
+    if (ret != PLAYER_ERROR_NONE) {
+      LOG_ERROR("[VideoPlayer] player_get_track_language_code failed: %s",
+                get_error_message(ret));
+    } else if (code) {
+      language = code;
+      free(code);
+    }
+    tracks.push_back({i, language, i == current});
+  }
+  return tracks;
+}
+
+void VideoPlayer::SelectAudioTrack(int64_t index) {
+  LOG_DEBUG("[VideoPlayer] index: %lld", static_cast<long long>(index));
+
+  int count = 0;
+  int ret = player_get_track_count(player_, PLAYER_STREAM_TYPE_AUDIO, &count);
+  if (ret != PLAYER_ERROR_NONE) {
+    throw VideoPlayerError("player_get_track_count failed",
+                           get_error_message(ret));
+  }
+  if (index < 0 || index >= count) {
+    throw VideoPlayerError("Invalid argument",
+                           "Audio track index is out of range.");
+  }
+
+  int current = -1;
+  ret = player_get_current_track(player_, PLAYER_STREAM_TYPE_AUDIO, &current);
+  if (ret != PLAYER_ERROR_NONE) {
+    throw VideoPlayerError("player_get_current_track failed",
+                           get_error_message(ret));
+  }
+  if (index == current) {
+    return;
+  }
+
+  ret = player_select_track(player_, PLAYER_STREAM_TYPE_AUDIO, index);
+  if (ret != PLAYER_ERROR_NONE) {
+    throw VideoPlayerError("player_select_track failed",
+                           get_error_message(ret));
+  }
 }
 
 void VideoPlayer::Dispose() {

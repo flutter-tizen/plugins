@@ -15,12 +15,20 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <queue>
 #include <string>
+#include <vector>
 
 #include "video_player_options.h"
 
 namespace video_player_tizen {
+
+struct AudioTrack {
+  int32_t index;
+  std::optional<std::string> language;
+  bool is_selected;
+};
 
 class VideoPlayer {
  public:
@@ -39,6 +47,8 @@ class VideoPlayer {
   void SetPlaybackSpeed(double speed);
   void SeekTo(int32_t position, SeekCompletedCallback callback);
   int32_t GetPosition();
+  std::vector<AudioTrack> GetAudioTracks();
+  void SelectAudioTrack(int64_t index);
   void Dispose();
 
   int64_t GetTextureId() { return texture_id_; }

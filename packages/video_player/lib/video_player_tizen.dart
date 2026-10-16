@@ -161,6 +161,35 @@ class VideoPlayerTizen extends platform_interface.VideoPlayerPlatform {
     return _api.setMixWithOthers(MixWithOthersMessage(mixWithOthers: mixWithOthers));
   }
 
+  @override
+  Future<List<platform_interface.VideoAudioTrack>> getAudioTracks(int textureId) async {
+    final List<AudioTrackMessage> tracks = await _api.getAudioTracks(
+      TextureMessage(textureId: textureId),
+    );
+    return tracks
+        .map(
+          (AudioTrackMessage track) => platform_interface.VideoAudioTrack(
+            id: track.trackIndex.toString(),
+            label: null,
+            language: track.language,
+            isSelected: track.isSelected,
+          ),
+        )
+        .toList();
+  }
+
+  @override
+  Future<void> selectAudioTrack(int textureId, String trackId) {
+    return _api.selectAudioTrack(
+      SelectAudioTrackMessage(textureId: textureId, trackIndex: int.parse(trackId)),
+    );
+  }
+
+  @override
+  bool isAudioTrackSupportAvailable() {
+    return true;
+  }
+
   EventChannel _eventChannelFor(int textureId) {
     return EventChannel('flutter.io/videoPlayer/videoEvents$textureId');
   }
