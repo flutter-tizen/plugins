@@ -1,6 +1,7 @@
 ## 0.2.6
 
 * Fix a data race on the data channel observer map between the signaling thread and the platform thread.
+* Fix the `keyDerivationAlgorithm` option of `KeyProviderOptions` being ignored.
 
 ## 0.2.5
 

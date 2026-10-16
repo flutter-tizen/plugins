@@ -23,6 +23,21 @@ Future<void> _negotiate(RTCPeerConnection pc1, RTCPeerConnection pc2) async {
   await pc1.setRemoteDescription(answer);
 }
 
+Future<Uint8List> _ratchetSharedKey(KeyDerivationAlgorithm algorithm) async {
+  final keyProvider = await frameCryptorFactory.createDefaultKeyProvider(
+    KeyProviderOptions(
+      sharedKey: true,
+      ratchetSalt: Uint8List.fromList('salt'.codeUnits),
+      ratchetWindowSize: 0,
+      keyDerivationAlgorithm: algorithm,
+    ),
+  );
+  await keyProvider.setSharedKey(key: Uint8List.fromList('key'.codeUnits));
+  final ratchetedKey = await keyProvider.ratchetSharedKey();
+  await keyProvider.dispose();
+  return ratchetedKey;
+}
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -251,5 +266,14 @@ void main() {
       },
       timeout: const Timeout(Duration(seconds: 60)),
     );
+  });
+
+  group('KeyProvider', () {
+    test('ratchetSharedKey depends on keyDerivationAlgorithm', () async {
+      final pbkdf2Key = await _ratchetSharedKey(KeyDerivationAlgorithm.kPBKDF2);
+      final hkdfKey = await _ratchetSharedKey(KeyDerivationAlgorithm.kHKDF);
+      expect(hkdfKey, isNotEmpty);
+      expect(hkdfKey, isNot(equals(pbkdf2Key)));
+    }, timeout: const Timeout(Duration(seconds: 10)));
   });
 }
