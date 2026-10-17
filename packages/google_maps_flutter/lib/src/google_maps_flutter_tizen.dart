@@ -53,6 +53,12 @@ class GoogleMapsPlugin extends GoogleMapsFlutterPlatform {
     _map(mapId).updateRawOptions(optionsUpdate);
   }
 
+  /// Updates the configuration of a given `mapId`.
+  @override
+  Future<void> updateMapConfiguration(MapConfiguration configuration, {required int mapId}) async {
+    _map(mapId).updateRawOptions(_mapOptionsFromConfiguration(configuration));
+  }
+
   /// Applies the passed in `markerUpdates` to the `mapId`.
   @override
   Future<void> updateMarkers(MarkerUpdates markerUpdates, {required int mapId}) async {

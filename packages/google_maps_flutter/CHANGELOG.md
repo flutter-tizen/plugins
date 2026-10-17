@@ -1,3 +1,7 @@
+## 0.4.0
+
+* Add support for `mapTypeControlEnabled`, `fullscreenControlEnabled`, `streetViewControlEnabled`, `webCameraControlEnabled`, and `webCameraControlPosition`.
+
 ## 0.3.0
 
 * Update `webview_flutter_lwe` to ^0.6.0.

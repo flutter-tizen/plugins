@@ -19,7 +19,8 @@ Map<int, String> _mapTypeToMapTypeId = <int, String>{
 // Builds the raw map options map from a [MapConfiguration].
 //
 // This mirrors the platform interface's `jsonForMapConfiguration` helper
-// (which is not exported), plus [MapConfiguration.colorScheme].
+// (which is not exported), plus [MapConfiguration.colorScheme] and the web
+// control options.
 //
 // Intentionally omitted:
 // * `cloudMapId` — deprecated alias for `mapId`, which is already serialized.
@@ -53,6 +54,15 @@ Map<String, dynamic> _mapOptionsFromConfiguration(MapConfiguration config) {
     if (config.mapId != null) 'mapId': config.mapId,
     if (config.style != null) 'style': config.style,
     if (config.colorScheme != null) 'colorScheme': config.colorScheme!.index,
+    if (config.webCameraControlEnabled != null)
+      'webCameraControlEnabled': config.webCameraControlEnabled,
+    if (config.webCameraControlPosition != null)
+      'webCameraControlPosition': config.webCameraControlPosition!.name,
+    if (config.mapTypeControlEnabled != null) 'mapTypeControlEnabled': config.mapTypeControlEnabled,
+    if (config.fullscreenControlEnabled != null)
+      'fullscreenControlEnabled': config.fullscreenControlEnabled,
+    if (config.streetViewControlEnabled != null)
+      'streetViewControlEnabled': config.streetViewControlEnabled,
   };
 }
 
@@ -89,9 +99,11 @@ String? _getCameraBounds(dynamic option) {
 // web buildingsEnabled seems to not have an equivalent in web padding seems to
 // behave differently in web than mobile. You can't move UI elements in web.
 String _rawOptionsToString(Map<String, dynamic> rawOptions) {
-  // These don't have any rawOptions entry, but they seem to be off in the
-  // native maps.
-  var options = 'mapTypeControl: false, fullscreenControl: false, streetViewControl: false';
+  // These are off by default in the native maps.
+  var options =
+      'mapTypeControl: ${rawOptions['mapTypeControlEnabled'] ?? false}'
+      ', fullscreenControl: ${rawOptions['fullscreenControlEnabled'] ?? false}'
+      ', streetViewControl: ${rawOptions['streetViewControlEnabled'] ?? false}';
 
   if (_mapTypeToMapTypeId.containsKey(rawOptions['mapType'])) {
     options += ", mapTypeId: '${_mapTypeToMapTypeId[rawOptions['mapType']]}'";
@@ -113,6 +125,17 @@ String _rawOptionsToString(Map<String, dynamic> rawOptions) {
 
   if (rawOptions['zoomControlsEnabled'] != null) {
     options += ', zoomControl: ${rawOptions['zoomControlsEnabled']}';
+  }
+
+  if (rawOptions['webCameraControlEnabled'] != null) {
+    options += ', cameraControl: ${rawOptions['webCameraControlEnabled']}';
+  }
+
+  if (rawOptions['webCameraControlPosition'] != null) {
+    final String position = (rawOptions['webCameraControlPosition'] as String)
+        .replaceAllMapped(RegExp('[A-Z]'), (Match m) => '_${m[0]}')
+        .toUpperCase();
+    options += ', cameraControlOptions: { position: google.maps.ControlPosition.$position }';
   }
 
   if (rawOptions['style'] != null && (rawOptions['style'] as String).isNotEmpty) {
