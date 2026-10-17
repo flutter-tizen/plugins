@@ -14,6 +14,7 @@ const std::string kMethodCloseDatabase = "closeDatabase";
 const std::string kMethodInsert = "insert";
 const std::string kMethodExecute = "execute";
 const std::string kMethodQuery = "query";
+const std::string kMethodQueryCursorNext = "queryCursorNext";
 const std::string kMethodUpdate = "update";
 const std::string kMethodBatch = "batch";
 const std::string kMethodDeleteDatabase = "deleteDatabase";
@@ -42,6 +43,11 @@ const std::string kParamContinueOnError = "continueOnError";
 const std::string kParamColumns = "columns";
 const std::string kParamRows = "rows";
 const std::string kParamDatabases = "databases";
+
+// cursor
+const std::string kParamCursorId = "cursorId";              // int
+const std::string kParamCursorPageSize = "cursorPageSize";  // int
+const std::string kParamCursorCancel = "cancel";            // boolean
 
 // debugMode
 const std::string kParamCmd = "cmd";  // debugMode cmd: get/set

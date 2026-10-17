@@ -17,6 +17,9 @@ DatabaseManager::~DatabaseManager() {
     FinalizeStmt(statement.second);
     statement.second = nullptr;
   }
+  for (auto &&cursor : cursors_) {
+    FinalizeStmt(cursor.second.statement);
+  }
 
   Close(true);
 }
@@ -160,9 +163,10 @@ void DatabaseManager::BindStmtParams(DatabaseManager::Statement statement,
   }
 }
 
-DatabaseManager::Statement DatabaseManager::PrepareStmt(std::string sql) {
+DatabaseManager::Statement DatabaseManager::PrepareStmt(std::string sql,
+                                                        bool use_cache) {
   auto cache_entry = statement_cache_.find(sql);
-  if (cache_entry != statement_cache_.end()) {
+  if (use_cache && cache_entry != statement_cache_.end()) {
     DatabaseManager::Statement statement = cache_entry->second;
     sqlite3_reset(statement);
     sqlite3_clear_bindings(statement);
@@ -175,7 +179,7 @@ DatabaseManager::Statement DatabaseManager::PrepareStmt(std::string sql) {
       FinalizeStmt(statement);
       ThrowCurrentDatabaseError();
     }
-    if (statement != nullptr) {
+    if (use_cache && statement != nullptr) {
       statement_cache_[sql] = statement;
     }
     return statement;
@@ -207,7 +211,7 @@ const char *DatabaseManager::GetColumnName(DatabaseManager::Statement statement,
 }
 
 std::pair<Columns, Resultset> DatabaseManager::QueryStmt(
-    DatabaseManager::Statement statement) {
+    DatabaseManager::Statement statement, int max_rows) {
   Columns columns;
   Resultset resultset;
   const int columns_count = GetStmtColumnsCount(statement);
@@ -254,9 +258,12 @@ std::pair<Columns, Resultset> DatabaseManager::QueryStmt(
         }
       }
       resultset.push_back(result);
+      if (max_rows > 0 && resultset.size() >= static_cast<size_t>(max_rows)) {
+        break;
+      }
     }
   } while (result_code == SQLITE_ROW);
-  if (result_code != SQLITE_DONE) {
+  if (result_code != SQLITE_DONE && result_code != SQLITE_ROW) {
     ThrowCurrentDatabaseError();
   }
   return std::make_pair(columns, resultset);
@@ -278,6 +285,62 @@ std::pair<Columns, Resultset> DatabaseManager::Query(std::string sql,
     LogQuery(statement);
   }
   return QueryStmt(statement);
+}
+
+std::pair<Columns, Resultset> DatabaseManager::QueryCursor(
+    std::string sql, SQLParameters parameters, int page_size, int &cursor_id) {
+  // NOTE: A cursor keeps its statement between pages, so it must not be
+  // shared with other queries through the statement cache.
+  auto statement = PrepareStmt(sql, false);
+  std::pair<Columns, Resultset> result;
+  try {
+    BindStmtParams(statement, parameters);
+    if (sqflite_log_level::HasSqlLevel(log_level_)) {
+      LogQuery(statement);
+    }
+    result = QueryStmt(statement, page_size);
+  } catch (const sqflite_errors::DatabaseError &) {
+    FinalizeStmt(statement);
+    throw;
+  }
+  if (result.second.size() < static_cast<size_t>(page_size)) {
+    FinalizeStmt(statement);
+    cursor_id = 0;
+  } else {
+    cursor_id = ++last_cursor_id_;
+    cursors_[cursor_id] = Cursor{statement, page_size};
+  }
+  return result;
+}
+
+std::pair<Columns, Resultset> DatabaseManager::QueryCursorNext(int cursor_id,
+                                                               bool &has_more) {
+  auto iter = cursors_.find(cursor_id);
+  if (iter == cursors_.end()) {
+    throw sqflite_errors::DatabaseError(sqflite_errors::kUnknownErrorCode,
+                                        "Cursor not found");
+  }
+  const Cursor cursor = iter->second;
+  std::pair<Columns, Resultset> result;
+  try {
+    result = QueryStmt(cursor.statement, cursor.page_size);
+  } catch (const sqflite_errors::DatabaseError &) {
+    CloseCursor(cursor_id);
+    throw;
+  }
+  has_more = result.second.size() >= static_cast<size_t>(cursor.page_size);
+  if (!has_more) {
+    CloseCursor(cursor_id);
+  }
+  return result;
+}
+
+void DatabaseManager::CloseCursor(int cursor_id) {
+  auto iter = cursors_.find(cursor_id);
+  if (iter != cursors_.end()) {
+    FinalizeStmt(iter->second.statement);
+    cursors_.erase(iter);
+  }
 }
 
 void DatabaseManager::Execute(std::string sql, SQLParameters parameters) {

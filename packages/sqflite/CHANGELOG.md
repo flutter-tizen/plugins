@@ -1,6 +1,7 @@
-## NEXT
+## 0.2.0
 
 * Follow the analysis options of the frontend plugin.
+* Support paged queries with `queryCursor` and `rawQueryCursor`.
 
 ## 0.1.6
 

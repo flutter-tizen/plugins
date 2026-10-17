@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:path/path.dart';
@@ -250,6 +251,120 @@ void main() {
         {'?1 + ?2': 7},
       ]);
       await db.close();
+    });
+
+    test('query by page', () async {
+      final db = await openDatabase(inMemoryDatabasePath);
+      try {
+        await db.execute('CREATE TABLE test (id INTEGER PRIMARY KEY)');
+        await db.insert('test', {'id': 1});
+        await db.insert('test', {'id': 2});
+        await db.insert('test', {'id': 3});
+
+        var cursor = await db.rawQueryCursor(
+          'SELECT * FROM test',
+          null,
+          bufferSize: 2,
+        );
+        final results = <Map<String, Object?>>[];
+        while (await cursor.moveNext()) {
+          results.add(cursor.current);
+        }
+        expect(results, [
+          {'id': 1},
+          {'id': 2},
+          {'id': 3},
+        ]);
+
+        // Multiple cursors on the same query.
+        final cursor1 = await db.rawQueryCursor(
+          'SELECT * FROM test',
+          null,
+          bufferSize: 2,
+        );
+        final cursor2 = await db.rawQueryCursor(
+          'SELECT * FROM test',
+          null,
+          bufferSize: 1,
+        );
+        await cursor1.moveNext();
+        expect(cursor1.current.values, [1]);
+        await cursor2.moveNext();
+        await cursor2.moveNext();
+        expect(cursor2.current.values, [2]);
+        await cursor1.moveNext();
+        expect(cursor1.current.values, [2]);
+        await cursor1.close();
+        await cursor2.moveNext();
+        expect(cursor2.current.values, [3]);
+        expect(await cursor2.moveNext(), isFalse);
+        expect(await cursor1.moveNext(), isFalse);
+
+        // No data
+        cursor = await db.rawQueryCursor('SELECT * FROM test WHERE id > ?', [
+          3,
+        ], bufferSize: 2);
+        expect(await cursor.moveNext(), isFalse);
+
+        // Matching page size
+        cursor = await db.rawQueryCursor('SELECT * FROM test WHERE id > ?', [
+          1,
+        ], bufferSize: 2);
+        expect(await cursor.moveNext(), isTrue);
+        expect(await cursor.moveNext(), isTrue);
+        expect(await cursor.moveNext(), isFalse);
+      } finally {
+        await db.close();
+      }
+    });
+
+    test('query cursor returns pages', () async {
+      const channel = MethodChannel('com.tekartik.sqflite');
+      final open = await channel.invokeMapMethod<String, Object?>(
+        'openDatabase',
+        {'path': inMemoryDatabasePath},
+      );
+      final id = open!['id'];
+      try {
+        await channel.invokeMethod<void>('execute', {
+          'id': id,
+          'sql': 'CREATE TABLE test (id INTEGER PRIMARY KEY)',
+        });
+        await channel.invokeMethod<void>('execute', {
+          'id': id,
+          'sql': 'INSERT INTO test (id) VALUES (1), (2), (3)',
+        });
+
+        var page = await channel.invokeMapMethod<String, Object?>('query', {
+          'id': id,
+          'sql': 'SELECT * FROM test',
+          'cursorPageSize': 2,
+        });
+        expect(page!['rows'], [
+          [1],
+          [2],
+        ]);
+        final cursorId = page['cursorId'];
+        expect(cursorId, isA<int>());
+
+        page = await channel.invokeMapMethod<String, Object?>(
+          'queryCursorNext',
+          {'id': id, 'cursorId': cursorId},
+        );
+        expect(page!['rows'], [
+          [3],
+        ]);
+        expect(page['cursorId'], isNull);
+        await expectLater(
+          channel.invokeMethod<void>('queryCursorNext', {
+            'id': id,
+            'cursorId': cursorId,
+          }),
+          throwsA(isA<PlatformException>()),
+        );
+      } finally {
+        await channel.invokeMethod<void>('closeDatabase', {'id': id});
+      }
     });
 
     test('deleteDatabase', () async {

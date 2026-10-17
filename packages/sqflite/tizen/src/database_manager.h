@@ -44,16 +44,27 @@ class DatabaseManager {
   void Execute(std::string sql, SQLParameters parameters = SQLParameters());
   std::pair<Columns, Resultset> Query(
       std::string sql, SQLParameters parameters = SQLParameters());
+  std::pair<Columns, Resultset> QueryCursor(std::string sql,
+                                            SQLParameters parameters,
+                                            int page_size, int &cursor_id);
+  std::pair<Columns, Resultset> QueryCursorNext(int cursor_id, bool &has_more);
+  void CloseCursor(int cursor_id);
 
  private:
   typedef sqlite3_stmt *Statement;
 
+  struct Cursor {
+    Statement statement;
+    int page_size;
+  };
+
   void Close(bool raise_error);
   void BindStmtParams(Statement statement, SQLParameters parameters);
   void ExecuteStmt(Statement statement);
-  std::pair<Columns, Resultset> QueryStmt(Statement statement);
+  std::pair<Columns, Resultset> QueryStmt(Statement statement,
+                                          int max_rows = 0);
   void FinalizeStmt(Statement statement);
-  Statement PrepareStmt(std::string sql);
+  Statement PrepareStmt(std::string sql, bool use_cache = true);
   int GetStmtColumnsCount(Statement statement);
   int GetColumnType(Statement statement, int column_index);
   const char *GetColumnName(Statement statement, int column_index);
@@ -61,6 +72,8 @@ class DatabaseManager {
   void LogQuery(Statement statement);
 
   std::map<std::string, Statement> statement_cache_;
+  std::map<int, Cursor> cursors_;
+  int last_cursor_id_ = 0;
   std::string path_;
   int database_id_;
   bool single_instance_;

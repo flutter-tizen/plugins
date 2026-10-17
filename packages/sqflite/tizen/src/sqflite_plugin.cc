@@ -98,6 +98,8 @@ class SqflitePlugin : public flutter::Plugin {
       OnExecuteCall(method_call, std::move(result));
     } else if (method_name == sqflite_constants::kMethodQuery) {
       OnQueryCall(method_call, std::move(result));
+    } else if (method_name == sqflite_constants::kMethodQueryCursorNext) {
+      OnQueryCursorNextCall(method_call, std::move(result));
     } else if (method_name == sqflite_constants::kMethodInsert) {
       OnInsertCall(method_call, std::move(result));
     } else if (method_name == sqflite_constants::kMethodUpdate) {
@@ -325,33 +327,55 @@ class SqflitePlugin : public flutter::Plugin {
       }
       return flutter::EncodableValue(response);
     } else {
-      flutter::EncodableMap response;
-      if (resultset.size() == 0) {
-        return flutter::EncodableValue(response);
-      }
-      flutter::EncodableList columns_response;
-      flutter::EncodableList rows_response;
-      for (const auto &column : columns) {
-        columns_response.push_back(flutter::EncodableValue(column));
-      }
-      for (const auto &row : resultset) {
-        flutter::EncodableList row_list;
-        for (const auto &column : row) {
-          auto row_value = std::visit(db_result_visitor, column);
-          row_list.push_back(row_value);
-        }
-        rows_response.push_back(flutter::EncodableValue(row_list));
-      }
-      response.insert(
-          std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-              flutter::EncodableValue(sqflite_constants::kParamColumns),
-              flutter::EncodableValue(columns_response)));
-      response.insert(
-          std::pair<flutter::EncodableValue, flutter::EncodableValue>(
-              flutter::EncodableValue(sqflite_constants::kParamRows),
-              flutter::EncodableValue(rows_response)));
-      return flutter::EncodableValue(response);
+      return flutter::EncodableValue(ToColumnsRowsMap(columns, resultset));
     }
+  }
+
+  static flutter::EncodableMap ToColumnsRowsMap(
+      const sqflite_database::Columns &columns,
+      const sqflite_database::Resultset &resultset) {
+    auto db_result_visitor = DBResultVisitor{};
+    flutter::EncodableMap response;
+    if (resultset.size() == 0) {
+      return response;
+    }
+    flutter::EncodableList columns_response;
+    flutter::EncodableList rows_response;
+    for (const auto &column : columns) {
+      columns_response.push_back(flutter::EncodableValue(column));
+    }
+    for (const auto &row : resultset) {
+      flutter::EncodableList row_list;
+      for (const auto &column : row) {
+        auto row_value = std::visit(db_result_visitor, column);
+        row_list.push_back(row_value);
+      }
+      rows_response.push_back(flutter::EncodableValue(row_list));
+    }
+    response.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
+        flutter::EncodableValue(sqflite_constants::kParamColumns),
+        flutter::EncodableValue(columns_response)));
+    response.insert(std::pair<flutter::EncodableValue, flutter::EncodableValue>(
+        flutter::EncodableValue(sqflite_constants::kParamRows),
+        flutter::EncodableValue(rows_response)));
+    return response;
+  }
+
+  // NOTE: Cursor results always use the columns/rows map, which can carry the
+  // cursor id.
+  flutter::EncodableValue QueryCursor(
+      std::shared_ptr<sqflite_database::DatabaseManager> database,
+      std::string sql, sqflite_database::SQLParameters parameters,
+      int page_size) {
+    int cursor_id = 0;
+    auto [columns, resultset] =
+        database->QueryCursor(sql, parameters, page_size, cursor_id);
+    flutter::EncodableMap response = ToColumnsRowsMap(columns, resultset);
+    if (cursor_id > 0) {
+      response[flutter::EncodableValue(sqflite_constants::kParamCursorId)] =
+          flutter::EncodableValue(cursor_id);
+    }
+    return flutter::EncodableValue(response);
   }
 
   void OnInsertCall(
@@ -453,11 +477,14 @@ class SqflitePlugin : public flutter::Plugin {
     int database_id;
     std::string sql;
     sqflite_database::SQLParameters parameters;
+    int cursor_page_size = 0;
     GetValueFromEncodableMap(arguments, sqflite_constants::kParamSqlArguments,
                              parameters);
     GetValueFromEncodableMap(arguments, sqflite_constants::kParamSql, sql);
     GetValueFromEncodableMap(arguments, sqflite_constants::kParamId,
                              database_id);
+    GetValueFromEncodableMap(arguments, sqflite_constants::kParamCursorPageSize,
+                             cursor_page_size);
 
     std::lock_guard<std::mutex> lock(mutex_);
     auto database = GetDatabase(database_id);
@@ -469,12 +496,61 @@ class SqflitePlugin : public flutter::Plugin {
     }
     flutter::EncodableValue response;
     try {
-      response = Query(database, sql, parameters);
+      if (cursor_page_size > 0) {
+        response = QueryCursor(database, sql, parameters, cursor_page_size);
+      } else {
+        response = Query(database, sql, parameters);
+      }
     } catch (const sqflite_errors::DatabaseError &exception) {
       HandleQueryException(exception, sql, parameters, std::move(result));
       return;
     }
     result->Success(response);
+  }
+
+  void OnQueryCursorNextCall(
+      const flutter::MethodCall<flutter::EncodableValue> &method_call,
+      std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
+    flutter::EncodableMap arguments =
+        std::get<flutter::EncodableMap>(*method_call.arguments());
+    int database_id;
+    int cursor_id = 0;
+    bool cancel = false;
+    GetValueFromEncodableMap(arguments, sqflite_constants::kParamId,
+                             database_id);
+    GetValueFromEncodableMap(arguments, sqflite_constants::kParamCursorId,
+                             cursor_id);
+    GetValueFromEncodableMap(arguments, sqflite_constants::kParamCursorCancel,
+                             cancel);
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto database = GetDatabase(database_id);
+    if (database == nullptr) {
+      result->Error(sqflite_constants::kErrorDatabase,
+                    sqflite_constants::kErrorDatabaseClosed + " " +
+                        std::to_string(database_id));
+      return;
+    }
+    if (cancel) {
+      database->CloseCursor(cursor_id);
+      result->Success();
+      return;
+    }
+    flutter::EncodableMap response;
+    try {
+      bool has_more = false;
+      auto [columns, resultset] =
+          database->QueryCursorNext(cursor_id, has_more);
+      response = ToColumnsRowsMap(columns, resultset);
+      if (has_more) {
+        response[flutter::EncodableValue(sqflite_constants::kParamCursorId)] =
+            flutter::EncodableValue(cursor_id);
+      }
+    } catch (const sqflite_errors::DatabaseError &exception) {
+      result->Error(sqflite_constants::kErrorDatabase, exception.what());
+      return;
+    }
+    result->Success(flutter::EncodableValue(response));
   }
 
   void OnGetDatabasesPathCall(
