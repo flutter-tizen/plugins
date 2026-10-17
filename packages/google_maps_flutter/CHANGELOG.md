@@ -1,6 +1,6 @@
 ## 0.4.0
 
-* Add support for `mapTypeControlEnabled`, `fullscreenControlEnabled`, `streetViewControlEnabled`, `webCameraControlEnabled`, and `webCameraControlPosition`.
+* Add support for `mapTypeControlEnabled`, `fullscreenControlEnabled`, `streetViewControlEnabled`, `webCameraControlEnabled`, `webCameraControlPosition`, `webGestureHandling`, and `fortyFiveDegreeImageryEnabled`.
 
 ## 0.3.0
 

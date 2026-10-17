@@ -54,6 +54,9 @@ Map<String, dynamic> _mapOptionsFromConfiguration(MapConfiguration config) {
     if (config.mapId != null) 'mapId': config.mapId,
     if (config.style != null) 'style': config.style,
     if (config.colorScheme != null) 'colorScheme': config.colorScheme!.index,
+    if (config.webGestureHandling != null) 'webGestureHandling': config.webGestureHandling!.name,
+    if (config.fortyFiveDegreeImageryEnabled != null)
+      'fortyFiveDegreeImageryEnabled': config.fortyFiveDegreeImageryEnabled,
     if (config.webCameraControlEnabled != null)
       'webCameraControlEnabled': config.webCameraControlEnabled,
     if (config.webCameraControlPosition != null)
@@ -138,13 +141,20 @@ String _rawOptionsToString(Map<String, dynamic> rawOptions) {
     options += ', cameraControlOptions: { position: google.maps.ControlPosition.$position }';
   }
 
+  if (rawOptions['fortyFiveDegreeImageryEnabled'] != null) {
+    options += ', rotateControl: ${rawOptions['fortyFiveDegreeImageryEnabled']}';
+  }
+
   if (rawOptions['style'] != null && (rawOptions['style'] as String).isNotEmpty) {
     options += ', styles: ${rawOptions['style']}';
   } else {
     options += ', styles: null';
   }
 
-  if (rawOptions['scrollGesturesEnabled'] == false || rawOptions['zoomGesturesEnabled'] == false) {
+  if (rawOptions['webGestureHandling'] != null) {
+    options += ", gestureHandling: '${rawOptions['webGestureHandling']}'";
+  } else if (rawOptions['scrollGesturesEnabled'] == false ||
+      rawOptions['zoomGesturesEnabled'] == false) {
     options += ", gestureHandling: 'none'";
   } else {
     options += ", gestureHandling: 'auto'";
