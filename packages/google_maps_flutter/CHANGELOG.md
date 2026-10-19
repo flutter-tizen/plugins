@@ -1,6 +1,7 @@
 ## 0.4.0
 
 * Add support for `mapTypeControlEnabled`, `fullscreenControlEnabled`, `streetViewControlEnabled`, `webCameraControlEnabled`, `webCameraControlPosition`, `webGestureHandling`, and `fortyFiveDegreeImageryEnabled`.
+* Fix `consumeTapEvents` for circles, polygons, and polylines.
 
 ## 0.3.0
 

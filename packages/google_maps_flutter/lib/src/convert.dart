@@ -406,7 +406,8 @@ util.GPolylineOptions _polylineOptionsFromPolyline(Polyline polyline) {
     ..strokeOpacity = _getCssOpacity(polyline.color)
     ..visible = polyline.visible
     ..zIndex = polyline.zIndex
-    ..geodesic = polyline.geodesic;
+    ..geodesic = polyline.geodesic
+    ..clickable = polyline.consumeTapEvents;
 }
 
 util.GPolygonOptions _polygonOptionsFromPolygon(Polygon polygon) {
@@ -438,7 +439,8 @@ util.GPolygonOptions _polygonOptionsFromPolygon(Polygon polygon) {
     ..fillOpacity = _getCssOpacity(polygon.fillColor)
     ..visible = polygon.visible
     ..zIndex = polygon.zIndex
-    ..geodesic = polygon.geodesic;
+    ..geodesic = polygon.geodesic
+    ..clickable = polygon.consumeTapEvents;
 }
 
 /// Calculates the direction of a given Polygon
@@ -473,7 +475,8 @@ util.GCircleOptions _circleOptionsFromCircle(Circle circle) {
     ..center = LatLng(circle.center.latitude, circle.center.longitude)
     ..radius = circle.radius
     ..visible = circle.visible
-    ..zIndex = circle.zIndex;
+    ..zIndex = circle.zIndex
+    ..clickable = circle.consumeTapEvents;
 }
 
 util.GGroundOverlayOptions? _groundOverlayOptionsFromGroundOverlay(GroundOverlay groundOverlay) {
