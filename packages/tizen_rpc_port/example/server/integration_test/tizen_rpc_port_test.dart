@@ -41,17 +41,20 @@ void main() {
   group('StubBase', () {
     test('portName is set from constructor', () async {
       final stub = _TestStub();
+      addTearDown(stub.close);
       expect(stub.portName, 'TestStubPort');
     });
 
     test('setTrusted can be called without listen', () async {
       final stub = _TestStub();
+      addTearDown(stub.close);
       stub.setTrusted(true);
       stub.setTrusted(false);
     });
 
     test('addPrivilege can be called without listen', () async {
       final stub = _TestStub();
+      addTearDown(stub.close);
       stub.addPrivilege('http://tizen.org/privilege/datasharing');
     });
   });
@@ -65,6 +68,7 @@ void main() {
       final server = Message(
         serviceBuilder: (String sender, String instance) => _NoopService(sender, instance),
       );
+      addTearDown(server.close);
       expect(server.portName, 'Message');
     });
 
@@ -72,6 +76,7 @@ void main() {
       final server = Message(
         serviceBuilder: (String sender, String instance) => _NoopService(sender, instance),
       );
+      addTearDown(server.close);
       expect(server.services, isEmpty);
     });
   });

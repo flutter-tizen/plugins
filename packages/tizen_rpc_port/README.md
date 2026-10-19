@@ -20,8 +20,8 @@ tidlc -p -l dart -i message.tidl -o message_client
 The generated source files (`message_client.dart` and `message_server.dart`) depend on this package, so you need to add `tizen_rpc_port` as a dependency in the `pubspec.yaml` files of both client and server apps.
 
 ```yaml
-depenedencies:
-  tizen_rpc_port: ^0.1.8
+dependencies:
+  tizen_rpc_port: ^0.1.9
 ```
 
 Assuming that the name of the interface defined in your interface file is `Message`, the client must first call its `connect` method to connect to the server before making any remote invocation.
@@ -32,6 +32,11 @@ await client.connect();
 ```
 
 For detailed usage, see the example apps of this package.
+
+### Stub lifecycle
+
+* Event callbacks run independently. Services must coordinate their own initialization and pending work.
+* `close()` closes only that stub's connections without waiting for pending callbacks. It can also be called from a callback.
 
 ## Required privileges
 

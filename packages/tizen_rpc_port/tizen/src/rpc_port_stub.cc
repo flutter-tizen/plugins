@@ -31,10 +31,16 @@ flutter::EncodableMap CreateEncodableMap(const char* event, const char* sender,
 
 }  // namespace
 
-std::unique_ptr<FlEventSink> RpcPortStubManager::event_sink_;
+std::map<rpc_port_stub_h, std::unique_ptr<FlEventSink>>
+    RpcPortStubManager::event_sinks_;
 
-void RpcPortStubManager::Init(std::unique_ptr<FlEventSink> event_sink) {
-  event_sink_ = std::move(event_sink);
+void RpcPortStubManager::Init(rpc_port_stub_h handle,
+                              std::unique_ptr<FlEventSink> event_sink) {
+  event_sinks_[handle] = std::move(event_sink);
+}
+
+void RpcPortStubManager::Dispose(rpc_port_stub_h handle) {
+  event_sinks_.erase(handle);
 }
 
 RpcPortResult RpcPortStubManager::Listen(rpc_port_stub_h handle) {
@@ -65,9 +71,13 @@ void RpcPortStubManager::OnConnectedEvent(const char* sender,
   LOG_DEBUG("Connected: sender(%s), instance(%s)", sender, instance);
 
   rpc_port_stub_h handle = reinterpret_cast<rpc_port_stub_h>(user_data);
+  auto it = event_sinks_.find(handle);
+  if (it == event_sinks_.end()) {
+    return;
+  }
   flutter::EncodableMap map =
       CreateEncodableMap("connected", sender, instance, handle);
-  event_sink_->Success(flutter::EncodableValue(map));
+  it->second->Success(flutter::EncodableValue(map));
 }
 
 void RpcPortStubManager::OnDisconnectedEvent(const char* sender,
@@ -76,9 +86,13 @@ void RpcPortStubManager::OnDisconnectedEvent(const char* sender,
   LOG_DEBUG("Disconnected: sender(%s), instance(%s)", sender, instance);
 
   rpc_port_stub_h handle = reinterpret_cast<rpc_port_stub_h>(user_data);
+  auto it = event_sinks_.find(handle);
+  if (it == event_sinks_.end()) {
+    return;
+  }
   flutter::EncodableMap map =
       CreateEncodableMap("disconnected", sender, instance, handle);
-  event_sink_->Success(flutter::EncodableValue(map));
+  it->second->Success(flutter::EncodableValue(map));
 }
 
 int RpcPortStubManager::OnReceivedEvent(const char* sender,
@@ -86,11 +100,22 @@ int RpcPortStubManager::OnReceivedEvent(const char* sender,
                                         void* user_data) {
   LOG_DEBUG("Received: sender(%s), instance(%s)", sender, instance);
 
+  rpc_port_stub_h handle = reinterpret_cast<rpc_port_stub_h>(user_data);
+  auto it = event_sinks_.find(handle);
+  FlEventSink* event_sink =
+      it == event_sinks_.end() ? nullptr : it->second.get();
   rpc_port_parcel_h parcel = nullptr;
   int ret = rpc_port_parcel_create_from_port(&parcel, port);
   if (ret != RPC_PORT_ERROR_NONE) {
-    event_sink_->Error("rpc_port_parcel_create_from_port failed",
-                       std::string(get_error_message(ret)));
+    if (event_sink) {
+      event_sink->Error("rpc_port_parcel_create_from_port failed",
+                        std::string(get_error_message(ret)));
+    }
+    return 0;
+  }
+  if (!event_sink) {
+    // Discard input while closing the stub's event stream.
+    rpc_port_parcel_destroy(parcel);
     return 0;
   }
 
@@ -99,19 +124,18 @@ int RpcPortStubManager::OnReceivedEvent(const char* sender,
   ret = rpc_port_parcel_get_raw(parcel, reinterpret_cast<void**>(&raw), &size);
   if (ret != RPC_PORT_ERROR_NONE) {
     rpc_port_parcel_destroy(parcel);
-    event_sink_->Error("rpc_port_parcel_get_raw failed",
-                       std::string(get_error_message(ret)));
+    event_sink->Error("rpc_port_parcel_get_raw failed",
+                      std::string(get_error_message(ret)));
     return 0;
   }
   std::vector<uint8_t> raw_data(raw, raw + size);
   rpc_port_parcel_destroy(parcel);
 
-  rpc_port_stub_h handle = reinterpret_cast<rpc_port_stub_h>(user_data);
   flutter::EncodableMap map =
       CreateEncodableMap("received", sender, instance, handle);
   map[flutter::EncodableValue("rawData")] =
       flutter::EncodableValue(std::move(raw_data));
-  event_sink_->Success(flutter::EncodableValue(map));
+  event_sink->Success(flutter::EncodableValue(map));
 
   return 0;
 }
