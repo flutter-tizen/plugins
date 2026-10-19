@@ -433,7 +433,13 @@ class GoogleMapsController {
   ///
   /// Failure to call this method would result in not rendering at all,
   /// and most of the public methods on this class no-op'ing.
-  Future<void> init() async {
+  ///
+  /// Later calls return the same future.
+  Future<void> init() => _initFuture ??= _init();
+
+  Future<void>? _initFuture;
+
+  Future<void> _init() async {
     if (_webview == null && !_streamController.isClosed) {
       _getWebview();
       if (!await _bridge.load()) {
