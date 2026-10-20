@@ -4,8 +4,11 @@
 
 #include "media_player.h"
 
+#include <system_info.h>
 #include <unistd.h>
 
+#include <cstdio>
+#include <cstdlib>
 #include <sstream>
 
 #include "log.h"
@@ -37,6 +40,21 @@ static player_stream_type_e ConvertTrackType(std::string track_type) {
     return PLAYER_STREAM_TYPE_TEXT;
   }
   return PLAYER_STREAM_TYPE_DEFAULT;
+}
+
+static bool IsTizenCorePlatform() {
+  static const bool is_tizen_core = [] {
+    int major = 0;
+    char *value = nullptr;
+    int ret = system_info_get_platform_string(
+        "http://tizen.org/feature/platform.version", &value);
+    if (ret == SYSTEM_INFO_ERROR_NONE && value) {
+      std::sscanf(value, "%d", &major);
+    }
+    free(value);
+    return major >= 11;
+  }();
+  return is_tizen_core;
 }
 
 MediaPlayer::MediaPlayer(flutter::BinaryMessenger *messenger,
@@ -408,34 +426,46 @@ bool MediaPlayer::SetDisplay() {
     return false;
   }
 
-  const flutter::EncodableMap *window_geometry =
-      create_message_.window_geometry();
-  if (!window_geometry) {
-    LOG_ERROR("[MediaPlayer] Window geometry is missing.");
-    return false;
-  }
-  int64_t x = flutter_common::GetValue(window_geometry, "x", (int64_t)0);
-  int64_t y = flutter_common::GetValue(window_geometry, "y", (int64_t)0);
-  int64_t width =
-      flutter_common::GetValue(window_geometry, "width", (int64_t)0);
-  int64_t height =
-      flutter_common::GetValue(window_geometry, "height", (int64_t)0);
-  if (width <= 0 || height <= 0) {
-    LOG_ERROR(
-        "[MediaPlayer] Invalid window geometry size: width[%d], height[%d].",
-        width, height);
-    return false;
-  }
-  LOG_INFO(
-      "[MediaPlayer] Window geometry: x[%d], y[%d], width[%d], height[%d].", x,
-      y, width, height);
+  int ret = PLAYER_ERROR_NONE;
+  if (IsTizenCorePlatform()) {
+    ret = ftpw_video_player_videohole_player_set_tcore_display(
+        player_, PLAYER_DISPLAY_TYPE_TCORE_OVERLAY, native_window);
+    if (ret != PLAYER_ERROR_NONE) {
+      LOG_ERROR("[MediaPlayer] player_set_tcore_display failed: %s.",
+                get_error_message(ret));
+      return false;
+    }
+  } else {
+    const flutter::EncodableMap *window_geometry =
+        create_message_.window_geometry();
+    if (!window_geometry) {
+      LOG_ERROR("[MediaPlayer] Window geometry is missing.");
+      return false;
+    }
+    int64_t x = flutter_common::GetValue(window_geometry, "x", (int64_t)0);
+    int64_t y = flutter_common::GetValue(window_geometry, "y", (int64_t)0);
+    int64_t width =
+        flutter_common::GetValue(window_geometry, "width", (int64_t)0);
+    int64_t height =
+        flutter_common::GetValue(window_geometry, "height", (int64_t)0);
+    if (width <= 0 || height <= 0) {
+      LOG_ERROR(
+          "[MediaPlayer] Invalid window geometry size: width[%d], height[%d].",
+          width, height);
+      return false;
+    }
+    LOG_INFO(
+        "[MediaPlayer] Window geometry: x[%d], y[%d], width[%d], height[%d].",
+        x, y, width, height);
 
-  int ret = ftpw_video_player_videohole_player_set_ecore_wl_display(
-      player_, PLAYER_DISPLAY_TYPE_OVERLAY, native_window, x, y, width, height);
-  if (ret != PLAYER_ERROR_NONE) {
-    LOG_ERROR("[MediaPlayer] player_set_ecore_wl_display failed: %s.",
-              get_error_message(ret));
-    return false;
+    ret = ftpw_video_player_videohole_player_set_ecore_wl_display(
+        player_, PLAYER_DISPLAY_TYPE_OVERLAY, native_window, x, y, width,
+        height);
+    if (ret != PLAYER_ERROR_NONE) {
+      LOG_ERROR("[MediaPlayer] player_set_ecore_wl_display failed: %s.",
+                get_error_message(ret));
+      return false;
+    }
   }
 
   ret = player_set_display_mode(player_, PLAYER_DISPLAY_MODE_DST_ROI);
