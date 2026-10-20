@@ -2,6 +2,7 @@
 
 * Follow the analysis options of the frontend plugin.
 * Support paged queries with `queryCursor` and `rawQueryCursor`.
+* Roll back a transaction left open by a hot restart when re-opening a single instance database.
 
 ## 0.1.6
 

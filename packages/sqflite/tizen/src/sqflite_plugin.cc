@@ -659,11 +659,15 @@ class SqflitePlugin : public flutter::Plugin {
       if (found_database_id) {
         auto database_manager = GetDatabase(*found_database_id);
         if (database_manager->database()) {
+          const bool in_transaction =
+              sqlite3_get_autocommit(database_manager->database()) == 0;
           if (sqflite_log_level::HasVerboseLevel(log_level_)) {
-            LOG_DEBUG("Re-opened single instance %d %s", *found_database_id,
-                      path.c_str());
+            LOG_DEBUG("Re-opened single instance %s%d %s",
+                      in_transaction ? "(in transaction) " : "",
+                      *found_database_id, path.c_str());
           }
-          auto response = MakeOpenResult(*found_database_id, true, false);
+          auto response =
+              MakeOpenResult(*found_database_id, true, in_transaction);
           result->Success(response);
           return;
         }
