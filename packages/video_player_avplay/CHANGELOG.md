@@ -1,3 +1,11 @@
+## 0.8.22
+* Update plusplayer
+  1. [DASH] Fix trun download issue.
+  2. [PlusPlayer] Fix SIGSEGV crash caused by race condition during ChangeSource.
+  3. [HLS] Fix bms-service deadlock issue.
+  4. [PlusPlayer] Strip unstripped plusplayer-wrapper .so before kuep signing.
+
+
 ## 0.8.21
 
 * Fix a "used after being disposed" error when a position or duration update completes after the controller is disposed.
