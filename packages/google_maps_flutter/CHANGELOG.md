@@ -3,6 +3,7 @@
 * Add support for `mapTypeControlEnabled`, `fullscreenControlEnabled`, `streetViewControlEnabled`, `webCameraControlEnabled`, `webCameraControlPosition`, `webGestureHandling`, and `fortyFiveDegreeImageryEnabled`.
 * Fix `consumeTapEvents` for circles, polygons, and polylines.
 * Fix initial map objects being added to the map twice.
+* Fix `onMapCreated` never being called when a map tile request stalls or fails.
 
 ## 0.3.0
 

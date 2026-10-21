@@ -139,9 +139,9 @@ class GoogleMapsController {
         case MapsJsEventType.boundsChanged:
           await _onBoundsChanged();
         case MapsJsEventType.idle:
-          _onIdle();
+          await _onIdle();
         case MapsJsEventType.tilesLoaded:
-          _onTilesloaded();
+          _onMapReady();
         case MapsJsEventType.click:
           _onClick(event.message!);
         case MapsJsEventType.longPress:
@@ -215,14 +215,26 @@ class GoogleMapsController {
     }
   }
 
-  void _onIdle() {
+  Future<void> _onIdle() async {
     _mapIsMoving = false;
     _streamController.add(CameraIdleEvent(_mapId));
+    // NOTE: `tilesloaded` never fires if a tile request stalls or fails.
+    // See https://github.com/flutter/flutter/issues/193452.
+    if (!_isFirst && await _isMapLaidOut()) {
+      _onMapReady();
+    }
   }
 
-  void _onTilesloaded() {
+  Future<bool> _isMapLaidOut() async {
+    final Object value = await _bridge.runJavaScriptReturningResult(
+      'map.getDiv().offsetWidth > 0 && map.getDiv().offsetHeight > 0',
+    );
+    return value.toString() == 'true';
+  }
+
+  void _onMapReady() {
     try {
-      if (_isFirst) {
+      if (_isFirst || _streamController.isClosed) {
         return;
       }
       _streamController.add(MapReadyEvent(_mapId));
