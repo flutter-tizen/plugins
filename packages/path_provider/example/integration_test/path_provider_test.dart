@@ -12,7 +12,7 @@ void main() {
 
   test('getTemporaryDirectory', () async {
     final Directory result = await getTemporaryDirectory();
-    _verifySampleFile(result, 'temporaryDirectory');
+    _verifySampleFile(result, 'temporaryDirectory', createDirectory: true);
   });
 
   test('getApplicationDocumentsDirectory', () async {
@@ -107,7 +107,9 @@ void main() {
 
 /// Verify a file called [name] in [directory] by recreating it with test
 /// contents when necessary.
-void _verifySampleFile(Directory? directory, String name) {
+///
+/// If [createDirectory] is true, the directory will be created if missing.
+void _verifySampleFile(Directory? directory, String name, {bool createDirectory = false}) {
   expect(directory, isNotNull);
   if (directory == null) {
     return;
@@ -117,6 +119,10 @@ void _verifySampleFile(Directory? directory, String name) {
   if (file.existsSync()) {
     file.deleteSync();
     expect(file.existsSync(), isFalse);
+  }
+
+  if (createDirectory && !directory.existsSync()) {
+    directory.createSync(recursive: true);
   }
 
   file.writeAsStringSync('Hello world!');
