@@ -1,3 +1,7 @@
+## 0.6.2
+
+* Use the Tizen Core display API on Tizen 11.0 and later.
+
 ## 0.6.1
 
 * Fix a "used after being disposed" error when a seek, position, or duration update completes after the controller is disposed.
