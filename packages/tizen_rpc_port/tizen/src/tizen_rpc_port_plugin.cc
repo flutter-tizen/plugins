@@ -14,6 +14,7 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <variant>
@@ -46,6 +47,14 @@ static bool GetValueFromEncodableMap(const flutter::EncodableMap* map,
     }
   }
   return false;
+}
+
+std::optional<int64_t> GetHandle(const flutter::EncodableMap* args) {
+  auto it = args->find(flutter::EncodableValue("handle"));
+  if (it == args->end()) {
+    return std::nullopt;
+  }
+  return it->second.TryGetLongValue();
 }
 
 class RpcProxyStreamHandler : public FlStreamHandler {
@@ -164,19 +173,12 @@ class TizenRpcPortPlugin : public flutter::Plugin {
         result->Error("Invalid arguments", "The argument must be a map.");
         return;
       }
-      int64_t address = 0;
-      if (!GetValueFromEncodableMap(args, "handle", address)) {
-        int32_t small_address = 0;
-        if (!GetValueFromEncodableMap(args, "handle", small_address)) {
-          result->Error("Invalid arguments", "No handle provided.");
-          return;
-        }
-        address = small_address;
-      }
-      if (address <= 0) {
+      std::optional<int64_t> handle = GetHandle(args);
+      if (!handle || *handle <= 0) {
         result->Error("Invalid arguments", "Invalid stub handle.");
         return;
       }
+      int64_t address = *handle;
 
       auto it = stub_channels_.find(address);
       if (method_name == "stubDispose") {
