@@ -51,10 +51,11 @@ static bool GetValueFromEncodableMap(const flutter::EncodableMap* map,
 
 std::optional<int64_t> GetHandle(const flutter::EncodableMap* args) {
   auto it = args->find(flutter::EncodableValue("handle"));
-  if (it == args->end()) {
+  if (it == args->end() || !(std::holds_alternative<int32_t>(it->second) ||
+                             std::holds_alternative<int64_t>(it->second))) {
     return std::nullopt;
   }
-  return it->second.TryGetLongValue();
+  return it->second.LongValue();
 }
 
 class RpcProxyStreamHandler : public FlStreamHandler {
