@@ -5,6 +5,7 @@
 * Roll back a transaction left open by a hot restart when re-opening a single instance database.
 * Update sqflite to 2.4.5.
 * Report a transaction rolled back by SQLite (`ConflictAlgorithm.rollback`, `RAISE(ROLLBACK)`...) as closed so that the next statements fail instead of being committed outside of it.
+* Roll back the transaction when `COMMIT` fails (e.g. a deferred foreign key violation) so that the next transaction can begin.
 
 ## 0.1.6
 

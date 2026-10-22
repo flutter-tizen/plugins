@@ -154,6 +154,65 @@ void main() {
       }
     });
 
+    test('failed commit', () async {
+      const path = 'test_failed_commit.db';
+      await deleteDatabase(path);
+      final db = await openDatabase(
+        path,
+        version: 1,
+        onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
+        onCreate: (db, version) async {
+          await db.execute('CREATE TABLE Parent (id INTEGER PRIMARY KEY)');
+          await db.execute(
+            'CREATE TABLE Child (id INTEGER PRIMARY KEY, parent_id INTEGER'
+            ' REFERENCES Parent(id) DEFERRABLE INITIALLY DEFERRED)',
+          );
+        },
+      );
+      try {
+        // The missing parent is only checked on COMMIT.
+        await expectLater(
+          db.transaction((txn) async {
+            await txn.insert('Child', {'id': 1, 'parent_id': 1});
+          }),
+          throwsA(isA<DatabaseException>()),
+        );
+        expect(await db.query('Child'), isEmpty);
+        await db.transaction((txn) async {
+          await txn.insert('Parent', {'id': 1});
+          await txn.insert('Child', {'id': 1, 'parent_id': 1});
+        });
+        expect(await db.query('Child'), [
+          {'id': 1, 'parent_id': 1},
+        ]);
+      } finally {
+        await db.close();
+      }
+    });
+
+    test('failed rollback to savepoint', () async {
+      const path = 'test_failed_rollback_to.db';
+      await deleteDatabase(path);
+      final db = await openDatabase(path);
+      try {
+        await db.execute('CREATE TABLE Test (id INTEGER PRIMARY KEY)');
+        await db.transaction((txn) async {
+          await txn.insert('Test', {'id': 1});
+          await expectLater(
+            txn.execute('ROLLBACK TO missing'),
+            throwsA(isA<DatabaseException>()),
+          );
+          await txn.insert('Test', {'id': 2});
+        });
+        expect(await db.query('Test'), [
+          {'id': 1},
+          {'id': 2},
+        ]);
+      } finally {
+        await db.close();
+      }
+    });
+
     /// Check if a file is a valid database file
     ///
     /// An empty file is a valid empty sqlite file

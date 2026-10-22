@@ -17,6 +17,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <regex>
 #include <string>
 
 #include "constants.h"
@@ -237,10 +238,34 @@ class SqflitePlugin : public flutter::Plugin {
     try {
       Execute(database, sql, parameters);
     } catch (const sqflite_errors::DatabaseError &exception) {
+      LeaveTransactionOnError(database, arguments);
       HandleQueryException(exception, sql, parameters, std::move(result));
       return;
     }
     result->Success();
+  }
+
+  static void LeaveTransactionOnError(
+      std::shared_ptr<sqflite_database::DatabaseManager> database,
+      flutter::EncodableMap &arguments) {
+    bool in_transaction = true;
+    GetValueFromEncodableMap(arguments, sqflite_constants::kParamInTransaction,
+                             in_transaction);
+    if (in_transaction || sqlite3_get_autocommit(database->database()) != 0) {
+      return;
+    }
+    // NOTE: A failed ROLLBACK TO a savepoint keeps the transaction.
+    std::string sql;
+    GetValueFromEncodableMap(arguments, sqflite_constants::kParamSql, sql);
+    if (std::regex_search(
+            sql, std::regex("^\\s*rollback\\b.*\\bto\\b", std::regex::icase))) {
+      return;
+    }
+    try {
+      database->Execute("ROLLBACK");
+    } catch (const sqflite_errors::DatabaseError &exception) {
+      LOG_ERROR("Failed to roll back the transaction: %s", exception.what());
+    }
   }
 
   void Execute(std::shared_ptr<sqflite_database::DatabaseManager> database,
@@ -839,6 +864,7 @@ class SqflitePlugin : public flutter::Plugin {
             results.push_back(operation_result);
           }
         } catch (const sqflite_errors::DatabaseError &exception) {
+          LeaveTransactionOnError(database, item_map);
           if (!continue_on_error || exception.transaction_closed) {
             HandleQueryException(exception, sql, parameters, std::move(result));
             return;
