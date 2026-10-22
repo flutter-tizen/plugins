@@ -11,6 +11,8 @@ struct DatabaseError : public std::runtime_error {
   DatabaseError(int code, const char *msg)
       : std::runtime_error(std::string(msg) + " (code " + std::to_string(code) +
                            ")") {}
+
+  bool transaction_closed = false;
 };
 }  // namespace sqflite_errors
 

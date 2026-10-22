@@ -24,8 +24,11 @@ DatabaseManager::~DatabaseManager() {
   Close(true);
 }
 
-void DatabaseManager::ThrowCurrentDatabaseError() {
-  throw sqflite_errors::DatabaseError(GetErrorCode(), GetErrorMsg());
+void DatabaseManager::ThrowCurrentDatabaseError(bool was_in_transaction) {
+  sqflite_errors::DatabaseError error(GetErrorCode(), GetErrorMsg());
+  error.transaction_closed =
+      was_in_transaction && sqlite3_get_autocommit(database_) != 0;
+  throw error;
 }
 
 void DatabaseManager::Open() {
@@ -187,12 +190,13 @@ DatabaseManager::Statement DatabaseManager::PrepareStmt(std::string sql,
 }
 
 void DatabaseManager::ExecuteStmt(DatabaseManager::Statement statement) {
+  const bool was_in_transaction = sqlite3_get_autocommit(database_) == 0;
   int result_code = SQLITE_OK;
   do {
     result_code = sqlite3_step(statement);
   } while (result_code == SQLITE_ROW);
   if (result_code != SQLITE_DONE) {
-    ThrowCurrentDatabaseError();
+    ThrowCurrentDatabaseError(was_in_transaction);
   }
 }
 
@@ -215,6 +219,7 @@ std::pair<Columns, Resultset> DatabaseManager::QueryStmt(
   Columns columns;
   Resultset resultset;
   const int columns_count = GetStmtColumnsCount(statement);
+  const bool was_in_transaction = sqlite3_get_autocommit(database_) == 0;
   int result_code = SQLITE_OK;
   for (int i = 0; i < columns_count; i++) {
     auto column_name = GetColumnName(statement, i);
@@ -264,7 +269,7 @@ std::pair<Columns, Resultset> DatabaseManager::QueryStmt(
     }
   } while (result_code == SQLITE_ROW);
   if (result_code != SQLITE_DONE && result_code != SQLITE_ROW) {
-    ThrowCurrentDatabaseError();
+    ThrowCurrentDatabaseError(was_in_transaction);
   }
   return std::make_pair(columns, resultset);
 }

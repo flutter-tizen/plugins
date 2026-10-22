@@ -158,6 +158,11 @@ class SqflitePlugin : public flutter::Plugin {
         std::pair<flutter::EncodableValue, flutter::EncodableList>(
             flutter::EncodableValue(sqflite_constants::kParamSqlArguments),
             sql_parameters));
+    if (exception.transaction_closed) {
+      exception_map[flutter::EncodableValue(
+          sqflite_constants::kParamTransactionClosed)] =
+          flutter::EncodableValue(true);
+    }
     result->Error(sqflite_constants::kErrorDatabase, exception.what(),
                   flutter::EncodableValue(exception_map));
   }
@@ -232,7 +237,7 @@ class SqflitePlugin : public flutter::Plugin {
     try {
       Execute(database, sql, parameters);
     } catch (const sqflite_errors::DatabaseError &exception) {
-      result->Error(sqflite_constants::kErrorDatabase, exception.what());
+      HandleQueryException(exception, sql, parameters, std::move(result));
       return;
     }
     result->Success();
@@ -772,6 +777,11 @@ class SqflitePlugin : public flutter::Plugin {
     operation_error_detail_data.insert(std::make_pair(
         flutter::EncodableValue(sqflite_constants::kParamSqlArguments),
         flutter::EncodableValue(parameters)));
+    if (exception.transaction_closed) {
+      operation_error_detail_data[flutter::EncodableValue(
+          sqflite_constants::kParamTransactionClosed)] =
+          flutter::EncodableValue(true);
+    }
     operation_error_detail_result.insert(std::make_pair(
         flutter::EncodableValue(sqflite_constants::kParamErrorData),
         flutter::EncodableValue(operation_error_detail_data)));
@@ -829,7 +839,7 @@ class SqflitePlugin : public flutter::Plugin {
             results.push_back(operation_result);
           }
         } catch (const sqflite_errors::DatabaseError &exception) {
-          if (!continue_on_error) {
+          if (!continue_on_error || exception.transaction_closed) {
             HandleQueryException(exception, sql, parameters, std::move(result));
             return;
           } else {
@@ -848,7 +858,7 @@ class SqflitePlugin : public flutter::Plugin {
             results.push_back(operation_result);
           }
         } catch (const sqflite_errors::DatabaseError &exception) {
-          if (!continue_on_error) {
+          if (!continue_on_error || exception.transaction_closed) {
             HandleQueryException(exception, sql, parameters, std::move(result));
             return;
           } else {
@@ -867,7 +877,7 @@ class SqflitePlugin : public flutter::Plugin {
             results.push_back(operation_result);
           }
         } catch (const sqflite_errors::DatabaseError &exception) {
-          if (!continue_on_error) {
+          if (!continue_on_error || exception.transaction_closed) {
             HandleQueryException(exception, sql, parameters, std::move(result));
             return;
           } else {
@@ -886,7 +896,7 @@ class SqflitePlugin : public flutter::Plugin {
             results.push_back(operation_result);
           }
         } catch (const sqflite_errors::DatabaseError &exception) {
-          if (!continue_on_error) {
+          if (!continue_on_error || exception.transaction_closed) {
             HandleQueryException(exception, sql, parameters, std::move(result));
             return;
           } else {

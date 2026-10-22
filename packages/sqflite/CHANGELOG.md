@@ -3,6 +3,8 @@
 * Follow the analysis options of the frontend plugin.
 * Support paged queries with `queryCursor` and `rawQueryCursor`.
 * Roll back a transaction left open by a hot restart when re-opening a single instance database.
+* Update sqflite to 2.4.5.
+* Report a transaction rolled back by SQLite (`ConflictAlgorithm.rollback`, `RAISE(ROLLBACK)`...) as closed so that the next statements fail instead of being committed outside of it.
 
 ## 0.1.6
 

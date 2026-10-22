@@ -30,6 +30,9 @@ const std::string kParamLogLevel = "logLevel";              // int
 // true when entering, false when leaving, null otherwise
 const std::string kParamInTransaction = "inTransaction";
 
+// Set in the error data when SQLite rolled back the current transaction
+const std::string kParamTransactionClosed = "transactionClosed";
+
 // Result when opening a database
 const std::string kParamRecovered = "recovered";
 

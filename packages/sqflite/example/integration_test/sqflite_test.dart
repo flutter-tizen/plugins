@@ -86,6 +86,74 @@ void main() {
       }
     });
 
+    test('rolled back transaction', () async {
+      const path = 'test_rolled_back_transaction.db';
+      await deleteDatabase(path);
+      final db = await openDatabase(path);
+      try {
+        await db.execute(
+          'CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)',
+        );
+        try {
+          await db.transaction((txn) async {
+            await txn.insert('Test', {
+              'id': 1,
+            }, conflictAlgorithm: ConflictAlgorithm.rollback);
+            try {
+              await txn.insert('Test', {
+                'id': 1,
+              }, conflictAlgorithm: ConflictAlgorithm.rollback);
+              fail('should fail 1');
+            } on DatabaseException catch (e) {
+              expect(e.isUniqueConstraintError(), isTrue);
+            }
+            try {
+              await txn.insert('Test', {
+                'id': 2,
+              }, conflictAlgorithm: ConflictAlgorithm.rollback);
+              fail('should fail 2');
+            } on DatabaseException catch (e) {
+              // The transaction was rolled back by SQLite.
+              expect(e.isUniqueConstraintError(), isFalse);
+            }
+          });
+        } on DatabaseException catch (e) {
+          expect(e.isUniqueConstraintError(), isFalse);
+        }
+        expect(await db.query('Test'), isEmpty);
+      } finally {
+        await db.close();
+      }
+    });
+
+    test('rolled back batch with continueOnError', () async {
+      const path = 'test_rolled_back_batch.db';
+      await deleteDatabase(path);
+      final db = await openDatabase(path);
+      try {
+        await db.execute(
+          'CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)',
+        );
+        final batch = db.batch();
+        batch.insert('Test', {
+          'id': 1,
+        }, conflictAlgorithm: ConflictAlgorithm.rollback);
+        batch.insert('Test', {
+          'id': 1,
+        }, conflictAlgorithm: ConflictAlgorithm.rollback);
+        batch.insert('Test', {
+          'id': 2,
+        }, conflictAlgorithm: ConflictAlgorithm.rollback);
+        await expectLater(
+          batch.commit(continueOnError: true),
+          throwsA(isA<DatabaseException>()),
+        );
+        expect(await db.query('Test'), isEmpty);
+      } finally {
+        await db.close();
+      }
+    });
+
     /// Check if a file is a valid database file
     ///
     /// An empty file is a valid empty sqlite file

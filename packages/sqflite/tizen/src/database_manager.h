@@ -68,7 +68,7 @@ class DatabaseManager {
   int GetStmtColumnsCount(Statement statement);
   int GetColumnType(Statement statement, int column_index);
   const char *GetColumnName(Statement statement, int column_index);
-  void ThrowCurrentDatabaseError();
+  void ThrowCurrentDatabaseError(bool was_in_transaction = false);
   void LogQuery(Statement statement);
 
   std::map<std::string, Statement> statement_cache_;

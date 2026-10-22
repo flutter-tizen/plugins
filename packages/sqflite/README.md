@@ -10,7 +10,7 @@ This package is not an _endorsed_ implementation of `sqflite`. Therefore, you ha
 
 ```yaml
 dependencies:
-  sqflite: ^2.4.3
+  sqflite: ^2.4.5
   sqflite_tizen: ^0.2.0
 ```
 
