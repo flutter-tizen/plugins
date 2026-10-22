@@ -1,3 +1,7 @@
+## 0.8.23
+
+* Use the Tizen Core display API on Tizen 11.0 and later.
+
 ## 0.8.22
 * Update plusplayer
   1. [DASH] Fix trun download issue.
