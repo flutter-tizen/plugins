@@ -111,12 +111,14 @@ class RpcStubStreamHandler : public FlStreamHandler {
   std::unique_ptr<FlStreamHandlerError> OnListenInternal(
       const flutter::EncodableValue* arguments,
       std::unique_ptr<FlEventSink>&& events) override {
+    FlEventSink* sink = events.get();
     RpcPortStubManager::Init(handle_, std::move(events));
     auto ret = RpcPortStubManager::Listen(handle_);
     if (!ret) {
+      // An error returned from here is only logged by the Dart EventChannel;
+      // the sink delivers it to the stub's onError.
+      sink->Error(std::to_string(ret.error_code), ret.message());
       RpcPortStubManager::Dispose(handle_);
-      return std::make_unique<FlStreamHandlerError>(
-          std::to_string(ret.error_code), ret.message(), nullptr);
     }
     return nullptr;
   }

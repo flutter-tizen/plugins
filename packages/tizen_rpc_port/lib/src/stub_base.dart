@@ -89,8 +89,11 @@ abstract class StubBase {
 
   /// Starts listening to connection requests from clients.
   ///
-  /// The [onError] handler is invoked when a platform error is reported by
-  /// the event stream. If omitted, the error is considered unhandled.
+  /// The returned future completes once the stub's event channel is
+  /// registered and throws if that fails. A failure to start listening on
+  /// the platform side, like any later platform error from the event stream,
+  /// is reported through [onError]. If omitted, the error is considered
+  /// unhandled.
   Future<void> listen({OnError? onError}) async {
     _checkOpen();
     if (_initializing != null) {

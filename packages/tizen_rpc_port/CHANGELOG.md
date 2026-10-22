@@ -2,6 +2,7 @@
 
 * Support multiple stubs listening in one app.
 * Make `close()` idempotent and throw `StateError` on operations after `close()`.
+* Report a failure to start listening through `listen()`'s `onError`.
 * Omit obvious local variable types.
 * Reformat with a line length of 100.
 * Use wrapper api.
