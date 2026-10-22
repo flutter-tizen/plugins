@@ -17,16 +17,13 @@ namespace tizen {
 namespace {
 
 flutter::EncodableMap CreateEncodableMap(const char* event, const char* sender,
-                                         const char* instance,
-                                         rpc_port_stub_h handle) {
+                                         const char* instance) {
   return {{flutter::EncodableValue("event"),
            flutter::EncodableValue(std::string(event))},
           {flutter::EncodableValue("sender"),
            flutter::EncodableValue(std::string(sender))},
           {flutter::EncodableValue("instance"),
-           flutter::EncodableValue(std::string(instance))},
-          {flutter::EncodableValue("handle"),
-           flutter::EncodableValue(reinterpret_cast<int64_t>(handle))}};
+           flutter::EncodableValue(std::string(instance))}};
 }
 
 }  // namespace
@@ -75,8 +72,7 @@ void RpcPortStubManager::OnConnectedEvent(const char* sender,
   if (it == event_sinks_.end()) {
     return;
   }
-  flutter::EncodableMap map =
-      CreateEncodableMap("connected", sender, instance, handle);
+  flutter::EncodableMap map = CreateEncodableMap("connected", sender, instance);
   it->second->Success(flutter::EncodableValue(map));
 }
 
@@ -91,7 +87,7 @@ void RpcPortStubManager::OnDisconnectedEvent(const char* sender,
     return;
   }
   flutter::EncodableMap map =
-      CreateEncodableMap("disconnected", sender, instance, handle);
+      CreateEncodableMap("disconnected", sender, instance);
   it->second->Success(flutter::EncodableValue(map));
 }
 
@@ -131,8 +127,7 @@ int RpcPortStubManager::OnReceivedEvent(const char* sender,
   std::vector<uint8_t> raw_data(raw, raw + size);
   rpc_port_parcel_destroy(parcel);
 
-  flutter::EncodableMap map =
-      CreateEncodableMap("received", sender, instance, handle);
+  flutter::EncodableMap map = CreateEncodableMap("received", sender, instance);
   map[flutter::EncodableValue("rawData")] =
       flutter::EncodableValue(std::move(raw_data));
   event_sink->Success(flutter::EncodableValue(map));

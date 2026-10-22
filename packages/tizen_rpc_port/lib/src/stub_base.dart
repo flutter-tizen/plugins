@@ -110,10 +110,6 @@ abstract class StubBase {
     final Stream<dynamic> stream = eventChannel.receiveBroadcastStream();
     _streamSubscription = stream.listen((dynamic data) async {
       final Map<String, dynamic> map = (data as Map<dynamic, dynamic>).cast<String, dynamic>();
-      final handle = map['handle'] as int;
-      if (handle != _handle.address) {
-        return;
-      }
       final event = map['event'] as String;
       final sender = map['sender'] as String;
       final instance = map['instance'] as String;
