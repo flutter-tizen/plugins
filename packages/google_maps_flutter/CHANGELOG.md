@@ -1,5 +1,6 @@
-## NEXT
+## 0.2.4
 
+* Update `webview_flutter_lwe` to ^0.5.7.
 * Resolve `use_super_parameters` lint.
 * Omit obvious local variable types.
 * Reformat with a line length of 100.
