@@ -1,5 +1,6 @@
-## NEXT
+## 0.5.7
 
+* Update lightweight web engine (1.5.10).
 * Omit obvious local variable types.
 * Reformat with a line length of 100.
 
