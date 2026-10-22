@@ -69,17 +69,14 @@ class RpcProxyStreamHandler : public FlStreamHandler {
       return std::make_unique<FlStreamHandlerError>(
           "Invalid arguments", "The argument must be a map.", nullptr);
     }
-    rpc_port_proxy_h handle = nullptr;
-    std::string appid, port_name;
-    if (!GetValueFromEncodableMap(args, "handle",
-                                  reinterpret_cast<int64_t&>(handle))) {
-      if (!GetValueFromEncodableMap(args, "handle",
-                                    reinterpret_cast<int32_t&>(handle))) {
-        return std::make_unique<FlStreamHandlerError>(
-            "Invalid arguments", "No handle provided.", nullptr);
-      }
+    std::optional<int64_t> address = GetHandle(args);
+    if (!address) {
+      return std::make_unique<FlStreamHandlerError>(
+          "Invalid arguments", "No handle provided.", nullptr);
     }
+    rpc_port_proxy_h handle = reinterpret_cast<rpc_port_proxy_h>(*address);
 
+    std::string appid, port_name;
     if (!GetValueFromEncodableMap(args, "appid", appid) ||
         !GetValueFromEncodableMap(args, "portName", port_name)) {
       return std::make_unique<FlStreamHandlerError>(
@@ -210,14 +207,10 @@ class TizenRpcPortPlugin : public flutter::Plugin {
         return;
       }
 
-      rpc_port_proxy_h handle = nullptr;
-      if (!GetValueFromEncodableMap(args, "handle",
-                                    reinterpret_cast<int64_t&>(handle))) {
-        if (!GetValueFromEncodableMap(args, "handle",
-                                      reinterpret_cast<int32_t&>(handle))) {
-          result->Error("Invalid arguments", "No handle provided.");
-          return;
-        }
+      std::optional<int64_t> address = GetHandle(args);
+      if (!address) {
+        result->Error("Invalid arguments", "No handle provided.");
+        return;
       }
 
       std::string appid, port_name;
@@ -227,8 +220,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
       }
 
       std::string event_channel_name =
-          "tizen/rpc_port_proxy/" + port_name + '/' +
-          std::to_string(reinterpret_cast<int64_t>(handle));
+          "tizen/rpc_port_proxy/" + port_name + '/' + std::to_string(*address);
 
       auto proxy_channel = std::make_unique<FlEventChannel>(
           plugin_registrar_->messenger(), event_channel_name,
