@@ -13,7 +13,7 @@ import 'package:tizen_rpc_port_server_example/message_server.dart';
 // suite covers the server-specific StubBase behaviour.
 
 // A minimal StubBase subclass used only to test single-app observable
-// behaviour (construction, setTrusted, addPrivilege).
+// behaviour (construction, setTrusted, addPrivilege, close).
 class _TestStub extends StubBase {
   _TestStub() : super('TestStubPort');
 
@@ -56,6 +56,22 @@ void main() {
       final stub = _TestStub();
       addTearDown(stub.close);
       stub.addPrivilege('http://tizen.org/privilege/datasharing');
+    });
+
+    test('operations on a closed stub throw StateError', () async {
+      final stub = _TestStub();
+      await stub.close();
+      expect(() => stub.setTrusted(true), throwsStateError);
+      expect(() => stub.addPrivilege('http://tizen.org/privilege/datasharing'), throwsStateError);
+      expect(() => stub.getPort('instance', PortType.main), throwsStateError);
+      await expectLater(stub.listen(), throwsStateError);
+    });
+
+    test('close returns the same future when called twice', () async {
+      final stub = _TestStub();
+      final Future<void> first = stub.close();
+      expect(identical(stub.close(), first), isTrue);
+      await first;
     });
   });
 
