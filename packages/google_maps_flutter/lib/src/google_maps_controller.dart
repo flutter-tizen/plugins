@@ -37,6 +37,7 @@ class GoogleMapsController {
     _clusterManagersController = ClusterManagersController(
       stream: _streamController,
       bridge: _bridge,
+      markerIdForId: (int id) => _markersController?._idToMarkerId[id],
     );
     _markersController = MarkersController(
       stream: _streamController,
