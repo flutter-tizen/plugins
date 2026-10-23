@@ -236,6 +236,11 @@ class GoogleMapsController {
     try {
       final dynamic event = json.decode(message);
       if (event is Map<String, dynamic>) {
+        final placeId = event['placeId'] as String?;
+        if (placeId != null) {
+          _streamController.add(PointOfInterestTapEvent(_mapId, PointOfInterestId(placeId)));
+          return;
+        }
         assert(event['latLng'] != null);
         final position = LatLng(event['latLng']['lat'] as double, event['latLng']['lng'] as double);
         _streamController.add(MapTapEvent(_mapId, position));
