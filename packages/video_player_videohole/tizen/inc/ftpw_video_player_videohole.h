@@ -40,14 +40,11 @@ typedef enum {
   PLAYER_DRM_TYPE_EME = 14,
 } player_drm_type_e;
 
-typedef enum {
-  PLAYER_DISPLAY_TYPE_TCORE_OVERLAY,         /**< Video overlay using
-                                                tizen_core_wl_window_h */
-  PLAYER_DISPLAY_TYPE_TCORE_OVERLAY_SYNC_UI, /**< Sync UI video overlay using
-                                             handle string from
-                                             tizen_core_wl_video_shell_surface_get_handle()
-                                           */
-} player_display_type_tcore_e;
+// player_display_type_e value from the Tizen 11.0 player.h, for
+// player_set_display() on SDKs whose headers predate it.
+enum {
+  PLAYER_DISPLAY_TYPE_OVERLAY2 = 6, /**< Overlay surface display (Since 11.0) */
+};
 
 typedef enum {
   PLAYER_ADAPTIVE_INFO_LIVE_DURATION = 3,
@@ -90,8 +87,6 @@ extern "C" {
 int ftpw_video_player_videohole_player_set_ecore_wl_display(
     void *player, int type, void *ecore_wl_window, int x, int y, int width,
     int height);
-int ftpw_video_player_videohole_player_set_tcore_display(
-    void *player, player_display_type_tcore_e type, void *display);
 int ftpw_video_player_videohole_player_set_drm_handle(
     void *player, player_drm_type_e drm_type, int drm_handle);
 int ftpw_video_player_videohole_player_set_drm_init_complete_cb(
