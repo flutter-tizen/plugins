@@ -33,27 +33,36 @@ abstract class StubBase {
       return pStub.value;
     });
 
-    _finalizer.attach(this, _handle);
+    _finalizer.attach(this, _handle, detach: this);
   }
 
   late final rpc_port_stub_h _handle;
 
-  final Finalizer<rpc_port_stub_h> _finalizer = Finalizer<rpc_port_stub_h>(
+  static final Finalizer<rpc_port_stub_h> _finalizer = Finalizer<rpc_port_stub_h>(
     (rpc_port_stub_h handle) => tizen.rpc_port_stub_destroy(handle),
   );
 
   /// A port name to use when listening for connections.
   final String portName;
 
-  static const EventChannel _eventChannel = EventChannel('tizen/rpc_port_stub');
+  static const MethodChannel _channel = MethodChannel('tizen/rpc_port_proxy');
 
   StreamSubscription<dynamic>? _streamSubscription;
+  Future<void>? _initializing;
+  Future<void>? _closeFuture;
+
+  void _checkOpen() {
+    if (_closeFuture != null) {
+      throw StateError('Stub is closed');
+    }
+  }
 
   /// Sets whether this stub should only allow trusted connections.
   ///
   /// If [trusted] is true, this stub only allows connections from trusted
   /// applications signed with the same certificate.
   void setTrusted(bool trusted) {
+    _checkOpen();
     final int ret = tizen.rpc_port_stub_set_trusted(_handle, trusted);
     if (ret != 0) {
       throw PlatformException(
@@ -65,6 +74,7 @@ abstract class StubBase {
 
   /// Adds a privilege required by client applications to connect to this stub.
   void addPrivilege(String privilege) {
+    _checkOpen();
     using((Arena arena) {
       final Pointer<Char> pPrivilege = privilege.toNativeChar(allocator: arena);
       final int ret = tizen.rpc_port_stub_add_privilege(_handle, pPrivilege);
@@ -78,20 +88,31 @@ abstract class StubBase {
   }
 
   /// Starts listening to connection requests from clients.
+  ///
+  /// The returned future completes once the stub's event channel is
+  /// registered and throws if that fails. A failure to start listening on
+  /// the platform side, like any later platform error from the event stream,
+  /// is reported through [onError]. If omitted, the error is considered
+  /// unhandled.
   Future<void> listen({OnError? onError}) async {
-    if (_streamSubscription != null) {
+    _checkOpen();
+    if (_initializing != null) {
       throw StateError('Cannot listen again');
     }
 
-    final Stream<dynamic> stream = _eventChannel.receiveBroadcastStream(
-      <String, Object>{'handle': _handle.address},
-    );
+    _initializing = _initialize(onError);
+    await _initializing;
+  }
+
+  Future<void> _initialize(OnError? onError) async {
+    await _channel.invokeMethod<void>('stubInit', <String, Object>{'handle': _handle.address});
+    if (_closeFuture != null) {
+      return;
+    }
+    final eventChannel = EventChannel('tizen/rpc_port_stub/${_handle.address}');
+    final Stream<dynamic> stream = eventChannel.receiveBroadcastStream();
     _streamSubscription = stream.listen((dynamic data) async {
       final Map<String, dynamic> map = (data as Map<dynamic, dynamic>).cast<String, dynamic>();
-      final handle = map['handle'] as int;
-      if (handle != _handle.address) {
-        return;
-      }
       final event = map['event'] as String;
       final sender = map['sender'] as String;
       final instance = map['instance'] as String;
@@ -111,8 +132,9 @@ abstract class StubBase {
 
   /// Gets a [Port] associated with a specific client [instance].
   Port getPort(String instance, PortType portType) {
+    _checkOpen();
     return using((Arena arena) {
-      final Pointer<Char> pInstance = instance.toNativeChar();
+      final Pointer<Char> pInstance = instance.toNativeChar(allocator: arena);
       final Pointer<rpc_port_h> pPort = arena();
       final int ret = tizen.rpc_port_stub_get_port(
         _handle,
@@ -132,10 +154,16 @@ abstract class StubBase {
 
   /// Shuts down this stub.
   ///
-  /// All active connections will be closed immediately. No operation can be
-  /// made to this stub after this call.
-  Future<void> close() async {
+  /// All active connections will be closed immediately. Any other method
+  /// called after this throws a [StateError]. Pending callbacks are not
+  /// awaited. Repeated calls to [close] return the same completion.
+  Future<void> close() => _closeFuture ??= _close();
+
+  Future<void> _close() async {
     await _streamSubscription?.cancel();
+    _streamSubscription = null;
+    await _channel.invokeMethod<void>('stubDispose', <String, Object>{'handle': _handle.address});
+    _finalizer.detach(this);
     tizen.rpc_port_stub_destroy(_handle);
   }
 
