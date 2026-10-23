@@ -448,10 +448,12 @@ bool MediaPlayer::SetDisplay(const flutter::EncodableMap *window_geometry) {
 
   int ret = PLAYER_ERROR_NONE;
   if (IsTizenCorePlatform()) {
-    ret = ftpw_video_player_avplay_player_set_tcore_display(
-        player_, PLAYER_DISPLAY_TYPE_TCORE_OVERLAY, native_window);
+    ret = player_set_display(
+        player_,
+        static_cast<player_display_type_e>(PLAYER_DISPLAY_TYPE_OVERLAY2),
+        GET_DISPLAY(native_window));
     if (ret != PLAYER_ERROR_NONE) {
-      LOG_ERROR("[MediaPlayer] player_set_tcore_display failed: %s.",
+      LOG_ERROR("[MediaPlayer] player_set_display failed: %s.",
                 get_error_message(ret));
       return false;
     }
