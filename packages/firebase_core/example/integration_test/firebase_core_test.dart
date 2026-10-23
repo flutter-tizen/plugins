@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// Integration tests ported from upstream firebase_core v4.15.0:
-// https://github.com/firebase/flutterfire/blob/firebase_core-v4.15.0/tests/integration_test/firebase_core/firebase_core_e2e_test.dart
+// Integration tests ported from upstream firebase_core v5.0.0:
+// https://github.com/firebase/flutterfire/blob/firebase_core-v5.0.0/tests/integration_test/firebase_core/firebase_core_e2e_test.dart
 // Originally authored by the Chromium project authors under a BSD-style
 // license.
 
@@ -87,6 +87,15 @@ void main() {
       } finally {
         await app.setAutomaticResourceManagementEnabled(false);
       }
+    });
+
+    test('Firebase.initializeApp() with demoProjectId', () async {
+      const demoProjectId = 'demo-flutterfire-e2e';
+      final FirebaseApp app = await Firebase.initializeApp(demoProjectId: demoProjectId);
+      addTearDown(app.delete);
+
+      expect(app.name, demoProjectId);
+      expect(app.options.projectId, demoProjectId);
     });
   });
 }
