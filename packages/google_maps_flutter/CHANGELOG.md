@@ -5,6 +5,7 @@
 * Fix initial map objects being added to the map twice.
 * Fix `onMapCreated` never being called when a map tile request stalls or fails.
 * Fix map events being dropped when the reported coordinates are integers.
+* Fix cluster managers passed to the initial `GoogleMap` being ignored.
 
 ## 0.3.0
 

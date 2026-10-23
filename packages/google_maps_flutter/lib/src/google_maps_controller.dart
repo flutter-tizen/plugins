@@ -469,6 +469,8 @@ class GoogleMapsController {
       await _createMap();
     }
     await _attachGeometryControllers();
+    _initClustering(_clusterManagers);
+
     _renderInitialGeometry(
       markers: _markers,
       circles: _circles,
@@ -476,8 +478,6 @@ class GoogleMapsController {
       polylines: _polylines,
       groundOverlays: _groundOverlays,
     );
-
-    _initClustering(_clusterManagers);
 
     await _setTrafficLayer(_isTrafficLayerEnabled(_rawMapOptions));
   }
