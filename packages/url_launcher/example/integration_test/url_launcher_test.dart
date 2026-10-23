@@ -13,10 +13,7 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   test('canLaunch', () async {
-    expect(
-      await canLaunchUrl(Uri(scheme: 'randomscheme', path: 'a_path')),
-      false,
-    );
+    expect(await canLaunchUrl(Uri(scheme: 'randomscheme', path: 'a_path')), false);
 
     // Generally all devices should have some default browser.
     expect(await canLaunchUrl(Uri(scheme: 'http', host: 'flutter.dev')), true);
@@ -39,5 +36,11 @@ void main() {
     expect(await supportsLaunchMode(LaunchMode.platformDefault), true);
     expect(await supportsLaunchMode(LaunchMode.externalApplication), true);
     expect(await supportsLaunchMode(LaunchMode.inAppWebView), false);
+  });
+
+  test('supportsCloseForLaunchMode returns false for every launch mode', () async {
+    for (final LaunchMode mode in LaunchMode.values) {
+      expect(await supportsCloseForLaunchMode(mode), false, reason: mode.name);
+    }
   });
 }

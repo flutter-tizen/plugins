@@ -1,3 +1,9 @@
+## 2.1.9
+
+* Update url_launcher to 6.3.3.
+* Update the example's minimum supported SDK version to Flutter 3.41/Dart 3.11.
+* Update integration tests.
+
 ## 2.1.8
 
 * Implement `supportsMode` to report `externalApplication` as supported.
