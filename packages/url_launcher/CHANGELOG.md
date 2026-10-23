@@ -1,9 +1,8 @@
 ## 2.1.9
 
-* Update url_launcher to 6.3.3 in the example and usage instructions to get the `supportsCloseForLaunchMode` fix.
+* Update url_launcher to 6.3.3.
 * Update the example's minimum supported SDK version to Flutter 3.41/Dart 3.11.
-* Add integration tests for close support across all launch modes.
-* Reformat the example code.
+* Update integration tests.
 
 ## 2.1.8
 
