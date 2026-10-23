@@ -40,6 +40,12 @@ typedef enum {
   PLAYER_DRM_TYPE_EME = 14,
 } player_drm_type_e;
 
+// player_display_type_e value from the Tizen 11.0 player.h, for
+// player_set_display() on SDKs whose headers predate it.
+enum {
+  PLAYER_DISPLAY_TYPE_OVERLAY2 = 6, /**< Overlay surface display (Since 11.0) */
+};
+
 typedef enum {
   PLAYER_ADAPTIVE_INFO_LIVE_DURATION = 3,
   PLAYER_ADAPTIVE_INFO_IS_LIVE = 19,
