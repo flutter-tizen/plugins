@@ -1,3 +1,7 @@
+## 0.6.3
+
+* Use the public `player_set_display` API with `PLAYER_DISPLAY_TYPE_OVERLAY2` on Tizen 11.0 and later.
+
 ## 0.6.2
 
 * Use the Tizen Core display API on Tizen 11.0 and later.
