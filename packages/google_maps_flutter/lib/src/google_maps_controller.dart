@@ -249,7 +249,10 @@ class GoogleMapsController {
       final dynamic event = json.decode(message);
       if (event is Map<String, dynamic>) {
         assert(event['latLng'] != null);
-        final position = LatLng(event['latLng']['lat'] as double, event['latLng']['lng'] as double);
+        final position = LatLng(
+          (event['latLng']['lat'] as num).toDouble(),
+          (event['latLng']['lng'] as num).toDouble(),
+        );
         _streamController.add(MapTapEvent(_mapId, position));
       }
     } catch (e) {
@@ -262,7 +265,10 @@ class GoogleMapsController {
       final dynamic event = json.decode(message);
       if (event is Map<String, dynamic>) {
         assert(event['latLng'] != null);
-        final position = LatLng(event['latLng']['lat'] as double, event['latLng']['lng'] as double);
+        final position = LatLng(
+          (event['latLng']['lat'] as num).toDouble(),
+          (event['latLng']['lng'] as num).toDouble(),
+        );
         _streamController.add(MapLongPressEvent(_mapId, position));
       }
     } catch (e) {
@@ -314,8 +320,8 @@ class GoogleMapsController {
           final MarkerController? marker = _markersController!._markerIdToController[markerId];
 
           final position = LatLng(
-            result['event']['latLng']['lat'] as double,
-            result['event']['latLng']['lng'] as double,
+            (result['event']['latLng']['lat'] as num).toDouble(),
+            (result['event']['latLng']['lng'] as num).toDouble(),
           );
 
           if (marker?.dragStartEvent != null) {
@@ -338,8 +344,8 @@ class GoogleMapsController {
           final MarkerController? marker = _markersController!._markerIdToController[markerId];
 
           final position = LatLng(
-            result['event']['latLng']['lat'] as double,
-            result['event']['latLng']['lng'] as double,
+            (result['event']['latLng']['lat'] as num).toDouble(),
+            (result['event']['latLng']['lng'] as num).toDouble(),
           );
 
           if (marker?.dragEvent != null) {
@@ -362,8 +368,8 @@ class GoogleMapsController {
           final MarkerController? marker = _markersController!._markerIdToController[markerId];
 
           final position = LatLng(
-            result['event']['latLng']['lat'] as double,
-            result['event']['latLng']['lng'] as double,
+            (result['event']['latLng']['lat'] as num).toDouble(),
+            (result['event']['latLng']['lng'] as num).toDouble(),
           );
 
           if (marker?.dragEndEvent != null) {

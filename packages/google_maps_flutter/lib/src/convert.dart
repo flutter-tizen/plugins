@@ -256,14 +256,14 @@ LatLngBounds _convertToBounds(String value) {
     final dynamic bound = json.decode(value);
     if (bound is Map<String, dynamic>) {
       assert(
-        bound['south'] is double &&
-            bound['west'] is double &&
-            bound['north'] is double &&
-            bound['east'] is double,
+        bound['south'] is num &&
+            bound['west'] is num &&
+            bound['north'] is num &&
+            bound['east'] is num,
       );
       return LatLngBounds(
-        southwest: LatLng(bound['south'] as double, bound['west'] as double),
-        northeast: LatLng(bound['north'] as double, bound['east'] as double),
+        southwest: LatLng((bound['south'] as num).toDouble(), (bound['west'] as num).toDouble()),
+        northeast: LatLng((bound['north'] as num).toDouble(), (bound['east'] as num).toDouble()),
       );
     }
   } catch (e) {

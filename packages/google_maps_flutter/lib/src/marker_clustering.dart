@@ -144,18 +144,18 @@ class ClusterManagersController extends GeometryController {
     Map<String, dynamic> markerClustererCluster,
   ) {
     final position = LatLng(
-      (markerClustererCluster['position'] as dynamic)['lat'] as double,
-      (markerClustererCluster['position'] as dynamic)['lng'] as double,
+      ((markerClustererCluster['position'] as dynamic)['lat'] as num).toDouble(),
+      ((markerClustererCluster['position'] as dynamic)['lng'] as num).toDouble(),
     );
 
     final bounds = LatLngBounds(
       southwest: LatLng(
-        (markerClustererCluster['bounds'] as dynamic)['south'] as double,
-        (markerClustererCluster['bounds'] as dynamic)['west'] as double,
+        ((markerClustererCluster['bounds'] as dynamic)['south'] as num).toDouble(),
+        ((markerClustererCluster['bounds'] as dynamic)['west'] as num).toDouble(),
       ),
       northeast: LatLng(
-        (markerClustererCluster['bounds'] as dynamic)['north'] as double,
-        (markerClustererCluster['bounds'] as dynamic)['east'] as double,
+        ((markerClustererCluster['bounds'] as dynamic)['north'] as num).toDouble(),
+        ((markerClustererCluster['bounds'] as dynamic)['east'] as num).toDouble(),
       ),
     );
 
