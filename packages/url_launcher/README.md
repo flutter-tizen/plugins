@@ -38,4 +38,4 @@ For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](h
 
 - A `PlatformException` is raised if no application on the device can open the provided URL.
 - Only `LaunchMode.platformDefault` and `LaunchMode.externalApplication` are supported on Tizen. Both open the URL in an external application.
-- Closing a launched URL is not supported. With `url_launcher` 6.3.3 or later, `supportsCloseForLaunchMode` correctly returns `false` for every launch mode.
+- `supportsCloseForLaunchMode` returns `false` for all launch modes.
