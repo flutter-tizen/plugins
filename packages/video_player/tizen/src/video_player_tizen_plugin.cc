@@ -44,6 +44,8 @@ class VideoPlayerTizenPlugin : public flutter::Plugin,
   std::optional<FlutterError> Pause(const TextureMessage &msg) override;
   std::optional<FlutterError> SetMixWithOthers(
       const MixWithOthersMessage &msg) override;
+  std::optional<FlutterError> SetPreventsDisplaySleep(
+      const PreventsDisplaySleepMessage &msg) override;
   ErrorOr<flutter::EncodableList> GetAudioTracks(
       const TextureMessage &msg) override;
   std::optional<FlutterError> SelectAudioTrack(
@@ -247,6 +249,17 @@ void VideoPlayerTizenPlugin::SeekTo(
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetMixWithOthers(
     const MixWithOthersMessage &msg) {
   options_.SetMixWithOthers(msg.mix_with_others());
+  return std::nullopt;
+}
+
+std::optional<FlutterError> VideoPlayerTizenPlugin::SetPreventsDisplaySleep(
+    const PreventsDisplaySleepMessage &msg) {
+  auto iter = players_.find(msg.texture_id());
+  if (iter == players_.end()) {
+    return FlutterError("Invalid argument", "Player not found.");
+  }
+  iter->second->SetPreventsDisplaySleep(msg.prevents_display_sleep());
+
   return std::nullopt;
 }
 

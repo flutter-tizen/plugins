@@ -499,6 +499,52 @@ class SelectAudioTrackMessage {
   }
 }
 
+class PreventsDisplaySleepMessage {
+  PreventsDisplaySleepMessage({required this.textureId, required this.preventsDisplaySleep});
+
+  int textureId;
+
+  bool preventsDisplaySleep;
+
+  List<Object?> _toList() {
+    return <Object?>[textureId, preventsDisplaySleep];
+  }
+
+  Object encode() {
+    return _toList();
+  }
+
+  static PreventsDisplaySleepMessage decode(Object result) {
+    result as List<Object?>;
+    return PreventsDisplaySleepMessage(
+      textureId: result[0]! as int,
+      preventsDisplaySleep: result[1]! as bool,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! PreventsDisplaySleepMessage || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(textureId, other.textureId) &&
+        _deepEquals(preventsDisplaySleep, other.preventsDisplaySleep);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+
+  @override
+  String toString() {
+    return 'PreventsDisplaySleepMessage(textureId: $textureId, preventsDisplaySleep: $preventsDisplaySleep)';
+  }
+}
+
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
   @override
@@ -533,6 +579,9 @@ class _PigeonCodec extends StandardMessageCodec {
     } else if (value is SelectAudioTrackMessage) {
       buffer.putUint8(137);
       writeValue(buffer, value.encode());
+    } else if (value is PreventsDisplaySleepMessage) {
+      buffer.putUint8(138);
+      writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
     }
@@ -559,6 +608,8 @@ class _PigeonCodec extends StandardMessageCodec {
         return AudioTrackMessage.decode(readValue(buffer)!);
       case 137:
         return SelectAudioTrackMessage.decode(readValue(buffer)!);
+      case 138:
+        return PreventsDisplaySleepMessage.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -733,6 +784,20 @@ class TizenVideoPlayerApi {
   Future<void> setMixWithOthers(MixWithOthersMessage msg) async {
     final pigeonVar_channelName =
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setMixWithOthers$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[msg]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(pigeonVar_replyList, pigeonVar_channelName, isNullValid: true);
+  }
+
+  Future<void> setPreventsDisplaySleep(PreventsDisplaySleepMessage msg) async {
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setPreventsDisplaySleep$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,

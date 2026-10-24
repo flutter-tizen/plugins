@@ -68,6 +68,12 @@ class SelectAudioTrackMessage {
   int trackIndex;
 }
 
+class PreventsDisplaySleepMessage {
+  PreventsDisplaySleepMessage(this.textureId, this.preventsDisplaySleep);
+  int textureId;
+  bool preventsDisplaySleep;
+}
+
 @HostApi()
 abstract class TizenVideoPlayerApi {
   void initialize();
@@ -82,6 +88,7 @@ abstract class TizenVideoPlayerApi {
   void seekTo(PositionMessage msg);
   void pause(TextureMessage msg);
   void setMixWithOthers(MixWithOthersMessage msg);
+  void setPreventsDisplaySleep(PreventsDisplaySleepMessage msg);
   List<AudioTrackMessage> getAudioTracks(TextureMessage msg);
   void selectAudioTrack(SelectAudioTrackMessage msg);
 }

@@ -62,6 +62,7 @@ The following methods are not currently supported.
 
 This plugin has the following limitations.
 
+- The `preventsDisplaySleepDuringVideoPlayback` option only takes effect on TV devices.
 - The `httpHeaders` option of `VideoPlayerController.networkUrl` only support `Cookie` and `User-Agent`.
 - The `setPlaybackSpeed` method will fail if triggered within the last 3 seconds of the video.
 - The playback speed will reset to 1.0 when the video is replayed in loop mode.

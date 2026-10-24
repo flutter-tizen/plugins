@@ -978,6 +978,76 @@ size_t PigeonInternalDeepHash(const SelectAudioTrackMessage& v) {
   return v.Hash();
 }
 
+// PreventsDisplaySleepMessage
+
+PreventsDisplaySleepMessage::PreventsDisplaySleepMessage(
+    int64_t texture_id, bool prevents_display_sleep)
+    : texture_id_(texture_id),
+      prevents_display_sleep_(prevents_display_sleep) {}
+
+int64_t PreventsDisplaySleepMessage::texture_id() const { return texture_id_; }
+
+void PreventsDisplaySleepMessage::set_texture_id(int64_t value_arg) {
+  texture_id_ = value_arg;
+}
+
+bool PreventsDisplaySleepMessage::prevents_display_sleep() const {
+  return prevents_display_sleep_;
+}
+
+void PreventsDisplaySleepMessage::set_prevents_display_sleep(bool value_arg) {
+  prevents_display_sleep_ = value_arg;
+}
+
+EncodableList PreventsDisplaySleepMessage::ToEncodableList() const {
+  EncodableList list;
+  list.reserve(2);
+  list.push_back(EncodableValue(texture_id_));
+  list.push_back(EncodableValue(prevents_display_sleep_));
+  return list;
+}
+
+PreventsDisplaySleepMessage PreventsDisplaySleepMessage::FromEncodableList(
+    const EncodableList& list) {
+  PreventsDisplaySleepMessage decoded(std::get<int64_t>(list[0]),
+                                      std::get<bool>(list[1]));
+  return decoded;
+}
+
+bool PreventsDisplaySleepMessage::operator==(
+    const PreventsDisplaySleepMessage& other) const {
+  return PigeonInternalDeepEquals(texture_id_, other.texture_id_) &&
+         PigeonInternalDeepEquals(prevents_display_sleep_,
+                                  other.prevents_display_sleep_);
+}
+
+bool PreventsDisplaySleepMessage::operator!=(
+    const PreventsDisplaySleepMessage& other) const {
+  return !(*this == other);
+}
+
+size_t PreventsDisplaySleepMessage::Hash() const {
+  size_t result = 1;
+  result = result * 31 + PigeonInternalDeepHash(texture_id_);
+  result = result * 31 + PigeonInternalDeepHash(prevents_display_sleep_);
+  return result;
+}
+
+std::ostream& operator<<(std::ostream& os,
+                         const PreventsDisplaySleepMessage& obj) {
+  os << "PreventsDisplaySleepMessage(";
+  os << "texture_id: ";
+  os << PigeonInternalToString(obj.texture_id_);
+  os << ", prevents_display_sleep: ";
+  os << PigeonInternalToString(obj.prevents_display_sleep_);
+  os << ")";
+  return os;
+}
+
+size_t PigeonInternalDeepHash(const PreventsDisplaySleepMessage& v) {
+  return v.Hash();
+}
+
 PigeonInternalCodecSerializer::PigeonInternalCodecSerializer() {}
 
 EncodableValue PigeonInternalCodecSerializer::ReadValueOfType(
@@ -1018,6 +1088,11 @@ EncodableValue PigeonInternalCodecSerializer::ReadValueOfType(
     case 137: {
       return CustomEncodableValue(SelectAudioTrackMessage::FromEncodableList(
           std::get<EncodableList>(ReadValue(stream))));
+    }
+    case 138: {
+      return CustomEncodableValue(
+          PreventsDisplaySleepMessage::FromEncodableList(
+              std::get<EncodableList>(ReadValue(stream))));
     }
     default:
       return ::flutter::StandardCodecSerializer::ReadValueOfType(type, stream);
@@ -1097,6 +1172,14 @@ void PigeonInternalCodecSerializer::WriteValue(
           EncodableValue(std::any_cast<SelectAudioTrackMessage>(*custom_value)
                              .ToEncodableList()),
           stream);
+      return;
+    }
+    if (custom_value->type() == typeid(PreventsDisplaySleepMessage)) {
+      stream->WriteByte(138);
+      WriteValue(EncodableValue(
+                     std::any_cast<PreventsDisplaySleepMessage>(*custom_value)
+                         .ToEncodableList()),
+                 stream);
       return;
     }
   }
@@ -1491,6 +1574,44 @@ void TizenVideoPlayerApi::SetUp(::flutter::BinaryMessenger* binary_messenger,
                   std::get<CustomEncodableValue>(encodable_msg_arg));
               std::optional<FlutterError> output =
                   api->SetMixWithOthers(msg_arg);
+              if (output.has_value()) {
+                reply(WrapError(output.value()));
+                return;
+              }
+              EncodableList wrapped;
+              wrapped.push_back(EncodableValue());
+              reply(EncodableValue(std::move(wrapped)));
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
+            }
+          });
+    } else {
+      channel.SetMessageHandler(nullptr);
+    }
+  }
+  {
+    BasicMessageChannel<> channel(
+        binary_messenger,
+        "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi."
+        "setPreventsDisplaySleep" +
+            prepended_suffix,
+        &GetCodec());
+    if (api != nullptr) {
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const ::flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_msg_arg = args.at(0);
+              if (encodable_msg_arg.IsNull()) {
+                reply(WrapError("msg_arg unexpectedly null."));
+                return;
+              }
+              const auto& msg_arg =
+                  std::any_cast<const PreventsDisplaySleepMessage&>(
+                      std::get<CustomEncodableValue>(encodable_msg_arg));
+              std::optional<FlutterError> output =
+                  api->SetPreventsDisplaySleep(msg_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
                 return;

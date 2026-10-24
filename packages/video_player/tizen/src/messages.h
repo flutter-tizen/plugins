@@ -349,6 +349,38 @@ class SelectAudioTrackMessage {
   int64_t track_index_;
 };
 
+// Generated class from Pigeon that represents data sent in messages.
+class PreventsDisplaySleepMessage {
+ public:
+  // Constructs an object setting all fields.
+  explicit PreventsDisplaySleepMessage(int64_t texture_id,
+                                       bool prevents_display_sleep);
+
+  int64_t texture_id() const;
+  void set_texture_id(int64_t value_arg);
+
+  bool prevents_display_sleep() const;
+  void set_prevents_display_sleep(bool value_arg);
+
+  bool operator==(const PreventsDisplaySleepMessage& other) const;
+  bool operator!=(const PreventsDisplaySleepMessage& other) const;
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
+  size_t Hash() const;
+  /// Stream output operator for formatted string representation.
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const PreventsDisplaySleepMessage& obj);
+
+ private:
+  static PreventsDisplaySleepMessage FromEncodableList(
+      const ::flutter::EncodableList& list);
+  ::flutter::EncodableList ToEncodableList() const;
+  friend class TizenVideoPlayerApi;
+  friend class PigeonInternalCodecSerializer;
+  int64_t texture_id_;
+  bool prevents_display_sleep_;
+};
+
 class PigeonInternalCodecSerializer
     : public ::flutter::StandardCodecSerializer {
  public:
@@ -388,6 +420,8 @@ class TizenVideoPlayerApi {
   virtual std::optional<FlutterError> Pause(const TextureMessage& msg) = 0;
   virtual std::optional<FlutterError> SetMixWithOthers(
       const MixWithOthersMessage& msg) = 0;
+  virtual std::optional<FlutterError> SetPreventsDisplaySleep(
+      const PreventsDisplaySleepMessage& msg) = 0;
   virtual ErrorOr<::flutter::EncodableList> GetAudioTracks(
       const TextureMessage& msg) = 0;
   virtual std::optional<FlutterError> SelectAudioTrack(

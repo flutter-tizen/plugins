@@ -316,12 +316,9 @@ void VideoPlayer::Play() {
     throw VideoPlayerError("player_start failed", get_error_message(ret));
   }
 #ifdef TV_PROFILE
-  timer_id_ =
-      g_timeout_add_full(G_PRIORITY_DEFAULT, 30000, ResetScreensaverTimeout,
-                         this, [](gpointer data) {
-                           auto *player = static_cast<VideoPlayer *>(data);
-                           player->timer_id_ = 0;
-                         });
+  if (prevents_display_sleep_) {
+    StartScreensaverTimer();
+  }
 #endif
 
   SendIsPlayingStateUpdate(true);
@@ -628,7 +625,39 @@ void VideoPlayer::SendIsPlayingStateUpdate(bool is_playing) {
   PushEvent(flutter::EncodableValue(result));
 }
 
+void VideoPlayer::SetPreventsDisplaySleep(bool prevents_display_sleep) {
+  LOG_DEBUG("[VideoPlayer] prevents_display_sleep: %d", prevents_display_sleep);
+
 #ifdef TV_PROFILE
+  prevents_display_sleep_ = prevents_display_sleep;
+  if (!prevents_display_sleep) {
+    if (timer_id_ != 0) {
+      g_source_remove(timer_id_);
+    }
+    return;
+  }
+
+  player_state_e state = PLAYER_STATE_NONE;
+  if (player_get_state(player_, &state) == PLAYER_ERROR_NONE &&
+      state == PLAYER_STATE_PLAYING) {
+    StartScreensaverTimer();
+  }
+#endif
+}
+
+#ifdef TV_PROFILE
+void VideoPlayer::StartScreensaverTimer() {
+  if (timer_id_ != 0) {
+    return;
+  }
+  timer_id_ =
+      g_timeout_add_full(G_PRIORITY_DEFAULT, 30000, ResetScreensaverTimeout,
+                         this, [](gpointer data) {
+                           auto *player = static_cast<VideoPlayer *>(data);
+                           player->timer_id_ = 0;
+                         });
+}
+
 gboolean VideoPlayer::ResetScreensaverTimeout(gpointer) {
   LOG_DEBUG("[VideoPlayer] Reset screen saver timeout.");
 

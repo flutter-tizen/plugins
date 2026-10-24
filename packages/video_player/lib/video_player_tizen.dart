@@ -162,6 +162,19 @@ class VideoPlayerTizen extends platform_interface.VideoPlayerPlatform {
   }
 
   @override
+  Future<void> setPreventsDisplaySleepDuringVideoPlayback(
+    int textureId,
+    bool preventsDisplaySleepDuringVideoPlayback,
+  ) {
+    return _api.setPreventsDisplaySleep(
+      PreventsDisplaySleepMessage(
+        textureId: textureId,
+        preventsDisplaySleep: preventsDisplaySleepDuringVideoPlayback,
+      ),
+    );
+  }
+
+  @override
   Future<List<platform_interface.VideoAudioTrack>> getAudioTracks(int textureId) async {
     final List<AudioTrackMessage> tracks = await _api.getAudioTracks(
       TextureMessage(textureId: textureId),
