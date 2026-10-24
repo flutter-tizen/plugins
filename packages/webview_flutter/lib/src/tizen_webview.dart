@@ -177,6 +177,12 @@ class TizenWebView {
     return _invokeChannelMethod<void>('addJavaScriptChannel', javaScriptChannelParams.name);
   }
 
+  /// Removes the JavaScript channel with the matching name from the set of
+  /// enabled channels.
+  Future<void> removeJavaScriptChannel(String javaScriptChannelName) async {
+    _javaScriptChannelParams.remove(javaScriptChannelName);
+  }
+
   /// Runs the given JavaScript in the context of the current page.
   Future<void> runJavaScript(String javaScript) =>
       _invokeChannelMethod<void>('runJavaScript', javaScript);

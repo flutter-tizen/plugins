@@ -224,12 +224,8 @@ class TizenWebViewController extends PlatformWebViewController {
       _webview.addJavaScriptChannel(javaScriptChannelParams);
 
   @override
-  Future<void> removeJavaScriptChannel(String javaScriptChannelName) async {
-    throw UnimplementedError(
-      'This version of `TizenWebViewController` currently has no '
-      'implementation of `removeJavaScriptChannel`.',
-    );
-  }
+  Future<void> removeJavaScriptChannel(String javaScriptChannelName) =>
+      _webview.removeJavaScriptChannel(javaScriptChannelName);
 
   @override
   Future<String?> getTitle() => _webview.getTitle();

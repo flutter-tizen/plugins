@@ -1,5 +1,6 @@
-## NEXT
+## 0.13.0
 
+* Add `removeJavaScriptChannel`.
 * Increase the minimum Tizen version to 6.0.
 * Fix a build error in debug mode on Tizen 11.0.
 

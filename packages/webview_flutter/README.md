@@ -23,7 +23,7 @@ This package is not an _endorsed_ implementation of `webview_flutter`. Therefore
 ```yaml
 dependencies:
   webview_flutter: ^4.14.1
-  webview_flutter_tizen: ^0.12.0
+  webview_flutter_tizen: ^0.13.0
 ```
 
 ## Example
@@ -80,6 +80,8 @@ The WV backends are experimental. `WebViewController.tizenEnginePolicy` calls `w
 - Cookie operations need a WebView that has been created, and fail before the first one is.
 
 ## Note
+
+- `removeJavaScriptChannel` stops delivering messages from the channel, but its JavaScript object is not removed because the web engines have no API to remove it.
 
 - To play Youtube, make app's background color to transparent.
 
