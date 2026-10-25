@@ -153,6 +153,30 @@ void main() {
     }, timeout: const Timeout(Duration(seconds: 10)));
   });
 
+  group('getUserMedia', () {
+    test(
+      'applies audio processing constraints to track settings',
+      () async {
+        final stream = await navigator.mediaDevices.getUserMedia(
+          <String, dynamic>{
+            'audio': <String, dynamic>{
+              'echoCancellation': false,
+              'noiseSuppression': false,
+              'autoGainControl': false,
+            },
+            'video': false,
+          },
+        );
+        final settings = stream.getAudioTracks().first.getSettings();
+        expect(settings['echoCancellation'], isFalse);
+        expect(settings['noiseSuppression'], isFalse);
+        expect(settings['autoGainControl'], isFalse);
+        await stream.dispose();
+      },
+      timeout: const Timeout(Duration(seconds: 10)),
+    );
+  });
+
   group('RTCDataChannel', () {
     test(
       'createDataChannel returns channel with correct label',
