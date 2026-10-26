@@ -1,5 +1,6 @@
 ## NEXT
 
+* Remove Galaxy Watch (Tizen 5.5) from supported devices.
 * Omit obvious local variable types.
 * Reformat with a line length of 100.
 * Use wrapper API.

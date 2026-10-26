@@ -131,4 +131,4 @@ The `http://tizen.org/privilege/internet` privilege is required to perform netwo
 
 ## Supported devices
 
-All devices running Tizen 5.5 or later.
+All devices running Tizen 6.0 or later.

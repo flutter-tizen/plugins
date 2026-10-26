@@ -1,3 +1,7 @@
+## NEXT
+
+* Remove Galaxy Watch (Tizen 5.5) from supported devices.
+
 ## 2.6.0
 
 * Add support for `getAudioTracks` and `selectAudioTrack`.
