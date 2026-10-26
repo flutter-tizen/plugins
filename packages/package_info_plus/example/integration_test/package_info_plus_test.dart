@@ -18,7 +18,7 @@ void main() {
     expect(info.buildSignature, isEmpty);
     expect(info.installTime, isNotNull);
     expect(info.packageName, 'org.tizen.package_info_plus_tizen_example');
-    expect(info.updateTime, isNull);
+    expect(info.updateTime, info.installTime);
     expect(info.version, '1.2.3');
     expect(info.installerStore, null);
   });
