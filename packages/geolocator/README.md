@@ -36,7 +36,7 @@ To use this plugin, you need to declare privileges in `tizen-manifest.xml` of yo
 
 ## Supported devices
 
-- Galaxy Watch series (running Tizen 5.5)
+- All devices running Tizen 6.0 or later
 
 ## Supported APIs
 

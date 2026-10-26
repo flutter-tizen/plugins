@@ -59,4 +59,4 @@ $ sdb dlog TEST  # Replace TEST with your log tag.
 
 ## Supported devices
 
-- Galaxy Watch series (running Tizen 5.5)
+- All devices running Tizen 6.0 or later

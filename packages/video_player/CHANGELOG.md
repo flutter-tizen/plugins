@@ -1,3 +1,7 @@
+## NEXT
+
+* Remove Galaxy Watch (Tizen 5.5) from supported devices.
+
 ## 2.5.16
 
 * Omit obvious local variable types.

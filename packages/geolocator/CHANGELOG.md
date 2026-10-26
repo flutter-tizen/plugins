@@ -1,3 +1,7 @@
+## NEXT
+
+* Remove Galaxy Watch (Tizen 5.5) from supported devices.
+
 ## 1.1.0
 
 * Update geolocator_platform_interface to 4.4.0.

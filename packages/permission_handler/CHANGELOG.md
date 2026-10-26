@@ -1,3 +1,7 @@
+## NEXT
+
+* Remove Galaxy Watch (Tizen 5.5) from supported devices.
+
 ## 1.4.7
 
 * Update permission_handler to 13.0.1.

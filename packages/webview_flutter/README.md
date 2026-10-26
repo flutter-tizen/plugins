@@ -59,7 +59,7 @@ class _WebViewExampleState extends State<WebViewExample> {
 
 ## Supported devices
 
-This plugin is only supported on Tizen TV devices running Tizen 5.5 or later.
+This plugin is only supported on Tizen TV devices running Tizen 6.0 or later.
 
 ## Web engine backend
 

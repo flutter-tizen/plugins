@@ -62,7 +62,7 @@ On Tizen, your app can use some security-sensitive features (such as bluetooth) 
 
 ## Supported devices
 
-- Galaxy Watch series (running Tizen 5.5)
+- All devices running Tizen 6.0 or later
 
 On TV devices, you don't need to explicitly request permissions since they are already granted to apps by default.
 
