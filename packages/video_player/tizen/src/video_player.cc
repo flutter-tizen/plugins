@@ -650,6 +650,7 @@ void VideoPlayer::StartScreensaverTimer() {
   if (timer_id_ != 0) {
     return;
   }
+  ResetScreensaverTimeout(nullptr);
   timer_id_ =
       g_timeout_add_full(G_PRIORITY_DEFAULT, 30000, ResetScreensaverTimeout,
                          this, [](gpointer data) {
