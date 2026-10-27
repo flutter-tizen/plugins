@@ -1,3 +1,7 @@
+## 0.2.2
+
+* Update firebase_core to 5.0.0.
+
 ## 0.2.1
 
 * Update firebase_core to 4.15.0.
