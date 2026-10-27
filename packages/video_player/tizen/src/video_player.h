@@ -15,12 +15,20 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <queue>
 #include <string>
+#include <vector>
 
 #include "video_player_options.h"
 
 namespace video_player_tizen {
+
+struct AudioTrack {
+  int32_t index;
+  std::optional<std::string> language;
+  bool is_selected;
+};
 
 class VideoPlayer {
  public:
@@ -39,6 +47,9 @@ class VideoPlayer {
   void SetPlaybackSpeed(double speed);
   void SeekTo(int32_t position, SeekCompletedCallback callback);
   int32_t GetPosition();
+  std::vector<AudioTrack> GetAudioTracks();
+  void SelectAudioTrack(int64_t index);
+  void SetPreventsDisplaySleep(bool prevents_display_sleep);
   void Dispose();
 
   int64_t GetTextureId() { return texture_id_; }
@@ -66,6 +77,7 @@ class VideoPlayer {
   static void OnVideoFrameDecoded(media_packet_h packet, void *data);
   static void ReleaseMediaPacket(void *packet);
 #ifdef TV_PROFILE
+  void StartScreensaverTimer();
   static gboolean ResetScreensaverTimeout(gpointer data);
 #endif
 
@@ -100,6 +112,7 @@ class VideoPlayer {
 
 #ifdef TV_PROFILE
   guint timer_id_ = 0;
+  bool prevents_display_sleep_ = true;
 #endif
 
   // Event dispatch state structure for lifecycle management

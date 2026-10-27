@@ -44,6 +44,12 @@ class VideoPlayerTizenPlugin : public flutter::Plugin,
   std::optional<FlutterError> Pause(const TextureMessage &msg) override;
   std::optional<FlutterError> SetMixWithOthers(
       const MixWithOthersMessage &msg) override;
+  std::optional<FlutterError> SetPreventsDisplaySleep(
+      const PreventsDisplaySleepMessage &msg) override;
+  ErrorOr<flutter::EncodableList> GetAudioTracks(
+      const TextureMessage &msg) override;
+  std::optional<FlutterError> SelectAudioTrack(
+      const SelectAudioTrackMessage &msg) override;
 
  private:
   void DisposeAllPlayers();
@@ -243,6 +249,54 @@ void VideoPlayerTizenPlugin::SeekTo(
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetMixWithOthers(
     const MixWithOthersMessage &msg) {
   options_.SetMixWithOthers(msg.mix_with_others());
+  return std::nullopt;
+}
+
+std::optional<FlutterError> VideoPlayerTizenPlugin::SetPreventsDisplaySleep(
+    const PreventsDisplaySleepMessage &msg) {
+  auto iter = players_.find(msg.texture_id());
+  if (iter == players_.end()) {
+    return FlutterError("Invalid argument", "Player not found.");
+  }
+  iter->second->SetPreventsDisplaySleep(msg.prevents_display_sleep());
+
+  return std::nullopt;
+}
+
+ErrorOr<flutter::EncodableList> VideoPlayerTizenPlugin::GetAudioTracks(
+    const TextureMessage &msg) {
+  auto iter = players_.find(msg.texture_id());
+  if (iter == players_.end()) {
+    return FlutterError("Invalid argument", "Player not found.");
+  }
+
+  flutter::EncodableList result;
+  try {
+    for (const AudioTrack &track : iter->second->GetAudioTracks()) {
+      AudioTrackMessage message(track.index, track.is_selected);
+      if (track.language) {
+        message.set_language(*track.language);
+      }
+      result.push_back(flutter::CustomEncodableValue(message));
+    }
+  } catch (const VideoPlayerError &error) {
+    return FlutterError(error.code(), error.message());
+  }
+  return result;
+}
+
+std::optional<FlutterError> VideoPlayerTizenPlugin::SelectAudioTrack(
+    const SelectAudioTrackMessage &msg) {
+  auto iter = players_.find(msg.texture_id());
+  if (iter == players_.end()) {
+    return FlutterError("Invalid argument", "Player not found.");
+  }
+  try {
+    iter->second->SelectAudioTrack(msg.track_index());
+  } catch (const VideoPlayerError &error) {
+    return FlutterError(error.code(), error.message());
+  }
+
   return std::nullopt;
 }
 

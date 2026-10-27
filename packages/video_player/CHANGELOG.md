@@ -1,3 +1,8 @@
+## 2.6.0
+
+* Add support for `getAudioTracks` and `selectAudioTrack`.
+* Add support for `setPreventsDisplaySleepDuringVideoPlayback`.
+
 ## 2.5.16
 
 * Omit obvious local variable types.
