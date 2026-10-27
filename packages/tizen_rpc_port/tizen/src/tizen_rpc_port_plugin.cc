@@ -12,7 +12,9 @@
 #include <flutter/plugin_registrar.h>
 #include <flutter/standard_method_codec.h>
 
+#include <map>
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <variant>
@@ -47,6 +49,15 @@ static bool GetValueFromEncodableMap(const flutter::EncodableMap* map,
   return false;
 }
 
+std::optional<int64_t> GetHandle(const flutter::EncodableMap* args) {
+  auto it = args->find(flutter::EncodableValue("handle"));
+  if (it == args->end() || !(std::holds_alternative<int32_t>(it->second) ||
+                             std::holds_alternative<int64_t>(it->second))) {
+    return std::nullopt;
+  }
+  return it->second.LongValue();
+}
+
 class RpcProxyStreamHandler : public FlStreamHandler {
  protected:
   std::unique_ptr<FlStreamHandlerError> OnListenInternal(
@@ -58,17 +69,14 @@ class RpcProxyStreamHandler : public FlStreamHandler {
       return std::make_unique<FlStreamHandlerError>(
           "Invalid arguments", "The argument must be a map.", nullptr);
     }
-    rpc_port_proxy_h handle = nullptr;
-    std::string appid, port_name;
-    if (!GetValueFromEncodableMap(args, "handle",
-                                  reinterpret_cast<int64_t&>(handle))) {
-      if (!GetValueFromEncodableMap(args, "handle",
-                                    reinterpret_cast<int32_t&>(handle))) {
-        return std::make_unique<FlStreamHandlerError>(
-            "Invalid arguments", "No handle provided.", nullptr);
-      }
+    std::optional<int64_t> address = GetHandle(args);
+    if (!address) {
+      return std::make_unique<FlStreamHandlerError>(
+          "Invalid arguments", "No handle provided.", nullptr);
     }
+    rpc_port_proxy_h handle = reinterpret_cast<rpc_port_proxy_h>(*address);
 
+    std::string appid, port_name;
     if (!GetValueFromEncodableMap(args, "appid", appid) ||
         !GetValueFromEncodableMap(args, "portName", port_name)) {
       return std::make_unique<FlStreamHandlerError>(
@@ -92,39 +100,35 @@ class RpcProxyStreamHandler : public FlStreamHandler {
 };
 
 class RpcStubStreamHandler : public FlStreamHandler {
+ public:
+  explicit RpcStubStreamHandler(rpc_port_stub_h handle) : handle_(handle) {}
+
+  ~RpcStubStreamHandler() override { RpcPortStubManager::Dispose(handle_); }
+
  protected:
   std::unique_ptr<FlStreamHandlerError> OnListenInternal(
       const flutter::EncodableValue* arguments,
       std::unique_ptr<FlEventSink>&& events) override {
-    RpcPortStubManager::Init(std::move(events));
-
-    const auto* args = std::get_if<flutter::EncodableMap>(arguments);
-    if (!args) {
-      return std::make_unique<FlStreamHandlerError>(
-          "Invalid arguments", "The argument must be a map.", nullptr);
-    }
-    rpc_port_stub_h handle = nullptr;
-    if (!GetValueFromEncodableMap(args, "handle",
-                                  reinterpret_cast<int64_t&>(handle))) {
-      if (!GetValueFromEncodableMap(args, "handle",
-                                    reinterpret_cast<int32_t&>(handle))) {
-        return std::make_unique<FlStreamHandlerError>(
-            "Invalid arguments", "No handle provided.", nullptr);
-      }
-    }
-
-    auto ret = RpcPortStubManager::Listen(handle);
+    FlEventSink* sink = events.get();
+    RpcPortStubManager::Init(handle_, std::move(events));
+    auto ret = RpcPortStubManager::Listen(handle_);
     if (!ret) {
-      return std::make_unique<FlStreamHandlerError>(
-          std::to_string(ret.error_code), ret.message(), nullptr);
+      // An error returned from here is only logged by the Dart EventChannel;
+      // the sink delivers it to the stub's onError.
+      sink->Error(std::to_string(ret.error_code), ret.message());
+      RpcPortStubManager::Dispose(handle_);
     }
     return nullptr;
   }
 
   std::unique_ptr<FlStreamHandlerError> OnCancelInternal(
       const flutter::EncodableValue* arguments) override {
+    RpcPortStubManager::Dispose(handle_);
     return nullptr;
   }
+
+ private:
+  rpc_port_stub_h handle_;
 };
 
 class TizenRpcPortPlugin : public flutter::Plugin {
@@ -139,11 +143,6 @@ class TizenRpcPortPlugin : public flutter::Plugin {
         [plugin_pointer = plugin.get()](const auto& call, auto result) {
           plugin_pointer->HandleMethodCall(call, std::move(result));
         });
-    plugin->stub_channel_ = std::make_unique<FlEventChannel>(
-        registrar->messenger(), "tizen/rpc_port_stub",
-        &flutter::StandardMethodCodec::GetInstance());
-    plugin->stub_channel_->SetStreamHandler(
-        std::make_unique<RpcStubStreamHandler>());
 
     registrar->AddPlugin(std::move(plugin));
   }
@@ -151,11 +150,15 @@ class TizenRpcPortPlugin : public flutter::Plugin {
   TizenRpcPortPlugin(flutter::PluginRegistrar* plugin_registrar)
       : plugin_registrar_(plugin_registrar) {}
 
-  virtual ~TizenRpcPortPlugin() {}
+  ~TizenRpcPortPlugin() override {
+    for (const auto& entry : stub_channels_) {
+      entry.second->SetStreamHandler(nullptr);
+    }
+  }
 
  private:
   std::set<std::unique_ptr<FlEventChannel>> proxy_channels_;
-  std::unique_ptr<FlEventChannel> stub_channel_;
+  std::map<int64_t, std::unique_ptr<FlEventChannel>> stub_channels_;
   flutter::PluginRegistrar* plugin_registrar_ = nullptr;
 
  private:
@@ -164,21 +167,50 @@ class TizenRpcPortPlugin : public flutter::Plugin {
     const auto& method_name = method_call.method_name();
     const auto& arguments = *method_call.arguments();
 
-    if (method_name == "init") {
+    if (method_name == "stubInit" || method_name == "stubDispose") {
+      const auto* args = std::get_if<flutter::EncodableMap>(&arguments);
+      if (!args) {
+        result->Error("Invalid arguments", "The argument must be a map.");
+        return;
+      }
+      std::optional<int64_t> handle = GetHandle(args);
+      if (!handle || *handle <= 0) {
+        result->Error("Invalid arguments", "Invalid stub handle.");
+        return;
+      }
+      int64_t address = *handle;
+
+      auto it = stub_channels_.find(address);
+      if (method_name == "stubDispose") {
+        if (it != stub_channels_.end()) {
+          it->second->SetStreamHandler(nullptr);
+          stub_channels_.erase(it);
+        }
+      } else {
+        if (it != stub_channels_.end()) {
+          result->Error("Already initialized", "Stub channel already exists.");
+          return;
+        }
+        auto channel = std::make_unique<FlEventChannel>(
+            plugin_registrar_->messenger(),
+            "tizen/rpc_port_stub/" + std::to_string(address),
+            &flutter::StandardMethodCodec::GetInstance());
+        channel->SetStreamHandler(std::make_unique<RpcStubStreamHandler>(
+            reinterpret_cast<rpc_port_stub_h>(address)));
+        stub_channels_.emplace(address, std::move(channel));
+      }
+      result->Success();
+    } else if (method_name == "init") {
       const auto* args = std::get_if<flutter::EncodableMap>(&arguments);
       if (!args) {
         result->Error("Invalid arguments", "The argument must be a map.");
         return;
       }
 
-      rpc_port_proxy_h handle = nullptr;
-      if (!GetValueFromEncodableMap(args, "handle",
-                                    reinterpret_cast<int64_t&>(handle))) {
-        if (!GetValueFromEncodableMap(args, "handle",
-                                      reinterpret_cast<int32_t&>(handle))) {
-          result->Error("Invalid arguments", "No handle provided.");
-          return;
-        }
+      std::optional<int64_t> address = GetHandle(args);
+      if (!address) {
+        result->Error("Invalid arguments", "No handle provided.");
+        return;
       }
 
       std::string appid, port_name;
@@ -188,8 +220,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
       }
 
       std::string event_channel_name =
-          "tizen/rpc_port_proxy/" + port_name + '/' +
-          std::to_string(reinterpret_cast<int64_t>(handle));
+          "tizen/rpc_port_proxy/" + port_name + '/' + std::to_string(*address);
 
       auto proxy_channel = std::make_unique<FlEventChannel>(
           plugin_registrar_->messenger(), event_channel_name,

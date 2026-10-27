@@ -13,7 +13,7 @@ import 'package:tizen_rpc_port_server_example/message_server.dart';
 // suite covers the server-specific StubBase behaviour.
 
 // A minimal StubBase subclass used only to test single-app observable
-// behaviour (construction, setTrusted, addPrivilege).
+// behaviour (construction, setTrusted, addPrivilege, close).
 class _TestStub extends StubBase {
   _TestStub() : super('TestStubPort');
 
@@ -41,18 +41,37 @@ void main() {
   group('StubBase', () {
     test('portName is set from constructor', () async {
       final stub = _TestStub();
+      addTearDown(stub.close);
       expect(stub.portName, 'TestStubPort');
     });
 
     test('setTrusted can be called without listen', () async {
       final stub = _TestStub();
+      addTearDown(stub.close);
       stub.setTrusted(true);
       stub.setTrusted(false);
     });
 
     test('addPrivilege can be called without listen', () async {
       final stub = _TestStub();
+      addTearDown(stub.close);
       stub.addPrivilege('http://tizen.org/privilege/datasharing');
+    });
+
+    test('operations on a closed stub throw StateError', () async {
+      final stub = _TestStub();
+      await stub.close();
+      expect(() => stub.setTrusted(true), throwsStateError);
+      expect(() => stub.addPrivilege('http://tizen.org/privilege/datasharing'), throwsStateError);
+      expect(() => stub.getPort('instance', PortType.main), throwsStateError);
+      await expectLater(stub.listen(), throwsStateError);
+    });
+
+    test('close returns the same future when called twice', () async {
+      final stub = _TestStub();
+      final Future<void> first = stub.close();
+      expect(identical(stub.close(), first), isTrue);
+      await first;
     });
   });
 
@@ -65,6 +84,7 @@ void main() {
       final server = Message(
         serviceBuilder: (String sender, String instance) => _NoopService(sender, instance),
       );
+      addTearDown(server.close);
       expect(server.portName, 'Message');
     });
 
@@ -72,6 +92,7 @@ void main() {
       final server = Message(
         serviceBuilder: (String sender, String instance) => _NoopService(sender, instance),
       );
+      addTearDown(server.close);
       expect(server.services, isEmpty);
     });
   });
