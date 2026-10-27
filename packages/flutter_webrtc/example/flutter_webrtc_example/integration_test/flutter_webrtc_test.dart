@@ -101,6 +101,56 @@ void main() {
       await pc.close();
       await expectLater(pc.close(), completes);
     }, timeout: const Timeout(Duration(seconds: 10)));
+
+    test('setParameters applies encoding changes', () async {
+      final pc = await createPeerConnection(_kConfig);
+      final transceiver = await pc.addTransceiver(
+        kind: RTCRtpMediaType.RTCRtpMediaTypeVideo,
+        init: RTCRtpTransceiverInit(direction: TransceiverDirection.SendOnly),
+      );
+      final parameters = transceiver.sender.parameters;
+      parameters.encodings!.first.maxBitrate = 123456;
+      expect(await transceiver.sender.setParameters(parameters), isTrue);
+
+      final senders = await pc.getSenders();
+      expect(senders.first.parameters.encodings!.first.maxBitrate, 123456);
+      await pc.close();
+    }, timeout: const Timeout(Duration(seconds: 10)));
+
+    test('setParameters keeps unset encoding limits unset', () async {
+      final pc = await createPeerConnection(_kConfig);
+      final transceiver = await pc.addTransceiver(
+        kind: RTCRtpMediaType.RTCRtpMediaTypeVideo,
+        init: RTCRtpTransceiverInit(direction: TransceiverDirection.SendOnly),
+      );
+      final parameters = transceiver.sender.parameters;
+      parameters.encodings!.first.minBitrate = 300000;
+      expect(await transceiver.sender.setParameters(parameters), isTrue);
+
+      final senders = await pc.getSenders();
+      expect(senders.first.parameters.encodings!.first.minBitrate, 300000);
+      await pc.close();
+    }, timeout: const Timeout(Duration(seconds: 10)));
+
+    test('setParameters applies encoding changes after negotiation', () async {
+      final pc1 = await createPeerConnection(_kConfig);
+      final pc2 = await createPeerConnection(_kConfig);
+      await pc1.addTransceiver(
+        kind: RTCRtpMediaType.RTCRtpMediaTypeVideo,
+        init: RTCRtpTransceiverInit(direction: TransceiverDirection.SendOnly),
+      );
+      await _negotiate(pc1, pc2);
+
+      final sender = (await pc1.getSenders()).first;
+      final parameters = sender.parameters;
+      parameters.encodings!.first.maxBitrate = 123456;
+      expect(await sender.setParameters(parameters), isTrue);
+
+      final senders = await pc1.getSenders();
+      expect(senders.first.parameters.encodings!.first.maxBitrate, 123456);
+      await pc1.close();
+      await pc2.close();
+    }, timeout: const Timeout(Duration(seconds: 10)));
   });
 
   group('RTCDataChannel', () {

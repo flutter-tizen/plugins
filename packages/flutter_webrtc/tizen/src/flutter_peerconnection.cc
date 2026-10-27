@@ -741,21 +741,22 @@ scoped_refptr<RTCRtpParameters> FlutterPeerConnection::updateRtpParameters(
         param->set_rid(GetValue<std::string>(value));
       }
       value = findEncodableValue(map, "ssrc");
-      if (!value.IsNull()) {
+      if (!value.IsNull() && GetValue<int>(value) != 0) {
         param->set_ssrc(GetValue<int>(value));
       }
       value = findEncodableValue(map, "maxBitrate");
-      if (!value.IsNull()) {
+      if (!value.IsNull() && GetValue<int>(value) != param->max_bitrate_bps()) {
         param->set_max_bitrate_bps(GetValue<int>(value));
       }
 
       value = findEncodableValue(map, "minBitrate");
-      if (!value.IsNull()) {
+      if (!value.IsNull() && GetValue<int>(value) != param->min_bitrate_bps()) {
         param->set_min_bitrate_bps(GetValue<int>(value));
       }
 
       value = findEncodableValue(map, "maxFramerate");
-      if (!value.IsNull()) {
+      if (!value.IsNull() &&
+          GetValue<int>(value) != static_cast<int>(param->max_framerate())) {
         param->set_max_framerate(GetValue<int>(value));
       }
       value = findEncodableValue(map, "numTemporalLayers");
@@ -763,11 +764,12 @@ scoped_refptr<RTCRtpParameters> FlutterPeerConnection::updateRtpParameters(
         param->set_num_temporal_layers(GetValue<int>(value));
       }
       value = findEncodableValue(map, "scaleResolutionDownBy");
-      if (!value.IsNull()) {
+      if (!value.IsNull() &&
+          GetValue<double>(value) != param->scale_resolution_down_by()) {
         param->set_scale_resolution_down_by(GetValue<double>(value));
       }
       value = findEncodableValue(map, "scalabilityMode");
-      if (!value.IsNull()) {
+      if (!value.IsNull() && !GetValue<std::string>(value).empty()) {
         param->set_scalability_mode(GetValue<std::string>(value));
       }
       value = findEncodableValue(map, "priority");
@@ -783,6 +785,7 @@ scoped_refptr<RTCRtpParameters> FlutterPeerConnection::updateRtpParameters(
       encoding++;
     }
   }
+  parameters->set_encodings(params);
 
   EncodableValue value =
       findEncodableValue(newParameters, "degradationPreference");
