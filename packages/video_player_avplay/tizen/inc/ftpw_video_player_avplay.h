@@ -40,6 +40,12 @@ typedef enum {
   PLAYER_DRM_TYPE_EME = 14,
 } player_drm_type_e;
 
+// Same as PLAYER_DISPLAY_TYPE_OVERLAY2 defined in Tizen 11.0. Prefixed to
+// avoid conflicts.
+enum {
+  FLUTTER_TIZEN_PLUGINS_WRAPPER_PLAYER_DISPLAY_TYPE_OVERLAY2 = 6,
+};
+
 typedef enum {
   PLAYER_ADAPTIVE_INFO_LIVE_DURATION = 3,
   PLAYER_ADAPTIVE_INFO_IS_LIVE = 19,
