@@ -71,36 +71,40 @@ Position LocationManager::GetLastKnownPosition() {
 
 void LocationManager::GetCurrentPosition(LocationCallback on_location,
                                          LocationErrorCallback on_error) {
-  location_callback_ = on_location;
-  error_callback_ = on_error;
+  current_position_callbacks_.emplace_back(on_location, on_error);
+  if (current_position_callbacks_.size() > 1) {
+    return;
+  }
   int ret = location_manager_request_single_location(
       manager_for_current_location_, 5,
       [](location_error_e error, double latitude, double longitude,
          double altitude, time_t timestamp, double speed, double direction,
          double climb, void *user_data) {
         LocationManager *self = static_cast<LocationManager *>(user_data);
+        auto callbacks = std::exchange(self->current_position_callbacks_, {});
 
-        if (error != LOCATIONS_ERROR_NONE && self->error_callback_) {
-          self->error_callback_(LocationManagerError(error));
-        } else if (self->location_callback_) {
-          Position position = {};
-          position.latitude = latitude;
-          position.longitude = longitude;
-          position.altitude = altitude;
-          position.timestamp = timestamp;
-          position.speed = KmPerHourToMetersPerSecond(speed);
-          position.heading = direction;
-          position.verticalSpeed = KmPerHourToMetersPerSecond(climb);
-
-          self->location_callback_(position);
+        if (error != LOCATIONS_ERROR_NONE) {
+          for (const auto &callback : callbacks) {
+            callback.second(LocationManagerError(error));
+          }
+          return;
         }
-        self->location_callback_ = nullptr;
-        self->error_callback_ = nullptr;
+        Position position = {};
+        position.latitude = latitude;
+        position.longitude = longitude;
+        position.altitude = altitude;
+        position.timestamp = timestamp;
+        position.speed = KmPerHourToMetersPerSecond(speed);
+        position.heading = direction;
+        position.verticalSpeed = KmPerHourToMetersPerSecond(climb);
+        for (const auto &callback : callbacks) {
+          callback.first(position);
+        }
       },
       this);
   if (LOCATIONS_ERROR_NONE != ret) {
-    error_callback_(LocationManagerError(ret));
-    error_callback_ = nullptr;
+    current_position_callbacks_.clear();
+    on_error(LocationManagerError(ret));
   }
 }
 

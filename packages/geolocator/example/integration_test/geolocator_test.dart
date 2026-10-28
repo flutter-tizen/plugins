@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:integration_test/integration_test.dart';
@@ -27,6 +28,21 @@ Future<void> main() async {
 
   test('get current position', () async {
     expect(await Geolocator.getCurrentPosition(), isA<Position>());
+  }, timeout: const Timeout(Duration(seconds: 10)));
+
+  test('concurrent get current position calls all complete', () async {
+    final List<Position> positions = await Future.wait(<Future<Position>>[
+      Geolocator.getCurrentPosition(),
+      Geolocator.getCurrentPosition(),
+    ]);
+    expect(positions, everyElement(isA<Position>()));
+  }, timeout: const Timeout(Duration(seconds: 10)));
+
+  test('unimplemented method throws MissingPluginException', () async {
+    await expectLater(
+      Geolocator.getLocationAccuracy(),
+      throwsA(isA<MissingPluginException>()),
+    );
   }, timeout: const Timeout(Duration(seconds: 10)));
 
   test('position timestamp is in milliseconds', () async {

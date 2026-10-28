@@ -1,3 +1,8 @@
+## 1.1.1
+
+* Fix `getCurrentPosition` never completing when it is called again before an earlier call completes.
+* Fix a crash when an unimplemented method such as `getLocationAccuracy` is called.
+
 ## 1.1.0
 
 * Update geolocator_platform_interface to 4.4.0.
