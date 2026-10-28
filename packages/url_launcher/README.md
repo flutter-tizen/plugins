@@ -10,8 +10,8 @@ This package is not an _endorsed_ implementation of `url_launcher`. Therefore, y
 
 ```yaml
 dependencies:
-  url_launcher: ^6.3.2
-  url_launcher_tizen: ^2.1.8
+  url_launcher: ^6.3.3
+  url_launcher_tizen: ^2.1.9
 ```
 
 Then you can import `url_launcher` in your Dart code:
@@ -38,3 +38,4 @@ For detailed information on Tizen privileges, see [Tizen Docs: API Privileges](h
 
 - A `PlatformException` is raised if no application on the device can open the provided URL.
 - Only `LaunchMode.platformDefault` and `LaunchMode.externalApplication` are supported on Tizen. Both open the URL in an external application.
+- Closing a launched URL is not supported. `supportsCloseForLaunchMode` returns `false` for all launch modes.
