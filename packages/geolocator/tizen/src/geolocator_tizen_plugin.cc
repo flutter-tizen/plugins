@@ -31,6 +31,8 @@ typedef flutter::StreamHandlerError<flutter::EncodableValue>
 
 constexpr char kPrivilegeLocation[] = "http://tizen.org/privilege/location";
 
+enum class LocationAccuracyStatus { kReduced, kPrecise };
+
 class LocationStreamHandler : public FlStreamHandler {
  protected:
   std::unique_ptr<FlStreamHandlerError> OnListenInternal(
@@ -160,6 +162,9 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
       OnGetLastKnownPosition();
     } else if (method_name == "getCurrentPosition") {
       OnGetCurrentPosition();
+    } else if (method_name == "getLocationAccuracy") {
+      SendResult(flutter::EncodableValue(
+          static_cast<int>(LocationAccuracyStatus::kPrecise)));
     } else if (method_name == "openAppSettings") {
       bool opened = app_settings_manager_->OpenAppSettings();
       SendResult(flutter::EncodableValue(opened));

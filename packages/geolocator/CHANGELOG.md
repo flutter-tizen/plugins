@@ -1,7 +1,8 @@
-## 1.1.1
+## 1.2.0
 
 * Fix `getCurrentPosition` never completing when it is called again before an earlier call completes.
-* Fix a crash when an unimplemented method such as `getLocationAccuracy` is called.
+* Fix a crash when an unimplemented method such as `requestTemporaryFullAccuracy` is called.
+* Add support for `getLocationAccuracy`.
 
 ## 1.1.0
 

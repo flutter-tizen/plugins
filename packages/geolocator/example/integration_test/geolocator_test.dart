@@ -40,8 +40,15 @@ Future<void> main() async {
 
   test('unimplemented method throws MissingPluginException', () async {
     await expectLater(
-      Geolocator.getLocationAccuracy(),
+      Geolocator.requestTemporaryFullAccuracy(purposeKey: 'test'),
       throwsA(isA<MissingPluginException>()),
+    );
+  }, timeout: const Timeout(Duration(seconds: 10)));
+
+  test('location accuracy is precise', () async {
+    expect(
+      await Geolocator.getLocationAccuracy(),
+      LocationAccuracyStatus.precise,
     );
   }, timeout: const Timeout(Duration(seconds: 10)));
 

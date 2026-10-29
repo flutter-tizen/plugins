@@ -11,7 +11,7 @@ The Tizen implementation of [`geolocator`](https://pub.dev/packages/geolocator).
  ```yaml
 dependencies:
   geolocator: ^14.0.3
-  geolocator_tizen: ^1.1.1
+  geolocator_tizen: ^1.2.0
 ```
 
 Then you can import `geolocator` in your Dart code:
@@ -47,7 +47,7 @@ To use this plugin, you need to declare privileges in `tizen-manifest.xml` of yo
 - [x] `Geolocator.getLastKnownPosition`
 - [x] `Geolocator.getCurrentPosition` (supported arguments: `timeLimit`)
 - [x] `Geolocator.getPositionStream` (supported arguments: `locationSettings.timeLimit`)
-- [ ] `Geolocator.getLocationAccuracy`
+- [x] `Geolocator.getLocationAccuracy`
 - [ ] `Geolocator.requestTemporaryFullAccuracy` (iOS-only)
 - [x] `Geolocator.openAppSettings` (not supported on emulators)
 - [x] `Geolocator.openLocationSettings` (not supported on emulators)
