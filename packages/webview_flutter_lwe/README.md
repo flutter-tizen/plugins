@@ -21,7 +21,7 @@ This package is not an _endorsed_ implementation of `webview_flutter`. Therefore
 ```yaml
 dependencies:
   webview_flutter: ^4.14.1
-  webview_flutter_lwe: ^0.5.6
+  webview_flutter_lwe: ^0.5.7
 ```
 
 ## Example
@@ -77,6 +77,6 @@ await controller.setHorizontalScrollBarEnabled(true);
 
 ## Supported devices
 
-This plugin is supported on devices running Tizen 5.5 or later.
+This plugin is supported on devices running Tizen 6.0 or later.
 
 For a detailed list of features supported by the Lightweight Web Engine, refer to [this page](https://git.tizen.org/cgit/platform/upstream/lightweight-web-engine/tree/docs/Spec.md?h=tizen).
