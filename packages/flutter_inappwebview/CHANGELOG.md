@@ -1,3 +1,7 @@
+## NEXT
+
+- Fix a build error in debug mode on Tizen 11.0.
+
 ## 0.3.0
 
 - Use wrapper APIs for the EWK and WV backends.
