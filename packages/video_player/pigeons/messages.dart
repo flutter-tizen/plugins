@@ -68,6 +68,22 @@ class SelectAudioTrackMessage {
   int trackIndex;
 }
 
+class VideoTrackMessage {
+  VideoTrackMessage(this.bandwidth, this.width, this.height, this.isSelected);
+  int bandwidth;
+  int width;
+  int height;
+  bool isSelected;
+}
+
+class SelectVideoTrackMessage {
+  SelectVideoTrackMessage(this.textureId, this.bandwidth, this.width, this.height);
+  int textureId;
+  int bandwidth;
+  int width;
+  int height;
+}
+
 class PreventsDisplaySleepMessage {
   PreventsDisplaySleepMessage(this.textureId, this.preventsDisplaySleep);
   int textureId;
@@ -91,4 +107,6 @@ abstract class TizenVideoPlayerApi {
   void setPreventsDisplaySleep(PreventsDisplaySleepMessage msg);
   List<AudioTrackMessage> getAudioTracks(TextureMessage msg);
   void selectAudioTrack(SelectAudioTrackMessage msg);
+  List<VideoTrackMessage> getVideoTracks(TextureMessage msg);
+  void selectVideoTrack(SelectVideoTrackMessage msg);
 }

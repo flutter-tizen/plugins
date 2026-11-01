@@ -15,7 +15,7 @@ This package is not an _endorsed_ implementation of `video_player`. Therefore, y
 ```yaml
 dependencies:
   video_player: ^2.14.0
-  video_player_tizen: ^2.6.0
+  video_player_tizen: ^2.7.0
 ```
 
 Then you can import `video_player` in your Dart code:
@@ -56,13 +56,11 @@ The following options are not currently supported.
 The following methods are not currently supported.
 
 - `VideoPlayerPlatform.setAllowBackgroundPlayback()`
-- `VideoPlayerPlatform.getVideoTracks()`
-- `VideoPlayerPlatform.selectVideoTrack()`
-- `VideoPlayerPlatform.isVideoTrackSupportAvailable()`
 
 This plugin has the following limitations.
 
 - The `preventsDisplaySleepDuringVideoPlayback` option only takes effect on TV devices.
+- `selectVideoTrack` only limits the maximum resolution (or the bandwidth if the stream has no resolution information) of an adaptive stream (HLS/DASH), so the player may play another variant within that limit. A track is reported as selected only while it is set as the limit.
 - The `httpHeaders` option of `VideoPlayerController.networkUrl` only support `Cookie` and `User-Agent`.
 - The `setPlaybackSpeed` method will fail if triggered within the last 3 seconds of the video.
 - The playback speed will reset to 1.0 when the video is replayed in loop mode.

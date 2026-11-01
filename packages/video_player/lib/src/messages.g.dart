@@ -499,6 +499,124 @@ class SelectAudioTrackMessage {
   }
 }
 
+class VideoTrackMessage {
+  VideoTrackMessage({
+    required this.bandwidth,
+    required this.width,
+    required this.height,
+    required this.isSelected,
+  });
+
+  int bandwidth;
+
+  int width;
+
+  int height;
+
+  bool isSelected;
+
+  List<Object?> _toList() {
+    return <Object?>[bandwidth, width, height, isSelected];
+  }
+
+  Object encode() {
+    return _toList();
+  }
+
+  static VideoTrackMessage decode(Object result) {
+    result as List<Object?>;
+    return VideoTrackMessage(
+      bandwidth: result[0]! as int,
+      width: result[1]! as int,
+      height: result[2]! as int,
+      isSelected: result[3]! as bool,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! VideoTrackMessage || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(bandwidth, other.bandwidth) &&
+        _deepEquals(width, other.width) &&
+        _deepEquals(height, other.height) &&
+        _deepEquals(isSelected, other.isSelected);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+
+  @override
+  String toString() {
+    return 'VideoTrackMessage(bandwidth: $bandwidth, width: $width, height: $height, isSelected: $isSelected)';
+  }
+}
+
+class SelectVideoTrackMessage {
+  SelectVideoTrackMessage({
+    required this.textureId,
+    required this.bandwidth,
+    required this.width,
+    required this.height,
+  });
+
+  int textureId;
+
+  int bandwidth;
+
+  int width;
+
+  int height;
+
+  List<Object?> _toList() {
+    return <Object?>[textureId, bandwidth, width, height];
+  }
+
+  Object encode() {
+    return _toList();
+  }
+
+  static SelectVideoTrackMessage decode(Object result) {
+    result as List<Object?>;
+    return SelectVideoTrackMessage(
+      textureId: result[0]! as int,
+      bandwidth: result[1]! as int,
+      width: result[2]! as int,
+      height: result[3]! as int,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! SelectVideoTrackMessage || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(textureId, other.textureId) &&
+        _deepEquals(bandwidth, other.bandwidth) &&
+        _deepEquals(width, other.width) &&
+        _deepEquals(height, other.height);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+
+  @override
+  String toString() {
+    return 'SelectVideoTrackMessage(textureId: $textureId, bandwidth: $bandwidth, width: $width, height: $height)';
+  }
+}
+
 class PreventsDisplaySleepMessage {
   PreventsDisplaySleepMessage({required this.textureId, required this.preventsDisplaySleep});
 
@@ -579,8 +697,14 @@ class _PigeonCodec extends StandardMessageCodec {
     } else if (value is SelectAudioTrackMessage) {
       buffer.putUint8(137);
       writeValue(buffer, value.encode());
-    } else if (value is PreventsDisplaySleepMessage) {
+    } else if (value is VideoTrackMessage) {
       buffer.putUint8(138);
+      writeValue(buffer, value.encode());
+    } else if (value is SelectVideoTrackMessage) {
+      buffer.putUint8(139);
+      writeValue(buffer, value.encode());
+    } else if (value is PreventsDisplaySleepMessage) {
+      buffer.putUint8(140);
       writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
@@ -609,6 +733,10 @@ class _PigeonCodec extends StandardMessageCodec {
       case 137:
         return SelectAudioTrackMessage.decode(readValue(buffer)!);
       case 138:
+        return VideoTrackMessage.decode(readValue(buffer)!);
+      case 139:
+        return SelectVideoTrackMessage.decode(readValue(buffer)!);
+      case 140:
         return PreventsDisplaySleepMessage.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -831,6 +959,39 @@ class TizenVideoPlayerApi {
   Future<void> selectAudioTrack(SelectAudioTrackMessage msg) async {
     final pigeonVar_channelName =
         'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.selectAudioTrack$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[msg]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    _extractReplyValueOrThrow(pigeonVar_replyList, pigeonVar_channelName, isNullValid: true);
+  }
+
+  Future<List<VideoTrackMessage>> getVideoTracks(TextureMessage msg) async {
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.getVideoTracks$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[msg]);
+    final pigeonVar_replyList = await pigeonVar_sendFuture as List<Object?>?;
+
+    final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
+      pigeonVar_replyList,
+      pigeonVar_channelName,
+      isNullValid: false,
+    );
+    return (pigeonVar_replyValue! as List<Object?>).cast<VideoTrackMessage>();
+  }
+
+  Future<void> selectVideoTrack(SelectVideoTrackMessage msg) async {
+    final pigeonVar_channelName =
+        'dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.selectVideoTrack$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,

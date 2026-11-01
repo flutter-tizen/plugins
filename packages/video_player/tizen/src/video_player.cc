@@ -476,6 +476,51 @@ void VideoPlayer::SelectAudioTrack(int64_t index) {
   }
 }
 
+std::vector<VideoTrack> VideoPlayer::GetVideoTracks() {
+  int max_bandwidth = -1, max_width = -1, max_height = -1;
+  int ret = player_get_max_adaptive_variant_limit(player_, &max_bandwidth,
+                                                  &max_width, &max_height);
+  if (ret != PLAYER_ERROR_NONE) {
+    throw VideoPlayerError("player_get_max_adaptive_variant_limit failed",
+                           get_error_message(ret));
+  }
+
+  std::vector<VideoTrack> tracks;
+  ret = player_foreach_adaptive_variant(
+      player_,
+      [](int bandwidth, int width, int height, void *user_data) {
+        auto *tracks = static_cast<std::vector<VideoTrack> *>(user_data);
+        tracks->push_back({bandwidth, width, height, false});
+      },
+      &tracks);
+  if (ret != PLAYER_ERROR_NONE) {
+    throw VideoPlayerError("player_foreach_adaptive_variant failed",
+                           get_error_message(ret));
+  }
+
+  auto normalize = [](int value) { return value > 0 ? value : -1; };
+  for (VideoTrack &track : tracks) {
+    track.is_selected =
+        normalize(track.bandwidth) == normalize(max_bandwidth) &&
+        normalize(track.width) == normalize(max_width) &&
+        normalize(track.height) == normalize(max_height);
+  }
+  return tracks;
+}
+
+void VideoPlayer::SelectVideoTrack(int32_t bandwidth, int32_t width,
+                                   int32_t height) {
+  LOG_DEBUG("[VideoPlayer] bandwidth: %d, width: %d, height: %d", bandwidth,
+            width, height);
+
+  int ret =
+      player_set_max_adaptive_variant_limit(player_, bandwidth, width, height);
+  if (ret != PLAYER_ERROR_NONE) {
+    throw VideoPlayerError("player_set_max_adaptive_variant_limit failed",
+                           get_error_message(ret));
+  }
+}
+
 void VideoPlayer::Dispose() {
   LOG_DEBUG("[VideoPlayer] Player disposing.");
 

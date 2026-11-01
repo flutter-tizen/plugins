@@ -30,6 +30,13 @@ struct AudioTrack {
   bool is_selected;
 };
 
+struct VideoTrack {
+  int32_t bandwidth;
+  int32_t width;
+  int32_t height;
+  bool is_selected;
+};
+
 class VideoPlayer {
  public:
   using SeekCompletedCallback = std::function<void()>;
@@ -49,6 +56,8 @@ class VideoPlayer {
   int32_t GetPosition();
   std::vector<AudioTrack> GetAudioTracks();
   void SelectAudioTrack(int64_t index);
+  std::vector<VideoTrack> GetVideoTracks();
+  void SelectVideoTrack(int32_t bandwidth, int32_t width, int32_t height);
   void SetPreventsDisplaySleep(bool prevents_display_sleep);
   void Dispose();
 

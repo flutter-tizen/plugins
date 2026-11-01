@@ -978,6 +978,181 @@ size_t PigeonInternalDeepHash(const SelectAudioTrackMessage& v) {
   return v.Hash();
 }
 
+// VideoTrackMessage
+
+VideoTrackMessage::VideoTrackMessage(int64_t bandwidth, int64_t width,
+                                     int64_t height, bool is_selected)
+    : bandwidth_(bandwidth),
+      width_(width),
+      height_(height),
+      is_selected_(is_selected) {}
+
+int64_t VideoTrackMessage::bandwidth() const { return bandwidth_; }
+
+void VideoTrackMessage::set_bandwidth(int64_t value_arg) {
+  bandwidth_ = value_arg;
+}
+
+int64_t VideoTrackMessage::width() const { return width_; }
+
+void VideoTrackMessage::set_width(int64_t value_arg) { width_ = value_arg; }
+
+int64_t VideoTrackMessage::height() const { return height_; }
+
+void VideoTrackMessage::set_height(int64_t value_arg) { height_ = value_arg; }
+
+bool VideoTrackMessage::is_selected() const { return is_selected_; }
+
+void VideoTrackMessage::set_is_selected(bool value_arg) {
+  is_selected_ = value_arg;
+}
+
+EncodableList VideoTrackMessage::ToEncodableList() const {
+  EncodableList list;
+  list.reserve(4);
+  list.push_back(EncodableValue(bandwidth_));
+  list.push_back(EncodableValue(width_));
+  list.push_back(EncodableValue(height_));
+  list.push_back(EncodableValue(is_selected_));
+  return list;
+}
+
+VideoTrackMessage VideoTrackMessage::FromEncodableList(
+    const EncodableList& list) {
+  VideoTrackMessage decoded(
+      std::get<int64_t>(list[0]), std::get<int64_t>(list[1]),
+      std::get<int64_t>(list[2]), std::get<bool>(list[3]));
+  return decoded;
+}
+
+bool VideoTrackMessage::operator==(const VideoTrackMessage& other) const {
+  return PigeonInternalDeepEquals(bandwidth_, other.bandwidth_) &&
+         PigeonInternalDeepEquals(width_, other.width_) &&
+         PigeonInternalDeepEquals(height_, other.height_) &&
+         PigeonInternalDeepEquals(is_selected_, other.is_selected_);
+}
+
+bool VideoTrackMessage::operator!=(const VideoTrackMessage& other) const {
+  return !(*this == other);
+}
+
+size_t VideoTrackMessage::Hash() const {
+  size_t result = 1;
+  result = result * 31 + PigeonInternalDeepHash(bandwidth_);
+  result = result * 31 + PigeonInternalDeepHash(width_);
+  result = result * 31 + PigeonInternalDeepHash(height_);
+  result = result * 31 + PigeonInternalDeepHash(is_selected_);
+  return result;
+}
+
+std::ostream& operator<<(std::ostream& os, const VideoTrackMessage& obj) {
+  os << "VideoTrackMessage(";
+  os << "bandwidth: ";
+  os << PigeonInternalToString(obj.bandwidth_);
+  os << ", width: ";
+  os << PigeonInternalToString(obj.width_);
+  os << ", height: ";
+  os << PigeonInternalToString(obj.height_);
+  os << ", is_selected: ";
+  os << PigeonInternalToString(obj.is_selected_);
+  os << ")";
+  return os;
+}
+
+size_t PigeonInternalDeepHash(const VideoTrackMessage& v) { return v.Hash(); }
+
+// SelectVideoTrackMessage
+
+SelectVideoTrackMessage::SelectVideoTrackMessage(int64_t texture_id,
+                                                 int64_t bandwidth,
+                                                 int64_t width, int64_t height)
+    : texture_id_(texture_id),
+      bandwidth_(bandwidth),
+      width_(width),
+      height_(height) {}
+
+int64_t SelectVideoTrackMessage::texture_id() const { return texture_id_; }
+
+void SelectVideoTrackMessage::set_texture_id(int64_t value_arg) {
+  texture_id_ = value_arg;
+}
+
+int64_t SelectVideoTrackMessage::bandwidth() const { return bandwidth_; }
+
+void SelectVideoTrackMessage::set_bandwidth(int64_t value_arg) {
+  bandwidth_ = value_arg;
+}
+
+int64_t SelectVideoTrackMessage::width() const { return width_; }
+
+void SelectVideoTrackMessage::set_width(int64_t value_arg) {
+  width_ = value_arg;
+}
+
+int64_t SelectVideoTrackMessage::height() const { return height_; }
+
+void SelectVideoTrackMessage::set_height(int64_t value_arg) {
+  height_ = value_arg;
+}
+
+EncodableList SelectVideoTrackMessage::ToEncodableList() const {
+  EncodableList list;
+  list.reserve(4);
+  list.push_back(EncodableValue(texture_id_));
+  list.push_back(EncodableValue(bandwidth_));
+  list.push_back(EncodableValue(width_));
+  list.push_back(EncodableValue(height_));
+  return list;
+}
+
+SelectVideoTrackMessage SelectVideoTrackMessage::FromEncodableList(
+    const EncodableList& list) {
+  SelectVideoTrackMessage decoded(
+      std::get<int64_t>(list[0]), std::get<int64_t>(list[1]),
+      std::get<int64_t>(list[2]), std::get<int64_t>(list[3]));
+  return decoded;
+}
+
+bool SelectVideoTrackMessage::operator==(
+    const SelectVideoTrackMessage& other) const {
+  return PigeonInternalDeepEquals(texture_id_, other.texture_id_) &&
+         PigeonInternalDeepEquals(bandwidth_, other.bandwidth_) &&
+         PigeonInternalDeepEquals(width_, other.width_) &&
+         PigeonInternalDeepEquals(height_, other.height_);
+}
+
+bool SelectVideoTrackMessage::operator!=(
+    const SelectVideoTrackMessage& other) const {
+  return !(*this == other);
+}
+
+size_t SelectVideoTrackMessage::Hash() const {
+  size_t result = 1;
+  result = result * 31 + PigeonInternalDeepHash(texture_id_);
+  result = result * 31 + PigeonInternalDeepHash(bandwidth_);
+  result = result * 31 + PigeonInternalDeepHash(width_);
+  result = result * 31 + PigeonInternalDeepHash(height_);
+  return result;
+}
+
+std::ostream& operator<<(std::ostream& os, const SelectVideoTrackMessage& obj) {
+  os << "SelectVideoTrackMessage(";
+  os << "texture_id: ";
+  os << PigeonInternalToString(obj.texture_id_);
+  os << ", bandwidth: ";
+  os << PigeonInternalToString(obj.bandwidth_);
+  os << ", width: ";
+  os << PigeonInternalToString(obj.width_);
+  os << ", height: ";
+  os << PigeonInternalToString(obj.height_);
+  os << ")";
+  return os;
+}
+
+size_t PigeonInternalDeepHash(const SelectVideoTrackMessage& v) {
+  return v.Hash();
+}
+
 // PreventsDisplaySleepMessage
 
 PreventsDisplaySleepMessage::PreventsDisplaySleepMessage(
@@ -1090,6 +1265,14 @@ EncodableValue PigeonInternalCodecSerializer::ReadValueOfType(
           std::get<EncodableList>(ReadValue(stream))));
     }
     case 138: {
+      return CustomEncodableValue(VideoTrackMessage::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    }
+    case 139: {
+      return CustomEncodableValue(SelectVideoTrackMessage::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    }
+    case 140: {
       return CustomEncodableValue(
           PreventsDisplaySleepMessage::FromEncodableList(
               std::get<EncodableList>(ReadValue(stream))));
@@ -1174,8 +1357,23 @@ void PigeonInternalCodecSerializer::WriteValue(
           stream);
       return;
     }
-    if (custom_value->type() == typeid(PreventsDisplaySleepMessage)) {
+    if (custom_value->type() == typeid(VideoTrackMessage)) {
       stream->WriteByte(138);
+      WriteValue(EncodableValue(std::any_cast<VideoTrackMessage>(*custom_value)
+                                    .ToEncodableList()),
+                 stream);
+      return;
+    }
+    if (custom_value->type() == typeid(SelectVideoTrackMessage)) {
+      stream->WriteByte(139);
+      WriteValue(
+          EncodableValue(std::any_cast<SelectVideoTrackMessage>(*custom_value)
+                             .ToEncodableList()),
+          stream);
+      return;
+    }
+    if (custom_value->type() == typeid(PreventsDisplaySleepMessage)) {
+      stream->WriteByte(140);
       WriteValue(EncodableValue(
                      std::any_cast<PreventsDisplaySleepMessage>(*custom_value)
                          .ToEncodableList()),
@@ -1684,6 +1882,78 @@ void TizenVideoPlayerApi::SetUp(::flutter::BinaryMessenger* binary_messenger,
                       std::get<CustomEncodableValue>(encodable_msg_arg));
               std::optional<FlutterError> output =
                   api->SelectAudioTrack(msg_arg);
+              if (output.has_value()) {
+                reply(WrapError(output.value()));
+                return;
+              }
+              EncodableList wrapped;
+              wrapped.push_back(EncodableValue());
+              reply(EncodableValue(std::move(wrapped)));
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
+            }
+          });
+    } else {
+      channel.SetMessageHandler(nullptr);
+    }
+  }
+  {
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.video_player_tizen."
+                                  "TizenVideoPlayerApi.getVideoTracks" +
+                                      prepended_suffix,
+                                  &GetCodec());
+    if (api != nullptr) {
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const ::flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_msg_arg = args.at(0);
+              if (encodable_msg_arg.IsNull()) {
+                reply(WrapError("msg_arg unexpectedly null."));
+                return;
+              }
+              const auto& msg_arg = std::any_cast<const TextureMessage&>(
+                  std::get<CustomEncodableValue>(encodable_msg_arg));
+              ErrorOr<EncodableList> output = api->GetVideoTracks(msg_arg);
+              if (output.has_error()) {
+                reply(WrapError(output.error()));
+                return;
+              }
+              EncodableList wrapped;
+              wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
+              reply(EncodableValue(std::move(wrapped)));
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
+            }
+          });
+    } else {
+      channel.SetMessageHandler(nullptr);
+    }
+  }
+  {
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.video_player_tizen."
+                                  "TizenVideoPlayerApi.selectVideoTrack" +
+                                      prepended_suffix,
+                                  &GetCodec());
+    if (api != nullptr) {
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const ::flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_msg_arg = args.at(0);
+              if (encodable_msg_arg.IsNull()) {
+                reply(WrapError("msg_arg unexpectedly null."));
+                return;
+              }
+              const auto& msg_arg =
+                  std::any_cast<const SelectVideoTrackMessage&>(
+                      std::get<CustomEncodableValue>(encodable_msg_arg));
+              std::optional<FlutterError> output =
+                  api->SelectVideoTrack(msg_arg);
               if (output.has_value()) {
                 reply(WrapError(output.value()));
                 return;

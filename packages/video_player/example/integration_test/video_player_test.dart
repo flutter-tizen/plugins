@@ -347,7 +347,7 @@ void main() {
     });
   });
 
-  // Tizen-only: upstream has no integration tests for the audio track API.
+  // Tizen-only: upstream has no integration tests for the audio and video track APIs.
   group('audio tracks', () {
     setUp(() {
       controller = VideoPlayerController.asset(_videoAssetKey);
@@ -368,6 +368,76 @@ void main() {
       final List<VideoAudioTrack> tracks = await controller.getAudioTracks();
       await controller.selectAudioTrack(tracks.single.id);
       await expectLater(controller.selectAudioTrack('1'), throwsA(isA<PlatformException>()));
+    });
+  });
+
+  group('video tracks', () {
+    late HttpServer server;
+
+    setUpAll(() async {
+      final Uint8List segment = (await rootBundle.load(
+        'assets/hls_segment.ts',
+      )).buffer.asUint8List();
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      unawaited(
+        server.forEach((HttpRequest request) {
+          switch (request.uri.path) {
+            case '/master.m3u8':
+              request.response.write(
+                '#EXTM3U\n'
+                '#EXT-X-STREAM-INF:BANDWIDTH=200000,RESOLUTION=320x180\n'
+                'low.m3u8\n'
+                '#EXT-X-STREAM-INF:BANDWIDTH=400000,RESOLUTION=640x360\n'
+                'high.m3u8\n',
+              );
+            case '/low.m3u8' || '/high.m3u8':
+              request.response.write(
+                '#EXTM3U\n'
+                '#EXT-X-TARGETDURATION:1\n'
+                '#EXTINF:1.0,\n'
+                'segment.ts\n'
+                '#EXT-X-ENDLIST\n',
+              );
+            case '/segment.ts':
+              request.response.add(segment);
+            default:
+              request.response.statusCode = HttpStatus.notFound;
+          }
+          request.response.close();
+        }),
+      );
+    });
+
+    tearDownAll(() => server.close(force: true));
+
+    test('can select a video track and restore automatic selection', () async {
+      controller = VideoPlayerController.networkUrl(
+        Uri.parse('http://${server.address.address}:${server.port}/master.m3u8'),
+      );
+      await controller.initialize();
+
+      expect(controller.isVideoTrackSupportAvailable(), true);
+      List<VideoTrack> tracks = await controller.getVideoTracks();
+      expect(tracks.length, greaterThan(1));
+      expect(tracks.where((VideoTrack track) => track.isSelected), isEmpty);
+
+      final VideoTrack lowest = tracks.reduce(
+        (VideoTrack a, VideoTrack b) => a.bitrate! <= b.bitrate! ? a : b,
+      );
+      await controller.selectVideoTrack(lowest);
+      tracks = await controller.getVideoTracks();
+      expect(tracks.singleWhere((VideoTrack track) => track.isSelected).id, lowest.id);
+
+      await controller.selectVideoTrack(null);
+      tracks = await controller.getVideoTracks();
+      expect(tracks.where((VideoTrack track) => track.isSelected), isEmpty);
+    });
+
+    test('returns no video tracks for a non-adaptive video', () async {
+      controller = VideoPlayerController.asset(_videoAssetKey);
+      await controller.initialize();
+
+      expect(await controller.getVideoTracks(), isEmpty);
     });
   });
 }

@@ -1,7 +1,8 @@
-## NEXT
+## 2.7.0
 
 * Increase the minimum Tizen version to 6.0.
 * Remove Galaxy Watch (Tizen 5.5) from supported devices.
+* Add support for `getVideoTracks`, `selectVideoTrack` and `isVideoTrackSupportAvailable`.
 
 ## 2.6.0
 
