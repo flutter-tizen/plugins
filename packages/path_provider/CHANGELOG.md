@@ -2,6 +2,7 @@
 
 * Omit obvious local variable types.
 * Reformat with a line length of 100.
+* Create the temporary directory in integration tests if needed.
 
 ## 2.3.3
 

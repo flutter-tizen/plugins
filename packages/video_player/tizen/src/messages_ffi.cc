@@ -11,55 +11,53 @@
 #include <vector>
 
 namespace {
-  PigeonFfiBuffer* PigeonFfiMakeBuffer(const std::vector<uint8_t>& message) {
-    auto* buffer = new PigeonFfiBuffer();
-    buffer->length = message.size();
-    buffer->data = nullptr;
-    if (!message.empty()) {
-      buffer->data = new uint8_t[message.size()];
-      std::memcpy(buffer->data, message.data(), message.size());
-    }
-    return buffer;
+PigeonFfiBuffer* PigeonFfiMakeBuffer(const std::vector<uint8_t>& message) {
+  auto* buffer = new PigeonFfiBuffer();
+  buffer->length = message.size();
+  buffer->data = nullptr;
+  if (!message.empty()) {
+    buffer->data = new uint8_t[message.size()];
+    std::memcpy(buffer->data, message.data(), message.size());
   }
+  return buffer;
+}
 
-  PigeonFfiBuffer* PigeonFfiEncodeMessage(
-      const ::flutter::StandardMessageCodec& codec,
-      const ::flutter::EncodableValue& value) {
-    std::unique_ptr<std::vector<uint8_t>> message = codec.EncodeMessage(value);
-    return PigeonFfiMakeBuffer(*message);
-  }
+PigeonFfiBuffer* PigeonFfiEncodeMessage(
+    const ::flutter::StandardMessageCodec& codec,
+    const ::flutter::EncodableValue& value) {
+  std::unique_ptr<std::vector<uint8_t>> message = codec.EncodeMessage(value);
+  return PigeonFfiMakeBuffer(*message);
+}
 
-  PigeonFfiBuffer* PigeonFfiEncodeError(
-      const ::flutter::StandardMessageCodec& codec,
-      const ::flutter::EncodableValue& error) {
-    return PigeonFfiEncodeMessage(codec, error);
-  }
+PigeonFfiBuffer* PigeonFfiEncodeError(
+    const ::flutter::StandardMessageCodec& codec,
+    const ::flutter::EncodableValue& error) {
+  return PigeonFfiEncodeMessage(codec, error);
+}
 
-  PigeonFfiBuffer* PigeonFfiEncodeErrorMessage(
-      const ::flutter::StandardMessageCodec& codec,
-      const std::string& message) {
-    return PigeonFfiEncodeError(
-        codec,
-        ::flutter::EncodableValue(::flutter::EncodableList{
-            ::flutter::EncodableValue("error"),
-            ::flutter::EncodableValue(message),
-            ::flutter::EncodableValue()}));
-  }
+PigeonFfiBuffer* PigeonFfiEncodeErrorMessage(
+    const ::flutter::StandardMessageCodec& codec, const std::string& message) {
+  return PigeonFfiEncodeError(
+      codec,
+      ::flutter::EncodableValue(::flutter::EncodableList{
+          ::flutter::EncodableValue("error"),
+          ::flutter::EncodableValue(message), ::flutter::EncodableValue()}));
+}
 
-  void PigeonFfiSendReply(
-      int64_t reply_id,
-      PigeonFfiReplyCallback on_reply,
-      PigeonFfiBuffer* reply) {
-    if (on_reply == nullptr) {
-      pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_free_buffer(reply);
-      return;
-    }
-    on_reply(reply_id, reply);
+void PigeonFfiSendReply(int64_t reply_id, PigeonFfiReplyCallback on_reply,
+                        PigeonFfiBuffer* reply) {
+  if (on_reply == nullptr) {
+    pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_free_buffer(
+        reply);
+    return;
   }
+  on_reply(reply_id, reply);
+}
 
 }  // namespace
 
-void pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_free_buffer(PigeonFfiBuffer* buffer) {
+void pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_free_buffer(
+    PigeonFfiBuffer* buffer) {
   if (buffer == nullptr) {
     return;
   }
@@ -75,19 +73,15 @@ const ::flutter::StandardMessageCodec& PigeonFfiGetCodec() {
 }
 
 PigeonFfiBuffer* PigeonFfiEncodeFlutterError(
-    const ::flutter::StandardMessageCodec& codec,
-    const FlutterError& error) {
+    const ::flutter::StandardMessageCodec& codec, const FlutterError& error) {
   return PigeonFfiEncodeError(
-      codec,
-      ::flutter::EncodableValue(::flutter::EncodableList{
-          ::flutter::EncodableValue(error.code()),
-          ::flutter::EncodableValue(error.message()),
-          error.details()}));
+      codec, ::flutter::EncodableValue(::flutter::EncodableList{
+                 ::flutter::EncodableValue(error.code()),
+                 ::flutter::EncodableValue(error.message()), error.details()}));
 }
 
 PigeonFfiBuffer* PigeonFfiDecodeInstanceName(
-    const ::flutter::StandardMessageCodec& codec,
-    PigeonFfiBuffer* request,
+    const ::flutter::StandardMessageCodec& codec, PigeonFfiBuffer* request,
     std::string* instance_name) {
   if (request == nullptr || request->data == nullptr) {
     return PigeonFfiEncodeErrorMessage(codec, "Request buffer is null.");
@@ -104,42 +98,50 @@ PigeonFfiBuffer* PigeonFfiDecodeInstanceName(
   }
   const auto* instance_name_arg = std::get_if<std::string>(&args->at(0));
   if (instance_name_arg == nullptr) {
-    return PigeonFfiEncodeErrorMessage(codec, "Instance name must be a string.");
+    return PigeonFfiEncodeErrorMessage(codec,
+                                       "Instance name must be a string.");
   }
   *instance_name = *instance_name_arg;
   return nullptr;
 }
 
-
 namespace {
-  TizenVideoPlayerApi* g_tizen_video_player_api_api = nullptr;
-  PigeonFfiSyncDispatcher* g_tizen_video_player_api_dispatcher = nullptr;
+TizenVideoPlayerApi* g_tizen_video_player_api_api = nullptr;
+PigeonFfiSyncDispatcher* g_tizen_video_player_api_dispatcher = nullptr;
 }  // namespace
 
-void SetUpTizenVideoPlayerApiFfi(
-  TizenVideoPlayerApi* api,
-  PigeonFfiSyncDispatcher* dispatcher) {
+void SetUpTizenVideoPlayerApiFfi(TizenVideoPlayerApi* api,
+                                 PigeonFfiSyncDispatcher* dispatcher) {
   g_tizen_video_player_api_api = api;
   g_tizen_video_player_api_dispatcher = dispatcher;
 }
 
-PigeonFfiBuffer* PigeonTizenVideoPlayerApiInitializeFfi(PigeonFfiBuffer* request) {
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiInitializeFfi(
+    PigeonFfiBuffer* request) {
   const auto& codec = TizenVideoPlayerApi::GetCodec();
   if (g_tizen_video_player_api_api == nullptr) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("TizenVideoPlayerApi has not been set up."));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(
+                   "TizenVideoPlayerApi has not been set up."));
   }
   try {
-    std::optional<FlutterError> output = g_tizen_video_player_api_api->Initialize();
+    std::optional<FlutterError> output =
+        g_tizen_video_player_api_api->Initialize();
     if (output.has_value()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(output.value()));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError(output.value()));
     }
-    return PigeonFfiEncodeMessage(codec, ::flutter::EncodableValue(::flutter::EncodableList{::flutter::EncodableValue()}));
+    return PigeonFfiEncodeMessage(
+        codec, ::flutter::EncodableValue(
+                   ::flutter::EncodableList{::flutter::EncodableValue()}));
   } catch (const std::exception& exception) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(exception.what()));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(exception.what()));
   }
 }
 
-PigeonFfiBuffer* PigeonTizenVideoPlayerApiInitializeFfiDispatch(PigeonFfiBuffer* request) {
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiInitializeFfiDispatch(
+    PigeonFfiBuffer* request) {
   if (g_tizen_video_player_api_dispatcher != nullptr) {
     return g_tizen_video_player_api_dispatcher->RunSync([request]() {
       return PigeonTizenVideoPlayerApiInitializeFfi(request);
@@ -151,40 +153,53 @@ PigeonFfiBuffer* PigeonTizenVideoPlayerApiInitializeFfiDispatch(PigeonFfiBuffer*
 PigeonFfiBuffer* PigeonTizenVideoPlayerApiCreateFfi(PigeonFfiBuffer* request) {
   const auto& codec = TizenVideoPlayerApi::GetCodec();
   if (g_tizen_video_player_api_api == nullptr) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("TizenVideoPlayerApi has not been set up."));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(
+                   "TizenVideoPlayerApi has not been set up."));
   }
   try {
     if (request == nullptr || request->data == nullptr) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
     }
-    std::unique_ptr<::flutter::EncodableValue> message = codec.DecodeMessage(request->data, request->length);
+    std::unique_ptr<::flutter::EncodableValue> message =
+        codec.DecodeMessage(request->data, request->length);
     if (!message) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
     }
     const auto* args = std::get_if<::flutter::EncodableList>(message.get());
     if (args == nullptr || args->size() != 1) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unexpected request arguments."));
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(
+                                             "Unexpected request arguments."));
     }
     const auto& encodable_msg_arg = args->at(0);
     if (encodable_msg_arg.IsNull()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
     }
-    const auto& msg_arg = std::any_cast<const CreateMessage&>(std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
-    ErrorOr<TextureMessage> output = g_tizen_video_player_api_api->Create(msg_arg);
+    const auto& msg_arg = std::any_cast<const CreateMessage&>(
+        std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
+    ErrorOr<TextureMessage> output =
+        g_tizen_video_player_api_api->Create(msg_arg);
     if (output.has_error()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(output.error()));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError(output.error()));
     }
-    return PigeonFfiEncodeMessage(codec, ::flutter::EncodableValue(::flutter::EncodableList{::flutter::CustomEncodableValue(output.value())}));
+    return PigeonFfiEncodeMessage(
+        codec, ::flutter::EncodableValue(::flutter::EncodableList{
+                   ::flutter::CustomEncodableValue(output.value())}));
   } catch (const std::exception& exception) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(exception.what()));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(exception.what()));
   }
 }
 
-PigeonFfiBuffer* PigeonTizenVideoPlayerApiCreateFfiDispatch(PigeonFfiBuffer* request) {
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiCreateFfiDispatch(
+    PigeonFfiBuffer* request) {
   if (g_tizen_video_player_api_dispatcher != nullptr) {
-    return g_tizen_video_player_api_dispatcher->RunSync([request]() {
-      return PigeonTizenVideoPlayerApiCreateFfi(request);
-    });
+    return g_tizen_video_player_api_dispatcher->RunSync(
+        [request]() { return PigeonTizenVideoPlayerApiCreateFfi(request); });
   }
   return PigeonTizenVideoPlayerApiCreateFfi(request);
 }
@@ -192,77 +207,105 @@ PigeonFfiBuffer* PigeonTizenVideoPlayerApiCreateFfiDispatch(PigeonFfiBuffer* req
 PigeonFfiBuffer* PigeonTizenVideoPlayerApiDisposeFfi(PigeonFfiBuffer* request) {
   const auto& codec = TizenVideoPlayerApi::GetCodec();
   if (g_tizen_video_player_api_api == nullptr) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("TizenVideoPlayerApi has not been set up."));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(
+                   "TizenVideoPlayerApi has not been set up."));
   }
   try {
     if (request == nullptr || request->data == nullptr) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
     }
-    std::unique_ptr<::flutter::EncodableValue> message = codec.DecodeMessage(request->data, request->length);
+    std::unique_ptr<::flutter::EncodableValue> message =
+        codec.DecodeMessage(request->data, request->length);
     if (!message) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
     }
     const auto* args = std::get_if<::flutter::EncodableList>(message.get());
     if (args == nullptr || args->size() != 1) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unexpected request arguments."));
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(
+                                             "Unexpected request arguments."));
     }
     const auto& encodable_msg_arg = args->at(0);
     if (encodable_msg_arg.IsNull()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
     }
-    const auto& msg_arg = std::any_cast<const TextureMessage&>(std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
-    std::optional<FlutterError> output = g_tizen_video_player_api_api->Dispose(msg_arg);
+    const auto& msg_arg = std::any_cast<const TextureMessage&>(
+        std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
+    std::optional<FlutterError> output =
+        g_tizen_video_player_api_api->Dispose(msg_arg);
     if (output.has_value()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(output.value()));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError(output.value()));
     }
-    return PigeonFfiEncodeMessage(codec, ::flutter::EncodableValue(::flutter::EncodableList{::flutter::EncodableValue()}));
+    return PigeonFfiEncodeMessage(
+        codec, ::flutter::EncodableValue(
+                   ::flutter::EncodableList{::flutter::EncodableValue()}));
   } catch (const std::exception& exception) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(exception.what()));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(exception.what()));
   }
 }
 
-PigeonFfiBuffer* PigeonTizenVideoPlayerApiDisposeFfiDispatch(PigeonFfiBuffer* request) {
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiDisposeFfiDispatch(
+    PigeonFfiBuffer* request) {
   if (g_tizen_video_player_api_dispatcher != nullptr) {
-    return g_tizen_video_player_api_dispatcher->RunSync([request]() {
-      return PigeonTizenVideoPlayerApiDisposeFfi(request);
-    });
+    return g_tizen_video_player_api_dispatcher->RunSync(
+        [request]() { return PigeonTizenVideoPlayerApiDisposeFfi(request); });
   }
   return PigeonTizenVideoPlayerApiDisposeFfi(request);
 }
 
-PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetLoopingFfi(PigeonFfiBuffer* request) {
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetLoopingFfi(
+    PigeonFfiBuffer* request) {
   const auto& codec = TizenVideoPlayerApi::GetCodec();
   if (g_tizen_video_player_api_api == nullptr) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("TizenVideoPlayerApi has not been set up."));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(
+                   "TizenVideoPlayerApi has not been set up."));
   }
   try {
     if (request == nullptr || request->data == nullptr) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
     }
-    std::unique_ptr<::flutter::EncodableValue> message = codec.DecodeMessage(request->data, request->length);
+    std::unique_ptr<::flutter::EncodableValue> message =
+        codec.DecodeMessage(request->data, request->length);
     if (!message) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
     }
     const auto* args = std::get_if<::flutter::EncodableList>(message.get());
     if (args == nullptr || args->size() != 1) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unexpected request arguments."));
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(
+                                             "Unexpected request arguments."));
     }
     const auto& encodable_msg_arg = args->at(0);
     if (encodable_msg_arg.IsNull()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
     }
-    const auto& msg_arg = std::any_cast<const LoopingMessage&>(std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
-    std::optional<FlutterError> output = g_tizen_video_player_api_api->SetLooping(msg_arg);
+    const auto& msg_arg = std::any_cast<const LoopingMessage&>(
+        std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
+    std::optional<FlutterError> output =
+        g_tizen_video_player_api_api->SetLooping(msg_arg);
     if (output.has_value()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(output.value()));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError(output.value()));
     }
-    return PigeonFfiEncodeMessage(codec, ::flutter::EncodableValue(::flutter::EncodableList{::flutter::EncodableValue()}));
+    return PigeonFfiEncodeMessage(
+        codec, ::flutter::EncodableValue(
+                   ::flutter::EncodableList{::flutter::EncodableValue()}));
   } catch (const std::exception& exception) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(exception.what()));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(exception.what()));
   }
 }
 
-PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetLoopingFfiDispatch(PigeonFfiBuffer* request) {
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetLoopingFfiDispatch(
+    PigeonFfiBuffer* request) {
   if (g_tizen_video_player_api_dispatcher != nullptr) {
     return g_tizen_video_player_api_dispatcher->RunSync([request]() {
       return PigeonTizenVideoPlayerApiSetLoopingFfi(request);
@@ -271,80 +314,109 @@ PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetLoopingFfiDispatch(PigeonFfiBuffer*
   return PigeonTizenVideoPlayerApiSetLoopingFfi(request);
 }
 
-PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetVolumeFfi(PigeonFfiBuffer* request) {
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetVolumeFfi(
+    PigeonFfiBuffer* request) {
   const auto& codec = TizenVideoPlayerApi::GetCodec();
   if (g_tizen_video_player_api_api == nullptr) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("TizenVideoPlayerApi has not been set up."));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(
+                   "TizenVideoPlayerApi has not been set up."));
   }
   try {
     if (request == nullptr || request->data == nullptr) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
     }
-    std::unique_ptr<::flutter::EncodableValue> message = codec.DecodeMessage(request->data, request->length);
+    std::unique_ptr<::flutter::EncodableValue> message =
+        codec.DecodeMessage(request->data, request->length);
     if (!message) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
     }
     const auto* args = std::get_if<::flutter::EncodableList>(message.get());
     if (args == nullptr || args->size() != 1) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unexpected request arguments."));
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(
+                                             "Unexpected request arguments."));
     }
     const auto& encodable_msg_arg = args->at(0);
     if (encodable_msg_arg.IsNull()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
     }
-    const auto& msg_arg = std::any_cast<const VolumeMessage&>(std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
-    std::optional<FlutterError> output = g_tizen_video_player_api_api->SetVolume(msg_arg);
+    const auto& msg_arg = std::any_cast<const VolumeMessage&>(
+        std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
+    std::optional<FlutterError> output =
+        g_tizen_video_player_api_api->SetVolume(msg_arg);
     if (output.has_value()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(output.value()));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError(output.value()));
     }
-    return PigeonFfiEncodeMessage(codec, ::flutter::EncodableValue(::flutter::EncodableList{::flutter::EncodableValue()}));
+    return PigeonFfiEncodeMessage(
+        codec, ::flutter::EncodableValue(
+                   ::flutter::EncodableList{::flutter::EncodableValue()}));
   } catch (const std::exception& exception) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(exception.what()));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(exception.what()));
   }
 }
 
-PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetVolumeFfiDispatch(PigeonFfiBuffer* request) {
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetVolumeFfiDispatch(
+    PigeonFfiBuffer* request) {
   if (g_tizen_video_player_api_dispatcher != nullptr) {
-    return g_tizen_video_player_api_dispatcher->RunSync([request]() {
-      return PigeonTizenVideoPlayerApiSetVolumeFfi(request);
-    });
+    return g_tizen_video_player_api_dispatcher->RunSync(
+        [request]() { return PigeonTizenVideoPlayerApiSetVolumeFfi(request); });
   }
   return PigeonTizenVideoPlayerApiSetVolumeFfi(request);
 }
 
-PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetPlaybackSpeedFfi(PigeonFfiBuffer* request) {
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetPlaybackSpeedFfi(
+    PigeonFfiBuffer* request) {
   const auto& codec = TizenVideoPlayerApi::GetCodec();
   if (g_tizen_video_player_api_api == nullptr) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("TizenVideoPlayerApi has not been set up."));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(
+                   "TizenVideoPlayerApi has not been set up."));
   }
   try {
     if (request == nullptr || request->data == nullptr) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
     }
-    std::unique_ptr<::flutter::EncodableValue> message = codec.DecodeMessage(request->data, request->length);
+    std::unique_ptr<::flutter::EncodableValue> message =
+        codec.DecodeMessage(request->data, request->length);
     if (!message) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
     }
     const auto* args = std::get_if<::flutter::EncodableList>(message.get());
     if (args == nullptr || args->size() != 1) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unexpected request arguments."));
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(
+                                             "Unexpected request arguments."));
     }
     const auto& encodable_msg_arg = args->at(0);
     if (encodable_msg_arg.IsNull()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
     }
-    const auto& msg_arg = std::any_cast<const PlaybackSpeedMessage&>(std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
-    std::optional<FlutterError> output = g_tizen_video_player_api_api->SetPlaybackSpeed(msg_arg);
+    const auto& msg_arg = std::any_cast<const PlaybackSpeedMessage&>(
+        std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
+    std::optional<FlutterError> output =
+        g_tizen_video_player_api_api->SetPlaybackSpeed(msg_arg);
     if (output.has_value()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(output.value()));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError(output.value()));
     }
-    return PigeonFfiEncodeMessage(codec, ::flutter::EncodableValue(::flutter::EncodableList{::flutter::EncodableValue()}));
+    return PigeonFfiEncodeMessage(
+        codec, ::flutter::EncodableValue(
+                   ::flutter::EncodableList{::flutter::EncodableValue()}));
   } catch (const std::exception& exception) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(exception.what()));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(exception.what()));
   }
 }
 
-PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetPlaybackSpeedFfiDispatch(PigeonFfiBuffer* request) {
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetPlaybackSpeedFfiDispatch(
+    PigeonFfiBuffer* request) {
   if (g_tizen_video_player_api_dispatcher != nullptr) {
     return g_tizen_video_player_api_dispatcher->RunSync([request]() {
       return PigeonTizenVideoPlayerApiSetPlaybackSpeedFfi(request);
@@ -356,139 +428,192 @@ PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetPlaybackSpeedFfiDispatch(PigeonFfiB
 PigeonFfiBuffer* PigeonTizenVideoPlayerApiPlayFfi(PigeonFfiBuffer* request) {
   const auto& codec = TizenVideoPlayerApi::GetCodec();
   if (g_tizen_video_player_api_api == nullptr) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("TizenVideoPlayerApi has not been set up."));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(
+                   "TizenVideoPlayerApi has not been set up."));
   }
   try {
     if (request == nullptr || request->data == nullptr) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
     }
-    std::unique_ptr<::flutter::EncodableValue> message = codec.DecodeMessage(request->data, request->length);
+    std::unique_ptr<::flutter::EncodableValue> message =
+        codec.DecodeMessage(request->data, request->length);
     if (!message) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
     }
     const auto* args = std::get_if<::flutter::EncodableList>(message.get());
     if (args == nullptr || args->size() != 1) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unexpected request arguments."));
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(
+                                             "Unexpected request arguments."));
     }
     const auto& encodable_msg_arg = args->at(0);
     if (encodable_msg_arg.IsNull()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
     }
-    const auto& msg_arg = std::any_cast<const TextureMessage&>(std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
-    std::optional<FlutterError> output = g_tizen_video_player_api_api->Play(msg_arg);
+    const auto& msg_arg = std::any_cast<const TextureMessage&>(
+        std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
+    std::optional<FlutterError> output =
+        g_tizen_video_player_api_api->Play(msg_arg);
     if (output.has_value()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(output.value()));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError(output.value()));
     }
-    return PigeonFfiEncodeMessage(codec, ::flutter::EncodableValue(::flutter::EncodableList{::flutter::EncodableValue()}));
+    return PigeonFfiEncodeMessage(
+        codec, ::flutter::EncodableValue(
+                   ::flutter::EncodableList{::flutter::EncodableValue()}));
   } catch (const std::exception& exception) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(exception.what()));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(exception.what()));
   }
 }
 
-PigeonFfiBuffer* PigeonTizenVideoPlayerApiPlayFfiDispatch(PigeonFfiBuffer* request) {
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiPlayFfiDispatch(
+    PigeonFfiBuffer* request) {
   if (g_tizen_video_player_api_dispatcher != nullptr) {
-    return g_tizen_video_player_api_dispatcher->RunSync([request]() {
-      return PigeonTizenVideoPlayerApiPlayFfi(request);
-    });
+    return g_tizen_video_player_api_dispatcher->RunSync(
+        [request]() { return PigeonTizenVideoPlayerApiPlayFfi(request); });
   }
   return PigeonTizenVideoPlayerApiPlayFfi(request);
 }
 
-PigeonFfiBuffer* PigeonTizenVideoPlayerApiPositionFfi(PigeonFfiBuffer* request) {
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiPositionFfi(
+    PigeonFfiBuffer* request) {
   const auto& codec = TizenVideoPlayerApi::GetCodec();
   if (g_tizen_video_player_api_api == nullptr) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("TizenVideoPlayerApi has not been set up."));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(
+                   "TizenVideoPlayerApi has not been set up."));
   }
   try {
     if (request == nullptr || request->data == nullptr) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
     }
-    std::unique_ptr<::flutter::EncodableValue> message = codec.DecodeMessage(request->data, request->length);
+    std::unique_ptr<::flutter::EncodableValue> message =
+        codec.DecodeMessage(request->data, request->length);
     if (!message) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
     }
     const auto* args = std::get_if<::flutter::EncodableList>(message.get());
     if (args == nullptr || args->size() != 1) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unexpected request arguments."));
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(
+                                             "Unexpected request arguments."));
     }
     const auto& encodable_msg_arg = args->at(0);
     if (encodable_msg_arg.IsNull()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
     }
-    const auto& msg_arg = std::any_cast<const TextureMessage&>(std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
-    ErrorOr<PositionMessage> output = g_tizen_video_player_api_api->Position(msg_arg);
+    const auto& msg_arg = std::any_cast<const TextureMessage&>(
+        std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
+    ErrorOr<PositionMessage> output =
+        g_tizen_video_player_api_api->Position(msg_arg);
     if (output.has_error()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(output.error()));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError(output.error()));
     }
-    return PigeonFfiEncodeMessage(codec, ::flutter::EncodableValue(::flutter::EncodableList{::flutter::CustomEncodableValue(output.value())}));
+    return PigeonFfiEncodeMessage(
+        codec, ::flutter::EncodableValue(::flutter::EncodableList{
+                   ::flutter::CustomEncodableValue(output.value())}));
   } catch (const std::exception& exception) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(exception.what()));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(exception.what()));
   }
 }
 
-PigeonFfiBuffer* PigeonTizenVideoPlayerApiPositionFfiDispatch(PigeonFfiBuffer* request) {
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiPositionFfiDispatch(
+    PigeonFfiBuffer* request) {
   if (g_tizen_video_player_api_dispatcher != nullptr) {
-    return g_tizen_video_player_api_dispatcher->RunSync([request]() {
-      return PigeonTizenVideoPlayerApiPositionFfi(request);
-    });
+    return g_tizen_video_player_api_dispatcher->RunSync(
+        [request]() { return PigeonTizenVideoPlayerApiPositionFfi(request); });
   }
   return PigeonTizenVideoPlayerApiPositionFfi(request);
 }
 
-void PigeonTizenVideoPlayerApiSeekToFfi(
-  PigeonFfiBuffer* request,
-  int64_t reply_id,
-  PigeonFfiReplyCallback on_reply) {
+void PigeonTizenVideoPlayerApiSeekToFfi(PigeonFfiBuffer* request,
+                                        int64_t reply_id,
+                                        PigeonFfiReplyCallback on_reply) {
   const auto& codec = TizenVideoPlayerApi::GetCodec();
   if (g_tizen_video_player_api_api == nullptr) {
-    PigeonFfiSendReply(reply_id, on_reply, PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("TizenVideoPlayerApi has not been set up.")));
+    PigeonFfiSendReply(
+        reply_id, on_reply,
+        PigeonFfiEncodeError(codec,
+                             TizenVideoPlayerApi::WrapError(
+                                 "TizenVideoPlayerApi has not been set up.")));
     return;
   }
   try {
     if (request == nullptr || request->data == nullptr) {
-      PigeonFfiSendReply(reply_id, on_reply, PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Request buffer is null.")));
+      PigeonFfiSendReply(
+          reply_id, on_reply,
+          PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(
+                                          "Request buffer is null.")));
       return;
     }
-    std::unique_ptr<::flutter::EncodableValue> message = codec.DecodeMessage(request->data, request->length);
+    std::unique_ptr<::flutter::EncodableValue> message =
+        codec.DecodeMessage(request->data, request->length);
     if (!message) {
-      PigeonFfiSendReply(reply_id, on_reply, PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unable to decode request.")));
+      PigeonFfiSendReply(
+          reply_id, on_reply,
+          PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(
+                                          "Unable to decode request.")));
       return;
     }
     const auto* args = std::get_if<::flutter::EncodableList>(message.get());
     if (args == nullptr || args->size() != 1) {
-      PigeonFfiSendReply(reply_id, on_reply, PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unexpected request arguments.")));
+      PigeonFfiSendReply(
+          reply_id, on_reply,
+          PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(
+                                          "Unexpected request arguments.")));
       return;
     }
     const auto& encodable_msg_arg = args->at(0);
     if (encodable_msg_arg.IsNull()) {
-      PigeonFfiSendReply(reply_id, on_reply, PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null.")));
+      PigeonFfiSendReply(
+          reply_id, on_reply,
+          PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(
+                                          "msg_arg unexpectedly null.")));
       return;
     }
-    const auto& msg_arg = std::any_cast<const PositionMessage&>(std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
+    const auto& msg_arg = std::any_cast<const PositionMessage&>(
+        std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
     g_tizen_video_player_api_api->SeekTo(
-      msg_arg,
-      [reply_id, on_reply](std::optional<FlutterError>&& output) {
-        const auto& codec = TizenVideoPlayerApi::GetCodec();
-        if (output.has_value()) {
-          PigeonFfiSendReply(reply_id, on_reply, PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(output.value())));
-          return;
-        }
-        PigeonFfiSendReply(reply_id, on_reply, PigeonFfiEncodeMessage(codec, ::flutter::EncodableValue(::flutter::EncodableList{::flutter::EncodableValue()})));
-      });
+        msg_arg, [reply_id, on_reply](std::optional<FlutterError>&& output) {
+          const auto& codec = TizenVideoPlayerApi::GetCodec();
+          if (output.has_value()) {
+            PigeonFfiSendReply(
+                reply_id, on_reply,
+                PigeonFfiEncodeError(
+                    codec, TizenVideoPlayerApi::WrapError(output.value())));
+            return;
+          }
+          PigeonFfiSendReply(
+              reply_id, on_reply,
+              PigeonFfiEncodeMessage(
+                  codec, ::flutter::EncodableValue(::flutter::EncodableList{
+                             ::flutter::EncodableValue()})));
+        });
   } catch (const std::exception& exception) {
-    PigeonFfiSendReply(reply_id, on_reply, PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(exception.what())));
+    PigeonFfiSendReply(
+        reply_id, on_reply,
+        PigeonFfiEncodeError(codec,
+                             TizenVideoPlayerApi::WrapError(exception.what())));
   }
 }
 
 void PigeonTizenVideoPlayerApiSeekToFfiDispatch(
-  PigeonFfiBuffer* request,
-  int64_t reply_id,
-  PigeonFfiReplyCallback on_reply) {
+    PigeonFfiBuffer* request, int64_t reply_id,
+    PigeonFfiReplyCallback on_reply) {
   if (g_tizen_video_player_api_dispatcher != nullptr) {
-    PigeonFfiBuffer* dispatch_error = g_tizen_video_player_api_dispatcher->RunSync([=]() {
-      PigeonTizenVideoPlayerApiSeekToFfi(request, reply_id, on_reply);
-      return static_cast<PigeonFfiBuffer*>(nullptr);
-    });
+    PigeonFfiBuffer* dispatch_error =
+        g_tizen_video_player_api_dispatcher->RunSync([=]() {
+          PigeonTizenVideoPlayerApiSeekToFfi(request, reply_id, on_reply);
+          return static_cast<PigeonFfiBuffer*>(nullptr);
+        });
     if (dispatch_error != nullptr) {
       PigeonFfiSendReply(reply_id, on_reply, dispatch_error);
     }
@@ -500,77 +625,105 @@ void PigeonTizenVideoPlayerApiSeekToFfiDispatch(
 PigeonFfiBuffer* PigeonTizenVideoPlayerApiPauseFfi(PigeonFfiBuffer* request) {
   const auto& codec = TizenVideoPlayerApi::GetCodec();
   if (g_tizen_video_player_api_api == nullptr) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("TizenVideoPlayerApi has not been set up."));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(
+                   "TizenVideoPlayerApi has not been set up."));
   }
   try {
     if (request == nullptr || request->data == nullptr) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
     }
-    std::unique_ptr<::flutter::EncodableValue> message = codec.DecodeMessage(request->data, request->length);
+    std::unique_ptr<::flutter::EncodableValue> message =
+        codec.DecodeMessage(request->data, request->length);
     if (!message) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
     }
     const auto* args = std::get_if<::flutter::EncodableList>(message.get());
     if (args == nullptr || args->size() != 1) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unexpected request arguments."));
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(
+                                             "Unexpected request arguments."));
     }
     const auto& encodable_msg_arg = args->at(0);
     if (encodable_msg_arg.IsNull()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
     }
-    const auto& msg_arg = std::any_cast<const TextureMessage&>(std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
-    std::optional<FlutterError> output = g_tizen_video_player_api_api->Pause(msg_arg);
+    const auto& msg_arg = std::any_cast<const TextureMessage&>(
+        std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
+    std::optional<FlutterError> output =
+        g_tizen_video_player_api_api->Pause(msg_arg);
     if (output.has_value()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(output.value()));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError(output.value()));
     }
-    return PigeonFfiEncodeMessage(codec, ::flutter::EncodableValue(::flutter::EncodableList{::flutter::EncodableValue()}));
+    return PigeonFfiEncodeMessage(
+        codec, ::flutter::EncodableValue(
+                   ::flutter::EncodableList{::flutter::EncodableValue()}));
   } catch (const std::exception& exception) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(exception.what()));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(exception.what()));
   }
 }
 
-PigeonFfiBuffer* PigeonTizenVideoPlayerApiPauseFfiDispatch(PigeonFfiBuffer* request) {
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiPauseFfiDispatch(
+    PigeonFfiBuffer* request) {
   if (g_tizen_video_player_api_dispatcher != nullptr) {
-    return g_tizen_video_player_api_dispatcher->RunSync([request]() {
-      return PigeonTizenVideoPlayerApiPauseFfi(request);
-    });
+    return g_tizen_video_player_api_dispatcher->RunSync(
+        [request]() { return PigeonTizenVideoPlayerApiPauseFfi(request); });
   }
   return PigeonTizenVideoPlayerApiPauseFfi(request);
 }
 
-PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetMixWithOthersFfi(PigeonFfiBuffer* request) {
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetMixWithOthersFfi(
+    PigeonFfiBuffer* request) {
   const auto& codec = TizenVideoPlayerApi::GetCodec();
   if (g_tizen_video_player_api_api == nullptr) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("TizenVideoPlayerApi has not been set up."));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(
+                   "TizenVideoPlayerApi has not been set up."));
   }
   try {
     if (request == nullptr || request->data == nullptr) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
     }
-    std::unique_ptr<::flutter::EncodableValue> message = codec.DecodeMessage(request->data, request->length);
+    std::unique_ptr<::flutter::EncodableValue> message =
+        codec.DecodeMessage(request->data, request->length);
     if (!message) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
     }
     const auto* args = std::get_if<::flutter::EncodableList>(message.get());
     if (args == nullptr || args->size() != 1) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unexpected request arguments."));
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(
+                                             "Unexpected request arguments."));
     }
     const auto& encodable_msg_arg = args->at(0);
     if (encodable_msg_arg.IsNull()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
     }
-    const auto& msg_arg = std::any_cast<const MixWithOthersMessage&>(std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
-    std::optional<FlutterError> output = g_tizen_video_player_api_api->SetMixWithOthers(msg_arg);
+    const auto& msg_arg = std::any_cast<const MixWithOthersMessage&>(
+        std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
+    std::optional<FlutterError> output =
+        g_tizen_video_player_api_api->SetMixWithOthers(msg_arg);
     if (output.has_value()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(output.value()));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError(output.value()));
     }
-    return PigeonFfiEncodeMessage(codec, ::flutter::EncodableValue(::flutter::EncodableList{::flutter::EncodableValue()}));
+    return PigeonFfiEncodeMessage(
+        codec, ::flutter::EncodableValue(
+                   ::flutter::EncodableList{::flutter::EncodableValue()}));
   } catch (const std::exception& exception) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(exception.what()));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(exception.what()));
   }
 }
 
-PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetMixWithOthersFfiDispatch(PigeonFfiBuffer* request) {
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetMixWithOthersFfiDispatch(
+    PigeonFfiBuffer* request) {
   if (g_tizen_video_player_api_dispatcher != nullptr) {
     return g_tizen_video_player_api_dispatcher->RunSync([request]() {
       return PigeonTizenVideoPlayerApiSetMixWithOthersFfi(request);
@@ -579,39 +732,54 @@ PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetMixWithOthersFfiDispatch(PigeonFfiB
   return PigeonTizenVideoPlayerApiSetMixWithOthersFfi(request);
 }
 
-PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetPreventsDisplaySleepFfi(PigeonFfiBuffer* request) {
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetPreventsDisplaySleepFfi(
+    PigeonFfiBuffer* request) {
   const auto& codec = TizenVideoPlayerApi::GetCodec();
   if (g_tizen_video_player_api_api == nullptr) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("TizenVideoPlayerApi has not been set up."));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(
+                   "TizenVideoPlayerApi has not been set up."));
   }
   try {
     if (request == nullptr || request->data == nullptr) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
     }
-    std::unique_ptr<::flutter::EncodableValue> message = codec.DecodeMessage(request->data, request->length);
+    std::unique_ptr<::flutter::EncodableValue> message =
+        codec.DecodeMessage(request->data, request->length);
     if (!message) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
     }
     const auto* args = std::get_if<::flutter::EncodableList>(message.get());
     if (args == nullptr || args->size() != 1) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unexpected request arguments."));
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(
+                                             "Unexpected request arguments."));
     }
     const auto& encodable_msg_arg = args->at(0);
     if (encodable_msg_arg.IsNull()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
     }
-    const auto& msg_arg = std::any_cast<const PreventsDisplaySleepMessage&>(std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
-    std::optional<FlutterError> output = g_tizen_video_player_api_api->SetPreventsDisplaySleep(msg_arg);
+    const auto& msg_arg = std::any_cast<const PreventsDisplaySleepMessage&>(
+        std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
+    std::optional<FlutterError> output =
+        g_tizen_video_player_api_api->SetPreventsDisplaySleep(msg_arg);
     if (output.has_value()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(output.value()));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError(output.value()));
     }
-    return PigeonFfiEncodeMessage(codec, ::flutter::EncodableValue(::flutter::EncodableList{::flutter::EncodableValue()}));
+    return PigeonFfiEncodeMessage(
+        codec, ::flutter::EncodableValue(
+                   ::flutter::EncodableList{::flutter::EncodableValue()}));
   } catch (const std::exception& exception) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(exception.what()));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(exception.what()));
   }
 }
 
-PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetPreventsDisplaySleepFfiDispatch(PigeonFfiBuffer* request) {
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetPreventsDisplaySleepFfiDispatch(
+    PigeonFfiBuffer* request) {
   if (g_tizen_video_player_api_dispatcher != nullptr) {
     return g_tizen_video_player_api_dispatcher->RunSync([request]() {
       return PigeonTizenVideoPlayerApiSetPreventsDisplaySleepFfi(request);
@@ -620,39 +788,54 @@ PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetPreventsDisplaySleepFfiDispatch(Pig
   return PigeonTizenVideoPlayerApiSetPreventsDisplaySleepFfi(request);
 }
 
-PigeonFfiBuffer* PigeonTizenVideoPlayerApiGetAudioTracksFfi(PigeonFfiBuffer* request) {
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiGetAudioTracksFfi(
+    PigeonFfiBuffer* request) {
   const auto& codec = TizenVideoPlayerApi::GetCodec();
   if (g_tizen_video_player_api_api == nullptr) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("TizenVideoPlayerApi has not been set up."));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(
+                   "TizenVideoPlayerApi has not been set up."));
   }
   try {
     if (request == nullptr || request->data == nullptr) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
     }
-    std::unique_ptr<::flutter::EncodableValue> message = codec.DecodeMessage(request->data, request->length);
+    std::unique_ptr<::flutter::EncodableValue> message =
+        codec.DecodeMessage(request->data, request->length);
     if (!message) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
     }
     const auto* args = std::get_if<::flutter::EncodableList>(message.get());
     if (args == nullptr || args->size() != 1) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unexpected request arguments."));
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(
+                                             "Unexpected request arguments."));
     }
     const auto& encodable_msg_arg = args->at(0);
     if (encodable_msg_arg.IsNull()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
     }
-    const auto& msg_arg = std::any_cast<const TextureMessage&>(std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
-    ErrorOr<::flutter::EncodableList> output = g_tizen_video_player_api_api->GetAudioTracks(msg_arg);
+    const auto& msg_arg = std::any_cast<const TextureMessage&>(
+        std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
+    ErrorOr<::flutter::EncodableList> output =
+        g_tizen_video_player_api_api->GetAudioTracks(msg_arg);
     if (output.has_error()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(output.error()));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError(output.error()));
     }
-    return PigeonFfiEncodeMessage(codec, ::flutter::EncodableValue(::flutter::EncodableList{::flutter::EncodableValue(output.value())}));
+    return PigeonFfiEncodeMessage(
+        codec, ::flutter::EncodableValue(::flutter::EncodableList{
+                   ::flutter::EncodableValue(output.value())}));
   } catch (const std::exception& exception) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(exception.what()));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(exception.what()));
   }
 }
 
-PigeonFfiBuffer* PigeonTizenVideoPlayerApiGetAudioTracksFfiDispatch(PigeonFfiBuffer* request) {
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiGetAudioTracksFfiDispatch(
+    PigeonFfiBuffer* request) {
   if (g_tizen_video_player_api_dispatcher != nullptr) {
     return g_tizen_video_player_api_dispatcher->RunSync([request]() {
       return PigeonTizenVideoPlayerApiGetAudioTracksFfi(request);
@@ -661,39 +844,54 @@ PigeonFfiBuffer* PigeonTizenVideoPlayerApiGetAudioTracksFfiDispatch(PigeonFfiBuf
   return PigeonTizenVideoPlayerApiGetAudioTracksFfi(request);
 }
 
-PigeonFfiBuffer* PigeonTizenVideoPlayerApiSelectAudioTrackFfi(PigeonFfiBuffer* request) {
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiSelectAudioTrackFfi(
+    PigeonFfiBuffer* request) {
   const auto& codec = TizenVideoPlayerApi::GetCodec();
   if (g_tizen_video_player_api_api == nullptr) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("TizenVideoPlayerApi has not been set up."));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(
+                   "TizenVideoPlayerApi has not been set up."));
   }
   try {
     if (request == nullptr || request->data == nullptr) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
     }
-    std::unique_ptr<::flutter::EncodableValue> message = codec.DecodeMessage(request->data, request->length);
+    std::unique_ptr<::flutter::EncodableValue> message =
+        codec.DecodeMessage(request->data, request->length);
     if (!message) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
     }
     const auto* args = std::get_if<::flutter::EncodableList>(message.get());
     if (args == nullptr || args->size() != 1) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unexpected request arguments."));
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(
+                                             "Unexpected request arguments."));
     }
     const auto& encodable_msg_arg = args->at(0);
     if (encodable_msg_arg.IsNull()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
     }
-    const auto& msg_arg = std::any_cast<const SelectAudioTrackMessage&>(std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
-    std::optional<FlutterError> output = g_tizen_video_player_api_api->SelectAudioTrack(msg_arg);
+    const auto& msg_arg = std::any_cast<const SelectAudioTrackMessage&>(
+        std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
+    std::optional<FlutterError> output =
+        g_tizen_video_player_api_api->SelectAudioTrack(msg_arg);
     if (output.has_value()) {
-      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(output.value()));
+      return PigeonFfiEncodeError(
+          codec, TizenVideoPlayerApi::WrapError(output.value()));
     }
-    return PigeonFfiEncodeMessage(codec, ::flutter::EncodableValue(::flutter::EncodableList{::flutter::EncodableValue()}));
+    return PigeonFfiEncodeMessage(
+        codec, ::flutter::EncodableValue(
+                   ::flutter::EncodableList{::flutter::EncodableValue()}));
   } catch (const std::exception& exception) {
-    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(exception.what()));
+    return PigeonFfiEncodeError(
+        codec, TizenVideoPlayerApi::WrapError(exception.what()));
   }
 }
 
-PigeonFfiBuffer* PigeonTizenVideoPlayerApiSelectAudioTrackFfiDispatch(PigeonFfiBuffer* request) {
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiSelectAudioTrackFfiDispatch(
+    PigeonFfiBuffer* request) {
   if (g_tizen_video_player_api_dispatcher != nullptr) {
     return g_tizen_video_player_api_dispatcher->RunSync([request]() {
       return PigeonTizenVideoPlayerApiSelectAudioTrackFfi(request);
@@ -702,119 +900,136 @@ PigeonFfiBuffer* PigeonTizenVideoPlayerApiSelectAudioTrackFfiDispatch(PigeonFfiB
   return PigeonTizenVideoPlayerApiSelectAudioTrackFfi(request);
 }
 
-
 namespace {
-  PigeonVideoPlayerEventsVideoEventsStreamHandler* g_video_player_events_video_events_handler = nullptr;
-  PigeonFfiSyncDispatcher* g_video_player_events_video_events_dispatcher = nullptr;
+PigeonVideoPlayerEventsVideoEventsStreamHandler*
+    g_video_player_events_video_events_handler = nullptr;
+PigeonFfiSyncDispatcher* g_video_player_events_video_events_dispatcher =
+    nullptr;
 }  // namespace
 
 void SetUpVideoPlayerEventsVideoEventsFfi(
-  PigeonVideoPlayerEventsVideoEventsStreamHandler* handler,
-  PigeonFfiSyncDispatcher* dispatcher) {
+    PigeonVideoPlayerEventsVideoEventsStreamHandler* handler,
+    PigeonFfiSyncDispatcher* dispatcher) {
   g_video_player_events_video_events_handler = handler;
   g_video_player_events_video_events_dispatcher = dispatcher;
 }
 
-class PigeonVideoPlayerEventsVideoEventsEventSinkImpl : public PigeonVideoPlayerEventsVideoEventsEventSink {
-  public:
-    PigeonVideoPlayerEventsVideoEventsEventSinkImpl(int64_t sink_id, PigeonFfiEventCallback on_event, PigeonFfiEventCallback on_error, PigeonFfiDoneCallback on_done)
-        : sink_id_(sink_id),
-          on_event_(on_event),
-          on_error_(on_error),
-          on_done_(on_done) {}
+class PigeonVideoPlayerEventsVideoEventsEventSinkImpl
+    : public PigeonVideoPlayerEventsVideoEventsEventSink {
+ public:
+  PigeonVideoPlayerEventsVideoEventsEventSinkImpl(
+      int64_t sink_id, PigeonFfiEventCallback on_event,
+      PigeonFfiEventCallback on_error, PigeonFfiDoneCallback on_done)
+      : sink_id_(sink_id),
+        on_event_(on_event),
+        on_error_(on_error),
+        on_done_(on_done) {}
 
-    void Success(const ::flutter::EncodableMap& event) override {
-      if (on_event_ == nullptr) {
-        return;
-      }
-      const auto& codec = PigeonFfiGetCodec();
-      on_event_(sink_id_, PigeonFfiEncodeMessage(codec, ::flutter::EncodableValue(event)));
+  void Success(const ::flutter::EncodableMap& event) override {
+    if (on_event_ == nullptr) {
+      return;
     }
+    const auto& codec = PigeonFfiGetCodec();
+    on_event_(sink_id_,
+              PigeonFfiEncodeMessage(codec, ::flutter::EncodableValue(event)));
+  }
 
-    void Error(const FlutterError& error) override {
-      if (on_error_ == nullptr) {
-        return;
-      }
-      on_error_(sink_id_, PigeonFfiEncodeFlutterError(PigeonFfiGetCodec(), error));
+  void Error(const FlutterError& error) override {
+    if (on_error_ == nullptr) {
+      return;
     }
+    on_error_(sink_id_,
+              PigeonFfiEncodeFlutterError(PigeonFfiGetCodec(), error));
+  }
 
-    void EndOfStream() override {
-      if (on_done_ != nullptr) {
-        on_done_(sink_id_);
-      }
+  void EndOfStream() override {
+    if (on_done_ != nullptr) {
+      on_done_(sink_id_);
     }
+  }
 
-    private:
-      int64_t sink_id_;
-      PigeonFfiEventCallback on_event_;
-      PigeonFfiEventCallback on_error_;
-      PigeonFfiDoneCallback on_done_;
+ private:
+  int64_t sink_id_;
+  PigeonFfiEventCallback on_event_;
+  PigeonFfiEventCallback on_error_;
+  PigeonFfiDoneCallback on_done_;
 };
 
 PigeonFfiBuffer* PigeonVideoPlayerEventsVideoEventsListenFfi(
-  PigeonFfiBuffer* request,
-  int64_t sink_id,
-  PigeonFfiEventCallback on_event,
-  PigeonFfiEventCallback on_error,
-  PigeonFfiDoneCallback on_done) {
+    PigeonFfiBuffer* request, int64_t sink_id, PigeonFfiEventCallback on_event,
+    PigeonFfiEventCallback on_error, PigeonFfiDoneCallback on_done) {
   const auto& codec = PigeonFfiGetCodec();
   if (g_video_player_events_video_events_handler == nullptr) {
-    return PigeonFfiEncodeErrorMessage(codec, "VideoPlayerEvents.videoEvents has not been set up.");
+    return PigeonFfiEncodeErrorMessage(
+        codec, "VideoPlayerEvents.videoEvents has not been set up.");
   }
   try {
     std::string instance_name;
-    PigeonFfiBuffer* decode_error = PigeonFfiDecodeInstanceName(codec, request, &instance_name);
+    PigeonFfiBuffer* decode_error =
+        PigeonFfiDecodeInstanceName(codec, request, &instance_name);
     if (decode_error != nullptr) {
       return decode_error;
     }
-    auto sink = std::make_unique<PigeonVideoPlayerEventsVideoEventsEventSinkImpl>(sink_id, on_event, on_error, on_done);
-    std::optional<FlutterError> output = g_video_player_events_video_events_handler->OnListen(instance_name, std::move(sink));
+    auto sink =
+        std::make_unique<PigeonVideoPlayerEventsVideoEventsEventSinkImpl>(
+            sink_id, on_event, on_error, on_done);
+    std::optional<FlutterError> output =
+        g_video_player_events_video_events_handler->OnListen(instance_name,
+                                                             std::move(sink));
     if (output.has_value()) {
       return PigeonFfiEncodeFlutterError(codec, output.value());
     }
-    return PigeonFfiEncodeMessage(codec, ::flutter::EncodableValue(::flutter::EncodableList{::flutter::EncodableValue()}));
+    return PigeonFfiEncodeMessage(
+        codec, ::flutter::EncodableValue(
+                   ::flutter::EncodableList{::flutter::EncodableValue()}));
   } catch (const std::exception& exception) {
     return PigeonFfiEncodeErrorMessage(codec, exception.what());
   }
 }
 
-PigeonFfiBuffer* PigeonVideoPlayerEventsVideoEventsCancelFfi(PigeonFfiBuffer* request, int64_t sink_id) {
+PigeonFfiBuffer* PigeonVideoPlayerEventsVideoEventsCancelFfi(
+    PigeonFfiBuffer* request, int64_t sink_id) {
   (void)sink_id;
   const auto& codec = PigeonFfiGetCodec();
   if (g_video_player_events_video_events_handler == nullptr) {
-    return PigeonFfiEncodeErrorMessage(codec, "VideoPlayerEvents.videoEvents has not been set up.");
+    return PigeonFfiEncodeErrorMessage(
+        codec, "VideoPlayerEvents.videoEvents has not been set up.");
   }
   try {
     std::string instance_name;
-    PigeonFfiBuffer* decode_error = PigeonFfiDecodeInstanceName(codec, request, &instance_name);
+    PigeonFfiBuffer* decode_error =
+        PigeonFfiDecodeInstanceName(codec, request, &instance_name);
     if (decode_error != nullptr) {
       return decode_error;
     }
-    std::optional<FlutterError> output = g_video_player_events_video_events_handler->OnCancel(instance_name);
+    std::optional<FlutterError> output =
+        g_video_player_events_video_events_handler->OnCancel(instance_name);
     if (output.has_value()) {
       return PigeonFfiEncodeFlutterError(codec, output.value());
     }
-    return PigeonFfiEncodeMessage(codec, ::flutter::EncodableValue(::flutter::EncodableList{::flutter::EncodableValue()}));
+    return PigeonFfiEncodeMessage(
+        codec, ::flutter::EncodableValue(
+                   ::flutter::EncodableList{::flutter::EncodableValue()}));
   } catch (const std::exception& exception) {
     return PigeonFfiEncodeErrorMessage(codec, exception.what());
   }
 }
 
 PigeonFfiBuffer* PigeonVideoPlayerEventsVideoEventsListenFfiDispatch(
-  PigeonFfiBuffer* request,
-  int64_t sink_id,
-  PigeonFfiEventCallback on_event,
-  PigeonFfiEventCallback on_error,
-  PigeonFfiDoneCallback on_done) {
+    PigeonFfiBuffer* request, int64_t sink_id, PigeonFfiEventCallback on_event,
+    PigeonFfiEventCallback on_error, PigeonFfiDoneCallback on_done) {
   if (g_video_player_events_video_events_dispatcher != nullptr) {
     return g_video_player_events_video_events_dispatcher->RunSync([=]() {
-      return PigeonVideoPlayerEventsVideoEventsListenFfi(request, sink_id, on_event, on_error, on_done);
+      return PigeonVideoPlayerEventsVideoEventsListenFfi(
+          request, sink_id, on_event, on_error, on_done);
     });
   }
-  return PigeonVideoPlayerEventsVideoEventsListenFfi(request, sink_id, on_event, on_error, on_done);
+  return PigeonVideoPlayerEventsVideoEventsListenFfi(request, sink_id, on_event,
+                                                     on_error, on_done);
 }
 
-PigeonFfiBuffer* PigeonVideoPlayerEventsVideoEventsCancelFfiDispatch(PigeonFfiBuffer* request, int64_t sink_id) {
+PigeonFfiBuffer* PigeonVideoPlayerEventsVideoEventsCancelFfiDispatch(
+    PigeonFfiBuffer* request, int64_t sink_id) {
   if (g_video_player_events_video_events_dispatcher != nullptr) {
     return g_video_player_events_video_events_dispatcher->RunSync([=]() {
       return PigeonVideoPlayerEventsVideoEventsCancelFfi(request, sink_id);
@@ -825,77 +1040,115 @@ PigeonFfiBuffer* PigeonVideoPlayerEventsVideoEventsCancelFfiDispatch(PigeonFfiBu
 
 }  // namespace video_player_tizen
 
-extern "C" PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_initialize(PigeonFfiBuffer* request) {
-  return video_player_tizen::PigeonTizenVideoPlayerApiInitializeFfiDispatch(request);
+extern "C" PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_initialize(
+    PigeonFfiBuffer* request) {
+  return video_player_tizen::PigeonTizenVideoPlayerApiInitializeFfiDispatch(
+      request);
 }
 
-extern "C" PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_create(PigeonFfiBuffer* request) {
-  return video_player_tizen::PigeonTizenVideoPlayerApiCreateFfiDispatch(request);
+extern "C" PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_create(
+    PigeonFfiBuffer* request) {
+  return video_player_tizen::PigeonTizenVideoPlayerApiCreateFfiDispatch(
+      request);
 }
 
-extern "C" PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_dispose(PigeonFfiBuffer* request) {
-  return video_player_tizen::PigeonTizenVideoPlayerApiDisposeFfiDispatch(request);
+extern "C" PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_dispose(
+    PigeonFfiBuffer* request) {
+  return video_player_tizen::PigeonTizenVideoPlayerApiDisposeFfiDispatch(
+      request);
 }
 
-extern "C" PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_set_looping(PigeonFfiBuffer* request) {
-  return video_player_tizen::PigeonTizenVideoPlayerApiSetLoopingFfiDispatch(request);
+extern "C" PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_set_looping(
+    PigeonFfiBuffer* request) {
+  return video_player_tizen::PigeonTizenVideoPlayerApiSetLoopingFfiDispatch(
+      request);
 }
 
-extern "C" PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_set_volume(PigeonFfiBuffer* request) {
-  return video_player_tizen::PigeonTizenVideoPlayerApiSetVolumeFfiDispatch(request);
+extern "C" PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_set_volume(
+    PigeonFfiBuffer* request) {
+  return video_player_tizen::PigeonTizenVideoPlayerApiSetVolumeFfiDispatch(
+      request);
 }
 
-extern "C" PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_set_playback_speed(PigeonFfiBuffer* request) {
-  return video_player_tizen::PigeonTizenVideoPlayerApiSetPlaybackSpeedFfiDispatch(request);
+extern "C" PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_set_playback_speed(
+    PigeonFfiBuffer* request) {
+  return video_player_tizen::
+      PigeonTizenVideoPlayerApiSetPlaybackSpeedFfiDispatch(request);
 }
 
-extern "C" PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_play(PigeonFfiBuffer* request) {
+extern "C" PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_play(
+    PigeonFfiBuffer* request) {
   return video_player_tizen::PigeonTizenVideoPlayerApiPlayFfiDispatch(request);
 }
 
-extern "C" PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_position(PigeonFfiBuffer* request) {
-  return video_player_tizen::PigeonTizenVideoPlayerApiPositionFfiDispatch(request);
+extern "C" PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_position(
+    PigeonFfiBuffer* request) {
+  return video_player_tizen::PigeonTizenVideoPlayerApiPositionFfiDispatch(
+      request);
 }
 
-extern "C" void pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_seek_to(
-  PigeonFfiBuffer* request,
-  int64_t reply_id,
-  PigeonFfiReplyCallback on_reply) {
-  video_player_tizen::PigeonTizenVideoPlayerApiSeekToFfiDispatch(request, reply_id, on_reply);
+extern "C" void
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_seek_to(
+    PigeonFfiBuffer* request, int64_t reply_id,
+    PigeonFfiReplyCallback on_reply) {
+  video_player_tizen::PigeonTizenVideoPlayerApiSeekToFfiDispatch(
+      request, reply_id, on_reply);
 }
 
-extern "C" PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_pause(PigeonFfiBuffer* request) {
+extern "C" PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_pause(
+    PigeonFfiBuffer* request) {
   return video_player_tizen::PigeonTizenVideoPlayerApiPauseFfiDispatch(request);
 }
 
-extern "C" PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_set_mix_with_others(PigeonFfiBuffer* request) {
-  return video_player_tizen::PigeonTizenVideoPlayerApiSetMixWithOthersFfiDispatch(request);
+extern "C" PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_set_mix_with_others(
+    PigeonFfiBuffer* request) {
+  return video_player_tizen::
+      PigeonTizenVideoPlayerApiSetMixWithOthersFfiDispatch(request);
 }
 
-extern "C" PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_set_prevents_display_sleep(PigeonFfiBuffer* request) {
-  return video_player_tizen::PigeonTizenVideoPlayerApiSetPreventsDisplaySleepFfiDispatch(request);
+extern "C" PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_set_prevents_display_sleep(
+    PigeonFfiBuffer* request) {
+  return video_player_tizen::
+      PigeonTizenVideoPlayerApiSetPreventsDisplaySleepFfiDispatch(request);
 }
 
-extern "C" PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_get_audio_tracks(PigeonFfiBuffer* request) {
-  return video_player_tizen::PigeonTizenVideoPlayerApiGetAudioTracksFfiDispatch(request);
+extern "C" PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_get_audio_tracks(
+    PigeonFfiBuffer* request) {
+  return video_player_tizen::PigeonTizenVideoPlayerApiGetAudioTracksFfiDispatch(
+      request);
 }
 
-extern "C" PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_select_audio_track(PigeonFfiBuffer* request) {
-  return video_player_tizen::PigeonTizenVideoPlayerApiSelectAudioTrackFfiDispatch(request);
+extern "C" PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_select_audio_track(
+    PigeonFfiBuffer* request) {
+  return video_player_tizen::
+      PigeonTizenVideoPlayerApiSelectAudioTrackFfiDispatch(request);
 }
 
-extern "C" PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_video_player_events_video_events_listen(
-  PigeonFfiBuffer* request,
-  int64_t sink_id,
-  PigeonFfiEventCallback on_event,
-  PigeonFfiEventCallback on_error,
-  PigeonFfiDoneCallback on_done) {
-  return video_player_tizen::PigeonVideoPlayerEventsVideoEventsListenFfiDispatch(request, sink_id, on_event, on_error, on_done);
+extern "C" PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_video_player_events_video_events_listen(
+    PigeonFfiBuffer* request, int64_t sink_id, PigeonFfiEventCallback on_event,
+    PigeonFfiEventCallback on_error, PigeonFfiDoneCallback on_done) {
+  return video_player_tizen::
+      PigeonVideoPlayerEventsVideoEventsListenFfiDispatch(
+          request, sink_id, on_event, on_error, on_done);
 }
 
-extern "C" PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_video_player_events_video_events_cancel(
-  PigeonFfiBuffer* request,
-  int64_t sink_id) {
-  return video_player_tizen::PigeonVideoPlayerEventsVideoEventsCancelFfiDispatch(request, sink_id);
+extern "C" PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_video_player_events_video_events_cancel(
+    PigeonFfiBuffer* request, int64_t sink_id) {
+  return video_player_tizen::
+      PigeonVideoPlayerEventsVideoEventsCancelFfiDispatch(request, sink_id);
 }
-

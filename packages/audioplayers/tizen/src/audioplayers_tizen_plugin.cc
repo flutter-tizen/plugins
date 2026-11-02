@@ -300,10 +300,8 @@ class AudioplayersTizenPlugin : public flutter::Plugin {
     try {
       const std::string &method_name = method_call.method_name();
       if (method_name == "init") {
-        for (auto &pair : audio_players_) {
-          DisposeAudioPlayer(pair.first);
-        }
         audio_players_.clear();
+        event_sinks_.clear();
       } else if (method_name == "setAudioContext") {
         OnGlobalLog("Setting AudioContext is not supported on Tizen");
         result->Success();

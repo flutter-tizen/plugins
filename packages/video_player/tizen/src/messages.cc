@@ -32,32 +32,36 @@ FlutterError CreateConnectionError(const std::string channel_name) {
 }
 
 namespace {
-template<typename T>
+template <typename T>
 bool PigeonInternalDeepEquals(const T& a, const T& b);
 
 bool PigeonInternalDeepEquals(const double& a, const double& b);
 
-template<typename T>
+template <typename T>
 bool PigeonInternalDeepEquals(const std::vector<T>& a, const std::vector<T>& b);
 
-template<typename K, typename V>
+template <typename K, typename V>
 bool PigeonInternalDeepEquals(const std::map<K, V>& a, const std::map<K, V>& b);
 
-template<typename T>
-bool PigeonInternalDeepEquals(const std::optional<T>& a, const std::optional<T>& b);
+template <typename T>
+bool PigeonInternalDeepEquals(const std::optional<T>& a,
+                              const std::optional<T>& b);
 
-template<typename T>
-bool PigeonInternalDeepEquals(const std::unique_ptr<T>& a, const std::unique_ptr<T>& b);
+template <typename T>
+bool PigeonInternalDeepEquals(const std::unique_ptr<T>& a,
+                              const std::unique_ptr<T>& b);
 
-bool PigeonInternalDeepEquals(const ::flutter::EncodableValue& a, const ::flutter::EncodableValue& b);
+bool PigeonInternalDeepEquals(const ::flutter::EncodableValue& a,
+                              const ::flutter::EncodableValue& b);
 
-template<typename T>
+template <typename T>
 bool PigeonInternalDeepEquals(const T& a, const T& b) {
   return a == b;
 }
 
-template<typename T>
-bool PigeonInternalDeepEquals(const std::vector<T>& a, const std::vector<T>& b) {
+template <typename T>
+bool PigeonInternalDeepEquals(const std::vector<T>& a,
+                              const std::vector<T>& b) {
   if (a.size() != b.size()) {
     return false;
   }
@@ -70,7 +74,8 @@ bool PigeonInternalDeepEquals(const std::vector<T>& a, const std::vector<T>& b) 
 }
 
 template <typename K, typename V>
-bool PigeonInternalDeepEquals(const std::map<K, V>& a, const std::map<K, V>& b) {
+bool PigeonInternalDeepEquals(const std::map<K, V>& a,
+                              const std::map<K, V>& b) {
   if (a.size() != b.size()) {
     return false;
   }
@@ -98,8 +103,9 @@ bool PigeonInternalDeepEquals(const double& a, const double& b) {
   return (a == b) || (std::isnan(a) && std::isnan(b));
 }
 
-template<typename T>
-bool PigeonInternalDeepEquals(const std::optional<T>& a, const std::optional<T>& b) {
+template <typename T>
+bool PigeonInternalDeepEquals(const std::optional<T>& a,
+                              const std::optional<T>& b) {
   if (!a && !b) {
     return true;
   }
@@ -109,8 +115,9 @@ bool PigeonInternalDeepEquals(const std::optional<T>& a, const std::optional<T>&
   return PigeonInternalDeepEquals(*a, *b);
 }
 
-template<typename T>
-bool PigeonInternalDeepEquals(const std::unique_ptr<T>& a, const std::unique_ptr<T>& b) {
+template <typename T>
+bool PigeonInternalDeepEquals(const std::unique_ptr<T>& a,
+                              const std::unique_ptr<T>& b) {
   if (a.get() == b.get()) {
     return true;
   }
@@ -120,15 +127,18 @@ bool PigeonInternalDeepEquals(const std::unique_ptr<T>& a, const std::unique_ptr
   return PigeonInternalDeepEquals(*a, *b);
 }
 
-bool PigeonInternalDeepEquals(const ::flutter::EncodableValue& a, const ::flutter::EncodableValue& b) {
+bool PigeonInternalDeepEquals(const ::flutter::EncodableValue& a,
+                              const ::flutter::EncodableValue& b) {
   if (a.index() != b.index()) {
     return false;
   }
   if (const double* da = std::get_if<double>(&a)) {
     return PigeonInternalDeepEquals(*da, std::get<double>(b));
-  } else if (const ::flutter::EncodableList* la = std::get_if<::flutter::EncodableList>(&a)) {
+  } else if (const ::flutter::EncodableList* la =
+                 std::get_if<::flutter::EncodableList>(&a)) {
     return PigeonInternalDeepEquals(*la, std::get<::flutter::EncodableList>(b));
-  } else if (const ::flutter::EncodableMap* ma = std::get_if<::flutter::EncodableMap>(&a)) {
+  } else if (const ::flutter::EncodableMap* ma =
+                 std::get_if<::flutter::EncodableMap>(&a)) {
     return PigeonInternalDeepEquals(*ma, std::get<::flutter::EncodableMap>(b));
   }
   return a == b;
@@ -171,7 +181,8 @@ template <typename K, typename V>
 size_t PigeonInternalDeepHash(const std::map<K, V>& v) {
   size_t result = 0;
   for (const auto& kv : v) {
-    result += ((PigeonInternalDeepHash(kv.first) * 31) ^ PigeonInternalDeepHash(kv.second));
+    result += ((PigeonInternalDeepHash(kv.first) * 31) ^
+               PigeonInternalDeepHash(kv.second));
   }
   return result;
 }
@@ -198,7 +209,6 @@ size_t PigeonInternalDeepHash(const std::unique_ptr<T>& v) {
   return v ? PigeonInternalDeepHash(*v) : 0;
 }
 
-
 size_t PigeonInternalDeepHash(const ::flutter::EncodableValue& v) {
   size_t result = v.index();
   if (const bool* bv = std::get_if<bool>(&v)) {
@@ -211,15 +221,20 @@ size_t PigeonInternalDeepHash(const ::flutter::EncodableValue& v) {
     result = result * 31 + PigeonInternalDeepHash(*dv);
   } else if (const std::string* sv = std::get_if<std::string>(&v)) {
     result = result * 31 + PigeonInternalDeepHash(*sv);
-  } else if (const std::vector<uint8_t>* bv = std::get_if<std::vector<uint8_t>>(&v)) {
+  } else if (const std::vector<uint8_t>* bv =
+                 std::get_if<std::vector<uint8_t>>(&v)) {
     result = result * 31 + PigeonInternalDeepHash(*bv);
-  } else if (const std::vector<int32_t>* iv = std::get_if<std::vector<int32_t>>(&v)) {
+  } else if (const std::vector<int32_t>* iv =
+                 std::get_if<std::vector<int32_t>>(&v)) {
     result = result * 31 + PigeonInternalDeepHash(*iv);
-  } else if (const std::vector<int64_t>* lv = std::get_if<std::vector<int64_t>>(&v)) {
+  } else if (const std::vector<int64_t>* lv =
+                 std::get_if<std::vector<int64_t>>(&v)) {
     result = result * 31 + PigeonInternalDeepHash(*lv);
-  } else if (const std::vector<float>* fv = std::get_if<std::vector<float>>(&v)) {
+  } else if (const std::vector<float>* fv =
+                 std::get_if<std::vector<float>>(&v)) {
     result = result * 31 + PigeonInternalDeepHash(*fv);
-  } else if (const std::vector<double>* dv = std::get_if<std::vector<double>>(&v)) {
+  } else if (const std::vector<double>* dv =
+                 std::get_if<std::vector<double>>(&v)) {
     result = result * 31 + PigeonInternalDeepHash(*dv);
   } else if (const ::flutter::EncodableList* lv =
                  std::get_if<::flutter::EncodableList>(&v)) {
@@ -289,7 +304,8 @@ std::string PigeonInternalToString(const std::map<K, V>& v) {
       ss << ", ";
     }
     first = false;
-    ss << PigeonInternalToString(kv.first) << ": " << PigeonInternalToString(kv.second);
+    ss << PigeonInternalToString(kv.first) << ": "
+       << PigeonInternalToString(kv.second);
   }
   ss << "}";
   return ss.str();
@@ -304,7 +320,6 @@ template <typename T>
 std::string PigeonInternalToString(const std::unique_ptr<T>& v) {
   return v ? PigeonInternalToString(*v) : "null";
 }
-
 
 std::string PigeonInternalToString(const ::flutter::EncodableValue& v) {
   if (std::get_if<std::monostate>(&v)) {
@@ -340,10 +355,12 @@ std::string PigeonInternalToString(const ::flutter::EncodableValue& v) {
   if (const std::vector<double>* dv = std::get_if<std::vector<double>>(&v)) {
     return PigeonInternalToString(*dv);
   }
-  if (const ::flutter::EncodableList* lv = std::get_if<::flutter::EncodableList>(&v)) {
+  if (const ::flutter::EncodableList* lv =
+          std::get_if<::flutter::EncodableList>(&v)) {
     return PigeonInternalToString(*lv);
   }
-  if (const ::flutter::EncodableMap* mv = std::get_if<::flutter::EncodableMap>(&v)) {
+  if (const ::flutter::EncodableMap* mv =
+          std::get_if<::flutter::EncodableMap>(&v)) {
     return PigeonInternalToString(*mv);
   }
   if (std::get_if<::flutter::CustomEncodableValue>(&v)) {
@@ -355,17 +372,13 @@ std::string PigeonInternalToString(const ::flutter::EncodableValue& v) {
 }  // namespace
 // TextureMessage
 
-TextureMessage::TextureMessage(int64_t texture_id)
- : texture_id_(texture_id) {}
+TextureMessage::TextureMessage(int64_t texture_id) : texture_id_(texture_id) {}
 
-int64_t TextureMessage::texture_id() const {
-  return texture_id_;
-}
+int64_t TextureMessage::texture_id() const { return texture_id_; }
 
 void TextureMessage::set_texture_id(int64_t value_arg) {
   texture_id_ = value_arg;
 }
-
 
 EncodableList TextureMessage::ToEncodableList() const {
   EncodableList list;
@@ -375,8 +388,7 @@ EncodableList TextureMessage::ToEncodableList() const {
 }
 
 TextureMessage TextureMessage::FromEncodableList(const EncodableList& list) {
-  TextureMessage decoded(
-    std::get<int64_t>(list[0]));
+  TextureMessage decoded(std::get<int64_t>(list[0]));
   return decoded;
 }
 
@@ -394,9 +406,7 @@ size_t TextureMessage::Hash() const {
   return result;
 }
 
-std::ostream& operator<<(
-  std::ostream& os,
-  const TextureMessage& obj) {
+std::ostream& operator<<(std::ostream& os, const TextureMessage& obj) {
   os << "TextureMessage(";
   os << "texture_id: ";
   os << PigeonInternalToString(obj.texture_id_);
@@ -404,35 +414,22 @@ std::ostream& operator<<(
   return os;
 }
 
-size_t PigeonInternalDeepHash(const TextureMessage& v) {
-  return v.Hash();
-}
+size_t PigeonInternalDeepHash(const TextureMessage& v) { return v.Hash(); }
 
 // LoopingMessage
 
-LoopingMessage::LoopingMessage(
-  int64_t texture_id,
-  bool is_looping)
- : texture_id_(texture_id),
-    is_looping_(is_looping) {}
+LoopingMessage::LoopingMessage(int64_t texture_id, bool is_looping)
+    : texture_id_(texture_id), is_looping_(is_looping) {}
 
-int64_t LoopingMessage::texture_id() const {
-  return texture_id_;
-}
+int64_t LoopingMessage::texture_id() const { return texture_id_; }
 
 void LoopingMessage::set_texture_id(int64_t value_arg) {
   texture_id_ = value_arg;
 }
 
+bool LoopingMessage::is_looping() const { return is_looping_; }
 
-bool LoopingMessage::is_looping() const {
-  return is_looping_;
-}
-
-void LoopingMessage::set_is_looping(bool value_arg) {
-  is_looping_ = value_arg;
-}
-
+void LoopingMessage::set_is_looping(bool value_arg) { is_looping_ = value_arg; }
 
 EncodableList LoopingMessage::ToEncodableList() const {
   EncodableList list;
@@ -443,14 +440,13 @@ EncodableList LoopingMessage::ToEncodableList() const {
 }
 
 LoopingMessage LoopingMessage::FromEncodableList(const EncodableList& list) {
-  LoopingMessage decoded(
-    std::get<int64_t>(list[0]),
-    std::get<bool>(list[1]));
+  LoopingMessage decoded(std::get<int64_t>(list[0]), std::get<bool>(list[1]));
   return decoded;
 }
 
 bool LoopingMessage::operator==(const LoopingMessage& other) const {
-  return PigeonInternalDeepEquals(texture_id_, other.texture_id_) && PigeonInternalDeepEquals(is_looping_, other.is_looping_);
+  return PigeonInternalDeepEquals(texture_id_, other.texture_id_) &&
+         PigeonInternalDeepEquals(is_looping_, other.is_looping_);
 }
 
 bool LoopingMessage::operator!=(const LoopingMessage& other) const {
@@ -464,9 +460,7 @@ size_t LoopingMessage::Hash() const {
   return result;
 }
 
-std::ostream& operator<<(
-  std::ostream& os,
-  const LoopingMessage& obj) {
+std::ostream& operator<<(std::ostream& os, const LoopingMessage& obj) {
   os << "LoopingMessage(";
   os << "texture_id: ";
   os << PigeonInternalToString(obj.texture_id_);
@@ -476,35 +470,22 @@ std::ostream& operator<<(
   return os;
 }
 
-size_t PigeonInternalDeepHash(const LoopingMessage& v) {
-  return v.Hash();
-}
+size_t PigeonInternalDeepHash(const LoopingMessage& v) { return v.Hash(); }
 
 // VolumeMessage
 
-VolumeMessage::VolumeMessage(
-  int64_t texture_id,
-  double volume)
- : texture_id_(texture_id),
-    volume_(volume) {}
+VolumeMessage::VolumeMessage(int64_t texture_id, double volume)
+    : texture_id_(texture_id), volume_(volume) {}
 
-int64_t VolumeMessage::texture_id() const {
-  return texture_id_;
-}
+int64_t VolumeMessage::texture_id() const { return texture_id_; }
 
 void VolumeMessage::set_texture_id(int64_t value_arg) {
   texture_id_ = value_arg;
 }
 
+double VolumeMessage::volume() const { return volume_; }
 
-double VolumeMessage::volume() const {
-  return volume_;
-}
-
-void VolumeMessage::set_volume(double value_arg) {
-  volume_ = value_arg;
-}
-
+void VolumeMessage::set_volume(double value_arg) { volume_ = value_arg; }
 
 EncodableList VolumeMessage::ToEncodableList() const {
   EncodableList list;
@@ -515,14 +496,13 @@ EncodableList VolumeMessage::ToEncodableList() const {
 }
 
 VolumeMessage VolumeMessage::FromEncodableList(const EncodableList& list) {
-  VolumeMessage decoded(
-    std::get<int64_t>(list[0]),
-    std::get<double>(list[1]));
+  VolumeMessage decoded(std::get<int64_t>(list[0]), std::get<double>(list[1]));
   return decoded;
 }
 
 bool VolumeMessage::operator==(const VolumeMessage& other) const {
-  return PigeonInternalDeepEquals(texture_id_, other.texture_id_) && PigeonInternalDeepEquals(volume_, other.volume_);
+  return PigeonInternalDeepEquals(texture_id_, other.texture_id_) &&
+         PigeonInternalDeepEquals(volume_, other.volume_);
 }
 
 bool VolumeMessage::operator!=(const VolumeMessage& other) const {
@@ -536,9 +516,7 @@ size_t VolumeMessage::Hash() const {
   return result;
 }
 
-std::ostream& operator<<(
-  std::ostream& os,
-  const VolumeMessage& obj) {
+std::ostream& operator<<(std::ostream& os, const VolumeMessage& obj) {
   os << "VolumeMessage(";
   os << "texture_id: ";
   os << PigeonInternalToString(obj.texture_id_);
@@ -548,35 +526,22 @@ std::ostream& operator<<(
   return os;
 }
 
-size_t PigeonInternalDeepHash(const VolumeMessage& v) {
-  return v.Hash();
-}
+size_t PigeonInternalDeepHash(const VolumeMessage& v) { return v.Hash(); }
 
 // PlaybackSpeedMessage
 
-PlaybackSpeedMessage::PlaybackSpeedMessage(
-  int64_t texture_id,
-  double speed)
- : texture_id_(texture_id),
-    speed_(speed) {}
+PlaybackSpeedMessage::PlaybackSpeedMessage(int64_t texture_id, double speed)
+    : texture_id_(texture_id), speed_(speed) {}
 
-int64_t PlaybackSpeedMessage::texture_id() const {
-  return texture_id_;
-}
+int64_t PlaybackSpeedMessage::texture_id() const { return texture_id_; }
 
 void PlaybackSpeedMessage::set_texture_id(int64_t value_arg) {
   texture_id_ = value_arg;
 }
 
+double PlaybackSpeedMessage::speed() const { return speed_; }
 
-double PlaybackSpeedMessage::speed() const {
-  return speed_;
-}
-
-void PlaybackSpeedMessage::set_speed(double value_arg) {
-  speed_ = value_arg;
-}
-
+void PlaybackSpeedMessage::set_speed(double value_arg) { speed_ = value_arg; }
 
 EncodableList PlaybackSpeedMessage::ToEncodableList() const {
   EncodableList list;
@@ -586,15 +551,16 @@ EncodableList PlaybackSpeedMessage::ToEncodableList() const {
   return list;
 }
 
-PlaybackSpeedMessage PlaybackSpeedMessage::FromEncodableList(const EncodableList& list) {
-  PlaybackSpeedMessage decoded(
-    std::get<int64_t>(list[0]),
-    std::get<double>(list[1]));
+PlaybackSpeedMessage PlaybackSpeedMessage::FromEncodableList(
+    const EncodableList& list) {
+  PlaybackSpeedMessage decoded(std::get<int64_t>(list[0]),
+                               std::get<double>(list[1]));
   return decoded;
 }
 
 bool PlaybackSpeedMessage::operator==(const PlaybackSpeedMessage& other) const {
-  return PigeonInternalDeepEquals(texture_id_, other.texture_id_) && PigeonInternalDeepEquals(speed_, other.speed_);
+  return PigeonInternalDeepEquals(texture_id_, other.texture_id_) &&
+         PigeonInternalDeepEquals(speed_, other.speed_);
 }
 
 bool PlaybackSpeedMessage::operator!=(const PlaybackSpeedMessage& other) const {
@@ -608,9 +574,7 @@ size_t PlaybackSpeedMessage::Hash() const {
   return result;
 }
 
-std::ostream& operator<<(
-  std::ostream& os,
-  const PlaybackSpeedMessage& obj) {
+std::ostream& operator<<(std::ostream& os, const PlaybackSpeedMessage& obj) {
   os << "PlaybackSpeedMessage(";
   os << "texture_id: ";
   os << PigeonInternalToString(obj.texture_id_);
@@ -626,29 +590,18 @@ size_t PigeonInternalDeepHash(const PlaybackSpeedMessage& v) {
 
 // PositionMessage
 
-PositionMessage::PositionMessage(
-  int64_t texture_id,
-  int64_t position)
- : texture_id_(texture_id),
-    position_(position) {}
+PositionMessage::PositionMessage(int64_t texture_id, int64_t position)
+    : texture_id_(texture_id), position_(position) {}
 
-int64_t PositionMessage::texture_id() const {
-  return texture_id_;
-}
+int64_t PositionMessage::texture_id() const { return texture_id_; }
 
 void PositionMessage::set_texture_id(int64_t value_arg) {
   texture_id_ = value_arg;
 }
 
+int64_t PositionMessage::position() const { return position_; }
 
-int64_t PositionMessage::position() const {
-  return position_;
-}
-
-void PositionMessage::set_position(int64_t value_arg) {
-  position_ = value_arg;
-}
-
+void PositionMessage::set_position(int64_t value_arg) { position_ = value_arg; }
 
 EncodableList PositionMessage::ToEncodableList() const {
   EncodableList list;
@@ -659,14 +612,14 @@ EncodableList PositionMessage::ToEncodableList() const {
 }
 
 PositionMessage PositionMessage::FromEncodableList(const EncodableList& list) {
-  PositionMessage decoded(
-    std::get<int64_t>(list[0]),
-    std::get<int64_t>(list[1]));
+  PositionMessage decoded(std::get<int64_t>(list[0]),
+                          std::get<int64_t>(list[1]));
   return decoded;
 }
 
 bool PositionMessage::operator==(const PositionMessage& other) const {
-  return PigeonInternalDeepEquals(texture_id_, other.texture_id_) && PigeonInternalDeepEquals(position_, other.position_);
+  return PigeonInternalDeepEquals(texture_id_, other.texture_id_) &&
+         PigeonInternalDeepEquals(position_, other.position_);
 }
 
 bool PositionMessage::operator!=(const PositionMessage& other) const {
@@ -680,9 +633,7 @@ size_t PositionMessage::Hash() const {
   return result;
 }
 
-std::ostream& operator<<(
-  std::ostream& os,
-  const PositionMessage& obj) {
+std::ostream& operator<<(std::ostream& os, const PositionMessage& obj) {
   os << "PositionMessage(";
   os << "texture_id: ";
   os << PigeonInternalToString(obj.texture_id_);
@@ -692,26 +643,24 @@ std::ostream& operator<<(
   return os;
 }
 
-size_t PigeonInternalDeepHash(const PositionMessage& v) {
-  return v.Hash();
-}
+size_t PigeonInternalDeepHash(const PositionMessage& v) { return v.Hash(); }
 
 // CreateMessage
 
 CreateMessage::CreateMessage(const EncodableMap& http_headers)
- : http_headers_(http_headers) {}
+    : http_headers_(http_headers) {}
 
-CreateMessage::CreateMessage(
-  const std::string* asset,
-  const std::string* uri,
-  const std::string* package_name,
-  const std::string* format_hint,
-  const EncodableMap& http_headers)
- : asset_(asset ? std::optional<std::string>(*asset) : std::nullopt),
-    uri_(uri ? std::optional<std::string>(*uri) : std::nullopt),
-    package_name_(package_name ? std::optional<std::string>(*package_name) : std::nullopt),
-    format_hint_(format_hint ? std::optional<std::string>(*format_hint) : std::nullopt),
-    http_headers_(http_headers) {}
+CreateMessage::CreateMessage(const std::string* asset, const std::string* uri,
+                             const std::string* package_name,
+                             const std::string* format_hint,
+                             const EncodableMap& http_headers)
+    : asset_(asset ? std::optional<std::string>(*asset) : std::nullopt),
+      uri_(uri ? std::optional<std::string>(*uri) : std::nullopt),
+      package_name_(package_name ? std::optional<std::string>(*package_name)
+                                 : std::nullopt),
+      format_hint_(format_hint ? std::optional<std::string>(*format_hint)
+                               : std::nullopt),
+      http_headers_(http_headers) {}
 
 const std::string* CreateMessage::asset() const {
   return asset_ ? &(*asset_) : nullptr;
@@ -725,7 +674,6 @@ void CreateMessage::set_asset(std::string_view value_arg) {
   asset_ = value_arg;
 }
 
-
 const std::string* CreateMessage::uri() const {
   return uri_ ? &(*uri_) : nullptr;
 }
@@ -734,36 +682,33 @@ void CreateMessage::set_uri(const std::string_view* value_arg) {
   uri_ = value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
 }
 
-void CreateMessage::set_uri(std::string_view value_arg) {
-  uri_ = value_arg;
-}
-
+void CreateMessage::set_uri(std::string_view value_arg) { uri_ = value_arg; }
 
 const std::string* CreateMessage::package_name() const {
   return package_name_ ? &(*package_name_) : nullptr;
 }
 
 void CreateMessage::set_package_name(const std::string_view* value_arg) {
-  package_name_ = value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
+  package_name_ =
+      value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
 }
 
 void CreateMessage::set_package_name(std::string_view value_arg) {
   package_name_ = value_arg;
 }
 
-
 const std::string* CreateMessage::format_hint() const {
   return format_hint_ ? &(*format_hint_) : nullptr;
 }
 
 void CreateMessage::set_format_hint(const std::string_view* value_arg) {
-  format_hint_ = value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
+  format_hint_ =
+      value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
 }
 
 void CreateMessage::set_format_hint(std::string_view value_arg) {
   format_hint_ = value_arg;
 }
-
 
 const EncodableMap& CreateMessage::http_headers() const {
   return http_headers_;
@@ -773,21 +718,21 @@ void CreateMessage::set_http_headers(const EncodableMap& value_arg) {
   http_headers_ = value_arg;
 }
 
-
 EncodableList CreateMessage::ToEncodableList() const {
   EncodableList list;
   list.reserve(5);
   list.push_back(asset_ ? EncodableValue(*asset_) : EncodableValue());
   list.push_back(uri_ ? EncodableValue(*uri_) : EncodableValue());
-  list.push_back(package_name_ ? EncodableValue(*package_name_) : EncodableValue());
-  list.push_back(format_hint_ ? EncodableValue(*format_hint_) : EncodableValue());
+  list.push_back(package_name_ ? EncodableValue(*package_name_)
+                               : EncodableValue());
+  list.push_back(format_hint_ ? EncodableValue(*format_hint_)
+                              : EncodableValue());
   list.push_back(EncodableValue(http_headers_));
   return list;
 }
 
 CreateMessage CreateMessage::FromEncodableList(const EncodableList& list) {
-  CreateMessage decoded(
-    std::get<EncodableMap>(list[4]));
+  CreateMessage decoded(std::get<EncodableMap>(list[4]));
   auto& encodable_asset = list[0];
   if (!encodable_asset.IsNull()) {
     decoded.set_asset(std::get<std::string>(encodable_asset));
@@ -808,7 +753,11 @@ CreateMessage CreateMessage::FromEncodableList(const EncodableList& list) {
 }
 
 bool CreateMessage::operator==(const CreateMessage& other) const {
-  return PigeonInternalDeepEquals(asset_, other.asset_) && PigeonInternalDeepEquals(uri_, other.uri_) && PigeonInternalDeepEquals(package_name_, other.package_name_) && PigeonInternalDeepEquals(format_hint_, other.format_hint_) && PigeonInternalDeepEquals(http_headers_, other.http_headers_);
+  return PigeonInternalDeepEquals(asset_, other.asset_) &&
+         PigeonInternalDeepEquals(uri_, other.uri_) &&
+         PigeonInternalDeepEquals(package_name_, other.package_name_) &&
+         PigeonInternalDeepEquals(format_hint_, other.format_hint_) &&
+         PigeonInternalDeepEquals(http_headers_, other.http_headers_);
 }
 
 bool CreateMessage::operator!=(const CreateMessage& other) const {
@@ -825,36 +774,30 @@ size_t CreateMessage::Hash() const {
   return result;
 }
 
-std::ostream& operator<<(
-  std::ostream& os,
-  const CreateMessage& obj) {
+std::ostream& operator<<(std::ostream& os, const CreateMessage& obj) {
   os << "CreateMessage(";
   os << "asset: ";
   if (obj.asset_) {
     os << PigeonInternalToString(*obj.asset_);
-  }
-  else {
+  } else {
     os << "null";
   }
   os << ", uri: ";
   if (obj.uri_) {
     os << PigeonInternalToString(*obj.uri_);
-  }
-  else {
+  } else {
     os << "null";
   }
   os << ", package_name: ";
   if (obj.package_name_) {
     os << PigeonInternalToString(*obj.package_name_);
-  }
-  else {
+  } else {
     os << "null";
   }
   os << ", format_hint: ";
   if (obj.format_hint_) {
     os << PigeonInternalToString(*obj.format_hint_);
-  }
-  else {
+  } else {
     os << "null";
   }
   os << ", http_headers: ";
@@ -863,23 +806,18 @@ std::ostream& operator<<(
   return os;
 }
 
-size_t PigeonInternalDeepHash(const CreateMessage& v) {
-  return v.Hash();
-}
+size_t PigeonInternalDeepHash(const CreateMessage& v) { return v.Hash(); }
 
 // MixWithOthersMessage
 
 MixWithOthersMessage::MixWithOthersMessage(bool mix_with_others)
- : mix_with_others_(mix_with_others) {}
+    : mix_with_others_(mix_with_others) {}
 
-bool MixWithOthersMessage::mix_with_others() const {
-  return mix_with_others_;
-}
+bool MixWithOthersMessage::mix_with_others() const { return mix_with_others_; }
 
 void MixWithOthersMessage::set_mix_with_others(bool value_arg) {
   mix_with_others_ = value_arg;
 }
-
 
 EncodableList MixWithOthersMessage::ToEncodableList() const {
   EncodableList list;
@@ -888,9 +826,9 @@ EncodableList MixWithOthersMessage::ToEncodableList() const {
   return list;
 }
 
-MixWithOthersMessage MixWithOthersMessage::FromEncodableList(const EncodableList& list) {
-  MixWithOthersMessage decoded(
-    std::get<bool>(list[0]));
+MixWithOthersMessage MixWithOthersMessage::FromEncodableList(
+    const EncodableList& list) {
+  MixWithOthersMessage decoded(std::get<bool>(list[0]));
   return decoded;
 }
 
@@ -908,9 +846,7 @@ size_t MixWithOthersMessage::Hash() const {
   return result;
 }
 
-std::ostream& operator<<(
-  std::ostream& os,
-  const MixWithOthersMessage& obj) {
+std::ostream& operator<<(std::ostream& os, const MixWithOthersMessage& obj) {
   os << "MixWithOthersMessage(";
   os << "mix_with_others: ";
   os << PigeonInternalToString(obj.mix_with_others_);
@@ -924,28 +860,22 @@ size_t PigeonInternalDeepHash(const MixWithOthersMessage& v) {
 
 // AudioTrackMessage
 
-AudioTrackMessage::AudioTrackMessage(
-  int64_t track_index,
-  bool is_selected)
- : track_index_(track_index),
-    is_selected_(is_selected) {}
+AudioTrackMessage::AudioTrackMessage(int64_t track_index, bool is_selected)
+    : track_index_(track_index), is_selected_(is_selected) {}
 
-AudioTrackMessage::AudioTrackMessage(
-  int64_t track_index,
-  const std::string* language,
-  bool is_selected)
- : track_index_(track_index),
-    language_(language ? std::optional<std::string>(*language) : std::nullopt),
-    is_selected_(is_selected) {}
+AudioTrackMessage::AudioTrackMessage(int64_t track_index,
+                                     const std::string* language,
+                                     bool is_selected)
+    : track_index_(track_index),
+      language_(language ? std::optional<std::string>(*language)
+                         : std::nullopt),
+      is_selected_(is_selected) {}
 
-int64_t AudioTrackMessage::track_index() const {
-  return track_index_;
-}
+int64_t AudioTrackMessage::track_index() const { return track_index_; }
 
 void AudioTrackMessage::set_track_index(int64_t value_arg) {
   track_index_ = value_arg;
 }
-
 
 const std::string* AudioTrackMessage::language() const {
   return language_ ? &(*language_) : nullptr;
@@ -959,15 +889,11 @@ void AudioTrackMessage::set_language(std::string_view value_arg) {
   language_ = value_arg;
 }
 
-
-bool AudioTrackMessage::is_selected() const {
-  return is_selected_;
-}
+bool AudioTrackMessage::is_selected() const { return is_selected_; }
 
 void AudioTrackMessage::set_is_selected(bool value_arg) {
   is_selected_ = value_arg;
 }
-
 
 EncodableList AudioTrackMessage::ToEncodableList() const {
   EncodableList list;
@@ -978,10 +904,10 @@ EncodableList AudioTrackMessage::ToEncodableList() const {
   return list;
 }
 
-AudioTrackMessage AudioTrackMessage::FromEncodableList(const EncodableList& list) {
-  AudioTrackMessage decoded(
-    std::get<int64_t>(list[0]),
-    std::get<bool>(list[2]));
+AudioTrackMessage AudioTrackMessage::FromEncodableList(
+    const EncodableList& list) {
+  AudioTrackMessage decoded(std::get<int64_t>(list[0]),
+                            std::get<bool>(list[2]));
   auto& encodable_language = list[1];
   if (!encodable_language.IsNull()) {
     decoded.set_language(std::get<std::string>(encodable_language));
@@ -990,7 +916,9 @@ AudioTrackMessage AudioTrackMessage::FromEncodableList(const EncodableList& list
 }
 
 bool AudioTrackMessage::operator==(const AudioTrackMessage& other) const {
-  return PigeonInternalDeepEquals(track_index_, other.track_index_) && PigeonInternalDeepEquals(language_, other.language_) && PigeonInternalDeepEquals(is_selected_, other.is_selected_);
+  return PigeonInternalDeepEquals(track_index_, other.track_index_) &&
+         PigeonInternalDeepEquals(language_, other.language_) &&
+         PigeonInternalDeepEquals(is_selected_, other.is_selected_);
 }
 
 bool AudioTrackMessage::operator!=(const AudioTrackMessage& other) const {
@@ -1005,17 +933,14 @@ size_t AudioTrackMessage::Hash() const {
   return result;
 }
 
-std::ostream& operator<<(
-  std::ostream& os,
-  const AudioTrackMessage& obj) {
+std::ostream& operator<<(std::ostream& os, const AudioTrackMessage& obj) {
   os << "AudioTrackMessage(";
   os << "track_index: ";
   os << PigeonInternalToString(obj.track_index_);
   os << ", language: ";
   if (obj.language_) {
     os << PigeonInternalToString(*obj.language_);
-  }
-  else {
+  } else {
     os << "null";
   }
   os << ", is_selected: ";
@@ -1024,35 +949,25 @@ std::ostream& operator<<(
   return os;
 }
 
-size_t PigeonInternalDeepHash(const AudioTrackMessage& v) {
-  return v.Hash();
-}
+size_t PigeonInternalDeepHash(const AudioTrackMessage& v) { return v.Hash(); }
 
 // SelectAudioTrackMessage
 
-SelectAudioTrackMessage::SelectAudioTrackMessage(
-  int64_t texture_id,
-  int64_t track_index)
- : texture_id_(texture_id),
-    track_index_(track_index) {}
+SelectAudioTrackMessage::SelectAudioTrackMessage(int64_t texture_id,
+                                                 int64_t track_index)
+    : texture_id_(texture_id), track_index_(track_index) {}
 
-int64_t SelectAudioTrackMessage::texture_id() const {
-  return texture_id_;
-}
+int64_t SelectAudioTrackMessage::texture_id() const { return texture_id_; }
 
 void SelectAudioTrackMessage::set_texture_id(int64_t value_arg) {
   texture_id_ = value_arg;
 }
 
-
-int64_t SelectAudioTrackMessage::track_index() const {
-  return track_index_;
-}
+int64_t SelectAudioTrackMessage::track_index() const { return track_index_; }
 
 void SelectAudioTrackMessage::set_track_index(int64_t value_arg) {
   track_index_ = value_arg;
 }
-
 
 EncodableList SelectAudioTrackMessage::ToEncodableList() const {
   EncodableList list;
@@ -1062,18 +977,21 @@ EncodableList SelectAudioTrackMessage::ToEncodableList() const {
   return list;
 }
 
-SelectAudioTrackMessage SelectAudioTrackMessage::FromEncodableList(const EncodableList& list) {
-  SelectAudioTrackMessage decoded(
-    std::get<int64_t>(list[0]),
-    std::get<int64_t>(list[1]));
+SelectAudioTrackMessage SelectAudioTrackMessage::FromEncodableList(
+    const EncodableList& list) {
+  SelectAudioTrackMessage decoded(std::get<int64_t>(list[0]),
+                                  std::get<int64_t>(list[1]));
   return decoded;
 }
 
-bool SelectAudioTrackMessage::operator==(const SelectAudioTrackMessage& other) const {
-  return PigeonInternalDeepEquals(texture_id_, other.texture_id_) && PigeonInternalDeepEquals(track_index_, other.track_index_);
+bool SelectAudioTrackMessage::operator==(
+    const SelectAudioTrackMessage& other) const {
+  return PigeonInternalDeepEquals(texture_id_, other.texture_id_) &&
+         PigeonInternalDeepEquals(track_index_, other.track_index_);
 }
 
-bool SelectAudioTrackMessage::operator!=(const SelectAudioTrackMessage& other) const {
+bool SelectAudioTrackMessage::operator!=(
+    const SelectAudioTrackMessage& other) const {
   return !(*this == other);
 }
 
@@ -1084,9 +1002,7 @@ size_t SelectAudioTrackMessage::Hash() const {
   return result;
 }
 
-std::ostream& operator<<(
-  std::ostream& os,
-  const SelectAudioTrackMessage& obj) {
+std::ostream& operator<<(std::ostream& os, const SelectAudioTrackMessage& obj) {
   os << "SelectAudioTrackMessage(";
   os << "texture_id: ";
   os << PigeonInternalToString(obj.texture_id_);
@@ -1103,19 +1019,15 @@ size_t PigeonInternalDeepHash(const SelectAudioTrackMessage& v) {
 // PreventsDisplaySleepMessage
 
 PreventsDisplaySleepMessage::PreventsDisplaySleepMessage(
-  int64_t texture_id,
-  bool prevents_display_sleep)
- : texture_id_(texture_id),
-    prevents_display_sleep_(prevents_display_sleep) {}
+    int64_t texture_id, bool prevents_display_sleep)
+    : texture_id_(texture_id),
+      prevents_display_sleep_(prevents_display_sleep) {}
 
-int64_t PreventsDisplaySleepMessage::texture_id() const {
-  return texture_id_;
-}
+int64_t PreventsDisplaySleepMessage::texture_id() const { return texture_id_; }
 
 void PreventsDisplaySleepMessage::set_texture_id(int64_t value_arg) {
   texture_id_ = value_arg;
 }
-
 
 bool PreventsDisplaySleepMessage::prevents_display_sleep() const {
   return prevents_display_sleep_;
@@ -1125,7 +1037,6 @@ void PreventsDisplaySleepMessage::set_prevents_display_sleep(bool value_arg) {
   prevents_display_sleep_ = value_arg;
 }
 
-
 EncodableList PreventsDisplaySleepMessage::ToEncodableList() const {
   EncodableList list;
   list.reserve(2);
@@ -1134,18 +1045,22 @@ EncodableList PreventsDisplaySleepMessage::ToEncodableList() const {
   return list;
 }
 
-PreventsDisplaySleepMessage PreventsDisplaySleepMessage::FromEncodableList(const EncodableList& list) {
-  PreventsDisplaySleepMessage decoded(
-    std::get<int64_t>(list[0]),
-    std::get<bool>(list[1]));
+PreventsDisplaySleepMessage PreventsDisplaySleepMessage::FromEncodableList(
+    const EncodableList& list) {
+  PreventsDisplaySleepMessage decoded(std::get<int64_t>(list[0]),
+                                      std::get<bool>(list[1]));
   return decoded;
 }
 
-bool PreventsDisplaySleepMessage::operator==(const PreventsDisplaySleepMessage& other) const {
-  return PigeonInternalDeepEquals(texture_id_, other.texture_id_) && PigeonInternalDeepEquals(prevents_display_sleep_, other.prevents_display_sleep_);
+bool PreventsDisplaySleepMessage::operator==(
+    const PreventsDisplaySleepMessage& other) const {
+  return PigeonInternalDeepEquals(texture_id_, other.texture_id_) &&
+         PigeonInternalDeepEquals(prevents_display_sleep_,
+                                  other.prevents_display_sleep_);
 }
 
-bool PreventsDisplaySleepMessage::operator!=(const PreventsDisplaySleepMessage& other) const {
+bool PreventsDisplaySleepMessage::operator!=(
+    const PreventsDisplaySleepMessage& other) const {
   return !(*this == other);
 }
 
@@ -1156,9 +1071,8 @@ size_t PreventsDisplaySleepMessage::Hash() const {
   return result;
 }
 
-std::ostream& operator<<(
-  std::ostream& os,
-  const PreventsDisplaySleepMessage& obj) {
+std::ostream& operator<<(std::ostream& os,
+                         const PreventsDisplaySleepMessage& obj) {
   os << "PreventsDisplaySleepMessage(";
   os << "texture_id: ";
   os << PigeonInternalToString(obj.texture_id_);
@@ -1172,100 +1086,138 @@ size_t PigeonInternalDeepHash(const PreventsDisplaySleepMessage& v) {
   return v.Hash();
 }
 
-
 PigeonInternalCodecSerializer::PigeonInternalCodecSerializer() {}
 
 EncodableValue PigeonInternalCodecSerializer::ReadValueOfType(
-  uint8_t type,
-  ::flutter::ByteStreamReader* stream) const {
+    uint8_t type, ::flutter::ByteStreamReader* stream) const {
   switch (type) {
     case 129: {
-        return CustomEncodableValue(TextureMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
-      }
+      return CustomEncodableValue(TextureMessage::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    }
     case 130: {
-        return CustomEncodableValue(LoopingMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
-      }
+      return CustomEncodableValue(LoopingMessage::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    }
     case 131: {
-        return CustomEncodableValue(VolumeMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
-      }
+      return CustomEncodableValue(VolumeMessage::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    }
     case 132: {
-        return CustomEncodableValue(PlaybackSpeedMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
-      }
+      return CustomEncodableValue(PlaybackSpeedMessage::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    }
     case 133: {
-        return CustomEncodableValue(PositionMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
-      }
+      return CustomEncodableValue(PositionMessage::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    }
     case 134: {
-        return CustomEncodableValue(CreateMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
-      }
+      return CustomEncodableValue(CreateMessage::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    }
     case 135: {
-        return CustomEncodableValue(MixWithOthersMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
-      }
+      return CustomEncodableValue(MixWithOthersMessage::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    }
     case 136: {
-        return CustomEncodableValue(AudioTrackMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
-      }
+      return CustomEncodableValue(AudioTrackMessage::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    }
     case 137: {
-        return CustomEncodableValue(SelectAudioTrackMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
-      }
+      return CustomEncodableValue(SelectAudioTrackMessage::FromEncodableList(
+          std::get<EncodableList>(ReadValue(stream))));
+    }
     case 138: {
-        return CustomEncodableValue(PreventsDisplaySleepMessage::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
-      }
+      return CustomEncodableValue(
+          PreventsDisplaySleepMessage::FromEncodableList(
+              std::get<EncodableList>(ReadValue(stream))));
+    }
     default:
       return ::flutter::StandardCodecSerializer::ReadValueOfType(type, stream);
-    }
+  }
 }
 
 void PigeonInternalCodecSerializer::WriteValue(
-  const EncodableValue& value,
-  ::flutter::ByteStreamWriter* stream) const {
-  if (const CustomEncodableValue* custom_value = std::get_if<CustomEncodableValue>(&value)) {
+    const EncodableValue& value, ::flutter::ByteStreamWriter* stream) const {
+  if (const CustomEncodableValue* custom_value =
+          std::get_if<CustomEncodableValue>(&value)) {
     if (custom_value->type() == typeid(TextureMessage)) {
       stream->WriteByte(129);
-      WriteValue(EncodableValue(std::any_cast<TextureMessage>(*custom_value).ToEncodableList()), stream);
+      WriteValue(
+          EncodableValue(
+              std::any_cast<TextureMessage>(*custom_value).ToEncodableList()),
+          stream);
       return;
     }
     if (custom_value->type() == typeid(LoopingMessage)) {
       stream->WriteByte(130);
-      WriteValue(EncodableValue(std::any_cast<LoopingMessage>(*custom_value).ToEncodableList()), stream);
+      WriteValue(
+          EncodableValue(
+              std::any_cast<LoopingMessage>(*custom_value).ToEncodableList()),
+          stream);
       return;
     }
     if (custom_value->type() == typeid(VolumeMessage)) {
       stream->WriteByte(131);
-      WriteValue(EncodableValue(std::any_cast<VolumeMessage>(*custom_value).ToEncodableList()), stream);
+      WriteValue(
+          EncodableValue(
+              std::any_cast<VolumeMessage>(*custom_value).ToEncodableList()),
+          stream);
       return;
     }
     if (custom_value->type() == typeid(PlaybackSpeedMessage)) {
       stream->WriteByte(132);
-      WriteValue(EncodableValue(std::any_cast<PlaybackSpeedMessage>(*custom_value).ToEncodableList()), stream);
+      WriteValue(
+          EncodableValue(std::any_cast<PlaybackSpeedMessage>(*custom_value)
+                             .ToEncodableList()),
+          stream);
       return;
     }
     if (custom_value->type() == typeid(PositionMessage)) {
       stream->WriteByte(133);
-      WriteValue(EncodableValue(std::any_cast<PositionMessage>(*custom_value).ToEncodableList()), stream);
+      WriteValue(
+          EncodableValue(
+              std::any_cast<PositionMessage>(*custom_value).ToEncodableList()),
+          stream);
       return;
     }
     if (custom_value->type() == typeid(CreateMessage)) {
       stream->WriteByte(134);
-      WriteValue(EncodableValue(std::any_cast<CreateMessage>(*custom_value).ToEncodableList()), stream);
+      WriteValue(
+          EncodableValue(
+              std::any_cast<CreateMessage>(*custom_value).ToEncodableList()),
+          stream);
       return;
     }
     if (custom_value->type() == typeid(MixWithOthersMessage)) {
       stream->WriteByte(135);
-      WriteValue(EncodableValue(std::any_cast<MixWithOthersMessage>(*custom_value).ToEncodableList()), stream);
+      WriteValue(
+          EncodableValue(std::any_cast<MixWithOthersMessage>(*custom_value)
+                             .ToEncodableList()),
+          stream);
       return;
     }
     if (custom_value->type() == typeid(AudioTrackMessage)) {
       stream->WriteByte(136);
-      WriteValue(EncodableValue(std::any_cast<AudioTrackMessage>(*custom_value).ToEncodableList()), stream);
+      WriteValue(EncodableValue(std::any_cast<AudioTrackMessage>(*custom_value)
+                                    .ToEncodableList()),
+                 stream);
       return;
     }
     if (custom_value->type() == typeid(SelectAudioTrackMessage)) {
       stream->WriteByte(137);
-      WriteValue(EncodableValue(std::any_cast<SelectAudioTrackMessage>(*custom_value).ToEncodableList()), stream);
+      WriteValue(
+          EncodableValue(std::any_cast<SelectAudioTrackMessage>(*custom_value)
+                             .ToEncodableList()),
+          stream);
       return;
     }
     if (custom_value->type() == typeid(PreventsDisplaySleepMessage)) {
       stream->WriteByte(138);
-      WriteValue(EncodableValue(std::any_cast<PreventsDisplaySleepMessage>(*custom_value).ToEncodableList()), stream);
+      WriteValue(EncodableValue(
+                     std::any_cast<PreventsDisplaySleepMessage>(*custom_value)
+                         .ToEncodableList()),
+                 stream);
       return;
     }
   }
@@ -1274,403 +1226,513 @@ void PigeonInternalCodecSerializer::WriteValue(
 
 /// The codec used by TizenVideoPlayerApi.
 const ::flutter::StandardMessageCodec& TizenVideoPlayerApi::GetCodec() {
-  return ::flutter::StandardMessageCodec::GetInstance(&PigeonInternalCodecSerializer::GetInstance());
+  return ::flutter::StandardMessageCodec::GetInstance(
+      &PigeonInternalCodecSerializer::GetInstance());
 }
 
-// Sets up an instance of `TizenVideoPlayerApi` to handle messages through the `binary_messenger`.
-void TizenVideoPlayerApi::SetUp(
-  ::flutter::BinaryMessenger* binary_messenger,
-  TizenVideoPlayerApi* api) {
+// Sets up an instance of `TizenVideoPlayerApi` to handle messages through the
+// `binary_messenger`.
+void TizenVideoPlayerApi::SetUp(::flutter::BinaryMessenger* binary_messenger,
+                                TizenVideoPlayerApi* api) {
   TizenVideoPlayerApi::SetUp(binary_messenger, api, "");
 }
 
-void TizenVideoPlayerApi::SetUp(
-  ::flutter::BinaryMessenger* binary_messenger,
-  TizenVideoPlayerApi* api,
-  const std::string& message_channel_suffix) {
-  const std::string prepended_suffix = message_channel_suffix.length() > 0 ? std::string(".") + message_channel_suffix : "";
+void TizenVideoPlayerApi::SetUp(::flutter::BinaryMessenger* binary_messenger,
+                                TizenVideoPlayerApi* api,
+                                const std::string& message_channel_suffix) {
+  const std::string prepended_suffix =
+      message_channel_suffix.length() > 0
+          ? std::string(".") + message_channel_suffix
+          : "";
   {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.initialize" + prepended_suffix, &GetCodec());
+    BasicMessageChannel<> channel(
+        binary_messenger,
+        "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.initialize" +
+            prepended_suffix,
+        &GetCodec());
     if (api != nullptr) {
-      channel.SetMessageHandler([api](const EncodableValue& message, const ::flutter::MessageReply<EncodableValue>& reply) {
-        try {
-          std::optional<FlutterError> output = api->Initialize();
-          if (output.has_value()) {
-            reply(WrapError(output.value()));
-            return;
-          }
-          EncodableList wrapped;
-          wrapped.push_back(EncodableValue());
-          reply(EncodableValue(std::move(wrapped)));
-        } catch (const std::exception& exception) {
-          reply(WrapError(exception.what()));
-        }
-      });
-    } else {
-      channel.SetMessageHandler(nullptr);
-    }
-  }
-  {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.create" + prepended_suffix, &GetCodec());
-    if (api != nullptr) {
-      channel.SetMessageHandler([api](const EncodableValue& message, const ::flutter::MessageReply<EncodableValue>& reply) {
-        try {
-          const auto& args = std::get<EncodableList>(message);
-          const auto& encodable_msg_arg = args.at(0);
-          if (encodable_msg_arg.IsNull()) {
-            reply(WrapError("msg_arg unexpectedly null."));
-            return;
-          }
-          const auto& msg_arg = std::any_cast<const CreateMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
-          ErrorOr<TextureMessage> output = api->Create(msg_arg);
-          if (output.has_error()) {
-            reply(WrapError(output.error()));
-            return;
-          }
-          EncodableList wrapped;
-          wrapped.push_back(CustomEncodableValue(std::move(output).TakeValue()));
-          reply(EncodableValue(std::move(wrapped)));
-        } catch (const std::exception& exception) {
-          reply(WrapError(exception.what()));
-        }
-      });
-    } else {
-      channel.SetMessageHandler(nullptr);
-    }
-  }
-  {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.dispose" + prepended_suffix, &GetCodec());
-    if (api != nullptr) {
-      channel.SetMessageHandler([api](const EncodableValue& message, const ::flutter::MessageReply<EncodableValue>& reply) {
-        try {
-          const auto& args = std::get<EncodableList>(message);
-          const auto& encodable_msg_arg = args.at(0);
-          if (encodable_msg_arg.IsNull()) {
-            reply(WrapError("msg_arg unexpectedly null."));
-            return;
-          }
-          const auto& msg_arg = std::any_cast<const TextureMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
-          std::optional<FlutterError> output = api->Dispose(msg_arg);
-          if (output.has_value()) {
-            reply(WrapError(output.value()));
-            return;
-          }
-          EncodableList wrapped;
-          wrapped.push_back(EncodableValue());
-          reply(EncodableValue(std::move(wrapped)));
-        } catch (const std::exception& exception) {
-          reply(WrapError(exception.what()));
-        }
-      });
-    } else {
-      channel.SetMessageHandler(nullptr);
-    }
-  }
-  {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setLooping" + prepended_suffix, &GetCodec());
-    if (api != nullptr) {
-      channel.SetMessageHandler([api](const EncodableValue& message, const ::flutter::MessageReply<EncodableValue>& reply) {
-        try {
-          const auto& args = std::get<EncodableList>(message);
-          const auto& encodable_msg_arg = args.at(0);
-          if (encodable_msg_arg.IsNull()) {
-            reply(WrapError("msg_arg unexpectedly null."));
-            return;
-          }
-          const auto& msg_arg = std::any_cast<const LoopingMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
-          std::optional<FlutterError> output = api->SetLooping(msg_arg);
-          if (output.has_value()) {
-            reply(WrapError(output.value()));
-            return;
-          }
-          EncodableList wrapped;
-          wrapped.push_back(EncodableValue());
-          reply(EncodableValue(std::move(wrapped)));
-        } catch (const std::exception& exception) {
-          reply(WrapError(exception.what()));
-        }
-      });
-    } else {
-      channel.SetMessageHandler(nullptr);
-    }
-  }
-  {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setVolume" + prepended_suffix, &GetCodec());
-    if (api != nullptr) {
-      channel.SetMessageHandler([api](const EncodableValue& message, const ::flutter::MessageReply<EncodableValue>& reply) {
-        try {
-          const auto& args = std::get<EncodableList>(message);
-          const auto& encodable_msg_arg = args.at(0);
-          if (encodable_msg_arg.IsNull()) {
-            reply(WrapError("msg_arg unexpectedly null."));
-            return;
-          }
-          const auto& msg_arg = std::any_cast<const VolumeMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
-          std::optional<FlutterError> output = api->SetVolume(msg_arg);
-          if (output.has_value()) {
-            reply(WrapError(output.value()));
-            return;
-          }
-          EncodableList wrapped;
-          wrapped.push_back(EncodableValue());
-          reply(EncodableValue(std::move(wrapped)));
-        } catch (const std::exception& exception) {
-          reply(WrapError(exception.what()));
-        }
-      });
-    } else {
-      channel.SetMessageHandler(nullptr);
-    }
-  }
-  {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setPlaybackSpeed" + prepended_suffix, &GetCodec());
-    if (api != nullptr) {
-      channel.SetMessageHandler([api](const EncodableValue& message, const ::flutter::MessageReply<EncodableValue>& reply) {
-        try {
-          const auto& args = std::get<EncodableList>(message);
-          const auto& encodable_msg_arg = args.at(0);
-          if (encodable_msg_arg.IsNull()) {
-            reply(WrapError("msg_arg unexpectedly null."));
-            return;
-          }
-          const auto& msg_arg = std::any_cast<const PlaybackSpeedMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
-          std::optional<FlutterError> output = api->SetPlaybackSpeed(msg_arg);
-          if (output.has_value()) {
-            reply(WrapError(output.value()));
-            return;
-          }
-          EncodableList wrapped;
-          wrapped.push_back(EncodableValue());
-          reply(EncodableValue(std::move(wrapped)));
-        } catch (const std::exception& exception) {
-          reply(WrapError(exception.what()));
-        }
-      });
-    } else {
-      channel.SetMessageHandler(nullptr);
-    }
-  }
-  {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.play" + prepended_suffix, &GetCodec());
-    if (api != nullptr) {
-      channel.SetMessageHandler([api](const EncodableValue& message, const ::flutter::MessageReply<EncodableValue>& reply) {
-        try {
-          const auto& args = std::get<EncodableList>(message);
-          const auto& encodable_msg_arg = args.at(0);
-          if (encodable_msg_arg.IsNull()) {
-            reply(WrapError("msg_arg unexpectedly null."));
-            return;
-          }
-          const auto& msg_arg = std::any_cast<const TextureMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
-          std::optional<FlutterError> output = api->Play(msg_arg);
-          if (output.has_value()) {
-            reply(WrapError(output.value()));
-            return;
-          }
-          EncodableList wrapped;
-          wrapped.push_back(EncodableValue());
-          reply(EncodableValue(std::move(wrapped)));
-        } catch (const std::exception& exception) {
-          reply(WrapError(exception.what()));
-        }
-      });
-    } else {
-      channel.SetMessageHandler(nullptr);
-    }
-  }
-  {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.position" + prepended_suffix, &GetCodec());
-    if (api != nullptr) {
-      channel.SetMessageHandler([api](const EncodableValue& message, const ::flutter::MessageReply<EncodableValue>& reply) {
-        try {
-          const auto& args = std::get<EncodableList>(message);
-          const auto& encodable_msg_arg = args.at(0);
-          if (encodable_msg_arg.IsNull()) {
-            reply(WrapError("msg_arg unexpectedly null."));
-            return;
-          }
-          const auto& msg_arg = std::any_cast<const TextureMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
-          ErrorOr<PositionMessage> output = api->Position(msg_arg);
-          if (output.has_error()) {
-            reply(WrapError(output.error()));
-            return;
-          }
-          EncodableList wrapped;
-          wrapped.push_back(CustomEncodableValue(std::move(output).TakeValue()));
-          reply(EncodableValue(std::move(wrapped)));
-        } catch (const std::exception& exception) {
-          reply(WrapError(exception.what()));
-        }
-      });
-    } else {
-      channel.SetMessageHandler(nullptr);
-    }
-  }
-  {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.seekTo" + prepended_suffix, &GetCodec());
-    if (api != nullptr) {
-      channel.SetMessageHandler([api](const EncodableValue& message, const ::flutter::MessageReply<EncodableValue>& reply) {
-        try {
-          const auto& args = std::get<EncodableList>(message);
-          const auto& encodable_msg_arg = args.at(0);
-          if (encodable_msg_arg.IsNull()) {
-            reply(WrapError("msg_arg unexpectedly null."));
-            return;
-          }
-          const auto& msg_arg = std::any_cast<const PositionMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
-          api->SeekTo(msg_arg, [reply](std::optional<FlutterError>&& output) {
-            if (output.has_value()) {
-              reply(WrapError(output.value()));
-              return;
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const ::flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              std::optional<FlutterError> output = api->Initialize();
+              if (output.has_value()) {
+                reply(WrapError(output.value()));
+                return;
+              }
+              EncodableList wrapped;
+              wrapped.push_back(EncodableValue());
+              reply(EncodableValue(std::move(wrapped)));
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
             }
-            EncodableList wrapped;
-            wrapped.push_back(EncodableValue());
-            reply(EncodableValue(std::move(wrapped)));
           });
-        } catch (const std::exception& exception) {
-          reply(WrapError(exception.what()));
-        }
-      });
     } else {
       channel.SetMessageHandler(nullptr);
     }
   }
   {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.pause" + prepended_suffix, &GetCodec());
+    BasicMessageChannel<> channel(
+        binary_messenger,
+        "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.create" +
+            prepended_suffix,
+        &GetCodec());
     if (api != nullptr) {
-      channel.SetMessageHandler([api](const EncodableValue& message, const ::flutter::MessageReply<EncodableValue>& reply) {
-        try {
-          const auto& args = std::get<EncodableList>(message);
-          const auto& encodable_msg_arg = args.at(0);
-          if (encodable_msg_arg.IsNull()) {
-            reply(WrapError("msg_arg unexpectedly null."));
-            return;
-          }
-          const auto& msg_arg = std::any_cast<const TextureMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
-          std::optional<FlutterError> output = api->Pause(msg_arg);
-          if (output.has_value()) {
-            reply(WrapError(output.value()));
-            return;
-          }
-          EncodableList wrapped;
-          wrapped.push_back(EncodableValue());
-          reply(EncodableValue(std::move(wrapped)));
-        } catch (const std::exception& exception) {
-          reply(WrapError(exception.what()));
-        }
-      });
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const ::flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_msg_arg = args.at(0);
+              if (encodable_msg_arg.IsNull()) {
+                reply(WrapError("msg_arg unexpectedly null."));
+                return;
+              }
+              const auto& msg_arg = std::any_cast<const CreateMessage&>(
+                  std::get<CustomEncodableValue>(encodable_msg_arg));
+              ErrorOr<TextureMessage> output = api->Create(msg_arg);
+              if (output.has_error()) {
+                reply(WrapError(output.error()));
+                return;
+              }
+              EncodableList wrapped;
+              wrapped.push_back(
+                  CustomEncodableValue(std::move(output).TakeValue()));
+              reply(EncodableValue(std::move(wrapped)));
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
+            }
+          });
     } else {
       channel.SetMessageHandler(nullptr);
     }
   }
   {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setMixWithOthers" + prepended_suffix, &GetCodec());
+    BasicMessageChannel<> channel(
+        binary_messenger,
+        "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.dispose" +
+            prepended_suffix,
+        &GetCodec());
     if (api != nullptr) {
-      channel.SetMessageHandler([api](const EncodableValue& message, const ::flutter::MessageReply<EncodableValue>& reply) {
-        try {
-          const auto& args = std::get<EncodableList>(message);
-          const auto& encodable_msg_arg = args.at(0);
-          if (encodable_msg_arg.IsNull()) {
-            reply(WrapError("msg_arg unexpectedly null."));
-            return;
-          }
-          const auto& msg_arg = std::any_cast<const MixWithOthersMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
-          std::optional<FlutterError> output = api->SetMixWithOthers(msg_arg);
-          if (output.has_value()) {
-            reply(WrapError(output.value()));
-            return;
-          }
-          EncodableList wrapped;
-          wrapped.push_back(EncodableValue());
-          reply(EncodableValue(std::move(wrapped)));
-        } catch (const std::exception& exception) {
-          reply(WrapError(exception.what()));
-        }
-      });
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const ::flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_msg_arg = args.at(0);
+              if (encodable_msg_arg.IsNull()) {
+                reply(WrapError("msg_arg unexpectedly null."));
+                return;
+              }
+              const auto& msg_arg = std::any_cast<const TextureMessage&>(
+                  std::get<CustomEncodableValue>(encodable_msg_arg));
+              std::optional<FlutterError> output = api->Dispose(msg_arg);
+              if (output.has_value()) {
+                reply(WrapError(output.value()));
+                return;
+              }
+              EncodableList wrapped;
+              wrapped.push_back(EncodableValue());
+              reply(EncodableValue(std::move(wrapped)));
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
+            }
+          });
     } else {
       channel.SetMessageHandler(nullptr);
     }
   }
   {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setPreventsDisplaySleep" + prepended_suffix, &GetCodec());
+    BasicMessageChannel<> channel(
+        binary_messenger,
+        "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setLooping" +
+            prepended_suffix,
+        &GetCodec());
     if (api != nullptr) {
-      channel.SetMessageHandler([api](const EncodableValue& message, const ::flutter::MessageReply<EncodableValue>& reply) {
-        try {
-          const auto& args = std::get<EncodableList>(message);
-          const auto& encodable_msg_arg = args.at(0);
-          if (encodable_msg_arg.IsNull()) {
-            reply(WrapError("msg_arg unexpectedly null."));
-            return;
-          }
-          const auto& msg_arg = std::any_cast<const PreventsDisplaySleepMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
-          std::optional<FlutterError> output = api->SetPreventsDisplaySleep(msg_arg);
-          if (output.has_value()) {
-            reply(WrapError(output.value()));
-            return;
-          }
-          EncodableList wrapped;
-          wrapped.push_back(EncodableValue());
-          reply(EncodableValue(std::move(wrapped)));
-        } catch (const std::exception& exception) {
-          reply(WrapError(exception.what()));
-        }
-      });
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const ::flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_msg_arg = args.at(0);
+              if (encodable_msg_arg.IsNull()) {
+                reply(WrapError("msg_arg unexpectedly null."));
+                return;
+              }
+              const auto& msg_arg = std::any_cast<const LoopingMessage&>(
+                  std::get<CustomEncodableValue>(encodable_msg_arg));
+              std::optional<FlutterError> output = api->SetLooping(msg_arg);
+              if (output.has_value()) {
+                reply(WrapError(output.value()));
+                return;
+              }
+              EncodableList wrapped;
+              wrapped.push_back(EncodableValue());
+              reply(EncodableValue(std::move(wrapped)));
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
+            }
+          });
     } else {
       channel.SetMessageHandler(nullptr);
     }
   }
   {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.getAudioTracks" + prepended_suffix, &GetCodec());
+    BasicMessageChannel<> channel(
+        binary_messenger,
+        "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.setVolume" +
+            prepended_suffix,
+        &GetCodec());
     if (api != nullptr) {
-      channel.SetMessageHandler([api](const EncodableValue& message, const ::flutter::MessageReply<EncodableValue>& reply) {
-        try {
-          const auto& args = std::get<EncodableList>(message);
-          const auto& encodable_msg_arg = args.at(0);
-          if (encodable_msg_arg.IsNull()) {
-            reply(WrapError("msg_arg unexpectedly null."));
-            return;
-          }
-          const auto& msg_arg = std::any_cast<const TextureMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
-          ErrorOr<EncodableList> output = api->GetAudioTracks(msg_arg);
-          if (output.has_error()) {
-            reply(WrapError(output.error()));
-            return;
-          }
-          EncodableList wrapped;
-          wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
-          reply(EncodableValue(std::move(wrapped)));
-        } catch (const std::exception& exception) {
-          reply(WrapError(exception.what()));
-        }
-      });
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const ::flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_msg_arg = args.at(0);
+              if (encodable_msg_arg.IsNull()) {
+                reply(WrapError("msg_arg unexpectedly null."));
+                return;
+              }
+              const auto& msg_arg = std::any_cast<const VolumeMessage&>(
+                  std::get<CustomEncodableValue>(encodable_msg_arg));
+              std::optional<FlutterError> output = api->SetVolume(msg_arg);
+              if (output.has_value()) {
+                reply(WrapError(output.value()));
+                return;
+              }
+              EncodableList wrapped;
+              wrapped.push_back(EncodableValue());
+              reply(EncodableValue(std::move(wrapped)));
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
+            }
+          });
     } else {
       channel.SetMessageHandler(nullptr);
     }
   }
   {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.selectAudioTrack" + prepended_suffix, &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.video_player_tizen."
+                                  "TizenVideoPlayerApi.setPlaybackSpeed" +
+                                      prepended_suffix,
+                                  &GetCodec());
     if (api != nullptr) {
-      channel.SetMessageHandler([api](const EncodableValue& message, const ::flutter::MessageReply<EncodableValue>& reply) {
-        try {
-          const auto& args = std::get<EncodableList>(message);
-          const auto& encodable_msg_arg = args.at(0);
-          if (encodable_msg_arg.IsNull()) {
-            reply(WrapError("msg_arg unexpectedly null."));
-            return;
-          }
-          const auto& msg_arg = std::any_cast<const SelectAudioTrackMessage&>(std::get<CustomEncodableValue>(encodable_msg_arg));
-          std::optional<FlutterError> output = api->SelectAudioTrack(msg_arg);
-          if (output.has_value()) {
-            reply(WrapError(output.value()));
-            return;
-          }
-          EncodableList wrapped;
-          wrapped.push_back(EncodableValue());
-          reply(EncodableValue(std::move(wrapped)));
-        } catch (const std::exception& exception) {
-          reply(WrapError(exception.what()));
-        }
-      });
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const ::flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_msg_arg = args.at(0);
+              if (encodable_msg_arg.IsNull()) {
+                reply(WrapError("msg_arg unexpectedly null."));
+                return;
+              }
+              const auto& msg_arg = std::any_cast<const PlaybackSpeedMessage&>(
+                  std::get<CustomEncodableValue>(encodable_msg_arg));
+              std::optional<FlutterError> output =
+                  api->SetPlaybackSpeed(msg_arg);
+              if (output.has_value()) {
+                reply(WrapError(output.value()));
+                return;
+              }
+              EncodableList wrapped;
+              wrapped.push_back(EncodableValue());
+              reply(EncodableValue(std::move(wrapped)));
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
+            }
+          });
+    } else {
+      channel.SetMessageHandler(nullptr);
+    }
+  }
+  {
+    BasicMessageChannel<> channel(
+        binary_messenger,
+        "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.play" +
+            prepended_suffix,
+        &GetCodec());
+    if (api != nullptr) {
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const ::flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_msg_arg = args.at(0);
+              if (encodable_msg_arg.IsNull()) {
+                reply(WrapError("msg_arg unexpectedly null."));
+                return;
+              }
+              const auto& msg_arg = std::any_cast<const TextureMessage&>(
+                  std::get<CustomEncodableValue>(encodable_msg_arg));
+              std::optional<FlutterError> output = api->Play(msg_arg);
+              if (output.has_value()) {
+                reply(WrapError(output.value()));
+                return;
+              }
+              EncodableList wrapped;
+              wrapped.push_back(EncodableValue());
+              reply(EncodableValue(std::move(wrapped)));
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
+            }
+          });
+    } else {
+      channel.SetMessageHandler(nullptr);
+    }
+  }
+  {
+    BasicMessageChannel<> channel(
+        binary_messenger,
+        "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.position" +
+            prepended_suffix,
+        &GetCodec());
+    if (api != nullptr) {
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const ::flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_msg_arg = args.at(0);
+              if (encodable_msg_arg.IsNull()) {
+                reply(WrapError("msg_arg unexpectedly null."));
+                return;
+              }
+              const auto& msg_arg = std::any_cast<const TextureMessage&>(
+                  std::get<CustomEncodableValue>(encodable_msg_arg));
+              ErrorOr<PositionMessage> output = api->Position(msg_arg);
+              if (output.has_error()) {
+                reply(WrapError(output.error()));
+                return;
+              }
+              EncodableList wrapped;
+              wrapped.push_back(
+                  CustomEncodableValue(std::move(output).TakeValue()));
+              reply(EncodableValue(std::move(wrapped)));
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
+            }
+          });
+    } else {
+      channel.SetMessageHandler(nullptr);
+    }
+  }
+  {
+    BasicMessageChannel<> channel(
+        binary_messenger,
+        "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.seekTo" +
+            prepended_suffix,
+        &GetCodec());
+    if (api != nullptr) {
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const ::flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_msg_arg = args.at(0);
+              if (encodable_msg_arg.IsNull()) {
+                reply(WrapError("msg_arg unexpectedly null."));
+                return;
+              }
+              const auto& msg_arg = std::any_cast<const PositionMessage&>(
+                  std::get<CustomEncodableValue>(encodable_msg_arg));
+              api->SeekTo(msg_arg,
+                          [reply](std::optional<FlutterError>&& output) {
+                            if (output.has_value()) {
+                              reply(WrapError(output.value()));
+                              return;
+                            }
+                            EncodableList wrapped;
+                            wrapped.push_back(EncodableValue());
+                            reply(EncodableValue(std::move(wrapped)));
+                          });
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
+            }
+          });
+    } else {
+      channel.SetMessageHandler(nullptr);
+    }
+  }
+  {
+    BasicMessageChannel<> channel(
+        binary_messenger,
+        "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi.pause" +
+            prepended_suffix,
+        &GetCodec());
+    if (api != nullptr) {
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const ::flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_msg_arg = args.at(0);
+              if (encodable_msg_arg.IsNull()) {
+                reply(WrapError("msg_arg unexpectedly null."));
+                return;
+              }
+              const auto& msg_arg = std::any_cast<const TextureMessage&>(
+                  std::get<CustomEncodableValue>(encodable_msg_arg));
+              std::optional<FlutterError> output = api->Pause(msg_arg);
+              if (output.has_value()) {
+                reply(WrapError(output.value()));
+                return;
+              }
+              EncodableList wrapped;
+              wrapped.push_back(EncodableValue());
+              reply(EncodableValue(std::move(wrapped)));
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
+            }
+          });
+    } else {
+      channel.SetMessageHandler(nullptr);
+    }
+  }
+  {
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.video_player_tizen."
+                                  "TizenVideoPlayerApi.setMixWithOthers" +
+                                      prepended_suffix,
+                                  &GetCodec());
+    if (api != nullptr) {
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const ::flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_msg_arg = args.at(0);
+              if (encodable_msg_arg.IsNull()) {
+                reply(WrapError("msg_arg unexpectedly null."));
+                return;
+              }
+              const auto& msg_arg = std::any_cast<const MixWithOthersMessage&>(
+                  std::get<CustomEncodableValue>(encodable_msg_arg));
+              std::optional<FlutterError> output =
+                  api->SetMixWithOthers(msg_arg);
+              if (output.has_value()) {
+                reply(WrapError(output.value()));
+                return;
+              }
+              EncodableList wrapped;
+              wrapped.push_back(EncodableValue());
+              reply(EncodableValue(std::move(wrapped)));
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
+            }
+          });
+    } else {
+      channel.SetMessageHandler(nullptr);
+    }
+  }
+  {
+    BasicMessageChannel<> channel(
+        binary_messenger,
+        "dev.flutter.pigeon.video_player_tizen.TizenVideoPlayerApi."
+        "setPreventsDisplaySleep" +
+            prepended_suffix,
+        &GetCodec());
+    if (api != nullptr) {
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const ::flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_msg_arg = args.at(0);
+              if (encodable_msg_arg.IsNull()) {
+                reply(WrapError("msg_arg unexpectedly null."));
+                return;
+              }
+              const auto& msg_arg =
+                  std::any_cast<const PreventsDisplaySleepMessage&>(
+                      std::get<CustomEncodableValue>(encodable_msg_arg));
+              std::optional<FlutterError> output =
+                  api->SetPreventsDisplaySleep(msg_arg);
+              if (output.has_value()) {
+                reply(WrapError(output.value()));
+                return;
+              }
+              EncodableList wrapped;
+              wrapped.push_back(EncodableValue());
+              reply(EncodableValue(std::move(wrapped)));
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
+            }
+          });
+    } else {
+      channel.SetMessageHandler(nullptr);
+    }
+  }
+  {
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.video_player_tizen."
+                                  "TizenVideoPlayerApi.getAudioTracks" +
+                                      prepended_suffix,
+                                  &GetCodec());
+    if (api != nullptr) {
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const ::flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_msg_arg = args.at(0);
+              if (encodable_msg_arg.IsNull()) {
+                reply(WrapError("msg_arg unexpectedly null."));
+                return;
+              }
+              const auto& msg_arg = std::any_cast<const TextureMessage&>(
+                  std::get<CustomEncodableValue>(encodable_msg_arg));
+              ErrorOr<EncodableList> output = api->GetAudioTracks(msg_arg);
+              if (output.has_error()) {
+                reply(WrapError(output.error()));
+                return;
+              }
+              EncodableList wrapped;
+              wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
+              reply(EncodableValue(std::move(wrapped)));
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
+            }
+          });
+    } else {
+      channel.SetMessageHandler(nullptr);
+    }
+  }
+  {
+    BasicMessageChannel<> channel(binary_messenger,
+                                  "dev.flutter.pigeon.video_player_tizen."
+                                  "TizenVideoPlayerApi.selectAudioTrack" +
+                                      prepended_suffix,
+                                  &GetCodec());
+    if (api != nullptr) {
+      channel.SetMessageHandler(
+          [api](const EncodableValue& message,
+                const ::flutter::MessageReply<EncodableValue>& reply) {
+            try {
+              const auto& args = std::get<EncodableList>(message);
+              const auto& encodable_msg_arg = args.at(0);
+              if (encodable_msg_arg.IsNull()) {
+                reply(WrapError("msg_arg unexpectedly null."));
+                return;
+              }
+              const auto& msg_arg =
+                  std::any_cast<const SelectAudioTrackMessage&>(
+                      std::get<CustomEncodableValue>(encodable_msg_arg));
+              std::optional<FlutterError> output =
+                  api->SelectAudioTrack(msg_arg);
+              if (output.has_value()) {
+                reply(WrapError(output.value()));
+                return;
+              }
+              EncodableList wrapped;
+              wrapped.push_back(EncodableValue());
+              reply(EncodableValue(std::move(wrapped)));
+            } catch (const std::exception& exception) {
+              reply(WrapError(exception.what()));
+            }
+          });
     } else {
       channel.SetMessageHandler(nullptr);
     }
@@ -1678,19 +1740,15 @@ void TizenVideoPlayerApi::SetUp(
 }
 
 EncodableValue TizenVideoPlayerApi::WrapError(std::string_view error_message) {
-  return EncodableValue(EncodableList{
-    EncodableValue(std::string(error_message)),
-    EncodableValue("Error"),
-    EncodableValue()
-  });
+  return EncodableValue(
+      EncodableList{EncodableValue(std::string(error_message)),
+                    EncodableValue("Error"), EncodableValue()});
 }
 
 EncodableValue TizenVideoPlayerApi::WrapError(const FlutterError& error) {
-  return EncodableValue(EncodableList{
-    EncodableValue(error.code()),
-    EncodableValue(error.message()),
-    error.details()
-  });
+  return EncodableValue(EncodableList{EncodableValue(error.code()),
+                                      EncodableValue(error.message()),
+                                      error.details()});
 }
 
 }  // namespace video_player_tizen

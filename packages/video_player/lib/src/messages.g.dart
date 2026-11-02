@@ -14,9 +14,9 @@ import 'package:meta/meta.dart' show immutable, protected, visibleForTesting;
 import 'messages.g.ffi.dart' as pigeon_ffi;
 
 Object? _extractReplyValueOrThrow(
-    List<Object?>? replyList,
-    String channelName, {
-    required bool isNullValid,
+  List<Object?>? replyList,
+  String channelName, {
+  required bool isNullValid,
 }) {
   if (replyList == null) {
     throw PlatformException(
@@ -38,7 +38,6 @@ Object? _extractReplyValueOrThrow(
   return replyList.firstOrNull;
 }
 
-
 ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> _encodeFfiRequest(ByteData? message) {
   if (message == null) {
     return ffi.nullptr;
@@ -46,8 +45,8 @@ ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> _encodeFfiRequest(ByteData? message) {
   final Uint8List bytes = message.buffer.asUint8List(message.offsetInBytes, message.lengthInBytes);
   final ffi.Pointer<ffi.Uint8> data = pkg_ffi.calloc<ffi.Uint8>(bytes.length);
   data.asTypedList(bytes.length).setAll(0, bytes);
-  final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> buffer =
-      pkg_ffi.calloc<pigeon_ffi.PigeonFfiBuffer>();
+  final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> buffer = pkg_ffi
+      .calloc<pigeon_ffi.PigeonFfiBuffer>();
   buffer.ref.data = data;
   buffer.ref.length = bytes.length;
   return buffer;
@@ -62,8 +61,8 @@ void _freeFfiRequest(ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> buffer) {
 }
 
 List<Object?>? _decodeFfiReply(
-    MessageCodec<Object?> codec,
-    ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> buffer,
+  MessageCodec<Object?> codec,
+  ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> buffer,
 ) {
   if (buffer == ffi.nullptr || buffer.ref.data == ffi.nullptr) {
     return null;
@@ -73,23 +72,21 @@ List<Object?>? _decodeFfiReply(
 }
 
 final pigeon_ffi.VideoPlayerTizenFfiBindings _pigeonVar_defaultFfiBindings =
-    pigeon_ffi.VideoPlayerTizenFfiBindings((() {
-  final String libraryPath = File('/proc/self/maps')
-      .readAsLinesSync()
-      .map((String line) {
-        final int index = line.indexOf('/');
-        return index == -1 ? '' : line.substring(index);
-      })
-      .firstWhere(
-        (String path) => path.endsWith('/libflutter_plugins.so'),
-      );
-  return ffi.DynamicLibrary.open(libraryPath);
-})());
+    pigeon_ffi.VideoPlayerTizenFfiBindings(
+      (() {
+        final String libraryPath = File('/proc/self/maps')
+            .readAsLinesSync()
+            .map((String line) {
+              final int index = line.indexOf('/');
+              return index == -1 ? '' : line.substring(index);
+            })
+            .firstWhere((String path) => path.endsWith('/libflutter_plugins.so'));
+        return ffi.DynamicLibrary.open(libraryPath);
+      })(),
+    );
 
-typedef _PigeonFfiReplyCallbackNative = ffi.Void Function(
-  ffi.Int64 replyId,
-  ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> reply,
-);
+typedef _PigeonFfiReplyCallbackNative =
+    ffi.Void Function(ffi.Int64 replyId, ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> reply);
 
 class _PigeonFfiAsyncReply {
   _PigeonFfiAsyncReply({
@@ -109,8 +106,7 @@ class _PigeonFfiAsyncReply {
   final void Function(Object error, StackTrace stackTrace) completeError;
 }
 
-final Map<int, _PigeonFfiAsyncReply> _pigeonFfiAsyncReplies =
-    <int, _PigeonFfiAsyncReply>{};
+final Map<int, _PigeonFfiAsyncReply> _pigeonFfiAsyncReplies = <int, _PigeonFfiAsyncReply>{};
 int _pigeonNextFfiAsyncReplyId = 1;
 
 final ffi.NativeCallable<_PigeonFfiReplyCallbackNative> _pigeonFfiReplyCallback =
@@ -122,10 +118,7 @@ void _updatePigeonFfiReplyCallbackKeepAlive() {
   _pigeonFfiReplyCallback.keepIsolateAlive = _pigeonFfiAsyncReplies.isNotEmpty;
 }
 
-void _handlePigeonFfiReply(
-    int replyId,
-    ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> reply,
-) {
+void _handlePigeonFfiReply(int replyId, ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> reply) {
   final _PigeonFfiAsyncReply? asyncReply = _pigeonFfiAsyncReplies.remove(replyId);
   try {
     if (asyncReply != null) {
@@ -148,8 +141,8 @@ void _handlePigeonFfiReply(
 }
 
 Object? _decodeFfiEvent(
-    MessageCodec<Object?> codec,
-    ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> buffer,
+  MessageCodec<Object?> codec,
+  ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> buffer,
 ) {
   if (buffer == ffi.nullptr || buffer.ref.data == ffi.nullptr) {
     return null;
@@ -158,10 +151,8 @@ Object? _decodeFfiEvent(
   return codec.decodeMessage(ByteData.sublistView(bytes));
 }
 
-typedef _PigeonFfiEventCallbackNative = ffi.Void Function(
-  ffi.Int64 sinkId,
-  ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> event,
-);
+typedef _PigeonFfiEventCallbackNative =
+    ffi.Void Function(ffi.Int64 sinkId, ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> event);
 
 typedef _PigeonFfiDoneCallbackNative = ffi.Void Function(ffi.Int64 sinkId);
 
@@ -231,10 +222,7 @@ void _updatePigeonFfiEventCallbackKeepAlive() {
   _pigeonFfiOnDoneCallback.keepIsolateAlive = keepAlive;
 }
 
-void _handlePigeonFfiEvent(
-    int sinkId,
-    ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> event,
-) {
+void _handlePigeonFfiEvent(int sinkId, ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> event) {
   final _PigeonFfiEventController? controller = _pigeonFfiEventControllers[sinkId];
   try {
     if (controller != null) {
@@ -249,19 +237,12 @@ void _handlePigeonFfiEvent(
   }
 }
 
-void _handlePigeonFfiError(
-    int sinkId,
-    ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> error,
-) {
+void _handlePigeonFfiError(int sinkId, ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> error) {
   final _PigeonFfiEventController? controller = _pigeonFfiEventControllers[sinkId];
   try {
     if (controller != null) {
       final List<Object?>? replyList = _decodeFfiReply(controller.codec, error);
-      _extractReplyValueOrThrow(
-        replyList,
-        controller.channelName,
-        isNullValid: true,
-      );
+      _extractReplyValueOrThrow(replyList, controller.channelName, isNullValid: true);
     }
   } catch (errorObject, stackTrace) {
     controller?.addError(errorObject, stackTrace);
@@ -273,8 +254,7 @@ void _handlePigeonFfiError(
 }
 
 void _handlePigeonFfiDone(int sinkId) {
-  final _PigeonFfiEventController? controller =
-      _pigeonFfiEventControllers[sinkId];
+  final _PigeonFfiEventController? controller = _pigeonFfiEventControllers[sinkId];
   controller?.close();
 }
 
@@ -290,8 +270,7 @@ bool _deepEquals(Object? a, Object? b) {
   }
   if (a is List && b is List) {
     return a.length == b.length &&
-        a.indexed
-            .every(((int, dynamic) item) => _deepEquals(item.$2, b[item.$1]));
+        a.indexed.every(((int, dynamic) item) => _deepEquals(item.$2, b[item.$1]));
   }
   if (a is Map && b is Map) {
     if (a.length != b.length) {
@@ -340,28 +319,22 @@ int _deepHash(Object? value) {
   return value.hashCode;
 }
 
-
 class TextureMessage {
-  TextureMessage({
-    required this.textureId,
-  });
+  TextureMessage({required this.textureId});
 
   int textureId;
 
   List<Object?> _toList() {
-    return <Object?>[
-      textureId,
-    ];
+    return <Object?>[textureId];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static TextureMessage decode(Object result) {
     result as List<Object?>;
-    return TextureMessage(
-      textureId: result[0]! as int,
-    );
+    return TextureMessage(textureId: result[0]! as int);
   }
 
   @override
@@ -387,31 +360,23 @@ class TextureMessage {
 }
 
 class LoopingMessage {
-  LoopingMessage({
-    required this.textureId,
-    required this.isLooping,
-  });
+  LoopingMessage({required this.textureId, required this.isLooping});
 
   int textureId;
 
   bool isLooping;
 
   List<Object?> _toList() {
-    return <Object?>[
-      textureId,
-      isLooping,
-    ];
+    return <Object?>[textureId, isLooping];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static LoopingMessage decode(Object result) {
     result as List<Object?>;
-    return LoopingMessage(
-      textureId: result[0]! as int,
-      isLooping: result[1]! as bool,
-    );
+    return LoopingMessage(textureId: result[0]! as int, isLooping: result[1]! as bool);
   }
 
   @override
@@ -437,31 +402,23 @@ class LoopingMessage {
 }
 
 class VolumeMessage {
-  VolumeMessage({
-    required this.textureId,
-    required this.volume,
-  });
+  VolumeMessage({required this.textureId, required this.volume});
 
   int textureId;
 
   double volume;
 
   List<Object?> _toList() {
-    return <Object?>[
-      textureId,
-      volume,
-    ];
+    return <Object?>[textureId, volume];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static VolumeMessage decode(Object result) {
     result as List<Object?>;
-    return VolumeMessage(
-      textureId: result[0]! as int,
-      volume: result[1]! as double,
-    );
+    return VolumeMessage(textureId: result[0]! as int, volume: result[1]! as double);
   }
 
   @override
@@ -487,31 +444,23 @@ class VolumeMessage {
 }
 
 class PlaybackSpeedMessage {
-  PlaybackSpeedMessage({
-    required this.textureId,
-    required this.speed,
-  });
+  PlaybackSpeedMessage({required this.textureId, required this.speed});
 
   int textureId;
 
   double speed;
 
   List<Object?> _toList() {
-    return <Object?>[
-      textureId,
-      speed,
-    ];
+    return <Object?>[textureId, speed];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static PlaybackSpeedMessage decode(Object result) {
     result as List<Object?>;
-    return PlaybackSpeedMessage(
-      textureId: result[0]! as int,
-      speed: result[1]! as double,
-    );
+    return PlaybackSpeedMessage(textureId: result[0]! as int, speed: result[1]! as double);
   }
 
   @override
@@ -537,31 +486,23 @@ class PlaybackSpeedMessage {
 }
 
 class PositionMessage {
-  PositionMessage({
-    required this.textureId,
-    required this.position,
-  });
+  PositionMessage({required this.textureId, required this.position});
 
   int textureId;
 
   int position;
 
   List<Object?> _toList() {
-    return <Object?>[
-      textureId,
-      position,
-    ];
+    return <Object?>[textureId, position];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static PositionMessage decode(Object result) {
     result as List<Object?>;
-    return PositionMessage(
-      textureId: result[0]! as int,
-      position: result[1]! as int,
-    );
+    return PositionMessage(textureId: result[0]! as int, position: result[1]! as int);
   }
 
   @override
@@ -606,17 +547,12 @@ class CreateMessage {
   Map<String?, String?> httpHeaders;
 
   List<Object?> _toList() {
-    return <Object?>[
-      asset,
-      uri,
-      packageName,
-      formatHint,
-      httpHeaders,
-    ];
+    return <Object?>[asset, uri, packageName, formatHint, httpHeaders];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static CreateMessage decode(Object result) {
     result as List<Object?>;
@@ -638,7 +574,11 @@ class CreateMessage {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(asset, other.asset) && _deepEquals(uri, other.uri) && _deepEquals(packageName, other.packageName) && _deepEquals(formatHint, other.formatHint) && _deepEquals(httpHeaders, other.httpHeaders);
+    return _deepEquals(asset, other.asset) &&
+        _deepEquals(uri, other.uri) &&
+        _deepEquals(packageName, other.packageName) &&
+        _deepEquals(formatHint, other.formatHint) &&
+        _deepEquals(httpHeaders, other.httpHeaders);
   }
 
   @override
@@ -652,26 +592,21 @@ class CreateMessage {
 }
 
 class MixWithOthersMessage {
-  MixWithOthersMessage({
-    required this.mixWithOthers,
-  });
+  MixWithOthersMessage({required this.mixWithOthers});
 
   bool mixWithOthers;
 
   List<Object?> _toList() {
-    return <Object?>[
-      mixWithOthers,
-    ];
+    return <Object?>[mixWithOthers];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static MixWithOthersMessage decode(Object result) {
     result as List<Object?>;
-    return MixWithOthersMessage(
-      mixWithOthers: result[0]! as bool,
-    );
+    return MixWithOthersMessage(mixWithOthers: result[0]! as bool);
   }
 
   @override
@@ -697,11 +632,7 @@ class MixWithOthersMessage {
 }
 
 class AudioTrackMessage {
-  AudioTrackMessage({
-    required this.trackIndex,
-    this.language,
-    required this.isSelected,
-  });
+  AudioTrackMessage({required this.trackIndex, this.language, required this.isSelected});
 
   int trackIndex;
 
@@ -710,15 +641,12 @@ class AudioTrackMessage {
   bool isSelected;
 
   List<Object?> _toList() {
-    return <Object?>[
-      trackIndex,
-      language,
-      isSelected,
-    ];
+    return <Object?>[trackIndex, language, isSelected];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static AudioTrackMessage decode(Object result) {
     result as List<Object?>;
@@ -738,7 +666,9 @@ class AudioTrackMessage {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(trackIndex, other.trackIndex) && _deepEquals(language, other.language) && _deepEquals(isSelected, other.isSelected);
+    return _deepEquals(trackIndex, other.trackIndex) &&
+        _deepEquals(language, other.language) &&
+        _deepEquals(isSelected, other.isSelected);
   }
 
   @override
@@ -752,31 +682,23 @@ class AudioTrackMessage {
 }
 
 class SelectAudioTrackMessage {
-  SelectAudioTrackMessage({
-    required this.textureId,
-    required this.trackIndex,
-  });
+  SelectAudioTrackMessage({required this.textureId, required this.trackIndex});
 
   int textureId;
 
   int trackIndex;
 
   List<Object?> _toList() {
-    return <Object?>[
-      textureId,
-      trackIndex,
-    ];
+    return <Object?>[textureId, trackIndex];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static SelectAudioTrackMessage decode(Object result) {
     result as List<Object?>;
-    return SelectAudioTrackMessage(
-      textureId: result[0]! as int,
-      trackIndex: result[1]! as int,
-    );
+    return SelectAudioTrackMessage(textureId: result[0]! as int, trackIndex: result[1]! as int);
   }
 
   @override
@@ -802,24 +724,19 @@ class SelectAudioTrackMessage {
 }
 
 class PreventsDisplaySleepMessage {
-  PreventsDisplaySleepMessage({
-    required this.textureId,
-    required this.preventsDisplaySleep,
-  });
+  PreventsDisplaySleepMessage({required this.textureId, required this.preventsDisplaySleep});
 
   int textureId;
 
   bool preventsDisplaySleep;
 
   List<Object?> _toList() {
-    return <Object?>[
-      textureId,
-      preventsDisplaySleep,
-    ];
+    return <Object?>[textureId, preventsDisplaySleep];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static PreventsDisplaySleepMessage decode(Object result) {
     result as List<Object?>;
@@ -838,7 +755,8 @@ class PreventsDisplaySleepMessage {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(textureId, other.textureId) && _deepEquals(preventsDisplaySleep, other.preventsDisplaySleep);
+    return _deepEquals(textureId, other.textureId) &&
+        _deepEquals(preventsDisplaySleep, other.preventsDisplaySleep);
   }
 
   @override
@@ -851,7 +769,6 @@ class PreventsDisplaySleepMessage {
   }
 }
 
-
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
   @override
@@ -859,34 +776,34 @@ class _PigeonCodec extends StandardMessageCodec {
     if (value is int) {
       buffer.putUint8(4);
       buffer.putInt64(value);
-    }    else if (value is TextureMessage) {
+    } else if (value is TextureMessage) {
       buffer.putUint8(129);
       writeValue(buffer, value.encode());
-    }    else if (value is LoopingMessage) {
+    } else if (value is LoopingMessage) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
-    }    else if (value is VolumeMessage) {
+    } else if (value is VolumeMessage) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
-    }    else if (value is PlaybackSpeedMessage) {
+    } else if (value is PlaybackSpeedMessage) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
-    }    else if (value is PositionMessage) {
+    } else if (value is PositionMessage) {
       buffer.putUint8(133);
       writeValue(buffer, value.encode());
-    }    else if (value is CreateMessage) {
+    } else if (value is CreateMessage) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
-    }    else if (value is MixWithOthersMessage) {
+    } else if (value is MixWithOthersMessage) {
       buffer.putUint8(135);
       writeValue(buffer, value.encode());
-    }    else if (value is AudioTrackMessage) {
+    } else if (value is AudioTrackMessage) {
       buffer.putUint8(136);
       writeValue(buffer, value.encode());
-    }    else if (value is SelectAudioTrackMessage) {
+    } else if (value is SelectAudioTrackMessage) {
       buffer.putUint8(137);
       writeValue(buffer, value.encode());
-    }    else if (value is PreventsDisplaySleepMessage) {
+    } else if (value is PreventsDisplaySleepMessage) {
       buffer.putUint8(138);
       writeValue(buffer, value.encode());
     } else {
@@ -933,26 +850,34 @@ class TizenVideoPlayerApi {
     pigeon_ffi.VideoPlayerTizenFfiBindings? ffiBindings,
   }) : pigeonVar_ffiBindings = ffiBindings ?? _pigeonVar_defaultFfiBindings {
     if (binaryMessenger != null) {
-      throw ArgumentError.value(binaryMessenger, 'binaryMessenger', 'BinaryMessenger is not supported by FFI HostApi.');
+      throw ArgumentError.value(
+        binaryMessenger,
+        'binaryMessenger',
+        'BinaryMessenger is not supported by FFI HostApi.',
+      );
     }
     if (messageChannelSuffix.isNotEmpty) {
-      throw ArgumentError.value(messageChannelSuffix, 'messageChannelSuffix', 'messageChannelSuffix is not supported by FFI HostApi.');
+      throw ArgumentError.value(
+        messageChannelSuffix,
+        'messageChannelSuffix',
+        'messageChannelSuffix is not supported by FFI HostApi.',
+      );
     }
   }
 
   static final pigeon_ffi.VideoPlayerTizenFfiBindings _pigeonVar_defaultFfiBindings =
-      pigeon_ffi.VideoPlayerTizenFfiBindings((() {
-    final String libraryPath = File('/proc/self/maps')
-        .readAsLinesSync()
-        .map((String line) {
-          final int index = line.indexOf('/');
-          return index == -1 ? '' : line.substring(index);
-        })
-        .firstWhere(
-          (String path) => path.endsWith('/libflutter_plugins.so'),
-        );
-    return ffi.DynamicLibrary.open(libraryPath);
-  })());
+      pigeon_ffi.VideoPlayerTizenFfiBindings(
+        (() {
+          final String libraryPath = File('/proc/self/maps')
+              .readAsLinesSync()
+              .map((String line) {
+                final int index = line.indexOf('/');
+                return index == -1 ? '' : line.substring(index);
+              })
+              .firstWhere((String path) => path.endsWith('/libflutter_plugins.so'));
+          return ffi.DynamicLibrary.open(libraryPath);
+        })(),
+      );
 
   final pigeon_ffi.VideoPlayerTizenFfiBindings pigeonVar_ffiBindings;
 
@@ -963,14 +888,14 @@ class TizenVideoPlayerApi {
     final String pigeonVar_channelName = 'pigeon_tizen_video_player_api_initialize';
     ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_response = ffi.nullptr;
     try {
-      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_initialize(pigeonVar_request);
-      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(pigeonChannelCodec, pigeonVar_response);
-      _extractReplyValueOrThrow(
-          pigeonVar_replyList,
-          pigeonVar_channelName,
-          isNullValid: true,
-      )
-      ;
+      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_initialize(
+        pigeonVar_request,
+      );
+      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(
+        pigeonChannelCodec,
+        pigeonVar_response,
+      );
+      _extractReplyValueOrThrow(pigeonVar_replyList, pigeonVar_channelName, isNullValid: true);
     } finally {
       _freeFfiRequest(pigeonVar_request);
       if (pigeonVar_response != ffi.nullptr) {
@@ -981,18 +906,24 @@ class TizenVideoPlayerApi {
 
   Future<TextureMessage> create(CreateMessage msg) async {
     final ByteData? pigeonVar_requestMessage = pigeonChannelCodec.encodeMessage(<Object?>[msg]);
-    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(pigeonVar_requestMessage);
+    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(
+      pigeonVar_requestMessage,
+    );
     final String pigeonVar_channelName = 'pigeon_tizen_video_player_api_create';
     ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_response = ffi.nullptr;
     try {
-      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_create(pigeonVar_request);
-      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(pigeonChannelCodec, pigeonVar_response);
+      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_create(
+        pigeonVar_request,
+      );
+      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(
+        pigeonChannelCodec,
+        pigeonVar_response,
+      );
       final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-          pigeonVar_replyList,
-          pigeonVar_channelName,
-          isNullValid: false,
-      )
-      ;
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: false,
+      );
       return pigeonVar_replyValue! as TextureMessage;
     } finally {
       _freeFfiRequest(pigeonVar_request);
@@ -1004,18 +935,20 @@ class TizenVideoPlayerApi {
 
   Future<void> dispose(TextureMessage msg) async {
     final ByteData? pigeonVar_requestMessage = pigeonChannelCodec.encodeMessage(<Object?>[msg]);
-    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(pigeonVar_requestMessage);
+    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(
+      pigeonVar_requestMessage,
+    );
     final String pigeonVar_channelName = 'pigeon_tizen_video_player_api_dispose';
     ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_response = ffi.nullptr;
     try {
-      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_dispose(pigeonVar_request);
-      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(pigeonChannelCodec, pigeonVar_response);
-      _extractReplyValueOrThrow(
-          pigeonVar_replyList,
-          pigeonVar_channelName,
-          isNullValid: true,
-      )
-      ;
+      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_dispose(
+        pigeonVar_request,
+      );
+      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(
+        pigeonChannelCodec,
+        pigeonVar_response,
+      );
+      _extractReplyValueOrThrow(pigeonVar_replyList, pigeonVar_channelName, isNullValid: true);
     } finally {
       _freeFfiRequest(pigeonVar_request);
       if (pigeonVar_response != ffi.nullptr) {
@@ -1026,18 +959,20 @@ class TizenVideoPlayerApi {
 
   Future<void> setLooping(LoopingMessage msg) async {
     final ByteData? pigeonVar_requestMessage = pigeonChannelCodec.encodeMessage(<Object?>[msg]);
-    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(pigeonVar_requestMessage);
+    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(
+      pigeonVar_requestMessage,
+    );
     final String pigeonVar_channelName = 'pigeon_tizen_video_player_api_set_looping';
     ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_response = ffi.nullptr;
     try {
-      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_set_looping(pigeonVar_request);
-      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(pigeonChannelCodec, pigeonVar_response);
-      _extractReplyValueOrThrow(
-          pigeonVar_replyList,
-          pigeonVar_channelName,
-          isNullValid: true,
-      )
-      ;
+      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_set_looping(
+        pigeonVar_request,
+      );
+      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(
+        pigeonChannelCodec,
+        pigeonVar_response,
+      );
+      _extractReplyValueOrThrow(pigeonVar_replyList, pigeonVar_channelName, isNullValid: true);
     } finally {
       _freeFfiRequest(pigeonVar_request);
       if (pigeonVar_response != ffi.nullptr) {
@@ -1048,18 +983,20 @@ class TizenVideoPlayerApi {
 
   Future<void> setVolume(VolumeMessage msg) async {
     final ByteData? pigeonVar_requestMessage = pigeonChannelCodec.encodeMessage(<Object?>[msg]);
-    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(pigeonVar_requestMessage);
+    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(
+      pigeonVar_requestMessage,
+    );
     final String pigeonVar_channelName = 'pigeon_tizen_video_player_api_set_volume';
     ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_response = ffi.nullptr;
     try {
-      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_set_volume(pigeonVar_request);
-      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(pigeonChannelCodec, pigeonVar_response);
-      _extractReplyValueOrThrow(
-          pigeonVar_replyList,
-          pigeonVar_channelName,
-          isNullValid: true,
-      )
-      ;
+      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_set_volume(
+        pigeonVar_request,
+      );
+      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(
+        pigeonChannelCodec,
+        pigeonVar_response,
+      );
+      _extractReplyValueOrThrow(pigeonVar_replyList, pigeonVar_channelName, isNullValid: true);
     } finally {
       _freeFfiRequest(pigeonVar_request);
       if (pigeonVar_response != ffi.nullptr) {
@@ -1070,18 +1007,20 @@ class TizenVideoPlayerApi {
 
   Future<void> setPlaybackSpeed(PlaybackSpeedMessage msg) async {
     final ByteData? pigeonVar_requestMessage = pigeonChannelCodec.encodeMessage(<Object?>[msg]);
-    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(pigeonVar_requestMessage);
+    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(
+      pigeonVar_requestMessage,
+    );
     final String pigeonVar_channelName = 'pigeon_tizen_video_player_api_set_playback_speed';
     ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_response = ffi.nullptr;
     try {
-      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_set_playback_speed(pigeonVar_request);
-      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(pigeonChannelCodec, pigeonVar_response);
-      _extractReplyValueOrThrow(
-          pigeonVar_replyList,
-          pigeonVar_channelName,
-          isNullValid: true,
-      )
-      ;
+      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_set_playback_speed(
+        pigeonVar_request,
+      );
+      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(
+        pigeonChannelCodec,
+        pigeonVar_response,
+      );
+      _extractReplyValueOrThrow(pigeonVar_replyList, pigeonVar_channelName, isNullValid: true);
     } finally {
       _freeFfiRequest(pigeonVar_request);
       if (pigeonVar_response != ffi.nullptr) {
@@ -1092,18 +1031,20 @@ class TizenVideoPlayerApi {
 
   Future<void> play(TextureMessage msg) async {
     final ByteData? pigeonVar_requestMessage = pigeonChannelCodec.encodeMessage(<Object?>[msg]);
-    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(pigeonVar_requestMessage);
+    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(
+      pigeonVar_requestMessage,
+    );
     final String pigeonVar_channelName = 'pigeon_tizen_video_player_api_play';
     ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_response = ffi.nullptr;
     try {
-      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_play(pigeonVar_request);
-      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(pigeonChannelCodec, pigeonVar_response);
-      _extractReplyValueOrThrow(
-          pigeonVar_replyList,
-          pigeonVar_channelName,
-          isNullValid: true,
-      )
-      ;
+      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_play(
+        pigeonVar_request,
+      );
+      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(
+        pigeonChannelCodec,
+        pigeonVar_response,
+      );
+      _extractReplyValueOrThrow(pigeonVar_replyList, pigeonVar_channelName, isNullValid: true);
     } finally {
       _freeFfiRequest(pigeonVar_request);
       if (pigeonVar_response != ffi.nullptr) {
@@ -1114,18 +1055,24 @@ class TizenVideoPlayerApi {
 
   Future<PositionMessage> position(TextureMessage msg) async {
     final ByteData? pigeonVar_requestMessage = pigeonChannelCodec.encodeMessage(<Object?>[msg]);
-    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(pigeonVar_requestMessage);
+    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(
+      pigeonVar_requestMessage,
+    );
     final String pigeonVar_channelName = 'pigeon_tizen_video_player_api_position';
     ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_response = ffi.nullptr;
     try {
-      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_position(pigeonVar_request);
-      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(pigeonChannelCodec, pigeonVar_response);
+      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_position(
+        pigeonVar_request,
+      );
+      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(
+        pigeonChannelCodec,
+        pigeonVar_response,
+      );
       final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-          pigeonVar_replyList,
-          pigeonVar_channelName,
-          isNullValid: false,
-      )
-      ;
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: false,
+      );
       return pigeonVar_replyValue! as PositionMessage;
     } finally {
       _freeFfiRequest(pigeonVar_request);
@@ -1137,7 +1084,9 @@ class TizenVideoPlayerApi {
 
   Future<void> seekTo(PositionMessage msg) async {
     final ByteData? pigeonVar_requestMessage = pigeonChannelCodec.encodeMessage(<Object?>[msg]);
-    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(pigeonVar_requestMessage);
+    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(
+      pigeonVar_requestMessage,
+    );
     final String pigeonVar_channelName = 'pigeon_tizen_video_player_api_seek_to';
     final Completer<void> pigeonVar_completer = Completer<void>();
     final int pigeonVar_replyId = _pigeonNextFfiAsyncReplyId++;
@@ -1174,18 +1123,20 @@ class TizenVideoPlayerApi {
 
   Future<void> pause(TextureMessage msg) async {
     final ByteData? pigeonVar_requestMessage = pigeonChannelCodec.encodeMessage(<Object?>[msg]);
-    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(pigeonVar_requestMessage);
+    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(
+      pigeonVar_requestMessage,
+    );
     final String pigeonVar_channelName = 'pigeon_tizen_video_player_api_pause';
     ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_response = ffi.nullptr;
     try {
-      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_pause(pigeonVar_request);
-      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(pigeonChannelCodec, pigeonVar_response);
-      _extractReplyValueOrThrow(
-          pigeonVar_replyList,
-          pigeonVar_channelName,
-          isNullValid: true,
-      )
-      ;
+      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_pause(
+        pigeonVar_request,
+      );
+      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(
+        pigeonChannelCodec,
+        pigeonVar_response,
+      );
+      _extractReplyValueOrThrow(pigeonVar_replyList, pigeonVar_channelName, isNullValid: true);
     } finally {
       _freeFfiRequest(pigeonVar_request);
       if (pigeonVar_response != ffi.nullptr) {
@@ -1196,18 +1147,20 @@ class TizenVideoPlayerApi {
 
   Future<void> setMixWithOthers(MixWithOthersMessage msg) async {
     final ByteData? pigeonVar_requestMessage = pigeonChannelCodec.encodeMessage(<Object?>[msg]);
-    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(pigeonVar_requestMessage);
+    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(
+      pigeonVar_requestMessage,
+    );
     final String pigeonVar_channelName = 'pigeon_tizen_video_player_api_set_mix_with_others';
     ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_response = ffi.nullptr;
     try {
-      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_set_mix_with_others(pigeonVar_request);
-      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(pigeonChannelCodec, pigeonVar_response);
-      _extractReplyValueOrThrow(
-          pigeonVar_replyList,
-          pigeonVar_channelName,
-          isNullValid: true,
-      )
-      ;
+      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_set_mix_with_others(
+        pigeonVar_request,
+      );
+      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(
+        pigeonChannelCodec,
+        pigeonVar_response,
+      );
+      _extractReplyValueOrThrow(pigeonVar_replyList, pigeonVar_channelName, isNullValid: true);
     } finally {
       _freeFfiRequest(pigeonVar_request);
       if (pigeonVar_response != ffi.nullptr) {
@@ -1218,18 +1171,19 @@ class TizenVideoPlayerApi {
 
   Future<void> setPreventsDisplaySleep(PreventsDisplaySleepMessage msg) async {
     final ByteData? pigeonVar_requestMessage = pigeonChannelCodec.encodeMessage(<Object?>[msg]);
-    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(pigeonVar_requestMessage);
+    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(
+      pigeonVar_requestMessage,
+    );
     final String pigeonVar_channelName = 'pigeon_tizen_video_player_api_set_prevents_display_sleep';
     ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_response = ffi.nullptr;
     try {
-      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_set_prevents_display_sleep(pigeonVar_request);
-      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(pigeonChannelCodec, pigeonVar_response);
-      _extractReplyValueOrThrow(
-          pigeonVar_replyList,
-          pigeonVar_channelName,
-          isNullValid: true,
-      )
-      ;
+      pigeonVar_response = pigeonVar_ffiBindings
+          .pigeon_tizen_video_player_api_set_prevents_display_sleep(pigeonVar_request);
+      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(
+        pigeonChannelCodec,
+        pigeonVar_response,
+      );
+      _extractReplyValueOrThrow(pigeonVar_replyList, pigeonVar_channelName, isNullValid: true);
     } finally {
       _freeFfiRequest(pigeonVar_request);
       if (pigeonVar_response != ffi.nullptr) {
@@ -1240,18 +1194,24 @@ class TizenVideoPlayerApi {
 
   Future<List<AudioTrackMessage>> getAudioTracks(TextureMessage msg) async {
     final ByteData? pigeonVar_requestMessage = pigeonChannelCodec.encodeMessage(<Object?>[msg]);
-    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(pigeonVar_requestMessage);
+    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(
+      pigeonVar_requestMessage,
+    );
     final String pigeonVar_channelName = 'pigeon_tizen_video_player_api_get_audio_tracks';
     ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_response = ffi.nullptr;
     try {
-      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_get_audio_tracks(pigeonVar_request);
-      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(pigeonChannelCodec, pigeonVar_response);
+      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_get_audio_tracks(
+        pigeonVar_request,
+      );
+      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(
+        pigeonChannelCodec,
+        pigeonVar_response,
+      );
       final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-          pigeonVar_replyList,
-          pigeonVar_channelName,
-          isNullValid: false,
-      )
-      ;
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: false,
+      );
       return (pigeonVar_replyValue! as List<Object?>).cast<AudioTrackMessage>();
     } finally {
       _freeFfiRequest(pigeonVar_request);
@@ -1263,18 +1223,20 @@ class TizenVideoPlayerApi {
 
   Future<void> selectAudioTrack(SelectAudioTrackMessage msg) async {
     final ByteData? pigeonVar_requestMessage = pigeonChannelCodec.encodeMessage(<Object?>[msg]);
-    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(pigeonVar_requestMessage);
+    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(
+      pigeonVar_requestMessage,
+    );
     final String pigeonVar_channelName = 'pigeon_tizen_video_player_api_select_audio_track';
     ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_response = ffi.nullptr;
     try {
-      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_select_audio_track(pigeonVar_request);
-      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(pigeonChannelCodec, pigeonVar_response);
-      _extractReplyValueOrThrow(
-          pigeonVar_replyList,
-          pigeonVar_channelName,
-          isNullValid: true,
-      )
-      ;
+      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_select_audio_track(
+        pigeonVar_request,
+      );
+      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(
+        pigeonChannelCodec,
+        pigeonVar_response,
+      );
+      _extractReplyValueOrThrow(pigeonVar_replyList, pigeonVar_channelName, isNullValid: true);
     } finally {
       _freeFfiRequest(pigeonVar_request);
       if (pigeonVar_response != ffi.nullptr) {
@@ -1299,32 +1261,37 @@ Stream<Map<Object?, Object?>> videoEvents({String instanceName = ''}) {
       final int pigeonVar_sinkId = _pigeonNextFfiEventSinkId++;
       pigeonVar_activeSinkId = pigeonVar_sinkId;
       final String pigeonVar_channelName = 'pigeon_video_player_events_video_events_listen';
-      _pigeonFfiEventControllers[pigeonVar_sinkId] = _PigeonFfiEventControllerImpl<Map<Object?, Object?>>(
-        controller: pigeonVar_controller,
-        codec: pigeonVar_codec,
-        channelName: pigeonVar_channelName,
-        decodeEvent: (Object? event) {
-          return event! as Map<Object?, Object?>;
-        },
+      _pigeonFfiEventControllers[pigeonVar_sinkId] =
+          _PigeonFfiEventControllerImpl<Map<Object?, Object?>>(
+            controller: pigeonVar_controller,
+            codec: pigeonVar_codec,
+            channelName: pigeonVar_channelName,
+            decodeEvent: (Object? event) {
+              return event! as Map<Object?, Object?>;
+            },
+          );
+      final ByteData? pigeonVar_requestMessage = pigeonVar_codec.encodeMessage(<Object?>[
+        instanceName,
+      ]);
+      final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(
+        pigeonVar_requestMessage,
       );
-      final ByteData? pigeonVar_requestMessage = pigeonVar_codec.encodeMessage(<Object?>[instanceName]);
-      final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(pigeonVar_requestMessage);
       ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_response = ffi.nullptr;
       try {
         _updatePigeonFfiEventCallbackKeepAlive();
-        pigeonVar_response = _pigeonVar_defaultFfiBindings.pigeon_video_player_events_video_events_listen(
-          pigeonVar_request,
-          pigeonVar_sinkId,
-          _pigeonFfiOnEventCallback.nativeFunction,
-          _pigeonFfiOnErrorCallback.nativeFunction,
-          _pigeonFfiOnDoneCallback.nativeFunction,
+        pigeonVar_response = _pigeonVar_defaultFfiBindings
+            .pigeon_video_player_events_video_events_listen(
+              pigeonVar_request,
+              pigeonVar_sinkId,
+              _pigeonFfiOnEventCallback.nativeFunction,
+              _pigeonFfiOnErrorCallback.nativeFunction,
+              _pigeonFfiOnDoneCallback.nativeFunction,
+            );
+        final List<Object?>? pigeonVar_replyList = _decodeFfiReply(
+          pigeonVar_codec,
+          pigeonVar_response,
         );
-        final List<Object?>? pigeonVar_replyList = _decodeFfiReply(pigeonVar_codec, pigeonVar_response);
-        _extractReplyValueOrThrow(
-          pigeonVar_replyList,
-          pigeonVar_channelName,
-          isNullValid: true,
-        );
+        _extractReplyValueOrThrow(pigeonVar_replyList, pigeonVar_channelName, isNullValid: true);
       } catch (error, stackTrace) {
         _pigeonFfiEventControllers.remove(pigeonVar_sinkId);
         pigeonVar_activeSinkId = null;
@@ -1343,17 +1310,21 @@ Stream<Map<Object?, Object?>> videoEvents({String instanceName = ''}) {
         return;
       }
       final String pigeonVar_channelName = 'pigeon_video_player_events_video_events_cancel';
-      final ByteData? pigeonVar_requestMessage = pigeonVar_codec.encodeMessage(<Object?>[instanceName]);
-      final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(pigeonVar_requestMessage);
+      final ByteData? pigeonVar_requestMessage = pigeonVar_codec.encodeMessage(<Object?>[
+        instanceName,
+      ]);
+      final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(
+        pigeonVar_requestMessage,
+      );
       ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_response = ffi.nullptr;
       try {
-        pigeonVar_response = _pigeonVar_defaultFfiBindings.pigeon_video_player_events_video_events_cancel(pigeonVar_request, pigeonVar_sinkId);
-        final List<Object?>? pigeonVar_replyList = _decodeFfiReply(pigeonVar_codec, pigeonVar_response);
-        _extractReplyValueOrThrow(
-          pigeonVar_replyList,
-          pigeonVar_channelName,
-          isNullValid: true,
+        pigeonVar_response = _pigeonVar_defaultFfiBindings
+            .pigeon_video_player_events_video_events_cancel(pigeonVar_request, pigeonVar_sinkId);
+        final List<Object?>? pigeonVar_replyList = _decodeFfiReply(
+          pigeonVar_codec,
+          pigeonVar_response,
         );
+        _extractReplyValueOrThrow(pigeonVar_replyList, pigeonVar_channelName, isNullValid: true);
       } finally {
         _pigeonFfiEventControllers.remove(pigeonVar_sinkId);
         pigeonVar_activeSinkId = null;
@@ -1367,4 +1338,3 @@ Stream<Map<Object?, Object?>> videoEvents({String instanceName = ''}) {
   );
   return pigeonVar_controller.stream;
 }
-

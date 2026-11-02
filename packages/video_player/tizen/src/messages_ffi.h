@@ -13,6 +13,7 @@
 #include <optional>
 #include <string>
 #include <vector>
+
 #include "messages.h"
 #endif
 
@@ -33,40 +34,68 @@ typedef struct PigeonFfiBuffer {
   size_t length;
 } PigeonFfiBuffer;
 
-typedef void (*PigeonFfiReplyCallback)(int64_t reply_id, PigeonFfiBuffer* reply);
+typedef void (*PigeonFfiReplyCallback)(int64_t reply_id,
+                                       PigeonFfiBuffer* reply);
 typedef void (*PigeonFfiEventCallback)(int64_t sink_id, PigeonFfiBuffer* event);
 typedef void (*PigeonFfiDoneCallback)(int64_t sink_id);
 #endif  // PIGEON_FFI_ABI_TYPES_
 
 // Frees a buffer returned by a generated FFI function.
-PIGEON_FFI_EXPORT void pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_free_buffer(PigeonFfiBuffer* buffer);
-// The caller owns request; free returned buffers with pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_free_buffer.
-PIGEON_FFI_EXPORT PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_initialize(PigeonFfiBuffer* request);
-PIGEON_FFI_EXPORT PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_create(PigeonFfiBuffer* request);
-PIGEON_FFI_EXPORT PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_dispose(PigeonFfiBuffer* request);
-PIGEON_FFI_EXPORT PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_set_looping(PigeonFfiBuffer* request);
-PIGEON_FFI_EXPORT PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_set_volume(PigeonFfiBuffer* request);
-PIGEON_FFI_EXPORT PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_set_playback_speed(PigeonFfiBuffer* request);
-PIGEON_FFI_EXPORT PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_play(PigeonFfiBuffer* request);
-PIGEON_FFI_EXPORT PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_position(PigeonFfiBuffer* request);
-PIGEON_FFI_EXPORT void pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_seek_to(
-  PigeonFfiBuffer* request,
-  int64_t reply_id,
-  PigeonFfiReplyCallback on_reply);
-PIGEON_FFI_EXPORT PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_pause(PigeonFfiBuffer* request);
-PIGEON_FFI_EXPORT PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_set_mix_with_others(PigeonFfiBuffer* request);
-PIGEON_FFI_EXPORT PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_set_prevents_display_sleep(PigeonFfiBuffer* request);
-PIGEON_FFI_EXPORT PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_get_audio_tracks(PigeonFfiBuffer* request);
-PIGEON_FFI_EXPORT PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_select_audio_track(PigeonFfiBuffer* request);
-PIGEON_FFI_EXPORT PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_video_player_events_video_events_listen(
-  PigeonFfiBuffer* request,
-  int64_t sink_id,
-  PigeonFfiEventCallback on_event,
-  PigeonFfiEventCallback on_error,
-  PigeonFfiDoneCallback on_done);
-PIGEON_FFI_EXPORT PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_video_player_events_video_events_cancel(
-  PigeonFfiBuffer* request,
-  int64_t sink_id);
+PIGEON_FFI_EXPORT void
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_free_buffer(
+    PigeonFfiBuffer* buffer);
+// The caller owns request; free returned buffers with
+// pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_free_buffer.
+PIGEON_FFI_EXPORT PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_initialize(
+    PigeonFfiBuffer* request);
+PIGEON_FFI_EXPORT PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_create(
+    PigeonFfiBuffer* request);
+PIGEON_FFI_EXPORT PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_dispose(
+    PigeonFfiBuffer* request);
+PIGEON_FFI_EXPORT PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_set_looping(
+    PigeonFfiBuffer* request);
+PIGEON_FFI_EXPORT PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_set_volume(
+    PigeonFfiBuffer* request);
+PIGEON_FFI_EXPORT PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_set_playback_speed(
+    PigeonFfiBuffer* request);
+PIGEON_FFI_EXPORT PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_play(
+    PigeonFfiBuffer* request);
+PIGEON_FFI_EXPORT PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_position(
+    PigeonFfiBuffer* request);
+PIGEON_FFI_EXPORT void
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_seek_to(
+    PigeonFfiBuffer* request, int64_t reply_id,
+    PigeonFfiReplyCallback on_reply);
+PIGEON_FFI_EXPORT PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_pause(
+    PigeonFfiBuffer* request);
+PIGEON_FFI_EXPORT PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_set_mix_with_others(
+    PigeonFfiBuffer* request);
+PIGEON_FFI_EXPORT PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_set_prevents_display_sleep(
+    PigeonFfiBuffer* request);
+PIGEON_FFI_EXPORT PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_get_audio_tracks(
+    PigeonFfiBuffer* request);
+PIGEON_FFI_EXPORT PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_select_audio_track(
+    PigeonFfiBuffer* request);
+PIGEON_FFI_EXPORT PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_video_player_events_video_events_listen(
+    PigeonFfiBuffer* request, int64_t sink_id, PigeonFfiEventCallback on_event,
+    PigeonFfiEventCallback on_error, PigeonFfiDoneCallback on_done);
+PIGEON_FFI_EXPORT PigeonFfiBuffer*
+pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_video_player_events_video_events_cancel(
+    PigeonFfiBuffer* request, int64_t sink_id);
 
 #ifdef __cplusplus
 }
@@ -74,44 +103,42 @@ PIGEON_FFI_EXPORT PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_s
 
 #ifdef __cplusplus
 namespace video_player_tizen {
-  class PigeonFfiSyncDispatcher {
-   public:
-    virtual ~PigeonFfiSyncDispatcher() = default;
-    virtual ::PigeonFfiBuffer* RunSync(
-        std::function<::PigeonFfiBuffer*()> task) = 0;
-  };
+class PigeonFfiSyncDispatcher {
+ public:
+  virtual ~PigeonFfiSyncDispatcher() = default;
+  virtual ::PigeonFfiBuffer* RunSync(
+      std::function<::PigeonFfiBuffer*()> task) = 0;
+};
 
+void SetUpTizenVideoPlayerApiFfi(TizenVideoPlayerApi* api,
+                                 PigeonFfiSyncDispatcher* dispatcher = nullptr);
 
-  void SetUpTizenVideoPlayerApiFfi(
-    TizenVideoPlayerApi* api,
-    PigeonFfiSyncDispatcher* dispatcher = nullptr);
+class PigeonVideoPlayerEventsVideoEventsEventSink {
+ public:
+  virtual ~PigeonVideoPlayerEventsVideoEventsEventSink() = default;
+  virtual void Success(const ::flutter::EncodableMap& event) = 0;
+  virtual void Error(const FlutterError& error) = 0;
+  virtual void EndOfStream() = 0;
+};
 
-  class PigeonVideoPlayerEventsVideoEventsEventSink {
-    public:
-      virtual ~PigeonVideoPlayerEventsVideoEventsEventSink() = default;
-      virtual void Success(const ::flutter::EncodableMap& event) = 0;
-      virtual void Error(const FlutterError& error) = 0;
-      virtual void EndOfStream() = 0;
-  };
+class PigeonVideoPlayerEventsVideoEventsStreamHandler {
+ public:
+  virtual ~PigeonVideoPlayerEventsVideoEventsStreamHandler() = default;
+  virtual std::optional<FlutterError> OnListen(
+      const std::string& instance_name,
+      std::unique_ptr<PigeonVideoPlayerEventsVideoEventsEventSink> sink) {
+    (void)instance_name;
+    (void)sink;
+    return std::nullopt;
+  }
+  virtual std::optional<FlutterError> OnCancel(
+      const std::string& instance_name) {
+    (void)instance_name;
+    return std::nullopt;
+  }
+};
 
-  class PigeonVideoPlayerEventsVideoEventsStreamHandler {
-    public:
-      virtual ~PigeonVideoPlayerEventsVideoEventsStreamHandler() = default;
-      virtual std::optional<FlutterError> OnListen(
-        const std::string& instance_name,
-        std::unique_ptr<PigeonVideoPlayerEventsVideoEventsEventSink> sink) {
-        (void)instance_name;
-        (void)sink;
-        return std::nullopt;
-      }
-      virtual std::optional<FlutterError> OnCancel(
-        const std::string& instance_name) {
-        (void)instance_name;
-        return std::nullopt;
-      }
-  };
-
-  void SetUpVideoPlayerEventsVideoEventsFfi(
+void SetUpVideoPlayerEventsVideoEventsFfi(
     PigeonVideoPlayerEventsVideoEventsStreamHandler* handler,
     PigeonFfiSyncDispatcher* dispatcher = nullptr);
 }  // namespace video_player_tizen

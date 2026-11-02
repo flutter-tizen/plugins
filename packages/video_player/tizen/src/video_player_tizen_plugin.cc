@@ -22,9 +22,10 @@
 
 namespace video_player_tizen {
 
-class VideoPlayerTizenPlugin : public flutter::Plugin,
-                               public TizenVideoPlayerApi,
-                               public PigeonVideoPlayerEventsVideoEventsStreamHandler {
+class VideoPlayerTizenPlugin
+    : public flutter::Plugin,
+      public TizenVideoPlayerApi,
+      public PigeonVideoPlayerEventsVideoEventsStreamHandler {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar);
 
@@ -63,7 +64,6 @@ class VideoPlayerTizenPlugin : public flutter::Plugin,
  private:
   void DisposeAllPlayers();
 
-  flutter::PluginRegistrar *plugin_registrar_;
   flutter::TextureRegistrar *texture_registrar_;
   VideoPlayerOptions options_;
   std::map<int64_t, std::unique_ptr<VideoPlayer>> players_;

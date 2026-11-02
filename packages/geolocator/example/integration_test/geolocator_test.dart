@@ -34,8 +34,21 @@ Future<void> main() async {
     expect(position.timestamp.year, greaterThan(2000));
   }, timeout: const Timeout(Duration(seconds: 10)));
 
+  test('current position has vertical speed', () async {
+    final Position position = await Geolocator.getCurrentPosition();
+    expect(position.hasVerticalSpeed, true);
+  }, timeout: const Timeout(Duration(seconds: 10)));
+
   test('get last known position', () async {
     expect(await Geolocator.getLastKnownPosition(), isA<Position>());
+  }, timeout: const Timeout(Duration(seconds: 10)));
+
+  test('last known position has altitude accuracy and vertical speed',
+      () async {
+    await Geolocator.getCurrentPosition();
+    final Position? position = await Geolocator.getLastKnownPosition();
+    expect(position?.hasAltitudeAccuracy, true);
+    expect(position?.hasVerticalSpeed, true);
   }, timeout: const Timeout(Duration(seconds: 10)));
 
   test('listen location', () async {
@@ -53,5 +66,12 @@ Future<void> main() async {
     );
     expect(await completer.future, isA<Position>());
     await subscription.cancel();
+  }, timeout: const Timeout(Duration(seconds: 10)));
+
+  test('listen location has speed, heading and accuracy', () async {
+    final Position position = await Geolocator.getPositionStream().first;
+    expect(position.hasSpeed, true);
+    expect(position.hasHeading, true);
+    expect(position.hasAccuracy, true);
   }, timeout: const Timeout(Duration(seconds: 10)));
 }

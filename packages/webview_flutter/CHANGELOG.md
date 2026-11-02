@@ -1,3 +1,7 @@
+## NEXT
+
+* Fix a build error in debug mode on Tizen 11.0.
+
 ## 0.12.0
 
 * Add `getCookies` to the cookie manager using the EWK and WV cookie getters.

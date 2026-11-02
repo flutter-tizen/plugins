@@ -15,17 +15,16 @@
 
 namespace video_player_tizen {
 
-
 // Generated class from Pigeon.
 
 class FlutterError {
  public:
-  explicit FlutterError(const std::string& code)
-    : code_(code) {}
+  explicit FlutterError(const std::string& code) : code_(code) {}
   explicit FlutterError(const std::string& code, const std::string& message)
-    : code_(code), message_(message) {}
-  explicit FlutterError(const std::string& code, const std::string& message, const ::flutter::EncodableValue& details)
-    : code_(code), message_(message), details_(details) {}
+      : code_(code), message_(message) {}
+  explicit FlutterError(const std::string& code, const std::string& message,
+                        const ::flutter::EncodableValue& details)
+      : code_(code), message_(message), details_(details) {}
 
   const std::string& code() const { return code_; }
   const std::string& message() const { return message_; }
@@ -37,7 +36,8 @@ class FlutterError {
   ::flutter::EncodableValue details_;
 };
 
-template<class T> class ErrorOr {
+template <class T>
+class ErrorOr {
  public:
   ErrorOr(const T& rhs) : v_(rhs) {}
   ErrorOr(const T&& rhs) : v_(std::move(rhs)) {}
@@ -56,8 +56,6 @@ template<class T> class ErrorOr {
   std::variant<T, FlutterError> v_;
 };
 
-
-
 // Generated class from Pigeon that represents data sent in messages.
 class TextureMessage {
  public:
@@ -69,10 +67,12 @@ class TextureMessage {
 
   bool operator==(const TextureMessage& other) const;
   bool operator!=(const TextureMessage& other) const;
-  /// Returns a hash code value for the object. This method is supported for the benefit of hash tables.
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
   size_t Hash() const;
   /// Stream output operator for formatted string representation.
   friend std::ostream& operator<<(std::ostream& os, const TextureMessage& obj);
+
  private:
   static TextureMessage FromEncodableList(const ::flutter::EncodableList& list);
   ::flutter::EncodableList ToEncodableList() const;
@@ -81,14 +81,11 @@ class TextureMessage {
   int64_t texture_id_;
 };
 
-
 // Generated class from Pigeon that represents data sent in messages.
 class LoopingMessage {
  public:
   // Constructs an object setting all fields.
-  explicit LoopingMessage(
-    int64_t texture_id,
-    bool is_looping);
+  explicit LoopingMessage(int64_t texture_id, bool is_looping);
 
   int64_t texture_id() const;
   void set_texture_id(int64_t value_arg);
@@ -98,10 +95,12 @@ class LoopingMessage {
 
   bool operator==(const LoopingMessage& other) const;
   bool operator!=(const LoopingMessage& other) const;
-  /// Returns a hash code value for the object. This method is supported for the benefit of hash tables.
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
   size_t Hash() const;
   /// Stream output operator for formatted string representation.
   friend std::ostream& operator<<(std::ostream& os, const LoopingMessage& obj);
+
  private:
   static LoopingMessage FromEncodableList(const ::flutter::EncodableList& list);
   ::flutter::EncodableList ToEncodableList() const;
@@ -111,14 +110,11 @@ class LoopingMessage {
   bool is_looping_;
 };
 
-
 // Generated class from Pigeon that represents data sent in messages.
 class VolumeMessage {
  public:
   // Constructs an object setting all fields.
-  explicit VolumeMessage(
-    int64_t texture_id,
-    double volume);
+  explicit VolumeMessage(int64_t texture_id, double volume);
 
   int64_t texture_id() const;
   void set_texture_id(int64_t value_arg);
@@ -128,10 +124,12 @@ class VolumeMessage {
 
   bool operator==(const VolumeMessage& other) const;
   bool operator!=(const VolumeMessage& other) const;
-  /// Returns a hash code value for the object. This method is supported for the benefit of hash tables.
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
   size_t Hash() const;
   /// Stream output operator for formatted string representation.
   friend std::ostream& operator<<(std::ostream& os, const VolumeMessage& obj);
+
  private:
   static VolumeMessage FromEncodableList(const ::flutter::EncodableList& list);
   ::flutter::EncodableList ToEncodableList() const;
@@ -141,14 +139,11 @@ class VolumeMessage {
   double volume_;
 };
 
-
 // Generated class from Pigeon that represents data sent in messages.
 class PlaybackSpeedMessage {
  public:
   // Constructs an object setting all fields.
-  explicit PlaybackSpeedMessage(
-    int64_t texture_id,
-    double speed);
+  explicit PlaybackSpeedMessage(int64_t texture_id, double speed);
 
   int64_t texture_id() const;
   void set_texture_id(int64_t value_arg);
@@ -158,12 +153,16 @@ class PlaybackSpeedMessage {
 
   bool operator==(const PlaybackSpeedMessage& other) const;
   bool operator!=(const PlaybackSpeedMessage& other) const;
-  /// Returns a hash code value for the object. This method is supported for the benefit of hash tables.
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
   size_t Hash() const;
   /// Stream output operator for formatted string representation.
-  friend std::ostream& operator<<(std::ostream& os, const PlaybackSpeedMessage& obj);
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const PlaybackSpeedMessage& obj);
+
  private:
-  static PlaybackSpeedMessage FromEncodableList(const ::flutter::EncodableList& list);
+  static PlaybackSpeedMessage FromEncodableList(
+      const ::flutter::EncodableList& list);
   ::flutter::EncodableList ToEncodableList() const;
   friend class TizenVideoPlayerApi;
   friend class PigeonInternalCodecSerializer;
@@ -171,14 +170,11 @@ class PlaybackSpeedMessage {
   double speed_;
 };
 
-
 // Generated class from Pigeon that represents data sent in messages.
 class PositionMessage {
  public:
   // Constructs an object setting all fields.
-  explicit PositionMessage(
-    int64_t texture_id,
-    int64_t position);
+  explicit PositionMessage(int64_t texture_id, int64_t position);
 
   int64_t texture_id() const;
   void set_texture_id(int64_t value_arg);
@@ -188,19 +184,21 @@ class PositionMessage {
 
   bool operator==(const PositionMessage& other) const;
   bool operator!=(const PositionMessage& other) const;
-  /// Returns a hash code value for the object. This method is supported for the benefit of hash tables.
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
   size_t Hash() const;
   /// Stream output operator for formatted string representation.
   friend std::ostream& operator<<(std::ostream& os, const PositionMessage& obj);
+
  private:
-  static PositionMessage FromEncodableList(const ::flutter::EncodableList& list);
+  static PositionMessage FromEncodableList(
+      const ::flutter::EncodableList& list);
   ::flutter::EncodableList ToEncodableList() const;
   friend class TizenVideoPlayerApi;
   friend class PigeonInternalCodecSerializer;
   int64_t texture_id_;
   int64_t position_;
 };
-
 
 // Generated class from Pigeon that represents data sent in messages.
 class CreateMessage {
@@ -209,12 +207,10 @@ class CreateMessage {
   explicit CreateMessage(const ::flutter::EncodableMap& http_headers);
 
   // Constructs an object setting all fields.
-  explicit CreateMessage(
-    const std::string* asset,
-    const std::string* uri,
-    const std::string* package_name,
-    const std::string* format_hint,
-    const ::flutter::EncodableMap& http_headers);
+  explicit CreateMessage(const std::string* asset, const std::string* uri,
+                         const std::string* package_name,
+                         const std::string* format_hint,
+                         const ::flutter::EncodableMap& http_headers);
 
   const std::string* asset() const;
   void set_asset(const std::string_view* value_arg);
@@ -237,10 +233,12 @@ class CreateMessage {
 
   bool operator==(const CreateMessage& other) const;
   bool operator!=(const CreateMessage& other) const;
-  /// Returns a hash code value for the object. This method is supported for the benefit of hash tables.
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
   size_t Hash() const;
   /// Stream output operator for formatted string representation.
   friend std::ostream& operator<<(std::ostream& os, const CreateMessage& obj);
+
  private:
   static CreateMessage FromEncodableList(const ::flutter::EncodableList& list);
   ::flutter::EncodableList ToEncodableList() const;
@@ -253,7 +251,6 @@ class CreateMessage {
   ::flutter::EncodableMap http_headers_;
 };
 
-
 // Generated class from Pigeon that represents data sent in messages.
 class MixWithOthersMessage {
  public:
@@ -265,32 +262,31 @@ class MixWithOthersMessage {
 
   bool operator==(const MixWithOthersMessage& other) const;
   bool operator!=(const MixWithOthersMessage& other) const;
-  /// Returns a hash code value for the object. This method is supported for the benefit of hash tables.
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
   size_t Hash() const;
   /// Stream output operator for formatted string representation.
-  friend std::ostream& operator<<(std::ostream& os, const MixWithOthersMessage& obj);
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const MixWithOthersMessage& obj);
+
  private:
-  static MixWithOthersMessage FromEncodableList(const ::flutter::EncodableList& list);
+  static MixWithOthersMessage FromEncodableList(
+      const ::flutter::EncodableList& list);
   ::flutter::EncodableList ToEncodableList() const;
   friend class TizenVideoPlayerApi;
   friend class PigeonInternalCodecSerializer;
   bool mix_with_others_;
 };
 
-
 // Generated class from Pigeon that represents data sent in messages.
 class AudioTrackMessage {
  public:
   // Constructs an object setting all non-nullable fields.
-  explicit AudioTrackMessage(
-    int64_t track_index,
-    bool is_selected);
+  explicit AudioTrackMessage(int64_t track_index, bool is_selected);
 
   // Constructs an object setting all fields.
-  explicit AudioTrackMessage(
-    int64_t track_index,
-    const std::string* language,
-    bool is_selected);
+  explicit AudioTrackMessage(int64_t track_index, const std::string* language,
+                             bool is_selected);
 
   int64_t track_index() const;
   void set_track_index(int64_t value_arg);
@@ -304,12 +300,16 @@ class AudioTrackMessage {
 
   bool operator==(const AudioTrackMessage& other) const;
   bool operator!=(const AudioTrackMessage& other) const;
-  /// Returns a hash code value for the object. This method is supported for the benefit of hash tables.
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
   size_t Hash() const;
   /// Stream output operator for formatted string representation.
-  friend std::ostream& operator<<(std::ostream& os, const AudioTrackMessage& obj);
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const AudioTrackMessage& obj);
+
  private:
-  static AudioTrackMessage FromEncodableList(const ::flutter::EncodableList& list);
+  static AudioTrackMessage FromEncodableList(
+      const ::flutter::EncodableList& list);
   ::flutter::EncodableList ToEncodableList() const;
   friend class TizenVideoPlayerApi;
   friend class PigeonInternalCodecSerializer;
@@ -318,14 +318,11 @@ class AudioTrackMessage {
   bool is_selected_;
 };
 
-
 // Generated class from Pigeon that represents data sent in messages.
 class SelectAudioTrackMessage {
  public:
   // Constructs an object setting all fields.
-  explicit SelectAudioTrackMessage(
-    int64_t texture_id,
-    int64_t track_index);
+  explicit SelectAudioTrackMessage(int64_t texture_id, int64_t track_index);
 
   int64_t texture_id() const;
   void set_texture_id(int64_t value_arg);
@@ -335,12 +332,16 @@ class SelectAudioTrackMessage {
 
   bool operator==(const SelectAudioTrackMessage& other) const;
   bool operator!=(const SelectAudioTrackMessage& other) const;
-  /// Returns a hash code value for the object. This method is supported for the benefit of hash tables.
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
   size_t Hash() const;
   /// Stream output operator for formatted string representation.
-  friend std::ostream& operator<<(std::ostream& os, const SelectAudioTrackMessage& obj);
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const SelectAudioTrackMessage& obj);
+
  private:
-  static SelectAudioTrackMessage FromEncodableList(const ::flutter::EncodableList& list);
+  static SelectAudioTrackMessage FromEncodableList(
+      const ::flutter::EncodableList& list);
   ::flutter::EncodableList ToEncodableList() const;
   friend class TizenVideoPlayerApi;
   friend class PigeonInternalCodecSerializer;
@@ -348,14 +349,12 @@ class SelectAudioTrackMessage {
   int64_t track_index_;
 };
 
-
 // Generated class from Pigeon that represents data sent in messages.
 class PreventsDisplaySleepMessage {
  public:
   // Constructs an object setting all fields.
-  explicit PreventsDisplaySleepMessage(
-    int64_t texture_id,
-    bool prevents_display_sleep);
+  explicit PreventsDisplaySleepMessage(int64_t texture_id,
+                                       bool prevents_display_sleep);
 
   int64_t texture_id() const;
   void set_texture_id(int64_t value_arg);
@@ -365,12 +364,16 @@ class PreventsDisplaySleepMessage {
 
   bool operator==(const PreventsDisplaySleepMessage& other) const;
   bool operator!=(const PreventsDisplaySleepMessage& other) const;
-  /// Returns a hash code value for the object. This method is supported for the benefit of hash tables.
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
   size_t Hash() const;
   /// Stream output operator for formatted string representation.
-  friend std::ostream& operator<<(std::ostream& os, const PreventsDisplaySleepMessage& obj);
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const PreventsDisplaySleepMessage& obj);
+
  private:
-  static PreventsDisplaySleepMessage FromEncodableList(const ::flutter::EncodableList& list);
+  static PreventsDisplaySleepMessage FromEncodableList(
+      const ::flutter::EncodableList& list);
   ::flutter::EncodableList ToEncodableList() const;
   friend class TizenVideoPlayerApi;
   friend class PigeonInternalCodecSerializer;
@@ -378,8 +381,8 @@ class PreventsDisplaySleepMessage {
   bool prevents_display_sleep_;
 };
 
-
-class PigeonInternalCodecSerializer : public ::flutter::StandardCodecSerializer {
+class PigeonInternalCodecSerializer
+    : public ::flutter::StandardCodecSerializer {
  public:
   PigeonInternalCodecSerializer();
   inline static PigeonInternalCodecSerializer& GetInstance() {
@@ -387,16 +390,16 @@ class PigeonInternalCodecSerializer : public ::flutter::StandardCodecSerializer 
     return sInstance;
   }
 
-  void WriteValue(
-    const ::flutter::EncodableValue& value,
-    ::flutter::ByteStreamWriter* stream) const override;
+  void WriteValue(const ::flutter::EncodableValue& value,
+                  ::flutter::ByteStreamWriter* stream) const override;
+
  protected:
   ::flutter::EncodableValue ReadValueOfType(
-    uint8_t type,
-    ::flutter::ByteStreamReader* stream) const override;
+      uint8_t type, ::flutter::ByteStreamReader* stream) const override;
 };
 
-// Generated interface from Pigeon that represents a handler of messages from Flutter.
+// Generated interface from Pigeon that represents a handler of messages from
+// Flutter.
 class TizenVideoPlayerApi {
  public:
   TizenVideoPlayerApi(const TizenVideoPlayerApi&) = delete;
@@ -407,30 +410,35 @@ class TizenVideoPlayerApi {
   virtual std::optional<FlutterError> Dispose(const TextureMessage& msg) = 0;
   virtual std::optional<FlutterError> SetLooping(const LoopingMessage& msg) = 0;
   virtual std::optional<FlutterError> SetVolume(const VolumeMessage& msg) = 0;
-  virtual std::optional<FlutterError> SetPlaybackSpeed(const PlaybackSpeedMessage& msg) = 0;
+  virtual std::optional<FlutterError> SetPlaybackSpeed(
+      const PlaybackSpeedMessage& msg) = 0;
   virtual std::optional<FlutterError> Play(const TextureMessage& msg) = 0;
   virtual ErrorOr<PositionMessage> Position(const TextureMessage& msg) = 0;
   virtual void SeekTo(
-    const PositionMessage& msg,
-    std::function<void(std::optional<FlutterError> reply)> result) = 0;
+      const PositionMessage& msg,
+      std::function<void(std::optional<FlutterError> reply)> result) = 0;
   virtual std::optional<FlutterError> Pause(const TextureMessage& msg) = 0;
-  virtual std::optional<FlutterError> SetMixWithOthers(const MixWithOthersMessage& msg) = 0;
-  virtual std::optional<FlutterError> SetPreventsDisplaySleep(const PreventsDisplaySleepMessage& msg) = 0;
-  virtual ErrorOr<::flutter::EncodableList> GetAudioTracks(const TextureMessage& msg) = 0;
-  virtual std::optional<FlutterError> SelectAudioTrack(const SelectAudioTrackMessage& msg) = 0;
+  virtual std::optional<FlutterError> SetMixWithOthers(
+      const MixWithOthersMessage& msg) = 0;
+  virtual std::optional<FlutterError> SetPreventsDisplaySleep(
+      const PreventsDisplaySleepMessage& msg) = 0;
+  virtual ErrorOr<::flutter::EncodableList> GetAudioTracks(
+      const TextureMessage& msg) = 0;
+  virtual std::optional<FlutterError> SelectAudioTrack(
+      const SelectAudioTrackMessage& msg) = 0;
 
   // The codec used by TizenVideoPlayerApi.
   static const ::flutter::StandardMessageCodec& GetCodec();
-  // Sets up an instance of `TizenVideoPlayerApi` to handle messages through the `binary_messenger`.
-  static void SetUp(
-    ::flutter::BinaryMessenger* binary_messenger,
-    TizenVideoPlayerApi* api);
-  static void SetUp(
-    ::flutter::BinaryMessenger* binary_messenger,
-    TizenVideoPlayerApi* api,
-    const std::string& message_channel_suffix);
+  // Sets up an instance of `TizenVideoPlayerApi` to handle messages through the
+  // `binary_messenger`.
+  static void SetUp(::flutter::BinaryMessenger* binary_messenger,
+                    TizenVideoPlayerApi* api);
+  static void SetUp(::flutter::BinaryMessenger* binary_messenger,
+                    TizenVideoPlayerApi* api,
+                    const std::string& message_channel_suffix);
   static ::flutter::EncodableValue WrapError(std::string_view error_message);
   static ::flutter::EncodableValue WrapError(const FlutterError& error);
+
  protected:
   TizenVideoPlayerApi() = default;
 };

@@ -25,6 +25,10 @@ struct Position {
         {flutter::EncodableValue("altitude"),
          flutter::EncodableValue(altitude)},
     };
+    if (altitudeAccuracy) {
+      values[flutter::EncodableValue("altitude_accuracy")] =
+          flutter::EncodableValue(*altitudeAccuracy);
+    }
     if (accuracy) {
       values[flutter::EncodableValue("accuracy")] =
           flutter::EncodableValue(*accuracy);
@@ -41,6 +45,10 @@ struct Position {
       values[flutter::EncodableValue("speed_accuracy")] =
           flutter::EncodableValue(*speedAccuracy);
     }
+    if (verticalSpeed) {
+      values[flutter::EncodableValue("vertical_speed")] =
+          flutter::EncodableValue(*verticalSpeed);
+    }
     return flutter::EncodableValue(values);
   }
 
@@ -49,9 +57,11 @@ struct Position {
   time_t timestamp;
   std::optional<double> accuracy;
   double altitude;
+  std::optional<double> altitudeAccuracy;
   std::optional<double> heading;
   std::optional<double> speed;
   std::optional<double> speedAccuracy;
+  std::optional<double> verticalSpeed;
 };
 
 #endif  // FLUTTER_PLUGIN_POSITION_H_
