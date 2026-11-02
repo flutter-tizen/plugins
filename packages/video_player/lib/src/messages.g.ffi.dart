@@ -58,6 +58,22 @@ class VideoPlayerTizenFfiBindings {
   late final _pigeon_tizen_video_player_api_dispose = _pigeon_tizen_video_player_api_disposePtr
       .asFunction<ffi.Pointer<PigeonFfiBuffer> Function(ffi.Pointer<PigeonFfiBuffer>)>();
 
+  ffi.Pointer<PigeonFfiBuffer> pigeon_tizen_video_player_api_get_audio_tracks(
+    ffi.Pointer<PigeonFfiBuffer> request,
+  ) {
+    return _pigeon_tizen_video_player_api_get_audio_tracks(request);
+  }
+
+  late final _pigeon_tizen_video_player_api_get_audio_tracksPtr =
+      _lookup<
+        ffi.NativeFunction<ffi.Pointer<PigeonFfiBuffer> Function(ffi.Pointer<PigeonFfiBuffer>)>
+      >(
+        'pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_get_audio_tracks',
+      );
+  late final _pigeon_tizen_video_player_api_get_audio_tracks =
+      _pigeon_tizen_video_player_api_get_audio_tracksPtr
+          .asFunction<ffi.Pointer<PigeonFfiBuffer> Function(ffi.Pointer<PigeonFfiBuffer>)>();
+
   ffi.Pointer<PigeonFfiBuffer> pigeon_tizen_video_player_api_initialize(
     ffi.Pointer<PigeonFfiBuffer> request,
   ) {
@@ -138,6 +154,22 @@ class VideoPlayerTizenFfiBindings {
   late final _pigeon_tizen_video_player_api_seek_to = _pigeon_tizen_video_player_api_seek_toPtr
       .asFunction<void Function(ffi.Pointer<PigeonFfiBuffer>, int, PigeonFfiReplyCallback)>();
 
+  ffi.Pointer<PigeonFfiBuffer> pigeon_tizen_video_player_api_select_audio_track(
+    ffi.Pointer<PigeonFfiBuffer> request,
+  ) {
+    return _pigeon_tizen_video_player_api_select_audio_track(request);
+  }
+
+  late final _pigeon_tizen_video_player_api_select_audio_trackPtr =
+      _lookup<
+        ffi.NativeFunction<ffi.Pointer<PigeonFfiBuffer> Function(ffi.Pointer<PigeonFfiBuffer>)>
+      >(
+        'pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_select_audio_track',
+      );
+  late final _pigeon_tizen_video_player_api_select_audio_track =
+      _pigeon_tizen_video_player_api_select_audio_trackPtr
+          .asFunction<ffi.Pointer<PigeonFfiBuffer> Function(ffi.Pointer<PigeonFfiBuffer>)>();
+
   ffi.Pointer<PigeonFfiBuffer> pigeon_tizen_video_player_api_set_looping(
     ffi.Pointer<PigeonFfiBuffer> request,
   ) {
@@ -184,6 +216,22 @@ class VideoPlayerTizenFfiBindings {
       );
   late final _pigeon_tizen_video_player_api_set_playback_speed =
       _pigeon_tizen_video_player_api_set_playback_speedPtr
+          .asFunction<ffi.Pointer<PigeonFfiBuffer> Function(ffi.Pointer<PigeonFfiBuffer>)>();
+
+  ffi.Pointer<PigeonFfiBuffer> pigeon_tizen_video_player_api_set_prevents_display_sleep(
+    ffi.Pointer<PigeonFfiBuffer> request,
+  ) {
+    return _pigeon_tizen_video_player_api_set_prevents_display_sleep(request);
+  }
+
+  late final _pigeon_tizen_video_player_api_set_prevents_display_sleepPtr =
+      _lookup<
+        ffi.NativeFunction<ffi.Pointer<PigeonFfiBuffer> Function(ffi.Pointer<PigeonFfiBuffer>)>
+      >(
+        'pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_set_prevents_display_sleep',
+      );
+  late final _pigeon_tizen_video_player_api_set_prevents_display_sleep =
+      _pigeon_tizen_video_player_api_set_prevents_display_sleepPtr
           .asFunction<ffi.Pointer<PigeonFfiBuffer> Function(ffi.Pointer<PigeonFfiBuffer>)>();
 
   ffi.Pointer<PigeonFfiBuffer> pigeon_tizen_video_player_api_set_volume(

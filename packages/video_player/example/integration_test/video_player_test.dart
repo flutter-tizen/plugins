@@ -7,7 +7,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart' show PlatformException, rootBundle;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_tizen/flutter_tizen.dart';
 import 'package:integration_test/integration_test.dart';
@@ -344,6 +344,30 @@ void main() {
       // Verify that we stopped playing after the pause.
       expect(controller.value.isPlaying, false);
       expect(controller.value.position, pausedPosition);
+    });
+  });
+
+  // Tizen-only: upstream has no integration tests for the audio track API.
+  group('audio tracks', () {
+    setUp(() {
+      controller = VideoPlayerController.asset(_videoAssetKey);
+    });
+
+    test('can get audio tracks', () async {
+      await controller.initialize();
+
+      expect(controller.isAudioTrackSupportAvailable(), true);
+      final List<VideoAudioTrack> tracks = await controller.getAudioTracks();
+      expect(tracks, hasLength(1));
+      expect(tracks.single.isSelected, true);
+    });
+
+    test('throws when selecting an out-of-range audio track', () async {
+      await controller.initialize();
+
+      final List<VideoAudioTrack> tracks = await controller.getAudioTracks();
+      await controller.selectAudioTrack(tracks.single.id);
+      await expectLater(controller.selectAudioTrack('1'), throwsA(isA<PlatformException>()));
     });
   });
 }

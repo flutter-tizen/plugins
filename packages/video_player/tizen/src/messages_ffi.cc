@@ -579,6 +579,129 @@ PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetMixWithOthersFfiDispatch(PigeonFfiB
   return PigeonTizenVideoPlayerApiSetMixWithOthersFfi(request);
 }
 
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetPreventsDisplaySleepFfi(PigeonFfiBuffer* request) {
+  const auto& codec = TizenVideoPlayerApi::GetCodec();
+  if (g_tizen_video_player_api_api == nullptr) {
+    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("TizenVideoPlayerApi has not been set up."));
+  }
+  try {
+    if (request == nullptr || request->data == nullptr) {
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
+    }
+    std::unique_ptr<::flutter::EncodableValue> message = codec.DecodeMessage(request->data, request->length);
+    if (!message) {
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
+    }
+    const auto* args = std::get_if<::flutter::EncodableList>(message.get());
+    if (args == nullptr || args->size() != 1) {
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unexpected request arguments."));
+    }
+    const auto& encodable_msg_arg = args->at(0);
+    if (encodable_msg_arg.IsNull()) {
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
+    }
+    const auto& msg_arg = std::any_cast<const PreventsDisplaySleepMessage&>(std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
+    std::optional<FlutterError> output = g_tizen_video_player_api_api->SetPreventsDisplaySleep(msg_arg);
+    if (output.has_value()) {
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(output.value()));
+    }
+    return PigeonFfiEncodeMessage(codec, ::flutter::EncodableValue(::flutter::EncodableList{::flutter::EncodableValue()}));
+  } catch (const std::exception& exception) {
+    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(exception.what()));
+  }
+}
+
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiSetPreventsDisplaySleepFfiDispatch(PigeonFfiBuffer* request) {
+  if (g_tizen_video_player_api_dispatcher != nullptr) {
+    return g_tizen_video_player_api_dispatcher->RunSync([request]() {
+      return PigeonTizenVideoPlayerApiSetPreventsDisplaySleepFfi(request);
+    });
+  }
+  return PigeonTizenVideoPlayerApiSetPreventsDisplaySleepFfi(request);
+}
+
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiGetAudioTracksFfi(PigeonFfiBuffer* request) {
+  const auto& codec = TizenVideoPlayerApi::GetCodec();
+  if (g_tizen_video_player_api_api == nullptr) {
+    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("TizenVideoPlayerApi has not been set up."));
+  }
+  try {
+    if (request == nullptr || request->data == nullptr) {
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
+    }
+    std::unique_ptr<::flutter::EncodableValue> message = codec.DecodeMessage(request->data, request->length);
+    if (!message) {
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
+    }
+    const auto* args = std::get_if<::flutter::EncodableList>(message.get());
+    if (args == nullptr || args->size() != 1) {
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unexpected request arguments."));
+    }
+    const auto& encodable_msg_arg = args->at(0);
+    if (encodable_msg_arg.IsNull()) {
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
+    }
+    const auto& msg_arg = std::any_cast<const TextureMessage&>(std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
+    ErrorOr<::flutter::EncodableList> output = g_tizen_video_player_api_api->GetAudioTracks(msg_arg);
+    if (output.has_error()) {
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(output.error()));
+    }
+    return PigeonFfiEncodeMessage(codec, ::flutter::EncodableValue(::flutter::EncodableList{::flutter::EncodableValue(output.value())}));
+  } catch (const std::exception& exception) {
+    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(exception.what()));
+  }
+}
+
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiGetAudioTracksFfiDispatch(PigeonFfiBuffer* request) {
+  if (g_tizen_video_player_api_dispatcher != nullptr) {
+    return g_tizen_video_player_api_dispatcher->RunSync([request]() {
+      return PigeonTizenVideoPlayerApiGetAudioTracksFfi(request);
+    });
+  }
+  return PigeonTizenVideoPlayerApiGetAudioTracksFfi(request);
+}
+
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiSelectAudioTrackFfi(PigeonFfiBuffer* request) {
+  const auto& codec = TizenVideoPlayerApi::GetCodec();
+  if (g_tizen_video_player_api_api == nullptr) {
+    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("TizenVideoPlayerApi has not been set up."));
+  }
+  try {
+    if (request == nullptr || request->data == nullptr) {
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Request buffer is null."));
+    }
+    std::unique_ptr<::flutter::EncodableValue> message = codec.DecodeMessage(request->data, request->length);
+    if (!message) {
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unable to decode request."));
+    }
+    const auto* args = std::get_if<::flutter::EncodableList>(message.get());
+    if (args == nullptr || args->size() != 1) {
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("Unexpected request arguments."));
+    }
+    const auto& encodable_msg_arg = args->at(0);
+    if (encodable_msg_arg.IsNull()) {
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError("msg_arg unexpectedly null."));
+    }
+    const auto& msg_arg = std::any_cast<const SelectAudioTrackMessage&>(std::get<::flutter::CustomEncodableValue>(encodable_msg_arg));
+    std::optional<FlutterError> output = g_tizen_video_player_api_api->SelectAudioTrack(msg_arg);
+    if (output.has_value()) {
+      return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(output.value()));
+    }
+    return PigeonFfiEncodeMessage(codec, ::flutter::EncodableValue(::flutter::EncodableList{::flutter::EncodableValue()}));
+  } catch (const std::exception& exception) {
+    return PigeonFfiEncodeError(codec, TizenVideoPlayerApi::WrapError(exception.what()));
+  }
+}
+
+PigeonFfiBuffer* PigeonTizenVideoPlayerApiSelectAudioTrackFfiDispatch(PigeonFfiBuffer* request) {
+  if (g_tizen_video_player_api_dispatcher != nullptr) {
+    return g_tizen_video_player_api_dispatcher->RunSync([request]() {
+      return PigeonTizenVideoPlayerApiSelectAudioTrackFfi(request);
+    });
+  }
+  return PigeonTizenVideoPlayerApiSelectAudioTrackFfi(request);
+}
+
 
 namespace {
   PigeonVideoPlayerEventsVideoEventsStreamHandler* g_video_player_events_video_events_handler = nullptr;
@@ -747,6 +870,18 @@ extern "C" PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_
 
 extern "C" PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_set_mix_with_others(PigeonFfiBuffer* request) {
   return video_player_tizen::PigeonTizenVideoPlayerApiSetMixWithOthersFfiDispatch(request);
+}
+
+extern "C" PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_set_prevents_display_sleep(PigeonFfiBuffer* request) {
+  return video_player_tizen::PigeonTizenVideoPlayerApiSetPreventsDisplaySleepFfiDispatch(request);
+}
+
+extern "C" PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_get_audio_tracks(PigeonFfiBuffer* request) {
+  return video_player_tizen::PigeonTizenVideoPlayerApiGetAudioTracksFfiDispatch(request);
+}
+
+extern "C" PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_tizen_video_player_api_select_audio_track(PigeonFfiBuffer* request) {
+  return video_player_tizen::PigeonTizenVideoPlayerApiSelectAudioTrackFfiDispatch(request);
 }
 
 extern "C" PigeonFfiBuffer* pigeon_video_x5f_player_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_video_player_events_video_events_listen(

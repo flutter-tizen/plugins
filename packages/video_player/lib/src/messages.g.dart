@@ -696,6 +696,161 @@ class MixWithOthersMessage {
   }
 }
 
+class AudioTrackMessage {
+  AudioTrackMessage({
+    required this.trackIndex,
+    this.language,
+    required this.isSelected,
+  });
+
+  int trackIndex;
+
+  String? language;
+
+  bool isSelected;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      trackIndex,
+      language,
+      isSelected,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static AudioTrackMessage decode(Object result) {
+    result as List<Object?>;
+    return AudioTrackMessage(
+      trackIndex: result[0]! as int,
+      language: result[1] as String?,
+      isSelected: result[2]! as bool,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! AudioTrackMessage || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(trackIndex, other.trackIndex) && _deepEquals(language, other.language) && _deepEquals(isSelected, other.isSelected);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+
+  @override
+  String toString() {
+    return 'AudioTrackMessage(trackIndex: $trackIndex, language: $language, isSelected: $isSelected)';
+  }
+}
+
+class SelectAudioTrackMessage {
+  SelectAudioTrackMessage({
+    required this.textureId,
+    required this.trackIndex,
+  });
+
+  int textureId;
+
+  int trackIndex;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      textureId,
+      trackIndex,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static SelectAudioTrackMessage decode(Object result) {
+    result as List<Object?>;
+    return SelectAudioTrackMessage(
+      textureId: result[0]! as int,
+      trackIndex: result[1]! as int,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! SelectAudioTrackMessage || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(textureId, other.textureId) && _deepEquals(trackIndex, other.trackIndex);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+
+  @override
+  String toString() {
+    return 'SelectAudioTrackMessage(textureId: $textureId, trackIndex: $trackIndex)';
+  }
+}
+
+class PreventsDisplaySleepMessage {
+  PreventsDisplaySleepMessage({
+    required this.textureId,
+    required this.preventsDisplaySleep,
+  });
+
+  int textureId;
+
+  bool preventsDisplaySleep;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      textureId,
+      preventsDisplaySleep,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static PreventsDisplaySleepMessage decode(Object result) {
+    result as List<Object?>;
+    return PreventsDisplaySleepMessage(
+      textureId: result[0]! as int,
+      preventsDisplaySleep: result[1]! as bool,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! PreventsDisplaySleepMessage || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(textureId, other.textureId) && _deepEquals(preventsDisplaySleep, other.preventsDisplaySleep);
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => _deepHash(<Object?>[runtimeType, ..._toList()]);
+
+  @override
+  String toString() {
+    return 'PreventsDisplaySleepMessage(textureId: $textureId, preventsDisplaySleep: $preventsDisplaySleep)';
+  }
+}
+
 
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
@@ -725,6 +880,15 @@ class _PigeonCodec extends StandardMessageCodec {
     }    else if (value is MixWithOthersMessage) {
       buffer.putUint8(135);
       writeValue(buffer, value.encode());
+    }    else if (value is AudioTrackMessage) {
+      buffer.putUint8(136);
+      writeValue(buffer, value.encode());
+    }    else if (value is SelectAudioTrackMessage) {
+      buffer.putUint8(137);
+      writeValue(buffer, value.encode());
+    }    else if (value is PreventsDisplaySleepMessage) {
+      buffer.putUint8(138);
+      writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
     }
@@ -747,6 +911,12 @@ class _PigeonCodec extends StandardMessageCodec {
         return CreateMessage.decode(readValue(buffer)!);
       case 135:
         return MixWithOthersMessage.decode(readValue(buffer)!);
+      case 136:
+        return AudioTrackMessage.decode(readValue(buffer)!);
+      case 137:
+        return SelectAudioTrackMessage.decode(readValue(buffer)!);
+      case 138:
+        return PreventsDisplaySleepMessage.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -1031,6 +1201,73 @@ class TizenVideoPlayerApi {
     ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_response = ffi.nullptr;
     try {
       pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_set_mix_with_others(pigeonVar_request);
+      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(pigeonChannelCodec, pigeonVar_response);
+      _extractReplyValueOrThrow(
+          pigeonVar_replyList,
+          pigeonVar_channelName,
+          isNullValid: true,
+      )
+      ;
+    } finally {
+      _freeFfiRequest(pigeonVar_request);
+      if (pigeonVar_response != ffi.nullptr) {
+        pigeonVar_ffiBindings.pigeon_free_buffer(pigeonVar_response);
+      }
+    }
+  }
+
+  Future<void> setPreventsDisplaySleep(PreventsDisplaySleepMessage msg) async {
+    final ByteData? pigeonVar_requestMessage = pigeonChannelCodec.encodeMessage(<Object?>[msg]);
+    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(pigeonVar_requestMessage);
+    final String pigeonVar_channelName = 'pigeon_tizen_video_player_api_set_prevents_display_sleep';
+    ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_response = ffi.nullptr;
+    try {
+      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_set_prevents_display_sleep(pigeonVar_request);
+      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(pigeonChannelCodec, pigeonVar_response);
+      _extractReplyValueOrThrow(
+          pigeonVar_replyList,
+          pigeonVar_channelName,
+          isNullValid: true,
+      )
+      ;
+    } finally {
+      _freeFfiRequest(pigeonVar_request);
+      if (pigeonVar_response != ffi.nullptr) {
+        pigeonVar_ffiBindings.pigeon_free_buffer(pigeonVar_response);
+      }
+    }
+  }
+
+  Future<List<AudioTrackMessage>> getAudioTracks(TextureMessage msg) async {
+    final ByteData? pigeonVar_requestMessage = pigeonChannelCodec.encodeMessage(<Object?>[msg]);
+    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(pigeonVar_requestMessage);
+    final String pigeonVar_channelName = 'pigeon_tizen_video_player_api_get_audio_tracks';
+    ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_response = ffi.nullptr;
+    try {
+      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_get_audio_tracks(pigeonVar_request);
+      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(pigeonChannelCodec, pigeonVar_response);
+      final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
+          pigeonVar_replyList,
+          pigeonVar_channelName,
+          isNullValid: false,
+      )
+      ;
+      return (pigeonVar_replyValue! as List<Object?>).cast<AudioTrackMessage>();
+    } finally {
+      _freeFfiRequest(pigeonVar_request);
+      if (pigeonVar_response != ffi.nullptr) {
+        pigeonVar_ffiBindings.pigeon_free_buffer(pigeonVar_response);
+      }
+    }
+  }
+
+  Future<void> selectAudioTrack(SelectAudioTrackMessage msg) async {
+    final ByteData? pigeonVar_requestMessage = pigeonChannelCodec.encodeMessage(<Object?>[msg]);
+    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(pigeonVar_requestMessage);
+    final String pigeonVar_channelName = 'pigeon_tizen_video_player_api_select_audio_track';
+    ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_response = ffi.nullptr;
+    try {
+      pigeonVar_response = pigeonVar_ffiBindings.pigeon_tizen_video_player_api_select_audio_track(pigeonVar_request);
       final List<Object?>? pigeonVar_replyList = _decodeFfiReply(pigeonChannelCodec, pigeonVar_response);
       _extractReplyValueOrThrow(
           pigeonVar_replyList,
