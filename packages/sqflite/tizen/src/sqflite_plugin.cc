@@ -257,8 +257,9 @@ class SqflitePlugin : public flutter::Plugin {
     // NOTE: A failed ROLLBACK TO a savepoint keeps the transaction.
     std::string sql;
     GetValueFromEncodableMap(arguments, sqflite_constants::kParamSql, sql);
-    if (std::regex_search(
-            sql, std::regex("^\\s*rollback\\b.*\\bto\\b", std::regex::icase))) {
+    if (std::regex_search(sql,
+                          std::regex("^\\s*rollback(\\s+transaction)?\\s+to\\b",
+                                     std::regex::icase))) {
       return;
     }
     try {
