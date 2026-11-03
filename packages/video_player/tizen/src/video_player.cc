@@ -270,12 +270,12 @@ void VideoPlayer::ScheduleSendPendingEvents() {
 }
 
 void VideoPlayer::PushEvent(const flutter::EncodableMap &event) {
-  if (!event_sink_) {
-    LOG_ERROR("[VideoPlayer] event sink is nullptr.");
-    return;
-  }
   {
     std::lock_guard<std::mutex> lock(queue_mutex_);
+    if (!event_sink_) {
+      LOG_ERROR("[VideoPlayer] event sink is nullptr.");
+      return;
+    }
     encodable_event_queue_.push(event);
   }
   ScheduleSendPendingEvents();
@@ -283,12 +283,12 @@ void VideoPlayer::PushEvent(const flutter::EncodableMap &event) {
 
 void VideoPlayer::SendError(const std::string &error_code,
                             const std::string &error_message) {
-  if (!event_sink_) {
-    LOG_ERROR("[VideoPlayer] event sink is nullptr.");
-    return;
-  }
   {
     std::lock_guard<std::mutex> lock(queue_mutex_);
+    if (!event_sink_) {
+      LOG_ERROR("[VideoPlayer] event sink is nullptr.");
+      return;
+    }
     error_event_queue_.push(std::make_pair(error_code, error_message));
   }
   ScheduleSendPendingEvents();
@@ -296,11 +296,17 @@ void VideoPlayer::SendError(const std::string &error_code,
 
 void VideoPlayer::SetEventSink(
     std::unique_ptr<PigeonVideoPlayerEventsVideoEventsEventSink> sink) {
-  event_sink_ = std::move(sink);
+  {
+    std::lock_guard<std::mutex> lock(queue_mutex_);
+    event_sink_ = std::move(sink);
+  }
   Initialize();
 }
 
-void VideoPlayer::ClearEventSink() { event_sink_ = nullptr; }
+void VideoPlayer::ClearEventSink() {
+  std::lock_guard<std::mutex> lock(queue_mutex_);
+  event_sink_ = nullptr;
+}
 
 void VideoPlayer::Play() {
   LOG_DEBUG("[VideoPlayer] Player starting.");

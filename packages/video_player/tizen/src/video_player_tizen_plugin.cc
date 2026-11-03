@@ -7,11 +7,16 @@
 #include <app_common.h>
 #include <flutter/encodable_value.h>
 #include <flutter/plugin_registrar.h>
+#include <glib.h>
 
+#include <condition_variable>
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
 
 #include "log.h"
 #include "messages.h"
@@ -21,6 +26,61 @@
 #include "video_player_options.h"
 
 namespace video_player_tizen {
+
+namespace {
+
+class MainContextDispatcher : public PigeonFfiSyncDispatcher {
+ public:
+  MainContextDispatcher()
+      : thread_id_(std::this_thread::get_id()),
+        main_context_(g_main_context_ref_thread_default()) {}
+
+  ~MainContextDispatcher() override { g_main_context_unref(main_context_); }
+
+  PigeonFfiBuffer *RunSync(std::function<PigeonFfiBuffer *()> task) override {
+    if (std::this_thread::get_id() == thread_id_) {
+      return task();
+    }
+
+    struct TaskState {
+      std::function<PigeonFfiBuffer *()> task;
+      PigeonFfiBuffer *result = nullptr;
+      std::mutex mutex;
+      std::condition_variable condition;
+      bool done = false;
+    };
+    TaskState state{std::move(task)};
+    g_main_context_invoke_full(
+        main_context_, G_PRIORITY_DEFAULT,
+        [](gpointer data) -> gboolean {
+          auto *state = static_cast<TaskState *>(data);
+          PigeonFfiBuffer *result = state->task();
+          {
+            std::lock_guard<std::mutex> lock(state->mutex);
+            state->result = result;
+            state->done = true;
+          }
+          state->condition.notify_one();
+          return G_SOURCE_REMOVE;
+        },
+        &state, nullptr);
+
+    std::unique_lock<std::mutex> lock(state.mutex);
+    state.condition.wait(lock, [&state] { return state.done; });
+    return state.result;
+  }
+
+ private:
+  std::thread::id thread_id_;
+  GMainContext *main_context_;
+};
+
+MainContextDispatcher *GetMainContextDispatcher() {
+  static MainContextDispatcher *dispatcher = new MainContextDispatcher();
+  return dispatcher;
+}
+
+}  // namespace
 
 class VideoPlayerTizenPlugin
     : public flutter::Plugin,
@@ -78,8 +138,9 @@ void VideoPlayerTizenPlugin::RegisterWithRegistrar(
 VideoPlayerTizenPlugin::VideoPlayerTizenPlugin(
     flutter::PluginRegistrar *registrar)
     : texture_registrar_(registrar->texture_registrar()) {
-  SetUpTizenVideoPlayerApiFfi(this);
-  SetUpVideoPlayerEventsVideoEventsFfi(this);
+  PigeonFfiSyncDispatcher *dispatcher = GetMainContextDispatcher();
+  SetUpTizenVideoPlayerApiFfi(this, dispatcher);
+  SetUpVideoPlayerEventsVideoEventsFfi(this, dispatcher);
 }
 
 VideoPlayerTizenPlugin::~VideoPlayerTizenPlugin() { DisposeAllPlayers(); }
