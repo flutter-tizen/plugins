@@ -21,7 +21,9 @@ class VideoPlayerTizen extends platform_interface.VideoPlayerPlatform {
 
   /// Registers this class as the default platform instance.
   static void register() {
-    platform_interface.VideoPlayerPlatform.instance = VideoPlayerTizen();
+    final instance = VideoPlayerTizen();
+    platform_interface.VideoPlayerPlatform.instance = instance;
+    instance._api.initialize();
   }
 
   @override
