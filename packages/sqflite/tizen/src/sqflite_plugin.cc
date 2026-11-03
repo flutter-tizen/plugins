@@ -577,7 +577,14 @@ class SqflitePlugin : public flutter::Plugin {
             flutter::EncodableValue(cursor_id);
       }
     } catch (const sqflite_errors::DatabaseError &exception) {
-      result->Error(sqflite_constants::kErrorDatabase, exception.what());
+      flutter::EncodableMap error_data;
+      if (exception.transaction_closed) {
+        error_data[flutter::EncodableValue(
+            sqflite_constants::kParamTransactionClosed)] =
+            flutter::EncodableValue(true);
+      }
+      result->Error(sqflite_constants::kErrorDatabase, exception.what(),
+                    flutter::EncodableValue(error_data));
       return;
     }
     result->Success(flutter::EncodableValue(response));
@@ -689,6 +696,9 @@ class SqflitePlugin : public flutter::Plugin {
       if (found_database_id) {
         auto database_manager = GetDatabase(*found_database_id);
         if (database_manager->database()) {
+          // NOTE: The cursors of the previous isolate (e.g. before a hot
+          // restart) can no longer be read or cancelled.
+          database_manager->CloseAllCursors();
           const bool in_transaction =
               sqlite3_get_autocommit(database_manager->database()) == 0;
           if (sqflite_log_level::HasVerboseLevel(log_level_)) {

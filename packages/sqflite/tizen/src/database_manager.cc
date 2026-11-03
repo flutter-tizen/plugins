@@ -17,9 +17,7 @@ DatabaseManager::~DatabaseManager() {
     FinalizeStmt(statement.second);
     statement.second = nullptr;
   }
-  for (auto &&cursor : cursors_) {
-    FinalizeStmt(cursor.second.statement);
-  }
+  CloseAllCursors();
 
   Close(true);
 }
@@ -346,6 +344,13 @@ void DatabaseManager::CloseCursor(int cursor_id) {
     FinalizeStmt(iter->second.statement);
     cursors_.erase(iter);
   }
+}
+
+void DatabaseManager::CloseAllCursors() {
+  for (auto &&cursor : cursors_) {
+    FinalizeStmt(cursor.second.statement);
+  }
+  cursors_.clear();
 }
 
 void DatabaseManager::Execute(std::string sql, SQLParameters parameters) {

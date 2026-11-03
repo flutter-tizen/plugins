@@ -49,6 +49,7 @@ class DatabaseManager {
                                             int page_size, int &cursor_id);
   std::pair<Columns, Resultset> QueryCursorNext(int cursor_id, bool &has_more);
   void CloseCursor(int cursor_id);
+  void CloseAllCursors();
 
  private:
   typedef sqlite3_stmt *Statement;
