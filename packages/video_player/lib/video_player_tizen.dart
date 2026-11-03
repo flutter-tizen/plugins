@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:flutter/services.dart' show RootIsolateToken;
 import 'package:flutter/widgets.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart'
     as platform_interface;
@@ -23,7 +24,9 @@ class VideoPlayerTizen extends platform_interface.VideoPlayerPlatform {
   static void register() {
     final instance = VideoPlayerTizen();
     platform_interface.VideoPlayerPlatform.instance = instance;
-    instance._api.initialize();
+    if (RootIsolateToken.instance != null) {
+      instance._api.initialize();
+    }
   }
 
   @override

@@ -1,4 +1,4 @@
-## 2.6.1
+## 2.7.0
 
 * Migrate from platform channels to Pigeon-generated Dart FFI.
   1. Host API calls now use the Pigeon C++ FFI path instead of `BasicMessageChannel`.

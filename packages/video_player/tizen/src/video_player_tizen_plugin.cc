@@ -50,8 +50,10 @@ class MainContextDispatcher : public PigeonFfiSyncDispatcher {
       bool done = false;
     };
     TaskState state{std::move(task)};
-    g_main_context_invoke_full(
-        main_context_, G_PRIORITY_DEFAULT,
+    GSource *source = g_idle_source_new();
+    g_source_set_priority(source, G_PRIORITY_DEFAULT);
+    g_source_set_callback(
+        source,
         [](gpointer data) -> gboolean {
           auto *state = static_cast<TaskState *>(data);
           PigeonFfiBuffer *result = state->task();
@@ -59,11 +61,13 @@ class MainContextDispatcher : public PigeonFfiSyncDispatcher {
             std::lock_guard<std::mutex> lock(state->mutex);
             state->result = result;
             state->done = true;
+            state->condition.notify_one();
           }
-          state->condition.notify_one();
           return G_SOURCE_REMOVE;
         },
         &state, nullptr);
+    g_source_attach(source, main_context_);
+    g_source_unref(source);
 
     std::unique_lock<std::mutex> lock(state.mutex);
     state.condition.wait(lock, [&state] { return state.done; });
