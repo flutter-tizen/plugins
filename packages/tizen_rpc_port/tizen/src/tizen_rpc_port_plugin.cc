@@ -123,7 +123,6 @@ class RpcStubStreamHandler : public FlStreamHandler {
 
   std::unique_ptr<FlStreamHandlerError> OnCancelInternal(
       const flutter::EncodableValue* arguments) override {
-    RpcPortStubManager::Dispose(handle_);
     return nullptr;
   }
 

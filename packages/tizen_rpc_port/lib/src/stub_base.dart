@@ -48,7 +48,7 @@ abstract class StubBase {
   static const MethodChannel _channel = MethodChannel('tizen/rpc_port_proxy');
 
   StreamSubscription<dynamic>? _streamSubscription;
-  Future<void>? _initializing;
+  bool _listening = false;
   Future<void>? _closeFuture;
 
   void _checkOpen() {
@@ -96,12 +96,11 @@ abstract class StubBase {
   /// unhandled.
   Future<void> listen({OnError? onError}) async {
     _checkOpen();
-    if (_initializing != null) {
+    if (_listening) {
       throw StateError('Cannot listen again');
     }
-
-    _initializing = _initialize(onError);
-    await _initializing;
+    _listening = true;
+    await _initialize(onError);
   }
 
   Future<void> _initialize(OnError? onError) async {
