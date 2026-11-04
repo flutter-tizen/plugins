@@ -7,9 +7,34 @@ import 'package:pigeon/pigeon.dart';
 @ConfigurePigeon(
   PigeonOptions(
     dartOut: 'lib/src/messages.g.dart',
-    cppOptions: CppOptions(namespace: 'in_app_purchase_tizen'),
+    dartFfiOut: 'lib/src/messages.g.ffi.dart',
+    configDirectory: 'tool/pigeon',
+    dartOptions: DartOptions(
+      ffiOptions: DartFfiOptions(
+        bindingClassName: 'InAppPurchaseTizenFfiBindings',
+        nativeLibraryExpression: r'''
+(() {
+  final String libraryPath = File('/proc/self/maps')
+      .readAsLinesSync()
+      .map((String line) {
+        final int index = line.indexOf('/');
+        return index == -1 ? '' : line.substring(index);
+      })
+      .firstWhere(
+        (String path) => path.endsWith('/libflutter_plugins.so'),
+      );
+  return ffi.DynamicLibrary.open(libraryPath);
+})()''',
+      ),
+    ),
+    cppOptions: CppOptions(
+      namespace: 'in_app_purchase_tizen',
+      useStdVisit: false,
+    ),
     cppHeaderOut: 'tizen/src/messages.h',
     cppSourceOut: 'tizen/src/messages.cc',
+    cppFfiHeaderOut: 'tizen/src/messages_ffi.h',
+    cppFfiSourceOut: 'tizen/src/messages_ffi.cc',
   ),
 )
 /// Dart wrapper around [`ProductsListApiResult`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
