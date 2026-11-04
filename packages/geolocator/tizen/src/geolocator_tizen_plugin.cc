@@ -141,7 +141,8 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
 
   GeolocatorTizenPlugin()
       : permission_manager_(std::make_unique<PermissionManager>()),
-        location_manager_(std::make_unique<LocationManager>()) {}
+        location_manager_(std::make_unique<LocationManager>()),
+        app_settings_manager_(std::make_unique<AppSettingsManager>()) {}
 
   virtual ~GeolocatorTizenPlugin() {}
 
