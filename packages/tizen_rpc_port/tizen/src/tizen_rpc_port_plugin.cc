@@ -174,7 +174,7 @@ class TizenRpcPortPlugin : public flutter::Plugin {
         return;
       }
       std::optional<int64_t> handle = GetHandle(args);
-      if (!handle || *handle <= 0) {
+      if (!handle) {
         result->Error("Invalid arguments", "Invalid stub handle.");
         return;
       }
