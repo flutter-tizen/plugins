@@ -16,11 +16,14 @@ void TaskRunnerTizen::EnqueueTask(TaskClosure task) {
 
 gboolean TaskRunnerTizen::RunTask(gpointer data) {
   TaskRunnerTizen* runner = static_cast<TaskRunnerTizen*>(data);
-  std::lock_guard<std::mutex> lock(runner->tasks_mutex_);
-  while (!runner->tasks_.empty()) {
-    TaskClosure task = std::move(runner->tasks_.front());
-    runner->tasks_.pop();
-    task();
+  std::queue<TaskClosure> tasks;
+  {
+    std::lock_guard<std::mutex> lock(runner->tasks_mutex_);
+    tasks.swap(runner->tasks_);
+  }
+  while (!tasks.empty()) {
+    tasks.front()();
+    tasks.pop();
   }
   return G_SOURCE_REMOVE;
 }

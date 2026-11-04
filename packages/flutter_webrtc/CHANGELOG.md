@@ -1,3 +1,10 @@
+## 0.2.6
+
+* Fix a data race on the data channel observer map between the signaling thread and the platform thread.
+* Fix the `keyDerivationAlgorithm` option of `KeyProviderOptions` being ignored.
+* Fix `RTCRtpSender.setParameters` ignoring changes to `encodings`.
+* Fix the platform task runner holding its queue lock while running tasks.
+
 ## 0.2.5
 
 * Follow the analysis options of the frontend plugin.
