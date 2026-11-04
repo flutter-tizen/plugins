@@ -1,5 +1,6 @@
 ## NEXT
 
+* Increase the minimum Tizen version to 6.0.
 * Remove Galaxy Watch (Tizen 5.5) from supported devices.
 
 ## 2.6.0

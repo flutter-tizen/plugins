@@ -81,7 +81,7 @@ The _"non-endorsed"_ status means that the plugin is not endorsed by the origina
 | [**tizen_app_manager**](packages/tizen_app_manager)                 |   ✔️   |       ✔️        |   ✔️   |
 | [**tizen_audio_manager**](packages/tizen_audio_manager)             |   ✔️   |       ✔️        |   ✔️   |
 | [**tizen_bundle**](packages/tizen_bundle)                           |   ✔️   |       ✔️        |   ✔️   |
-| [**tizen_log**](packages/tizen_log)                                 |   ❌   |       ❌        |   ✔️   | Not applicable for TV                                                   |
+| [**tizen_log**](packages/tizen_log)                                 |   ⚠️   |       ❌        |   ✔️   | No verbose and debug logs on TV, no logs on TV emulator                 |
 | [**tizen_notification**](packages/tizen_notification)               |   ✔️   |       ✔️        |   ❌   | API not supported                                                       |
 | [**tizen_package_manager**](packages/tizen_package_manager)         |   ✔️   |       ✔️        |   ✔️   |
 | [**tizen_rpc_port**](packages/tizen_rpc_port)                       |   ✔️   |       ✔️        |   ✔️   |
