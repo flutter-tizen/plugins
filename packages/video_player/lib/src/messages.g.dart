@@ -71,19 +71,36 @@ List<Object?>? _decodeFfiReply(
   return codec.decodeMessage(ByteData.sublistView(bytes)) as List<Object?>?;
 }
 
-final pigeon_ffi.VideoPlayerTizenFfiBindings _pigeonVar_defaultFfiBindings =
-    pigeon_ffi.VideoPlayerTizenFfiBindings(
-      (() {
-        final String libraryPath = File('/proc/self/maps')
-            .readAsLinesSync()
-            .map((String line) {
-              final int index = line.indexOf('/');
-              return index == -1 ? '' : line.substring(index);
-            })
-            .firstWhere((String path) => path.endsWith('/libflutter_plugins.so'));
-        return ffi.DynamicLibrary.open(libraryPath);
-      })(),
+ffi.DynamicLibrary _openPigeonNativeLibrary() {
+  try {
+    return (() {
+      final String libraryPath = File('/proc/self/maps')
+          .readAsLinesSync()
+          .map((String line) {
+            final int index = line.indexOf('/');
+            return index == -1 ? '' : line.substring(index);
+          })
+          .firstWhere((String path) => path.endsWith('/libflutter_plugins.so'));
+      return ffi.DynamicLibrary.open(libraryPath);
+    })();
+  } catch (error) {
+    throw StateError(
+      'Pigeon FFI: failed to open the native library. The plugin shared '
+      'library may not be loaded yet. Avoid constructing FFI bindings '
+      'during plugin registration; construct them lazily on first use. '
+      'Original error: $error',
     );
+  }
+}
+
+late final ffi.DynamicLibrary _pigeonNativeLibrary = _openPigeonNativeLibrary();
+
+ffi.Pointer<T> _pigeonFfiLookup<T extends ffi.NativeType>(String symbolName) {
+  return _pigeonNativeLibrary.lookup<T>(symbolName);
+}
+
+final pigeon_ffi.VideoPlayerTizenFfiBindings _pigeonVar_defaultFfiBindings =
+    pigeon_ffi.VideoPlayerTizenFfiBindings.fromLookup(_pigeonFfiLookup);
 
 typedef _PigeonFfiReplyCallbackNative =
     ffi.Void Function(ffi.Int64 replyId, ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> reply);
@@ -866,18 +883,7 @@ class TizenVideoPlayerApi {
   }
 
   static final pigeon_ffi.VideoPlayerTizenFfiBindings _pigeonVar_defaultFfiBindings =
-      pigeon_ffi.VideoPlayerTizenFfiBindings(
-        (() {
-          final String libraryPath = File('/proc/self/maps')
-              .readAsLinesSync()
-              .map((String line) {
-                final int index = line.indexOf('/');
-                return index == -1 ? '' : line.substring(index);
-              })
-              .firstWhere((String path) => path.endsWith('/libflutter_plugins.so'));
-          return ffi.DynamicLibrary.open(libraryPath);
-        })(),
-      );
+      pigeon_ffi.VideoPlayerTizenFfiBindings.fromLookup(_pigeonFfiLookup);
 
   final pigeon_ffi.VideoPlayerTizenFfiBindings pigeonVar_ffiBindings;
 

@@ -29,5 +29,5 @@ dev_dependencies:
   pigeon:
     git:
       url: https://github.com/gin7773/flutter-packages.git
-      ref: a7f324720b106d63d75f9b8e99a07c935c60ba87
+      ref: 1e63f1b5852a868d1b072de460752fe95e724600
       path: packages/pigeon
