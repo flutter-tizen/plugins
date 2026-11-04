@@ -3,13 +3,13 @@ description: Demonstrates how to use the url_launcher_tizen plugin.
 publish_to: "none"
 
 environment:
-  sdk: ^3.6.0
-  flutter: ">=3.27.0"
+  sdk: ^3.11.0
+  flutter: ">=3.41.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  url_launcher: ^6.3.2
+  url_launcher: ^6.3.3
   url_launcher_tizen:
     path: ../
 
