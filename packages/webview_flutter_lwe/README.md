@@ -21,7 +21,7 @@ This package is not an _endorsed_ implementation of `webview_flutter`. Therefore
 ```yaml
 dependencies:
   webview_flutter: ^4.14.1
-  webview_flutter_lwe: ^0.5.6
+  webview_flutter_lwe: ^0.6.0
 ```
 
 ## Example
@@ -75,8 +75,12 @@ await controller.setHorizontalScrollBarEnabled(true);
 
 `WebViewCookieManager.getCookies` does not return cookies marked as `HttpOnly`. The Lightweight Web Engine only exposes cookies that are accessible to JavaScript (equivalent to `document.cookie`), so `HttpOnly` cookies sent by a server are stored and used for requests but are not included in the result.
 
+### Multimedia
+
+Multimedia playback is not supported. The bundled Lightweight Web Engine is built without multimedia support, so HTML `<video>` and `<audio>` elements do not play.
+
 ## Supported devices
 
-This plugin is supported on devices running Tizen 5.5 or later.
+This plugin is supported on devices running Tizen 6.0 or later.
 
 For a detailed list of features supported by the Lightweight Web Engine, refer to [this page](https://git.tizen.org/cgit/platform/upstream/lightweight-web-engine/tree/docs/Spec.md?h=tizen).

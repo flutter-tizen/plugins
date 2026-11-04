@@ -1,5 +1,8 @@
-## NEXT
+## 0.6.0
 
+* Update lightweight web engine (1.5.11).
+* Increase the minimum Tizen version to 6.0.
+* Disable multimedia support.
 * Omit obvious local variable types.
 * Reformat with a line length of 100.
 

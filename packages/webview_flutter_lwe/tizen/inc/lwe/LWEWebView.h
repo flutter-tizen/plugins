@@ -22,7 +22,15 @@
 
 #ifndef LWE_EXPORT
 #ifdef _MSC_VER
+// STARFISH_EXPORTS is defined only while building Starfish.dll itself. An
+// embedder that includes this header consumes the DLL, so it must see
+// dllimport: with dllexport on both sides MSVC resolves the calls through
+// import-library thunks and warns (LNK4217) on every one of them.
+#if defined(STARFISH_EXPORTS)
 #define LWE_EXPORT __declspec(dllexport)
+#else
+#define LWE_EXPORT __declspec(dllimport)
+#endif
 #else
 #define LWE_EXPORT __attribute__((visibility("default")))
 #endif
@@ -59,6 +67,13 @@ enum class InitializeOption : uint32_t {
    * \brief Prefer using incremental garbage collection if the GC supports it.
    */
   PreferIncrementalGC = 1 << 1,
+  /**
+   * \brief Run without a window or GPU: layout, scripting, input,
+   * accessibility and CDP work, but nothing is painted or composited.
+   * Create views with WebContainer::CreateHeadless. The glib_headless
+   * backend is always headless.
+   */
+  Headless = 1 << 2,
 };
 
 inline InitializeOption operator|(InitializeOption a, InitializeOption b) {
@@ -77,6 +92,11 @@ inline InitializeOption operator~(InitializeOption a) {
 
 /**
  * \brief Perform initialization or cleanup of lightweight web engine.
+ *
+ * NOTE: this class shares its name with the enclosing namespace, so wherever
+ * the class is in scope (e.g. under `using namespace LWE;`) an unqualified
+ * `LWE::` resolves to the class and is ambiguous — reference the namespace
+ * with the global qualifier `::LWE::` instead.
  */
 class LWE_EXPORT LWE {
  public:
@@ -133,6 +153,10 @@ class LWE_EXPORT LWE {
   /**
    * \brief Perform lightweight web engine cleanup.
    * Called once when the lightweight web engine is no longer in use.
+   * Destroy all engine-backed API objects and stop calls/callbacks first.
+   * For a host-thread instance, use the initialization thread. Dynamic
+   * loading releases supported implementations so Initialize starts fresh;
+   * check CanUnload before the caller closes this API library itself.
    *
    * \code{.cpp}
    *     LWE::LWE::Finalize();
@@ -140,6 +164,12 @@ class LWE_EXPORT LWE {
    *
    */
   static void Finalize();
+
+  // Query after Finalize, with no remaining engine-backed API objects or
+  // callbacks. True means the dynamic loader released its implementation
+  // and the caller may dlclose this API library. False for static linkage,
+  // legacy implementations, and shutdown from an invalid lifecycle thread.
+  static bool CanUnload();
 
   /**
    * \brief Returns GC frequency. default value is 12
@@ -222,6 +252,9 @@ class LWE_EXPORT Settings {
   bool NeedsDownloadWebFontsEarly() const;
   bool UseHttp2() const;
   uint32_t NeedsDownScaleImageResourceLargerThan() const;
+  // Largest coded video frame the engine decodes; larger streams are
+  // reported unsupported. Default 1920x1080; 0 in either keeps the default.
+  void GetMaxVideoDecodeSize(uint32_t& width, uint32_t& height) const;
   bool ScrollbarVisible() const;
   bool UseExternalPopup() const;
   bool UseSpatialNavigation() const;
@@ -244,6 +277,7 @@ class LWE_EXPORT Settings {
   void SetUseHttp2(bool b);
   void SetNeedsDownScaleImageResourceLargerThan(
       uint32_t demention);  // Experimental
+  void SetMaxVideoDecodeSize(uint32_t width, uint32_t height);
   void SetScrollbarVisible(bool visible);
   void SetUseExternalPopup(bool useExternalPopup);
   void SetUseSpatialNavigation(bool useSpatialNavigation);
