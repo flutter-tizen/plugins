@@ -50,6 +50,7 @@ class DatabaseManager {
   std::pair<Columns, Resultset> QueryCursorNext(int cursor_id, bool &has_more);
   void CloseCursor(int cursor_id);
   void CloseAllCursors();
+  bool IsInTransaction();
 
  private:
   typedef sqlite3_stmt *Statement;

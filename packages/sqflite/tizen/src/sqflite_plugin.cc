@@ -251,7 +251,7 @@ class SqflitePlugin : public flutter::Plugin {
     bool in_transaction = true;
     GetValueFromEncodableMap(arguments, sqflite_constants::kParamInTransaction,
                              in_transaction);
-    if (in_transaction || sqlite3_get_autocommit(database->database()) != 0) {
+    if (in_transaction || !database->IsInTransaction()) {
       return;
     }
     // NOTE: A failed ROLLBACK TO a savepoint keeps the transaction.
@@ -700,8 +700,7 @@ class SqflitePlugin : public flutter::Plugin {
           // NOTE: The cursors of the previous isolate (e.g. before a hot
           // restart) can no longer be read or cancelled.
           database_manager->CloseAllCursors();
-          const bool in_transaction =
-              sqlite3_get_autocommit(database_manager->database()) == 0;
+          const bool in_transaction = database_manager->IsInTransaction();
           if (sqflite_log_level::HasVerboseLevel(log_level_)) {
             LOG_DEBUG("Re-opened single instance %s%d %s",
                       in_transaction ? "(in transaction) " : "",

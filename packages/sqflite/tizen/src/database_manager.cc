@@ -24,8 +24,7 @@ DatabaseManager::~DatabaseManager() {
 
 void DatabaseManager::ThrowCurrentDatabaseError(bool was_in_transaction) {
   sqflite_errors::DatabaseError error(GetErrorCode(), GetErrorMsg());
-  error.transaction_closed =
-      was_in_transaction && sqlite3_get_autocommit(database_) != 0;
+  error.transaction_closed = was_in_transaction && !IsInTransaction();
   throw error;
 }
 
@@ -188,7 +187,7 @@ DatabaseManager::Statement DatabaseManager::PrepareStmt(std::string sql,
 }
 
 void DatabaseManager::ExecuteStmt(DatabaseManager::Statement statement) {
-  const bool was_in_transaction = sqlite3_get_autocommit(database_) == 0;
+  const bool was_in_transaction = IsInTransaction();
   int result_code = SQLITE_OK;
   do {
     result_code = sqlite3_step(statement);
@@ -217,7 +216,7 @@ std::pair<Columns, Resultset> DatabaseManager::QueryStmt(
   Columns columns;
   Resultset resultset;
   const int columns_count = GetStmtColumnsCount(statement);
-  const bool was_in_transaction = sqlite3_get_autocommit(database_) == 0;
+  const bool was_in_transaction = IsInTransaction();
   int result_code = SQLITE_OK;
   for (int i = 0; i < columns_count; i++) {
     auto column_name = GetColumnName(statement, i);
@@ -344,6 +343,10 @@ void DatabaseManager::CloseCursor(int cursor_id) {
     FinalizeStmt(iter->second.statement);
     cursors_.erase(iter);
   }
+}
+
+bool DatabaseManager::IsInTransaction() {
+  return sqlite3_get_autocommit(database_) == 0;
 }
 
 void DatabaseManager::CloseAllCursors() {
