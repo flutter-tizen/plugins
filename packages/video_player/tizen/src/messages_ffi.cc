@@ -4,6 +4,7 @@
 #include "messages_ffi.h"
 
 #include <any>
+#include <cstdio>
 #include <cstring>
 #include <memory>
 #include <string>
@@ -112,8 +113,21 @@ PigeonFfiSyncDispatcher* g_tizen_video_player_api_dispatcher = nullptr;
 
 void SetUpTizenVideoPlayerApiFfi(TizenVideoPlayerApi* api,
                                  PigeonFfiSyncDispatcher* dispatcher) {
+  if (g_tizen_video_player_api_api != nullptr) {
+    std::fprintf(
+        stderr,
+        "[pigeon] SetUpTizenVideoPlayerApiFfi() called more than once. Pigeon "
+        "C++ FFI registration is process-global and supports only one Flutter "
+        "engine per process; calls from previously registered engines will be "
+        "routed to the most recently registered implementation.\n");
+  }
   g_tizen_video_player_api_api = api;
   g_tizen_video_player_api_dispatcher = dispatcher;
+}
+
+void TearDownTizenVideoPlayerApiFfi() {
+  g_tizen_video_player_api_api = nullptr;
+  g_tizen_video_player_api_dispatcher = nullptr;
 }
 
 PigeonFfiBuffer* PigeonTizenVideoPlayerApiInitializeFfi(
@@ -910,8 +924,21 @@ PigeonFfiSyncDispatcher* g_video_player_events_video_events_dispatcher =
 void SetUpVideoPlayerEventsVideoEventsFfi(
     PigeonVideoPlayerEventsVideoEventsStreamHandler* handler,
     PigeonFfiSyncDispatcher* dispatcher) {
+  if (g_video_player_events_video_events_handler != nullptr) {
+    std::fprintf(
+        stderr,
+        "[pigeon] SetUpVideoPlayerEventsVideoEventsFfi() called more than "
+        "once. Pigeon C++ FFI registration is process-global and supports only "
+        "one Flutter engine per process; events from previously registered "
+        "engines will be delivered to the most recently registered handler.\n");
+  }
   g_video_player_events_video_events_handler = handler;
   g_video_player_events_video_events_dispatcher = dispatcher;
+}
+
+void TearDownVideoPlayerEventsVideoEventsFfi() {
+  g_video_player_events_video_events_handler = nullptr;
+  g_video_player_events_video_events_dispatcher = nullptr;
 }
 
 class PigeonVideoPlayerEventsVideoEventsEventSinkImpl

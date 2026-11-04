@@ -112,6 +112,7 @@ class PigeonFfiSyncDispatcher {
 
 void SetUpTizenVideoPlayerApiFfi(TizenVideoPlayerApi* api,
                                  PigeonFfiSyncDispatcher* dispatcher = nullptr);
+void TearDownTizenVideoPlayerApiFfi();
 
 class PigeonVideoPlayerEventsVideoEventsEventSink {
  public:
@@ -141,6 +142,7 @@ class PigeonVideoPlayerEventsVideoEventsStreamHandler {
 void SetUpVideoPlayerEventsVideoEventsFfi(
     PigeonVideoPlayerEventsVideoEventsStreamHandler* handler,
     PigeonFfiSyncDispatcher* dispatcher = nullptr);
+void TearDownVideoPlayerEventsVideoEventsFfi();
 }  // namespace video_player_tizen
 #endif
 
