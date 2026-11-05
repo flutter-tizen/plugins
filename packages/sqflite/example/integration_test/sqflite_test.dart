@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:path/path.dart';
@@ -80,6 +81,133 @@ void main() {
           path,
           options: OpenDatabaseOptions(version: 1),
         );
+      } finally {
+        await db.close();
+      }
+    });
+
+    test('rolled back transaction', () async {
+      const path = 'test_rolled_back_transaction.db';
+      await deleteDatabase(path);
+      final db = await openDatabase(path);
+      try {
+        await db.execute(
+          'CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)',
+        );
+        try {
+          await db.transaction((txn) async {
+            await txn.insert('Test', {
+              'id': 1,
+            }, conflictAlgorithm: ConflictAlgorithm.rollback);
+            try {
+              await txn.insert('Test', {
+                'id': 1,
+              }, conflictAlgorithm: ConflictAlgorithm.rollback);
+              fail('should fail 1');
+            } on DatabaseException catch (e) {
+              expect(e.isUniqueConstraintError(), isTrue);
+            }
+            try {
+              await txn.insert('Test', {
+                'id': 2,
+              }, conflictAlgorithm: ConflictAlgorithm.rollback);
+              fail('should fail 2');
+            } on DatabaseException catch (e) {
+              // The transaction was rolled back by SQLite.
+              expect(e.isUniqueConstraintError(), isFalse);
+            }
+          });
+        } on DatabaseException catch (e) {
+          expect(e.isUniqueConstraintError(), isFalse);
+        }
+        expect(await db.query('Test'), isEmpty);
+      } finally {
+        await db.close();
+      }
+    });
+
+    test('rolled back batch with continueOnError', () async {
+      const path = 'test_rolled_back_batch.db';
+      await deleteDatabase(path);
+      final db = await openDatabase(path);
+      try {
+        await db.execute(
+          'CREATE TABLE Test (id INTEGER PRIMARY KEY, name TEXT)',
+        );
+        final batch = db.batch();
+        batch.insert('Test', {
+          'id': 1,
+        }, conflictAlgorithm: ConflictAlgorithm.rollback);
+        batch.insert('Test', {
+          'id': 1,
+        }, conflictAlgorithm: ConflictAlgorithm.rollback);
+        batch.insert('Test', {
+          'id': 2,
+        }, conflictAlgorithm: ConflictAlgorithm.rollback);
+        await expectLater(
+          batch.commit(continueOnError: true),
+          throwsA(isA<DatabaseException>()),
+        );
+        expect(await db.query('Test'), isEmpty);
+      } finally {
+        await db.close();
+      }
+    });
+
+    test('failed commit', () async {
+      const path = 'test_failed_commit.db';
+      await deleteDatabase(path);
+      final db = await openDatabase(
+        path,
+        version: 1,
+        onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
+        onCreate: (db, version) async {
+          await db.execute('CREATE TABLE Parent (id INTEGER PRIMARY KEY)');
+          await db.execute(
+            'CREATE TABLE Child (id INTEGER PRIMARY KEY, parent_id INTEGER'
+            ' REFERENCES Parent(id) DEFERRABLE INITIALLY DEFERRED)',
+          );
+        },
+      );
+      try {
+        // The missing parent is only checked on COMMIT.
+        await expectLater(
+          db.transaction((txn) async {
+            await txn.insert('Child', {'id': 1, 'parent_id': 1});
+          }),
+          throwsA(isA<DatabaseException>()),
+        );
+        expect(await db.query('Child'), isEmpty);
+        await db.transaction((txn) async {
+          await txn.insert('Parent', {'id': 1});
+          await txn.insert('Child', {'id': 1, 'parent_id': 1});
+        });
+        expect(await db.query('Child'), [
+          {'id': 1, 'parent_id': 1},
+        ]);
+      } finally {
+        await db.close();
+      }
+    });
+
+    test('failed rollback to savepoint', () async {
+      const path = 'test_failed_rollback_to.db';
+      await deleteDatabase(path);
+      final db = await openDatabase(path);
+      try {
+        await db.execute('CREATE TABLE Test (id INTEGER PRIMARY KEY)');
+        await db.transaction((txn) async {
+          await txn.insert('Test', {'id': 1});
+          await expectLater(
+            txn.execute('ROLLBACK TO missing'),
+            throwsA(isA<DatabaseException>()),
+          );
+          await txn.insert('Test', {'id': 2});
+        });
+        expect(await db.query('Test'), [
+          {'id': 1},
+          {'id': 2},
+        ]);
       } finally {
         await db.close();
       }
@@ -250,6 +378,120 @@ void main() {
         {'?1 + ?2': 7},
       ]);
       await db.close();
+    });
+
+    test('query by page', () async {
+      final db = await openDatabase(inMemoryDatabasePath);
+      try {
+        await db.execute('CREATE TABLE test (id INTEGER PRIMARY KEY)');
+        await db.insert('test', {'id': 1});
+        await db.insert('test', {'id': 2});
+        await db.insert('test', {'id': 3});
+
+        var cursor = await db.rawQueryCursor(
+          'SELECT * FROM test',
+          null,
+          bufferSize: 2,
+        );
+        final results = <Map<String, Object?>>[];
+        while (await cursor.moveNext()) {
+          results.add(cursor.current);
+        }
+        expect(results, [
+          {'id': 1},
+          {'id': 2},
+          {'id': 3},
+        ]);
+
+        // Multiple cursors on the same query.
+        final cursor1 = await db.rawQueryCursor(
+          'SELECT * FROM test',
+          null,
+          bufferSize: 2,
+        );
+        final cursor2 = await db.rawQueryCursor(
+          'SELECT * FROM test',
+          null,
+          bufferSize: 1,
+        );
+        await cursor1.moveNext();
+        expect(cursor1.current.values, [1]);
+        await cursor2.moveNext();
+        await cursor2.moveNext();
+        expect(cursor2.current.values, [2]);
+        await cursor1.moveNext();
+        expect(cursor1.current.values, [2]);
+        await cursor1.close();
+        await cursor2.moveNext();
+        expect(cursor2.current.values, [3]);
+        expect(await cursor2.moveNext(), isFalse);
+        expect(await cursor1.moveNext(), isFalse);
+
+        // No data
+        cursor = await db.rawQueryCursor('SELECT * FROM test WHERE id > ?', [
+          3,
+        ], bufferSize: 2);
+        expect(await cursor.moveNext(), isFalse);
+
+        // Matching page size
+        cursor = await db.rawQueryCursor('SELECT * FROM test WHERE id > ?', [
+          1,
+        ], bufferSize: 2);
+        expect(await cursor.moveNext(), isTrue);
+        expect(await cursor.moveNext(), isTrue);
+        expect(await cursor.moveNext(), isFalse);
+      } finally {
+        await db.close();
+      }
+    });
+
+    test('query cursor returns pages', () async {
+      const channel = MethodChannel('com.tekartik.sqflite');
+      final open = await channel.invokeMapMethod<String, Object?>(
+        'openDatabase',
+        {'path': inMemoryDatabasePath},
+      );
+      final id = open!['id'];
+      try {
+        await channel.invokeMethod<void>('execute', {
+          'id': id,
+          'sql': 'CREATE TABLE test (id INTEGER PRIMARY KEY)',
+        });
+        await channel.invokeMethod<void>('execute', {
+          'id': id,
+          'sql': 'INSERT INTO test (id) VALUES (1), (2), (3)',
+        });
+
+        var page = await channel.invokeMapMethod<String, Object?>('query', {
+          'id': id,
+          'sql': 'SELECT * FROM test',
+          'cursorPageSize': 2,
+        });
+        expect(page!['rows'], [
+          [1],
+          [2],
+        ]);
+        final cursorId = page['cursorId'];
+        expect(cursorId, isA<int>());
+
+        page = await channel.invokeMapMethod<String, Object?>(
+          'queryCursorNext',
+          {'id': id, 'cursorId': cursorId},
+        );
+        expect(page!['rows'], [
+          [3],
+        ]);
+        expect(page['cursorId'], isNull);
+        await expectLater(
+          channel.invokeMethod<void>('queryCursorNext', {
+            'id': id,
+            'cursorId': cursorId,
+          }),
+          throwsA(isA<PlatformException>()),
+        );
+      } finally {
+        await channel.invokeMethod<void>('closeDatabase', {'id': id});
+      }
     });
 
     test('deleteDatabase', () async {
