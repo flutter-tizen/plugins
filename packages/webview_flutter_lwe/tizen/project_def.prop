@@ -3,7 +3,7 @@
 
 APPNAME = webview_flutter_lwe_plugin
 type = sharedLib
-profile = common-5.5
+profile = common-6.0
 
 # Source files
 USER_SRCS += src/*.cc
