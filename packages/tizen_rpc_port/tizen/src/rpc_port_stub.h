@@ -9,6 +9,7 @@
 #include <flutter/event_sink.h>
 #include <rpc-port.h>
 
+#include <map>
 #include <memory>
 #include <string>
 
@@ -20,7 +21,10 @@ typedef flutter::EventSink<flutter::EncodableValue> FlEventSink;
 
 class RpcPortStubManager {
  public:
-  static void Init(std::unique_ptr<FlEventSink> event_sink);
+  static void Init(rpc_port_stub_h handle,
+                   std::unique_ptr<FlEventSink> event_sink);
+
+  static void Dispose(rpc_port_stub_h handle);
 
   static RpcPortResult Listen(rpc_port_stub_h handle);
 
@@ -32,7 +36,7 @@ class RpcPortStubManager {
   static int OnReceivedEvent(const char* sender, const char* instance,
                              rpc_port_h port, void* user_data);
 
-  static std::unique_ptr<FlEventSink> event_sink_;
+  static std::map<rpc_port_stub_h, std::unique_ptr<FlEventSink>> event_sinks_;
 };
 
 }  // namespace tizen
