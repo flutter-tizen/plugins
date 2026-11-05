@@ -34,6 +34,10 @@ class InAppPurchaseTizenPlatform extends InAppPurchasePlatform {
     // Register the platform-specific implementation of the idiomatic
     // InAppPurchase API.
     InAppPurchasePlatform.instance = InAppPurchaseTizenPlatform();
+
+    if (RootIsolateToken.instance != null) {
+      billingManager.initialize();
+    }
   }
 
   static final StreamController<List<PurchaseDetails>> _purchaseUpdatedController =
