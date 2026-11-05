@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart' show RootIsolateToken;
 import 'package:flutter/widgets.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart'
     as platform_interface;
@@ -21,7 +21,11 @@ class VideoPlayerTizen extends platform_interface.VideoPlayerPlatform {
 
   /// Registers this class as the default platform instance.
   static void register() {
-    platform_interface.VideoPlayerPlatform.instance = VideoPlayerTizen();
+    final instance = VideoPlayerTizen();
+    platform_interface.VideoPlayerPlatform.instance = instance;
+    if (RootIsolateToken.instance != null) {
+      instance._api.initialize();
+    }
   }
 
   @override
@@ -106,8 +110,8 @@ class VideoPlayerTizen extends platform_interface.VideoPlayerPlatform {
 
   @override
   Stream<platform_interface.VideoEvent> videoEventsFor(int textureId) {
-    return _eventChannelFor(textureId).receiveBroadcastStream().map((dynamic event) {
-      final map = event as Map<dynamic, dynamic>;
+    return videoEvents(instanceName: '$textureId').map((Map<Object?, Object?> event) {
+      final Map<dynamic, dynamic> map = event;
       switch (map['event']) {
         case 'initialized':
           return platform_interface.VideoEvent(
@@ -201,10 +205,6 @@ class VideoPlayerTizen extends platform_interface.VideoPlayerPlatform {
   @override
   bool isAudioTrackSupportAvailable() {
     return true;
-  }
-
-  EventChannel _eventChannelFor(int textureId) {
-    return EventChannel('flutter.io/videoPlayer/videoEvents$textureId');
   }
 
   static const Map<platform_interface.VideoFormat, String> _videoFormatStringMap =

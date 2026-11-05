@@ -1,3 +1,10 @@
+## 2.7.0
+
+* Migrate from platform channels to Pigeon-generated Dart FFI.
+  1. Host API calls now use the Pigeon C++ FFI path instead of `BasicMessageChannel`.
+  2. The per-texture `EventChannel` is replaced by a Pigeon FFI event stream (`videoEvents`), with the texture id passed as the stream instance name.
+* Update pigeon to the C++ FFI generator branch (git ref 1e63f1b5, pigeon v29.0.11).
+
 ## 2.6.0
 
 * Add support for `getAudioTracks` and `selectAudioTrack`.

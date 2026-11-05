@@ -6,8 +6,6 @@
 #define FLUTTER_PLUGIN_VIDEO_PLAYER_H_
 
 #include <flutter/encodable_value.h>
-#include <flutter/event_channel.h>
-#include <flutter/plugin_registrar.h>
 #include <flutter/texture_registrar.h>
 #include <glib.h>
 #include <player.h>
@@ -20,6 +18,7 @@
 #include <string>
 #include <vector>
 
+#include "messages_ffi.h"
 #include "video_player_options.h"
 
 namespace video_player_tizen {
@@ -34,8 +33,7 @@ class VideoPlayer {
  public:
   using SeekCompletedCallback = std::function<void()>;
 
-  explicit VideoPlayer(flutter::PluginRegistrar *plugin_registrar,
-                       flutter::TextureRegistrar *texture_registrar,
+  explicit VideoPlayer(flutter::TextureRegistrar *texture_registrar,
                        const std::string &uri, VideoPlayerOptions &options,
                        flutter::EncodableMap &http_headers);
   ~VideoPlayer();
@@ -54,16 +52,19 @@ class VideoPlayer {
 
   int64_t GetTextureId() { return texture_id_; }
 
+  void SetEventSink(
+      std::unique_ptr<PigeonVideoPlayerEventsVideoEventsEventSink> sink);
+  void ClearEventSink();
+
  private:
   void SendPendingEvents();
   void ScheduleSendPendingEvents();
-  void PushEvent(const flutter::EncodableValue &encodable_value);
+  void PushEvent(const flutter::EncodableMap &event);
   void SendError(const std::string &error_code,
                  const std::string &error_message);
   FlutterDesktopGpuSurfaceDescriptor *ObtainGpuSurface(size_t width,
                                                        size_t height);
 
-  void SetUpEventChannel(flutter::BinaryMessenger *messenger);
   void Initialize();
   void SendInitialized();
   void SendIsPlayingStateUpdate(bool is_playing);
@@ -94,9 +95,7 @@ class VideoPlayer {
   bool is_rendering_ = false;
   bool is_live_ = false;
 
-  std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>>
-      event_channel_;
-  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
+  std::unique_ptr<PigeonVideoPlayerEventsVideoEventsEventSink> event_sink_;
 
   player_h player_ = nullptr;
   int64_t texture_id_ = -1;
@@ -132,7 +131,7 @@ class VideoPlayer {
   std::unique_ptr<GMainContext, GMainContextDeleter> main_context_;
 
   std::mutex queue_mutex_;
-  std::queue<flutter::EncodableValue> encodable_event_queue_;
+  std::queue<flutter::EncodableMap> encodable_event_queue_;
   std::queue<std::pair<std::string, std::string>> error_event_queue_;
 };
 

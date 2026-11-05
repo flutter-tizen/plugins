@@ -7,22 +7,89 @@
 #include <app_common.h>
 #include <flutter/encodable_value.h>
 #include <flutter/plugin_registrar.h>
+#include <glib.h>
 
+#include <condition_variable>
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
 
 #include "log.h"
 #include "messages.h"
+#include "messages_ffi.h"
 #include "video_player.h"
 #include "video_player_error.h"
 #include "video_player_options.h"
 
 namespace video_player_tizen {
 
-class VideoPlayerTizenPlugin : public flutter::Plugin,
-                               public TizenVideoPlayerApi {
+namespace {
+
+class MainContextDispatcher : public PigeonFfiSyncDispatcher {
+ public:
+  MainContextDispatcher()
+      : thread_id_(std::this_thread::get_id()),
+        main_context_(g_main_context_ref_thread_default()) {}
+
+  ~MainContextDispatcher() override { g_main_context_unref(main_context_); }
+
+  PigeonFfiBuffer *RunSync(std::function<PigeonFfiBuffer *()> task) override {
+    if (std::this_thread::get_id() == thread_id_) {
+      return task();
+    }
+
+    struct TaskState {
+      std::function<PigeonFfiBuffer *()> task;
+      PigeonFfiBuffer *result = nullptr;
+      std::mutex mutex;
+      std::condition_variable condition;
+      bool done = false;
+    };
+    TaskState state{std::move(task)};
+    GSource *source = g_idle_source_new();
+    g_source_set_priority(source, G_PRIORITY_DEFAULT);
+    g_source_set_callback(
+        source,
+        [](gpointer data) -> gboolean {
+          auto *state = static_cast<TaskState *>(data);
+          PigeonFfiBuffer *result = state->task();
+          {
+            std::lock_guard<std::mutex> lock(state->mutex);
+            state->result = result;
+            state->done = true;
+            state->condition.notify_one();
+          }
+          return G_SOURCE_REMOVE;
+        },
+        &state, nullptr);
+    g_source_attach(source, main_context_);
+    g_source_unref(source);
+
+    std::unique_lock<std::mutex> lock(state.mutex);
+    state.condition.wait(lock, [&state] { return state.done; });
+    return state.result;
+  }
+
+ private:
+  std::thread::id thread_id_;
+  GMainContext *main_context_;
+};
+
+MainContextDispatcher *GetMainContextDispatcher() {
+  static MainContextDispatcher *dispatcher = new MainContextDispatcher();
+  return dispatcher;
+}
+
+}  // namespace
+
+class VideoPlayerTizenPlugin
+    : public flutter::Plugin,
+      public TizenVideoPlayerApi,
+      public PigeonVideoPlayerEventsVideoEventsStreamHandler {
  public:
   static void RegisterWithRegistrar(flutter::PluginRegistrar *registrar);
 
@@ -51,10 +118,16 @@ class VideoPlayerTizenPlugin : public flutter::Plugin,
   std::optional<FlutterError> SelectAudioTrack(
       const SelectAudioTrackMessage &msg) override;
 
+  std::optional<FlutterError> OnListen(
+      const std::string &instance_name,
+      std::unique_ptr<PigeonVideoPlayerEventsVideoEventsEventSink> sink)
+      override;
+  std::optional<FlutterError> OnCancel(
+      const std::string &instance_name) override;
+
  private:
   void DisposeAllPlayers();
 
-  flutter::PluginRegistrar *plugin_registrar_;
   flutter::TextureRegistrar *texture_registrar_;
   VideoPlayerOptions options_;
   std::map<int64_t, std::unique_ptr<VideoPlayer>> players_;
@@ -68,10 +141,10 @@ void VideoPlayerTizenPlugin::RegisterWithRegistrar(
 
 VideoPlayerTizenPlugin::VideoPlayerTizenPlugin(
     flutter::PluginRegistrar *registrar)
-    : plugin_registrar_(registrar) {
-  texture_registrar_ = registrar->texture_registrar();
-
-  TizenVideoPlayerApi::SetUp(registrar->messenger(), this);
+    : texture_registrar_(registrar->texture_registrar()) {
+  PigeonFfiSyncDispatcher *dispatcher = GetMainContextDispatcher();
+  SetUpTizenVideoPlayerApiFfi(this, dispatcher);
+  SetUpVideoPlayerEventsVideoEventsFfi(this, dispatcher);
 }
 
 VideoPlayerTizenPlugin::~VideoPlayerTizenPlugin() { DisposeAllPlayers(); }
@@ -115,8 +188,8 @@ ErrorOr<TextureMessage> VideoPlayerTizenPlugin::Create(
 
   int64_t texture_id = 0;
   try {
-    auto player = std::make_unique<VideoPlayer>(
-        plugin_registrar_, texture_registrar_, uri, options_, http_headers);
+    auto player = std::make_unique<VideoPlayer>(texture_registrar_, uri,
+                                                options_, http_headers);
     texture_id = player->GetTextureId();
     players_[texture_id] = std::move(player);
   } catch (const VideoPlayerError &error) {
@@ -249,6 +322,39 @@ void VideoPlayerTizenPlugin::SeekTo(
 std::optional<FlutterError> VideoPlayerTizenPlugin::SetMixWithOthers(
     const MixWithOthersMessage &msg) {
   options_.SetMixWithOthers(msg.mix_with_others());
+  return std::nullopt;
+}
+
+std::optional<FlutterError> VideoPlayerTizenPlugin::OnListen(
+    const std::string &instance_name,
+    std::unique_ptr<PigeonVideoPlayerEventsVideoEventsEventSink> sink) {
+  int64_t texture_id = -1;
+  try {
+    texture_id = std::stoll(instance_name);
+  } catch (const std::exception &) {
+    return FlutterError("Invalid argument",
+                        "Instance name is not a texture id: " + instance_name);
+  }
+  auto iter = players_.find(texture_id);
+  if (iter == players_.end()) {
+    return FlutterError("Invalid argument", "Player not found.");
+  }
+  iter->second->SetEventSink(std::move(sink));
+  return std::nullopt;
+}
+
+std::optional<FlutterError> VideoPlayerTizenPlugin::OnCancel(
+    const std::string &instance_name) {
+  try {
+    int64_t texture_id = std::stoll(instance_name);
+    auto iter = players_.find(texture_id);
+    if (iter != players_.end()) {
+      iter->second->ClearEventSink();
+    }
+  } catch (const std::exception &) {
+    LOG_WARN("[VideoPlayerTizenPlugin] OnCancel: invalid instance name: %s",
+             instance_name.c_str());
+  }
   return std::nullopt;
 }
 

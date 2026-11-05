@@ -7,9 +7,31 @@ import 'package:pigeon/pigeon.dart';
 @ConfigurePigeon(
   PigeonOptions(
     dartOut: 'lib/src/messages.g.dart',
-    cppOptions: CppOptions(namespace: 'video_player_tizen'),
+    dartFfiOut: 'lib/src/messages.g.ffi.dart',
+    configDirectory: 'tool/pigeon',
+    dartOptions: DartOptions(
+      ffiOptions: DartFfiOptions(
+        bindingClassName: 'VideoPlayerTizenFfiBindings',
+        nativeLibraryExpression: r'''
+(() {
+  final String libraryPath = File('/proc/self/maps')
+      .readAsLinesSync()
+      .map((String line) {
+        final int index = line.indexOf('/');
+        return index == -1 ? '' : line.substring(index);
+      })
+      .firstWhere(
+        (String path) => path.endsWith('/libflutter_plugins.so'),
+      );
+  return ffi.DynamicLibrary.open(libraryPath);
+})()''',
+      ),
+    ),
+    cppOptions: CppOptions(namespace: 'video_player_tizen', useStdVisit: false),
     cppHeaderOut: 'tizen/src/messages.h',
     cppSourceOut: 'tizen/src/messages.cc',
+    cppFfiHeaderOut: 'tizen/src/messages_ffi.h',
+    cppFfiSourceOut: 'tizen/src/messages_ffi.cc',
   ),
 )
 class TextureMessage {
@@ -91,4 +113,9 @@ abstract class TizenVideoPlayerApi {
   void setPreventsDisplaySleep(PreventsDisplaySleepMessage msg);
   List<AudioTrackMessage> getAudioTracks(TextureMessage msg);
   void selectAudioTrack(SelectAudioTrackMessage msg);
+}
+
+@EventChannelApi()
+abstract class VideoPlayerEvents {
+  Map<Object?, Object?> videoEvents();
 }
