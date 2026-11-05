@@ -27,10 +27,7 @@ import 'package:pigeon/pigeon.dart';
 })()''',
       ),
     ),
-    cppOptions: CppOptions(
-      namespace: 'in_app_purchase_tizen',
-      useStdVisit: false,
-    ),
+    cppOptions: CppOptions(namespace: 'in_app_purchase_tizen', useStdVisit: false),
     cppHeaderOut: 'tizen/src/messages.h',
     cppSourceOut: 'tizen/src/messages.cc',
     cppFfiHeaderOut: 'tizen/src/messages_ffi.h',
@@ -270,6 +267,8 @@ class InvoiceMessage {
 
 @HostApi()
 abstract class InAppPurchaseApi {
+  void initialize();
+
   /// Retrieves the list of products registered on the Billing (DPI) server.
   @async
   ProductsListApiResult getProductsList(ProductMessage product);

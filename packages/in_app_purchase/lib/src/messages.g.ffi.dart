@@ -120,6 +120,21 @@ class InAppPurchaseTizenFfiBindings {
       _pigeon_in_app_purchase_api_get_user_purchase_listPtr
           .asFunction<void Function(ffi.Pointer<PigeonFfiBuffer>, int, PigeonFfiReplyCallback)>();
 
+  ffi.Pointer<PigeonFfiBuffer> pigeon_in_app_purchase_api_initialize(
+    ffi.Pointer<PigeonFfiBuffer> request,
+  ) {
+    return _pigeon_in_app_purchase_api_initialize(request);
+  }
+
+  late final _pigeon_in_app_purchase_api_initializePtr =
+      _lookup<
+        ffi.NativeFunction<ffi.Pointer<PigeonFfiBuffer> Function(ffi.Pointer<PigeonFfiBuffer>)>
+      >(
+        'pigeon_in_x5f_app_x5f_purchase_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_in_app_purchase_api_initialize',
+      );
+  late final _pigeon_in_app_purchase_api_initialize = _pigeon_in_app_purchase_api_initializePtr
+      .asFunction<ffi.Pointer<PigeonFfiBuffer> Function(ffi.Pointer<PigeonFfiBuffer>)>();
+
   void pigeon_in_app_purchase_api_is_service_available(
     ffi.Pointer<PigeonFfiBuffer> request,
     int reply_id,

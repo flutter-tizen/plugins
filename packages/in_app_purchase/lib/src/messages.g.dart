@@ -14,9 +14,9 @@ import 'package:meta/meta.dart' show immutable, protected, visibleForTesting;
 import 'messages.g.ffi.dart' as pigeon_ffi;
 
 Object? _extractReplyValueOrThrow(
-    List<Object?>? replyList,
-    String channelName, {
-    required bool isNullValid,
+  List<Object?>? replyList,
+  String channelName, {
+  required bool isNullValid,
 }) {
   if (replyList == null) {
     throw PlatformException(
@@ -38,7 +38,6 @@ Object? _extractReplyValueOrThrow(
   return replyList.firstOrNull;
 }
 
-
 ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> _encodeFfiRequest(ByteData? message) {
   if (message == null) {
     return ffi.nullptr;
@@ -46,8 +45,8 @@ ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> _encodeFfiRequest(ByteData? message) {
   final Uint8List bytes = message.buffer.asUint8List(message.offsetInBytes, message.lengthInBytes);
   final ffi.Pointer<ffi.Uint8> data = pkg_ffi.calloc<ffi.Uint8>(bytes.length);
   data.asTypedList(bytes.length).setAll(0, bytes);
-  final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> buffer =
-      pkg_ffi.calloc<pigeon_ffi.PigeonFfiBuffer>();
+  final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> buffer = pkg_ffi
+      .calloc<pigeon_ffi.PigeonFfiBuffer>();
   buffer.ref.data = data;
   buffer.ref.length = bytes.length;
   return buffer;
@@ -62,8 +61,8 @@ void _freeFfiRequest(ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> buffer) {
 }
 
 List<Object?>? _decodeFfiReply(
-    MessageCodec<Object?> codec,
-    ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> buffer,
+  MessageCodec<Object?> codec,
+  ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> buffer,
 ) {
   if (buffer == ffi.nullptr || buffer.ref.data == ffi.nullptr) {
     return null;
@@ -75,23 +74,22 @@ List<Object?>? _decodeFfiReply(
 ffi.DynamicLibrary _openPigeonNativeLibrary() {
   try {
     return (() {
-  final String libraryPath = File('/proc/self/maps')
-      .readAsLinesSync()
-      .map((String line) {
-        final int index = line.indexOf('/');
-        return index == -1 ? '' : line.substring(index);
-      })
-      .firstWhere(
-        (String path) => path.endsWith('/libflutter_plugins.so'),
-      );
-  return ffi.DynamicLibrary.open(libraryPath);
-})();
+      final String libraryPath = File('/proc/self/maps')
+          .readAsLinesSync()
+          .map((String line) {
+            final int index = line.indexOf('/');
+            return index == -1 ? '' : line.substring(index);
+          })
+          .firstWhere((String path) => path.endsWith('/libflutter_plugins.so'));
+      return ffi.DynamicLibrary.open(libraryPath);
+    })();
   } catch (error) {
     throw StateError(
-        'Pigeon FFI: failed to open the native library. The plugin shared '
-        'library may not be loaded yet. Avoid constructing FFI bindings '
-        'during plugin registration; construct them lazily on first use. '
-        'Original error: $error');
+      'Pigeon FFI: failed to open the native library. The plugin shared '
+      'library may not be loaded yet. Avoid constructing FFI bindings '
+      'during plugin registration; construct them lazily on first use. '
+      'Original error: $error',
+    );
   }
 }
 
@@ -104,10 +102,8 @@ ffi.Pointer<T> _pigeonFfiLookup<T extends ffi.NativeType>(String symbolName) {
 final pigeon_ffi.InAppPurchaseTizenFfiBindings _pigeonVar_defaultFfiBindings =
     pigeon_ffi.InAppPurchaseTizenFfiBindings.fromLookup(_pigeonFfiLookup);
 
-typedef _PigeonFfiReplyCallbackNative = ffi.Void Function(
-  ffi.Int64 replyId,
-  ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> reply,
-);
+typedef _PigeonFfiReplyCallbackNative =
+    ffi.Void Function(ffi.Int64 replyId, ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> reply);
 
 class _PigeonFfiAsyncReply {
   _PigeonFfiAsyncReply({
@@ -127,8 +123,7 @@ class _PigeonFfiAsyncReply {
   final void Function(Object error, StackTrace stackTrace) completeError;
 }
 
-final Map<int, _PigeonFfiAsyncReply> _pigeonFfiAsyncReplies =
-    <int, _PigeonFfiAsyncReply>{};
+final Map<int, _PigeonFfiAsyncReply> _pigeonFfiAsyncReplies = <int, _PigeonFfiAsyncReply>{};
 int _pigeonNextFfiAsyncReplyId = 1;
 
 final ffi.NativeCallable<_PigeonFfiReplyCallbackNative> _pigeonFfiReplyCallback =
@@ -140,10 +135,7 @@ void _updatePigeonFfiReplyCallbackKeepAlive() {
   _pigeonFfiReplyCallback.keepIsolateAlive = _pigeonFfiAsyncReplies.isNotEmpty;
 }
 
-void _handlePigeonFfiReply(
-    int replyId,
-    ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> reply,
-) {
+void _handlePigeonFfiReply(int replyId, ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> reply) {
   final _PigeonFfiAsyncReply? asyncReply = _pigeonFfiAsyncReplies.remove(replyId);
   try {
     if (asyncReply != null) {
@@ -177,8 +169,7 @@ bool _deepEquals(Object? a, Object? b) {
   }
   if (a is List && b is List) {
     return a.length == b.length &&
-        a.indexed
-            .every(((int, dynamic) item) => _deepEquals(item.$2, b[item.$1]));
+        a.indexed.every(((int, dynamic) item) => _deepEquals(item.$2, b[item.$1]));
   }
   if (a is Map && b is Map) {
     if (a.length != b.length) {
@@ -227,7 +218,6 @@ int _deepHash(Object? value) {
   return value.hashCode;
 }
 
-
 /// Dart wrapper around [`ProductsListApiResult`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
 ///
 /// Defines a dictionary for product list data returned by the getProductsList API.
@@ -261,17 +251,12 @@ class ProductsListApiResult {
   List<Map<Object?, Object?>?> itemDetails;
 
   List<Object?> _toList() {
-    return <Object?>[
-      cpStatus,
-      cpResult,
-      totalCount,
-      checkValue,
-      itemDetails,
-    ];
+    return <Object?>[cpStatus, cpResult, totalCount, checkValue, itemDetails];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static ProductsListApiResult decode(Object result) {
     result as List<Object?>;
@@ -293,7 +278,11 @@ class ProductsListApiResult {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(cpStatus, other.cpStatus) && _deepEquals(cpResult, other.cpResult) && _deepEquals(totalCount, other.totalCount) && _deepEquals(checkValue, other.checkValue) && _deepEquals(itemDetails, other.itemDetails);
+    return _deepEquals(cpStatus, other.cpStatus) &&
+        _deepEquals(cpResult, other.cpResult) &&
+        _deepEquals(totalCount, other.totalCount) &&
+        _deepEquals(checkValue, other.checkValue) &&
+        _deepEquals(itemDetails, other.itemDetails);
   }
 
   @override
@@ -338,17 +327,12 @@ class GetUserPurchaseListAPIResult {
   List<Map<Object?, Object?>?> invoiceDetails;
 
   List<Object?> _toList() {
-    return <Object?>[
-      cpStatus,
-      cpResult,
-      totalCount,
-      checkValue,
-      invoiceDetails,
-    ];
+    return <Object?>[cpStatus, cpResult, totalCount, checkValue, invoiceDetails];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static GetUserPurchaseListAPIResult decode(Object result) {
     result as List<Object?>;
@@ -370,7 +354,11 @@ class GetUserPurchaseListAPIResult {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(cpStatus, other.cpStatus) && _deepEquals(cpResult, other.cpResult) && _deepEquals(totalCount, other.totalCount) && _deepEquals(checkValue, other.checkValue) && _deepEquals(invoiceDetails, other.invoiceDetails);
+    return _deepEquals(cpStatus, other.cpStatus) &&
+        _deepEquals(cpResult, other.cpResult) &&
+        _deepEquals(totalCount, other.totalCount) &&
+        _deepEquals(checkValue, other.checkValue) &&
+        _deepEquals(invoiceDetails, other.invoiceDetails);
   }
 
   @override
@@ -387,10 +375,7 @@ class GetUserPurchaseListAPIResult {
 ///
 /// Defines the payment result and information.
 class BillingBuyData {
-  BillingBuyData({
-    required this.payResult,
-    required this.payDetails,
-  });
+  BillingBuyData({required this.payResult, required this.payDetails});
 
   /// The payment result
   String payResult;
@@ -399,14 +384,12 @@ class BillingBuyData {
   Map<String, String> payDetails;
 
   List<Object?> _toList() {
-    return <Object?>[
-      payResult,
-      payDetails,
-    ];
+    return <Object?>[payResult, payDetails];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static BillingBuyData decode(Object result) {
     result as List<Object?>;
@@ -463,16 +446,12 @@ class VerifyInvoiceAPIResult {
   String invoiceId;
 
   List<Object?> _toList() {
-    return <Object?>[
-      cpStatus,
-      cpResult,
-      appId,
-      invoiceId,
-    ];
+    return <Object?>[cpStatus, cpResult, appId, invoiceId];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static VerifyInvoiceAPIResult decode(Object result) {
     result as List<Object?>;
@@ -493,7 +472,10 @@ class VerifyInvoiceAPIResult {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(cpStatus, other.cpStatus) && _deepEquals(cpResult, other.cpResult) && _deepEquals(appId, other.appId) && _deepEquals(invoiceId, other.invoiceId);
+    return _deepEquals(cpStatus, other.cpStatus) &&
+        _deepEquals(cpResult, other.cpResult) &&
+        _deepEquals(appId, other.appId) &&
+        _deepEquals(invoiceId, other.invoiceId);
   }
 
   @override
@@ -511,11 +493,7 @@ class VerifyInvoiceAPIResult {
 /// Defines a dictionary for data returned by the IsServiceAvailable API.
 /// This only can be used in [BillingManager.isAvailable].
 class ServiceAvailableAPIResult {
-  ServiceAvailableAPIResult({
-    required this.status,
-    required this.result,
-    required this.serviceYn,
-  });
+  ServiceAvailableAPIResult({required this.status, required this.result, required this.serviceYn});
 
   /// The result code of connecting to billing server.
   /// Returns "100000" on success and other codes on failure.
@@ -530,15 +508,12 @@ class ServiceAvailableAPIResult {
   String serviceYn;
 
   List<Object?> _toList() {
-    return <Object?>[
-      status,
-      result,
-      serviceYn,
-    ];
+    return <Object?>[status, result, serviceYn];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static ServiceAvailableAPIResult decode(Object result) {
     result as List<Object?>;
@@ -558,7 +533,9 @@ class ServiceAvailableAPIResult {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(status, other.status) && _deepEquals(result, other.result) && _deepEquals(serviceYn, other.serviceYn);
+    return _deepEquals(status, other.status) &&
+        _deepEquals(result, other.result) &&
+        _deepEquals(serviceYn, other.serviceYn);
   }
 
   @override
@@ -598,17 +575,12 @@ class ProductMessage {
   String checkValue;
 
   List<Object?> _toList() {
-    return <Object?>[
-      appId,
-      countryCode,
-      pageSize,
-      pageNum,
-      checkValue,
-    ];
+    return <Object?>[appId, countryCode, pageSize, pageNum, checkValue];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static ProductMessage decode(Object result) {
     result as List<Object?>;
@@ -630,7 +602,11 @@ class ProductMessage {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(appId, other.appId) && _deepEquals(countryCode, other.countryCode) && _deepEquals(pageSize, other.pageSize) && _deepEquals(pageNum, other.pageNum) && _deepEquals(checkValue, other.checkValue);
+    return _deepEquals(appId, other.appId) &&
+        _deepEquals(countryCode, other.countryCode) &&
+        _deepEquals(pageSize, other.pageSize) &&
+        _deepEquals(pageNum, other.pageNum) &&
+        _deepEquals(checkValue, other.checkValue);
   }
 
   @override
@@ -669,17 +645,12 @@ class PurchaseMessage {
   String checkValue;
 
   List<Object?> _toList() {
-    return <Object?>[
-      appId,
-      customId,
-      countryCode,
-      pageNum,
-      checkValue,
-    ];
+    return <Object?>[appId, customId, countryCode, pageNum, checkValue];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static PurchaseMessage decode(Object result) {
     result as List<Object?>;
@@ -701,7 +672,11 @@ class PurchaseMessage {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(appId, other.appId) && _deepEquals(customId, other.customId) && _deepEquals(countryCode, other.countryCode) && _deepEquals(pageNum, other.pageNum) && _deepEquals(checkValue, other.checkValue);
+    return _deepEquals(appId, other.appId) &&
+        _deepEquals(customId, other.customId) &&
+        _deepEquals(countryCode, other.countryCode) &&
+        _deepEquals(pageNum, other.pageNum) &&
+        _deepEquals(checkValue, other.checkValue);
   }
 
   @override
@@ -734,17 +709,12 @@ class OrderDetails {
   String orderCustomId;
 
   List<Object?> _toList() {
-    return <Object?>[
-      orderItemId,
-      orderTitle,
-      orderTotal,
-      orderCurrencyId,
-      orderCustomId,
-    ];
+    return <Object?>[orderItemId, orderTitle, orderTotal, orderCurrencyId, orderCustomId];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static OrderDetails decode(Object result) {
     result as List<Object?>;
@@ -766,7 +736,11 @@ class OrderDetails {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(orderItemId, other.orderItemId) && _deepEquals(orderTitle, other.orderTitle) && _deepEquals(orderTotal, other.orderTotal) && _deepEquals(orderCurrencyId, other.orderCurrencyId) && _deepEquals(orderCustomId, other.orderCustomId);
+    return _deepEquals(orderItemId, other.orderItemId) &&
+        _deepEquals(orderTitle, other.orderTitle) &&
+        _deepEquals(orderTotal, other.orderTotal) &&
+        _deepEquals(orderCurrencyId, other.orderCurrencyId) &&
+        _deepEquals(orderCustomId, other.orderCustomId);
   }
 
   @override
@@ -780,10 +754,7 @@ class OrderDetails {
 }
 
 class BuyInfoMessage {
-  BuyInfoMessage({
-    required this.appId,
-    required this.payDetials,
-  });
+  BuyInfoMessage({required this.appId, required this.payDetials});
 
   /// Application ID.
   String appId;
@@ -792,21 +763,16 @@ class BuyInfoMessage {
   OrderDetails payDetials;
 
   List<Object?> _toList() {
-    return <Object?>[
-      appId,
-      payDetials,
-    ];
+    return <Object?>[appId, payDetials];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static BuyInfoMessage decode(Object result) {
     result as List<Object?>;
-    return BuyInfoMessage(
-      appId: result[0]! as String,
-      payDetials: result[1]! as OrderDetails,
-    );
+    return BuyInfoMessage(appId: result[0]! as String, payDetials: result[1]! as OrderDetails);
   }
 
   @override
@@ -852,16 +818,12 @@ class InvoiceMessage {
   String countryCode;
 
   List<Object?> _toList() {
-    return <Object?>[
-      appId,
-      customId,
-      invoiceId,
-      countryCode,
-    ];
+    return <Object?>[appId, customId, invoiceId, countryCode];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static InvoiceMessage decode(Object result) {
     result as List<Object?>;
@@ -882,7 +844,10 @@ class InvoiceMessage {
     if (identical(this, other)) {
       return true;
     }
-    return _deepEquals(appId, other.appId) && _deepEquals(customId, other.customId) && _deepEquals(invoiceId, other.invoiceId) && _deepEquals(countryCode, other.countryCode);
+    return _deepEquals(appId, other.appId) &&
+        _deepEquals(customId, other.customId) &&
+        _deepEquals(invoiceId, other.invoiceId) &&
+        _deepEquals(countryCode, other.countryCode);
   }
 
   @override
@@ -895,7 +860,6 @@ class InvoiceMessage {
   }
 }
 
-
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
   @override
@@ -903,34 +867,34 @@ class _PigeonCodec extends StandardMessageCodec {
     if (value is int) {
       buffer.putUint8(4);
       buffer.putInt64(value);
-    }    else if (value is ProductsListApiResult) {
+    } else if (value is ProductsListApiResult) {
       buffer.putUint8(129);
       writeValue(buffer, value.encode());
-    }    else if (value is GetUserPurchaseListAPIResult) {
+    } else if (value is GetUserPurchaseListAPIResult) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
-    }    else if (value is BillingBuyData) {
+    } else if (value is BillingBuyData) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
-    }    else if (value is VerifyInvoiceAPIResult) {
+    } else if (value is VerifyInvoiceAPIResult) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
-    }    else if (value is ServiceAvailableAPIResult) {
+    } else if (value is ServiceAvailableAPIResult) {
       buffer.putUint8(133);
       writeValue(buffer, value.encode());
-    }    else if (value is ProductMessage) {
+    } else if (value is ProductMessage) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
-    }    else if (value is PurchaseMessage) {
+    } else if (value is PurchaseMessage) {
       buffer.putUint8(135);
       writeValue(buffer, value.encode());
-    }    else if (value is OrderDetails) {
+    } else if (value is OrderDetails) {
       buffer.putUint8(136);
       writeValue(buffer, value.encode());
-    }    else if (value is BuyInfoMessage) {
+    } else if (value is BuyInfoMessage) {
       buffer.putUint8(137);
       writeValue(buffer, value.encode());
-    }    else if (value is InvoiceMessage) {
+    } else if (value is InvoiceMessage) {
       buffer.putUint8(138);
       writeValue(buffer, value.encode());
     } else {
@@ -975,10 +939,18 @@ class InAppPurchaseApi {
     pigeon_ffi.InAppPurchaseTizenFfiBindings? ffiBindings,
   }) : pigeonVar_ffiBindings = ffiBindings ?? _pigeonVar_defaultFfiBindings {
     if (binaryMessenger != null) {
-      throw ArgumentError.value(binaryMessenger, 'binaryMessenger', 'BinaryMessenger is not supported by FFI HostApi.');
+      throw ArgumentError.value(
+        binaryMessenger,
+        'binaryMessenger',
+        'BinaryMessenger is not supported by FFI HostApi.',
+      );
     }
     if (messageChannelSuffix.isNotEmpty) {
-      throw ArgumentError.value(messageChannelSuffix, 'messageChannelSuffix', 'messageChannelSuffix is not supported by FFI HostApi.');
+      throw ArgumentError.value(
+        messageChannelSuffix,
+        'messageChannelSuffix',
+        'messageChannelSuffix is not supported by FFI HostApi.',
+      );
     }
   }
 
@@ -989,10 +961,33 @@ class InAppPurchaseApi {
 
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
 
+  Future<void> initialize() async {
+    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = ffi.nullptr;
+    final String pigeonVar_channelName = 'pigeon_in_app_purchase_api_initialize';
+    ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_response = ffi.nullptr;
+    try {
+      pigeonVar_response = pigeonVar_ffiBindings.pigeon_in_app_purchase_api_initialize(
+        pigeonVar_request,
+      );
+      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(
+        pigeonChannelCodec,
+        pigeonVar_response,
+      );
+      _extractReplyValueOrThrow(pigeonVar_replyList, pigeonVar_channelName, isNullValid: true);
+    } finally {
+      _freeFfiRequest(pigeonVar_request);
+      if (pigeonVar_response != ffi.nullptr) {
+        pigeonVar_ffiBindings.pigeon_free_buffer(pigeonVar_response);
+      }
+    }
+  }
+
   /// Retrieves the list of products registered on the Billing (DPI) server.
   Future<ProductsListApiResult> getProductsList(ProductMessage product) async {
     final ByteData? pigeonVar_requestMessage = pigeonChannelCodec.encodeMessage(<Object?>[product]);
-    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(pigeonVar_requestMessage);
+    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(
+      pigeonVar_requestMessage,
+    );
     final String pigeonVar_channelName = 'pigeon_in_app_purchase_api_get_products_list';
     final Completer<ProductsListApiResult> pigeonVar_completer = Completer<ProductsListApiResult>();
     final int pigeonVar_replyId = _pigeonNextFfiAsyncReplyId++;
@@ -1029,10 +1024,15 @@ class InAppPurchaseApi {
 
   /// Retrieves the user's purchase list.
   Future<GetUserPurchaseListAPIResult> getUserPurchaseList(PurchaseMessage purchase) async {
-    final ByteData? pigeonVar_requestMessage = pigeonChannelCodec.encodeMessage(<Object?>[purchase]);
-    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(pigeonVar_requestMessage);
+    final ByteData? pigeonVar_requestMessage = pigeonChannelCodec.encodeMessage(<Object?>[
+      purchase,
+    ]);
+    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(
+      pigeonVar_requestMessage,
+    );
     final String pigeonVar_channelName = 'pigeon_in_app_purchase_api_get_user_purchase_list';
-    final Completer<GetUserPurchaseListAPIResult> pigeonVar_completer = Completer<GetUserPurchaseListAPIResult>();
+    final Completer<GetUserPurchaseListAPIResult> pigeonVar_completer =
+        Completer<GetUserPurchaseListAPIResult>();
     final int pigeonVar_replyId = _pigeonNextFfiAsyncReplyId++;
     _pigeonFfiAsyncReplies[pigeonVar_replyId] = _PigeonFfiAsyncReply(
       ffiBindings: pigeonVar_ffiBindings,
@@ -1069,7 +1069,9 @@ class InAppPurchaseApi {
   /// After authenticating the purchase information through the application, the user can proceed to purchase payment.
   Future<BillingBuyData> buyItem(BuyInfoMessage buyInfo) async {
     final ByteData? pigeonVar_requestMessage = pigeonChannelCodec.encodeMessage(<Object?>[buyInfo]);
-    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(pigeonVar_requestMessage);
+    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(
+      pigeonVar_requestMessage,
+    );
     final String pigeonVar_channelName = 'pigeon_in_app_purchase_api_buy_item';
     final Completer<BillingBuyData> pigeonVar_completer = Completer<BillingBuyData>();
     final int pigeonVar_replyId = _pigeonNextFfiAsyncReplyId++;
@@ -1107,9 +1109,12 @@ class InAppPurchaseApi {
   /// Checks whether a purchase, corresponding to a specific "InvoiceID", was successful.
   Future<VerifyInvoiceAPIResult> verifyInvoice(InvoiceMessage invoice) async {
     final ByteData? pigeonVar_requestMessage = pigeonChannelCodec.encodeMessage(<Object?>[invoice]);
-    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(pigeonVar_requestMessage);
+    final ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_request = _encodeFfiRequest(
+      pigeonVar_requestMessage,
+    );
     final String pigeonVar_channelName = 'pigeon_in_app_purchase_api_verify_invoice';
-    final Completer<VerifyInvoiceAPIResult> pigeonVar_completer = Completer<VerifyInvoiceAPIResult>();
+    final Completer<VerifyInvoiceAPIResult> pigeonVar_completer =
+        Completer<VerifyInvoiceAPIResult>();
     final int pigeonVar_replyId = _pigeonNextFfiAsyncReplyId++;
     _pigeonFfiAsyncReplies[pigeonVar_replyId] = _PigeonFfiAsyncReply(
       ffiBindings: pigeonVar_ffiBindings,
@@ -1184,14 +1189,18 @@ class InAppPurchaseApi {
     final String pigeonVar_channelName = 'pigeon_in_app_purchase_api_get_custom_id';
     ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_response = ffi.nullptr;
     try {
-      pigeonVar_response = pigeonVar_ffiBindings.pigeon_in_app_purchase_api_get_custom_id(pigeonVar_request);
-      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(pigeonChannelCodec, pigeonVar_response);
+      pigeonVar_response = pigeonVar_ffiBindings.pigeon_in_app_purchase_api_get_custom_id(
+        pigeonVar_request,
+      );
+      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(
+        pigeonChannelCodec,
+        pigeonVar_response,
+      );
       final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-          pigeonVar_replyList,
-          pigeonVar_channelName,
-          isNullValid: false,
-      )
-      ;
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: false,
+      );
       return pigeonVar_replyValue! as String;
     } finally {
       _freeFfiRequest(pigeonVar_request);
@@ -1206,14 +1215,18 @@ class InAppPurchaseApi {
     final String pigeonVar_channelName = 'pigeon_in_app_purchase_api_get_country_code';
     ffi.Pointer<pigeon_ffi.PigeonFfiBuffer> pigeonVar_response = ffi.nullptr;
     try {
-      pigeonVar_response = pigeonVar_ffiBindings.pigeon_in_app_purchase_api_get_country_code(pigeonVar_request);
-      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(pigeonChannelCodec, pigeonVar_response);
+      pigeonVar_response = pigeonVar_ffiBindings.pigeon_in_app_purchase_api_get_country_code(
+        pigeonVar_request,
+      );
+      final List<Object?>? pigeonVar_replyList = _decodeFfiReply(
+        pigeonChannelCodec,
+        pigeonVar_response,
+      );
       final Object? pigeonVar_replyValue = _extractReplyValueOrThrow(
-          pigeonVar_replyList,
-          pigeonVar_channelName,
-          isNullValid: false,
-      )
-      ;
+        pigeonVar_replyList,
+        pigeonVar_channelName,
+        isNullValid: false,
+      );
       return pigeonVar_replyValue! as String;
     } finally {
       _freeFfiRequest(pigeonVar_request);

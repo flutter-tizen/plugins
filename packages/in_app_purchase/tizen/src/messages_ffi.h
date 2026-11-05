@@ -13,6 +13,7 @@
 #include <optional>
 #include <string>
 #include <vector>
+
 #include "messages.h"
 #endif
 
@@ -33,36 +34,47 @@ typedef struct PigeonFfiBuffer {
   size_t length;
 } PigeonFfiBuffer;
 
-typedef void (*PigeonFfiReplyCallback)(int64_t reply_id, PigeonFfiBuffer* reply);
+typedef void (*PigeonFfiReplyCallback)(int64_t reply_id,
+                                       PigeonFfiBuffer* reply);
 typedef void (*PigeonFfiEventCallback)(int64_t sink_id, PigeonFfiBuffer* event);
 typedef void (*PigeonFfiDoneCallback)(int64_t sink_id);
 #endif  // PIGEON_FFI_ABI_TYPES_
 
 // Frees a buffer returned by a generated FFI function.
-PIGEON_FFI_EXPORT void pigeon_in_x5f_app_x5f_purchase_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_free_buffer(PigeonFfiBuffer* buffer);
-// The caller owns request; free returned buffers with pigeon_in_x5f_app_x5f_purchase_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_free_buffer.
-PIGEON_FFI_EXPORT void pigeon_in_x5f_app_x5f_purchase_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_in_app_purchase_api_get_products_list(
-  PigeonFfiBuffer* request,
-  int64_t reply_id,
-  PigeonFfiReplyCallback on_reply);
-PIGEON_FFI_EXPORT void pigeon_in_x5f_app_x5f_purchase_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_in_app_purchase_api_get_user_purchase_list(
-  PigeonFfiBuffer* request,
-  int64_t reply_id,
-  PigeonFfiReplyCallback on_reply);
-PIGEON_FFI_EXPORT void pigeon_in_x5f_app_x5f_purchase_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_in_app_purchase_api_buy_item(
-  PigeonFfiBuffer* request,
-  int64_t reply_id,
-  PigeonFfiReplyCallback on_reply);
-PIGEON_FFI_EXPORT void pigeon_in_x5f_app_x5f_purchase_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_in_app_purchase_api_verify_invoice(
-  PigeonFfiBuffer* request,
-  int64_t reply_id,
-  PigeonFfiReplyCallback on_reply);
-PIGEON_FFI_EXPORT void pigeon_in_x5f_app_x5f_purchase_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_in_app_purchase_api_is_service_available(
-  PigeonFfiBuffer* request,
-  int64_t reply_id,
-  PigeonFfiReplyCallback on_reply);
-PIGEON_FFI_EXPORT PigeonFfiBuffer* pigeon_in_x5f_app_x5f_purchase_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_in_app_purchase_api_get_custom_id(PigeonFfiBuffer* request);
-PIGEON_FFI_EXPORT PigeonFfiBuffer* pigeon_in_x5f_app_x5f_purchase_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_in_app_purchase_api_get_country_code(PigeonFfiBuffer* request);
+PIGEON_FFI_EXPORT void
+pigeon_in_x5f_app_x5f_purchase_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_free_buffer(
+    PigeonFfiBuffer* buffer);
+// The caller owns request; free returned buffers with
+// pigeon_in_x5f_app_x5f_purchase_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_free_buffer.
+PIGEON_FFI_EXPORT PigeonFfiBuffer*
+pigeon_in_x5f_app_x5f_purchase_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_in_app_purchase_api_initialize(
+    PigeonFfiBuffer* request);
+PIGEON_FFI_EXPORT void
+pigeon_in_x5f_app_x5f_purchase_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_in_app_purchase_api_get_products_list(
+    PigeonFfiBuffer* request, int64_t reply_id,
+    PigeonFfiReplyCallback on_reply);
+PIGEON_FFI_EXPORT void
+pigeon_in_x5f_app_x5f_purchase_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_in_app_purchase_api_get_user_purchase_list(
+    PigeonFfiBuffer* request, int64_t reply_id,
+    PigeonFfiReplyCallback on_reply);
+PIGEON_FFI_EXPORT void
+pigeon_in_x5f_app_x5f_purchase_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_in_app_purchase_api_buy_item(
+    PigeonFfiBuffer* request, int64_t reply_id,
+    PigeonFfiReplyCallback on_reply);
+PIGEON_FFI_EXPORT void
+pigeon_in_x5f_app_x5f_purchase_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_in_app_purchase_api_verify_invoice(
+    PigeonFfiBuffer* request, int64_t reply_id,
+    PigeonFfiReplyCallback on_reply);
+PIGEON_FFI_EXPORT void
+pigeon_in_x5f_app_x5f_purchase_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_in_app_purchase_api_is_service_available(
+    PigeonFfiBuffer* request, int64_t reply_id,
+    PigeonFfiReplyCallback on_reply);
+PIGEON_FFI_EXPORT PigeonFfiBuffer*
+pigeon_in_x5f_app_x5f_purchase_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_in_app_purchase_api_get_custom_id(
+    PigeonFfiBuffer* request);
+PIGEON_FFI_EXPORT PigeonFfiBuffer*
+pigeon_in_x5f_app_x5f_purchase_x5f_tizen_tizen_x2f_src_x2f_messages_x5f_ffi_x2e_h_in_app_purchase_api_get_country_code(
+    PigeonFfiBuffer* request);
 
 #ifdef __cplusplus
 }
@@ -70,18 +82,16 @@ PIGEON_FFI_EXPORT PigeonFfiBuffer* pigeon_in_x5f_app_x5f_purchase_x5f_tizen_tize
 
 #ifdef __cplusplus
 namespace in_app_purchase_tizen {
-  class PigeonFfiSyncDispatcher {
-   public:
-    virtual ~PigeonFfiSyncDispatcher() = default;
-    virtual ::PigeonFfiBuffer* RunSync(
-        std::function<::PigeonFfiBuffer*()> task) = 0;
-  };
+class PigeonFfiSyncDispatcher {
+ public:
+  virtual ~PigeonFfiSyncDispatcher() = default;
+  virtual ::PigeonFfiBuffer* RunSync(
+      std::function<::PigeonFfiBuffer*()> task) = 0;
+};
 
-
-  void SetUpInAppPurchaseApiFfi(
-    InAppPurchaseApi* api,
-    PigeonFfiSyncDispatcher* dispatcher = nullptr);
-  void TearDownInAppPurchaseApiFfi();
+void SetUpInAppPurchaseApiFfi(InAppPurchaseApi* api,
+                              PigeonFfiSyncDispatcher* dispatcher = nullptr);
+void TearDownInAppPurchaseApiFfi();
 }  // namespace in_app_purchase_tizen
 #endif
 

@@ -166,6 +166,15 @@ bool BillingManager::VerifyInvoice(
   return true;
 }
 
+void BillingManager::ResetPendingCallbacks() {
+  std::lock_guard<std::mutex> lock(mutex_);
+  is_available_callback_ = nullptr;
+  buy_item_callback_ = nullptr;
+  get_product_list_callback_ = nullptr;
+  get_purchase_list_callback_ = nullptr;
+  verify_invoice_callback_ = nullptr;
+}
+
 void BillingManager::OnAvailable(const char *detail_result, void *user_data) {
   LOG_INFO("[BillingManager] Billing server detail_result: %s", detail_result);
 

@@ -90,6 +90,7 @@ class InAppPurchaseTizenPlugin : public flutter::Plugin,
   InAppPurchaseTizenPlugin(flutter::PluginRegistrar *plugin_registrar);
   virtual ~InAppPurchaseTizenPlugin() { Dispose(); }
 
+  std::optional<FlutterError> Initialize() override;
   void GetProductsList(const ProductMessage &product,
                        std::function<void(ErrorOr<ProductsListApiResult> reply)>
                            result) override;
@@ -129,6 +130,11 @@ void InAppPurchaseTizenPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrar *plugin_registrar) {
   auto plugin = std::make_unique<InAppPurchaseTizenPlugin>(plugin_registrar);
   plugin_registrar->AddPlugin(std::move(plugin));
+}
+
+std::optional<FlutterError> InAppPurchaseTizenPlugin::Initialize() {
+  billing_->ResetPendingCallbacks();
+  return std::nullopt;
 }
 
 void InAppPurchaseTizenPlugin::GetProductsList(

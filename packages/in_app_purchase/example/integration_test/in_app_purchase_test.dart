@@ -19,14 +19,9 @@ void main() {
 
   test('FFI host API smoke test', () async {
     final InAppPurchase iap = InAppPurchase.instance;
-    final InAppPurchaseTizenPlatformAddition addition =
-        iap.getPlatformAddition<InAppPurchaseTizenPlatformAddition>();
-    addition.setRequestParameters(
-      appId: 'test',
-      pageSize: 15,
-      pageNum: 1,
-      securityKey: 'test',
-    );
+    final InAppPurchaseTizenPlatformAddition addition = iap
+        .getPlatformAddition<InAppPurchaseTizenPlatformAddition>();
+    addition.setRequestParameters(appId: 'test', pageSize: 15, pageNum: 1, securityKey: 'test');
 
     Object? asyncError;
     bool? available;
@@ -51,9 +46,7 @@ void main() {
     Object? queryError;
     ProductDetailsResponse? response;
     try {
-      response = await iap
-          .queryProductDetails(<String>{})
-          .timeout(const Duration(seconds: 30));
+      response = await iap.queryProductDetails(<String>{}).timeout(const Duration(seconds: 30));
     } catch (error) {
       queryError = error;
     }

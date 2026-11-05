@@ -15,17 +15,16 @@
 
 namespace in_app_purchase_tizen {
 
-
 // Generated class from Pigeon.
 
 class FlutterError {
  public:
-  explicit FlutterError(const std::string& code)
-    : code_(code) {}
+  explicit FlutterError(const std::string& code) : code_(code) {}
   explicit FlutterError(const std::string& code, const std::string& message)
-    : code_(code), message_(message) {}
-  explicit FlutterError(const std::string& code, const std::string& message, const ::flutter::EncodableValue& details)
-    : code_(code), message_(message), details_(details) {}
+      : code_(code), message_(message) {}
+  explicit FlutterError(const std::string& code, const std::string& message,
+                        const ::flutter::EncodableValue& details)
+      : code_(code), message_(message), details_(details) {}
 
   const std::string& code() const { return code_; }
   const std::string& message() const { return message_; }
@@ -37,7 +36,8 @@ class FlutterError {
   ::flutter::EncodableValue details_;
 };
 
-template<class T> class ErrorOr {
+template <class T>
+class ErrorOr {
  public:
   ErrorOr(const T& rhs) : v_(rhs) {}
   ErrorOr(const T&& rhs) : v_(std::move(rhs)) {}
@@ -56,30 +56,27 @@ template<class T> class ErrorOr {
   std::variant<T, FlutterError> v_;
 };
 
-
-
-// Dart wrapper around [`ProductsListApiResult`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
+// Dart wrapper around [`ProductsListApiResult`] in
+// (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
 //
-// Defines a dictionary for product list data returned by the getProductsList API.
-// This only can be used in [BillingManager.requestProducts].
+// Defines a dictionary for product list data returned by the getProductsList
+// API. This only can be used in [BillingManager.requestProducts].
 //
 // Generated class from Pigeon that represents data sent in messages.
 class ProductsListApiResult {
  public:
   // Constructs an object setting all non-nullable fields.
-  explicit ProductsListApiResult(
-    const std::string& cp_status,
-    int64_t total_count,
-    const std::string& check_value,
-    const ::flutter::EncodableList& item_details);
+  explicit ProductsListApiResult(const std::string& cp_status,
+                                 int64_t total_count,
+                                 const std::string& check_value,
+                                 const ::flutter::EncodableList& item_details);
 
   // Constructs an object setting all fields.
-  explicit ProductsListApiResult(
-    const std::string& cp_status,
-    const std::string* cp_result,
-    int64_t total_count,
-    const std::string& check_value,
-    const ::flutter::EncodableList& item_details);
+  explicit ProductsListApiResult(const std::string& cp_status,
+                                 const std::string* cp_result,
+                                 int64_t total_count,
+                                 const std::string& check_value,
+                                 const ::flutter::EncodableList& item_details);
 
   // DPI result code.
   // Returns "100000" on success and other codes on failure.
@@ -108,12 +105,16 @@ class ProductsListApiResult {
 
   bool operator==(const ProductsListApiResult& other) const;
   bool operator!=(const ProductsListApiResult& other) const;
-  /// Returns a hash code value for the object. This method is supported for the benefit of hash tables.
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
   size_t Hash() const;
   /// Stream output operator for formatted string representation.
-  friend std::ostream& operator<<(std::ostream& os, const ProductsListApiResult& obj);
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const ProductsListApiResult& obj);
+
  private:
-  static ProductsListApiResult FromEncodableList(const ::flutter::EncodableList& list);
+  static ProductsListApiResult FromEncodableList(
+      const ::flutter::EncodableList& list);
   ::flutter::EncodableList ToEncodableList() const;
   friend class InAppPurchaseApi;
   friend class PigeonInternalCodecSerializer;
@@ -124,8 +125,8 @@ class ProductsListApiResult {
   ::flutter::EncodableList item_details_;
 };
 
-
-// Dart wrapper around [`GetUserPurchaseListAPIResult`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
+// Dart wrapper around [`GetUserPurchaseListAPIResult`] in
+// (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
 //
 // Defines a dictionary for data returned by the getUserPurchaseList API.
 // This only can be used in [BillingManager.requestPurchases]
@@ -135,20 +136,18 @@ class GetUserPurchaseListAPIResult {
  public:
   // Constructs an object setting all non-nullable fields.
   explicit GetUserPurchaseListAPIResult(
-    const std::string& cp_status,
-    int64_t total_count,
-    const std::string& check_value,
-    const ::flutter::EncodableList& invoice_details);
+      const std::string& cp_status, int64_t total_count,
+      const std::string& check_value,
+      const ::flutter::EncodableList& invoice_details);
 
   // Constructs an object setting all fields.
   explicit GetUserPurchaseListAPIResult(
-    const std::string& cp_status,
-    const std::string* cp_result,
-    int64_t total_count,
-    const std::string& check_value,
-    const ::flutter::EncodableList& invoice_details);
+      const std::string& cp_status, const std::string* cp_result,
+      int64_t total_count, const std::string& check_value,
+      const ::flutter::EncodableList& invoice_details);
 
-  // It returns "100000" in success and other codes in failure. Refer to DPI Error Code.
+  // It returns "100000" in success and other codes in failure. Refer to DPI
+  // Error Code.
   const std::string& cp_status() const;
   void set_cp_status(std::string_view value_arg);
 
@@ -174,12 +173,16 @@ class GetUserPurchaseListAPIResult {
 
   bool operator==(const GetUserPurchaseListAPIResult& other) const;
   bool operator!=(const GetUserPurchaseListAPIResult& other) const;
-  /// Returns a hash code value for the object. This method is supported for the benefit of hash tables.
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
   size_t Hash() const;
   /// Stream output operator for formatted string representation.
-  friend std::ostream& operator<<(std::ostream& os, const GetUserPurchaseListAPIResult& obj);
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const GetUserPurchaseListAPIResult& obj);
+
  private:
-  static GetUserPurchaseListAPIResult FromEncodableList(const ::flutter::EncodableList& list);
+  static GetUserPurchaseListAPIResult FromEncodableList(
+      const ::flutter::EncodableList& list);
   ::flutter::EncodableList ToEncodableList() const;
   friend class InAppPurchaseApi;
   friend class PigeonInternalCodecSerializer;
@@ -190,8 +193,8 @@ class GetUserPurchaseListAPIResult {
   ::flutter::EncodableList invoice_details_;
 };
 
-
-// Dart wrapper around [`BillingBuyData`](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html#BillingBuyData).
+// Dart wrapper around
+// [`BillingBuyData`](https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html#BillingBuyData).
 //
 // Defines the payment result and information.
 //
@@ -199,9 +202,8 @@ class GetUserPurchaseListAPIResult {
 class BillingBuyData {
  public:
   // Constructs an object setting all fields.
-  explicit BillingBuyData(
-    const std::string& pay_result,
-    const ::flutter::EncodableMap& pay_details);
+  explicit BillingBuyData(const std::string& pay_result,
+                          const ::flutter::EncodableMap& pay_details);
 
   // The payment result
   const std::string& pay_result() const;
@@ -213,10 +215,12 @@ class BillingBuyData {
 
   bool operator==(const BillingBuyData& other) const;
   bool operator!=(const BillingBuyData& other) const;
-  /// Returns a hash code value for the object. This method is supported for the benefit of hash tables.
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
   size_t Hash() const;
   /// Stream output operator for formatted string representation.
   friend std::ostream& operator<<(std::ostream& os, const BillingBuyData& obj);
+
  private:
   static BillingBuyData FromEncodableList(const ::flutter::EncodableList& list);
   ::flutter::EncodableList ToEncodableList() const;
@@ -226,8 +230,8 @@ class BillingBuyData {
   ::flutter::EncodableMap pay_details_;
 };
 
-
-// Dart wrapper around [`VerifyInvoiceAPIResult`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
+// Dart wrapper around [`VerifyInvoiceAPIResult`] in
+// (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
 //
 // This only can be used in [BillingManager.verifyInvoice].
 //
@@ -235,17 +239,15 @@ class BillingBuyData {
 class VerifyInvoiceAPIResult {
  public:
   // Constructs an object setting all non-nullable fields.
-  explicit VerifyInvoiceAPIResult(
-    const std::string& cp_status,
-    const std::string& app_id,
-    const std::string& invoice_id);
+  explicit VerifyInvoiceAPIResult(const std::string& cp_status,
+                                  const std::string& app_id,
+                                  const std::string& invoice_id);
 
   // Constructs an object setting all fields.
-  explicit VerifyInvoiceAPIResult(
-    const std::string& cp_status,
-    const std::string* cp_result,
-    const std::string& app_id,
-    const std::string& invoice_id);
+  explicit VerifyInvoiceAPIResult(const std::string& cp_status,
+                                  const std::string* cp_result,
+                                  const std::string& app_id,
+                                  const std::string& invoice_id);
 
   // DPI result code. Returns "100000" on success and other codes on failure.
   const std::string& cp_status() const;
@@ -267,12 +269,16 @@ class VerifyInvoiceAPIResult {
 
   bool operator==(const VerifyInvoiceAPIResult& other) const;
   bool operator!=(const VerifyInvoiceAPIResult& other) const;
-  /// Returns a hash code value for the object. This method is supported for the benefit of hash tables.
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
   size_t Hash() const;
   /// Stream output operator for formatted string representation.
-  friend std::ostream& operator<<(std::ostream& os, const VerifyInvoiceAPIResult& obj);
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const VerifyInvoiceAPIResult& obj);
+
  private:
-  static VerifyInvoiceAPIResult FromEncodableList(const ::flutter::EncodableList& list);
+  static VerifyInvoiceAPIResult FromEncodableList(
+      const ::flutter::EncodableList& list);
   ::flutter::EncodableList ToEncodableList() const;
   friend class InAppPurchaseApi;
   friend class PigeonInternalCodecSerializer;
@@ -282,8 +288,8 @@ class VerifyInvoiceAPIResult {
   std::string invoice_id_;
 };
 
-
-// Dart wrapper around [`ServiceAvailableAPIResult`] in (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
+// Dart wrapper around [`ServiceAvailableAPIResult`] in
+// (https://developer.samsung.com/smarttv/develop/api-references/samsung-product-api-references/billing-api.html).
 //
 // Defines a dictionary for data returned by the IsServiceAvailable API.
 // This only can be used in [BillingManager.isAvailable].
@@ -292,10 +298,9 @@ class VerifyInvoiceAPIResult {
 class ServiceAvailableAPIResult {
  public:
   // Constructs an object setting all fields.
-  explicit ServiceAvailableAPIResult(
-    const std::string& status,
-    const std::string& result,
-    const std::string& service_yn);
+  explicit ServiceAvailableAPIResult(const std::string& status,
+                                     const std::string& result,
+                                     const std::string& service_yn);
 
   // The result code of connecting to billing server.
   // Returns "100000" on success and other codes on failure.
@@ -314,12 +319,16 @@ class ServiceAvailableAPIResult {
 
   bool operator==(const ServiceAvailableAPIResult& other) const;
   bool operator!=(const ServiceAvailableAPIResult& other) const;
-  /// Returns a hash code value for the object. This method is supported for the benefit of hash tables.
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
   size_t Hash() const;
   /// Stream output operator for formatted string representation.
-  friend std::ostream& operator<<(std::ostream& os, const ServiceAvailableAPIResult& obj);
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const ServiceAvailableAPIResult& obj);
+
  private:
-  static ServiceAvailableAPIResult FromEncodableList(const ::flutter::EncodableList& list);
+  static ServiceAvailableAPIResult FromEncodableList(
+      const ::flutter::EncodableList& list);
   ::flutter::EncodableList ToEncodableList() const;
   friend class InAppPurchaseApi;
   friend class PigeonInternalCodecSerializer;
@@ -328,17 +337,13 @@ class ServiceAvailableAPIResult {
   std::string service_yn_;
 };
 
-
 // Generated class from Pigeon that represents data sent in messages.
 class ProductMessage {
  public:
   // Constructs an object setting all fields.
-  explicit ProductMessage(
-    const std::string& app_id,
-    const std::string& country_code,
-    int64_t page_size,
-    int64_t page_num,
-    const std::string& check_value);
+  explicit ProductMessage(const std::string& app_id,
+                          const std::string& country_code, int64_t page_size,
+                          int64_t page_num, const std::string& check_value);
 
   // Application ID.
   const std::string& app_id() const;
@@ -358,16 +363,19 @@ class ProductMessage {
 
   // Security check value. Required parameters = "appId" + "countryCode".
   // The check value is used by the DPI service to verify API requests.
-  // It is a Base64 hash generated by applying the HMAC SHA256 algorithm on a concatenated string of parameters using the DPI security key.
+  // It is a Base64 hash generated by applying the HMAC SHA256 algorithm on a
+  // concatenated string of parameters using the DPI security key.
   const std::string& check_value() const;
   void set_check_value(std::string_view value_arg);
 
   bool operator==(const ProductMessage& other) const;
   bool operator!=(const ProductMessage& other) const;
-  /// Returns a hash code value for the object. This method is supported for the benefit of hash tables.
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
   size_t Hash() const;
   /// Stream output operator for formatted string representation.
   friend std::ostream& operator<<(std::ostream& os, const ProductMessage& obj);
+
  private:
   static ProductMessage FromEncodableList(const ::flutter::EncodableList& list);
   ::flutter::EncodableList ToEncodableList() const;
@@ -380,23 +388,21 @@ class ProductMessage {
   std::string check_value_;
 };
 
-
 // Generated class from Pigeon that represents data sent in messages.
 class PurchaseMessage {
  public:
   // Constructs an object setting all fields.
-  explicit PurchaseMessage(
-    const std::string& app_id,
-    const std::string& custom_id,
-    const std::string& country_code,
-    int64_t page_num,
-    const std::string& check_value);
+  explicit PurchaseMessage(const std::string& app_id,
+                           const std::string& custom_id,
+                           const std::string& country_code, int64_t page_num,
+                           const std::string& check_value);
 
   // Application ID.
   const std::string& app_id() const;
   void set_app_id(std::string_view value_arg);
 
-  // Same value as "OrderCustomID" parameter for the BuyItem API (Samsung Account UID)
+  // Same value as "OrderCustomID" parameter for the BuyItem API (Samsung
+  // Account UID)
   const std::string& custom_id() const;
   void set_custom_id(std::string_view value_arg);
 
@@ -408,19 +414,23 @@ class PurchaseMessage {
   int64_t page_num() const;
   void set_page_num(int64_t value_arg);
 
-  // Security check value. Required parameters = "appId" + "customId" + "countryCode" + "ItemType" + "pageNumber".
-  // ItemType, MUST use 2 as value ("all items")
+  // Security check value. Required parameters = "appId" + "customId" +
+  // "countryCode" + "ItemType" + "pageNumber". ItemType, MUST use 2 as value
+  // ("all items")
   const std::string& check_value() const;
   void set_check_value(std::string_view value_arg);
 
   bool operator==(const PurchaseMessage& other) const;
   bool operator!=(const PurchaseMessage& other) const;
-  /// Returns a hash code value for the object. This method is supported for the benefit of hash tables.
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
   size_t Hash() const;
   /// Stream output operator for formatted string representation.
   friend std::ostream& operator<<(std::ostream& os, const PurchaseMessage& obj);
+
  private:
-  static PurchaseMessage FromEncodableList(const ::flutter::EncodableList& list);
+  static PurchaseMessage FromEncodableList(
+      const ::flutter::EncodableList& list);
   ::flutter::EncodableList ToEncodableList() const;
   friend class InAppPurchaseApi;
   friend class PigeonInternalCodecSerializer;
@@ -431,17 +441,15 @@ class PurchaseMessage {
   std::string check_value_;
 };
 
-
 // Generated class from Pigeon that represents data sent in messages.
 class OrderDetails {
  public:
   // Constructs an object setting all fields.
-  explicit OrderDetails(
-    const std::string& order_item_id,
-    const std::string& order_title,
-    const std::string& order_total,
-    const std::string& order_currency_id,
-    const std::string& order_custom_id);
+  explicit OrderDetails(const std::string& order_item_id,
+                        const std::string& order_title,
+                        const std::string& order_total,
+                        const std::string& order_currency_id,
+                        const std::string& order_custom_id);
 
   const std::string& order_item_id() const;
   void set_order_item_id(std::string_view value_arg);
@@ -460,10 +468,12 @@ class OrderDetails {
 
   bool operator==(const OrderDetails& other) const;
   bool operator!=(const OrderDetails& other) const;
-  /// Returns a hash code value for the object. This method is supported for the benefit of hash tables.
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
   size_t Hash() const;
   /// Stream output operator for formatted string representation.
   friend std::ostream& operator<<(std::ostream& os, const OrderDetails& obj);
+
  private:
   static OrderDetails FromEncodableList(const ::flutter::EncodableList& list);
   ::flutter::EncodableList ToEncodableList() const;
@@ -477,14 +487,12 @@ class OrderDetails {
   std::string order_custom_id_;
 };
 
-
 // Generated class from Pigeon that represents data sent in messages.
 class BuyInfoMessage {
  public:
   // Constructs an object setting all fields.
-  explicit BuyInfoMessage(
-    const std::string& app_id,
-    const OrderDetails& pay_detials);
+  explicit BuyInfoMessage(const std::string& app_id,
+                          const OrderDetails& pay_detials);
 
   ~BuyInfoMessage() = default;
   BuyInfoMessage(const BuyInfoMessage& other);
@@ -501,10 +509,12 @@ class BuyInfoMessage {
 
   bool operator==(const BuyInfoMessage& other) const;
   bool operator!=(const BuyInfoMessage& other) const;
-  /// Returns a hash code value for the object. This method is supported for the benefit of hash tables.
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
   size_t Hash() const;
   /// Stream output operator for formatted string representation.
   friend std::ostream& operator<<(std::ostream& os, const BuyInfoMessage& obj);
+
  private:
   static BuyInfoMessage FromEncodableList(const ::flutter::EncodableList& list);
   ::flutter::EncodableList ToEncodableList() const;
@@ -514,22 +524,21 @@ class BuyInfoMessage {
   std::unique_ptr<OrderDetails> pay_detials_;
 };
 
-
 // Generated class from Pigeon that represents data sent in messages.
 class InvoiceMessage {
  public:
   // Constructs an object setting all fields.
-  explicit InvoiceMessage(
-    const std::string& app_id,
-    const std::string& custom_id,
-    const std::string& invoice_id,
-    const std::string& country_code);
+  explicit InvoiceMessage(const std::string& app_id,
+                          const std::string& custom_id,
+                          const std::string& invoice_id,
+                          const std::string& country_code);
 
   // Application ID.
   const std::string& app_id() const;
   void set_app_id(std::string_view value_arg);
 
-  // Same value as "OrderCustomID" parameter for the BuyItem API (Samsung Account UID).
+  // Same value as "OrderCustomID" parameter for the BuyItem API (Samsung
+  // Account UID).
   const std::string& custom_id() const;
   void set_custom_id(std::string_view value_arg);
 
@@ -543,10 +552,12 @@ class InvoiceMessage {
 
   bool operator==(const InvoiceMessage& other) const;
   bool operator!=(const InvoiceMessage& other) const;
-  /// Returns a hash code value for the object. This method is supported for the benefit of hash tables.
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
   size_t Hash() const;
   /// Stream output operator for formatted string representation.
   friend std::ostream& operator<<(std::ostream& os, const InvoiceMessage& obj);
+
  private:
   static InvoiceMessage FromEncodableList(const ::flutter::EncodableList& list);
   ::flutter::EncodableList ToEncodableList() const;
@@ -558,8 +569,8 @@ class InvoiceMessage {
   std::string country_code_;
 };
 
-
-class PigeonInternalCodecSerializer : public ::flutter::StandardCodecSerializer {
+class PigeonInternalCodecSerializer
+    : public ::flutter::StandardCodecSerializer {
  public:
   PigeonInternalCodecSerializer();
   inline static PigeonInternalCodecSerializer& GetInstance() {
@@ -567,55 +578,60 @@ class PigeonInternalCodecSerializer : public ::flutter::StandardCodecSerializer 
     return sInstance;
   }
 
-  void WriteValue(
-    const ::flutter::EncodableValue& value,
-    ::flutter::ByteStreamWriter* stream) const override;
+  void WriteValue(const ::flutter::EncodableValue& value,
+                  ::flutter::ByteStreamWriter* stream) const override;
+
  protected:
   ::flutter::EncodableValue ReadValueOfType(
-    uint8_t type,
-    ::flutter::ByteStreamReader* stream) const override;
+      uint8_t type, ::flutter::ByteStreamReader* stream) const override;
 };
 
-// Generated interface from Pigeon that represents a handler of messages from Flutter.
+// Generated interface from Pigeon that represents a handler of messages from
+// Flutter.
 class InAppPurchaseApi {
  public:
   InAppPurchaseApi(const InAppPurchaseApi&) = delete;
   InAppPurchaseApi& operator=(const InAppPurchaseApi&) = delete;
   virtual ~InAppPurchaseApi() {}
+  virtual std::optional<FlutterError> Initialize() = 0;
   // Retrieves the list of products registered on the Billing (DPI) server.
   virtual void GetProductsList(
-    const ProductMessage& product,
-    std::function<void(ErrorOr<ProductsListApiResult> reply)> result) = 0;
+      const ProductMessage& product,
+      std::function<void(ErrorOr<ProductsListApiResult> reply)> result) = 0;
   // Retrieves the user's purchase list.
   virtual void GetUserPurchaseList(
-    const PurchaseMessage& purchase,
-    std::function<void(ErrorOr<GetUserPurchaseListAPIResult> reply)> result) = 0;
-  // Enables implementing the Samsung Checkout Client module within the application.
-  // After authenticating the purchase information through the application, the user can proceed to purchase payment.
+      const PurchaseMessage& purchase,
+      std::function<void(ErrorOr<GetUserPurchaseListAPIResult> reply)>
+          result) = 0;
+  // Enables implementing the Samsung Checkout Client module within the
+  // application. After authenticating the purchase information through the
+  // application, the user can proceed to purchase payment.
   virtual void BuyItem(
-    const BuyInfoMessage& buy_info,
-    std::function<void(ErrorOr<BillingBuyData> reply)> result) = 0;
-  // Checks whether a purchase, corresponding to a specific "InvoiceID", was successful.
+      const BuyInfoMessage& buy_info,
+      std::function<void(ErrorOr<BillingBuyData> reply)> result) = 0;
+  // Checks whether a purchase, corresponding to a specific "InvoiceID", was
+  // successful.
   virtual void VerifyInvoice(
-    const InvoiceMessage& invoice,
-    std::function<void(ErrorOr<VerifyInvoiceAPIResult> reply)> result) = 0;
+      const InvoiceMessage& invoice,
+      std::function<void(ErrorOr<VerifyInvoiceAPIResult> reply)> result) = 0;
   // Checks whether the Billing server is available.
-  virtual void IsServiceAvailable(std::function<void(ErrorOr<bool> reply)> result) = 0;
+  virtual void IsServiceAvailable(
+      std::function<void(ErrorOr<bool> reply)> result) = 0;
   virtual ErrorOr<std::string> GetCustomId() = 0;
   virtual ErrorOr<std::string> GetCountryCode() = 0;
 
   // The codec used by InAppPurchaseApi.
   static const ::flutter::StandardMessageCodec& GetCodec();
-  // Sets up an instance of `InAppPurchaseApi` to handle messages through the `binary_messenger`.
-  static void SetUp(
-    ::flutter::BinaryMessenger* binary_messenger,
-    InAppPurchaseApi* api);
-  static void SetUp(
-    ::flutter::BinaryMessenger* binary_messenger,
-    InAppPurchaseApi* api,
-    const std::string& message_channel_suffix);
+  // Sets up an instance of `InAppPurchaseApi` to handle messages through the
+  // `binary_messenger`.
+  static void SetUp(::flutter::BinaryMessenger* binary_messenger,
+                    InAppPurchaseApi* api);
+  static void SetUp(::flutter::BinaryMessenger* binary_messenger,
+                    InAppPurchaseApi* api,
+                    const std::string& message_channel_suffix);
   static ::flutter::EncodableValue WrapError(std::string_view error_message);
   static ::flutter::EncodableValue WrapError(const FlutterError& error);
+
  protected:
   InAppPurchaseApi() = default;
 };
