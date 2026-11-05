@@ -59,6 +59,4 @@ $ sdb dlog TEST  # Replace TEST with your log tag.
 
 ## Supported devices
 
-- All devices running Tizen 6.0 or later, except TV emulators (logs are not available)
-
-On TV devices, `Log.verbose` and `Log.debug` messages are not shown.
+- RPi devices running Tizen 6.0 or later
