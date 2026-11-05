@@ -196,8 +196,7 @@ void BillingManager::OnAvailable(const char *detail_result, void *user_data) {
     else
       self->is_available_callback_(false);
   } else {
-    self->is_available_callback_(
-        FlutterError("Invalid argument", "is_available_callback_ is null !"));
+    LOG_ERROR("[BillingManager] is_available_callback_ is null !");
   }
   self->is_available_callback_ = nullptr;
 }
@@ -267,8 +266,7 @@ void BillingManager::OnProducts(const char *detail_result, void *user_data) {
                                         check_value, item_details);
     self->get_product_list_callback_(products_list);
   } else {
-    self->get_product_list_callback_(FlutterError(
-        "Invalid argument", "get_product_list_callback_ is null !"));
+    LOG_ERROR("[BillingManager] get_product_list_callback_ is null !");
   }
   self->get_product_list_callback_ = nullptr;
 }
@@ -365,8 +363,7 @@ void BillingManager::OnPurchase(const char *detail_result, void *user_data) {
         cp_status, &cp_result, total_count, check_value, invoice_details);
     self->get_purchase_list_callback_(purchase_list);
   } else {
-    self->get_purchase_list_callback_(FlutterError(
-        "Invalid argument", "get_purchase_list_callback_ is null !"));
+    LOG_ERROR("[BillingManager] get_purchase_list_callback_ is null !");
   }
   self->get_purchase_list_callback_ = nullptr;
 }
@@ -410,8 +407,7 @@ bool BillingManager::OnBuyItem(const char *pay_result, const char *detail_info,
     BillingBuyData buy_data(pay_res, pay_details);
     self->buy_item_callback_(buy_data);
   } else {
-    self->buy_item_callback_(
-        FlutterError("Invalid argument", "buy_item_callback_ is null !"));
+    LOG_ERROR("[BillingManager] buy_item_callback_ is null !");
   }
   self->buy_item_callback_ = nullptr;
   return true;
@@ -442,8 +438,7 @@ void BillingManager::OnVerify(const char *detail_result, void *user_data) {
                                           invoice_id);
     self->verify_invoice_callback_(verify_invoice);
   } else {
-    self->verify_invoice_callback_(
-        FlutterError("Invalid argument", "verify_invoice_callback_ is null !"));
+    LOG_ERROR("[BillingManager] verify_invoice_callback_ is null !");
   }
   self->verify_invoice_callback_ = nullptr;
 }
