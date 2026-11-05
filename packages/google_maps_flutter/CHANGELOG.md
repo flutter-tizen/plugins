@@ -1,5 +1,7 @@
-## NEXT
+## 0.3.0
 
+* Update `webview_flutter_lwe` to ^0.6.0.
+* Increase the minimum Tizen version to 6.0.
 * Resolve `use_super_parameters` lint.
 * Omit obvious local variable types.
 * Reformat with a line length of 100.
