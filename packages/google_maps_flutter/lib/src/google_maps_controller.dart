@@ -613,7 +613,9 @@ class GoogleMapsController {
 
   Future<double> _getZoom() async {
     try {
-      return (await _callMethod('getZoom', <Object?>[]) as num) + 0.0;
+      // NOTE: Returns '' if called while the webview is being torn down.
+      final Object zoom = await _callMethod('getZoom', <Object?>[]);
+      return zoom is num ? zoom.toDouble() : 0.0;
     } catch (e) {
       debugPrint('JavaScript Error: $e');
       return 0.0;
