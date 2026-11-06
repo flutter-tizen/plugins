@@ -1,6 +1,9 @@
-## NEXT
+## 0.3.1
 
 - Fix a build error in debug mode on Tizen 11.0.
+- Replace superseded WV APIs with their new names.
+- Fix `loadData` and body-less `loadUrl` failing with the WV backend on
+  newer engines that reject NULL arguments.
 
 ## 0.3.0
 

@@ -110,7 +110,7 @@ typedef struct {
   void *body;
 } wv_script_message_s;
 
-typedef void (*wv_view_cb)(void *obj, void *event_info, void *user_data);
+typedef void (*wv_view_event_cb)(void *obj, void *event_info, void *user_data);
 typedef void (*wv_view_script_execute_cb)(void *view, const char *result_value,
                                           void *user_data);
 typedef void (*wv_view_script_message_cb)(void *view,
@@ -238,11 +238,12 @@ bool ftpw_webview_flutter_wv_view_mouse_events_enabled_set(void *view,
 bool ftpw_webview_flutter_wv_view_key_events_enabled_set(void *view,
                                                          bool enabled);
 void ftpw_webview_flutter_wv_view_ime_window_set(void *view, void *window);
-int ftpw_webview_flutter_wv_view_add_cb(void *view, const char *event,
-                                        wv_view_cb func, const void *user_data);
-int ftpw_webview_flutter_wv_view_remove_full_cb(void *view, const char *event,
-                                                wv_view_cb func,
-                                                const void *user_data);
+int ftpw_webview_flutter_wv_view_add_event_cb(void *view, const char *event,
+                                              wv_view_event_cb func,
+                                              const void *user_data);
+int ftpw_webview_flutter_wv_view_remove_event_cb(void *view, const char *event,
+                                                 wv_view_event_cb func,
+                                                 const void *user_data);
 int ftpw_webview_flutter_wv_view_javascript_alert_callback_set(
     void *view, wv_view_javascript_alert_cb callback, void *user_data);
 int ftpw_webview_flutter_wv_view_javascript_confirm_callback_set(
@@ -265,7 +266,7 @@ bool ftpw_webview_flutter_wv_view_main_frame_scrollbar_visible_set(
 void *ftpw_webview_flutter_wv_context_cookie_manager_get(void *context);
 int ftpw_webview_flutter_wv_context_cache_model_set(void *context);
 int ftpw_webview_flutter_wv_context_web_storage_delete_all(void *context);
-int ftpw_webview_flutter_wv_context_cache_clear(void *context);
+bool ftpw_webview_flutter_wv_context_resource_cache_clear(void *context);
 int ftpw_webview_flutter_wv_cookie_manager_accept_policy_set(void *manager);
 int ftpw_webview_flutter_wv_cookie_manager_cookies_clear(void *manager);
 void ftpw_webview_flutter_wv_cookie_manager_set_cookie_for_url(
