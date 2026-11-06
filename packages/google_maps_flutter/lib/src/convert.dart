@@ -19,7 +19,8 @@ Map<int, String> _mapTypeToMapTypeId = <int, String>{
 // Builds the raw map options map from a [MapConfiguration].
 //
 // This mirrors the platform interface's `jsonForMapConfiguration` helper
-// (which is not exported), plus [MapConfiguration.colorScheme].
+// (which is not exported), plus [MapConfiguration.colorScheme] and the web
+// control options.
 //
 // Intentionally omitted:
 // * `cloudMapId` — deprecated alias for `mapId`, which is already serialized.
@@ -53,6 +54,18 @@ Map<String, dynamic> _mapOptionsFromConfiguration(MapConfiguration config) {
     if (config.mapId != null) 'mapId': config.mapId,
     if (config.style != null) 'style': config.style,
     if (config.colorScheme != null) 'colorScheme': config.colorScheme!.index,
+    if (config.webGestureHandling != null) 'webGestureHandling': config.webGestureHandling!.name,
+    if (config.fortyFiveDegreeImageryEnabled != null)
+      'fortyFiveDegreeImageryEnabled': config.fortyFiveDegreeImageryEnabled,
+    if (config.webCameraControlEnabled != null)
+      'webCameraControlEnabled': config.webCameraControlEnabled,
+    if (config.webCameraControlPosition != null)
+      'webCameraControlPosition': config.webCameraControlPosition!.name,
+    if (config.mapTypeControlEnabled != null) 'mapTypeControlEnabled': config.mapTypeControlEnabled,
+    if (config.fullscreenControlEnabled != null)
+      'fullscreenControlEnabled': config.fullscreenControlEnabled,
+    if (config.streetViewControlEnabled != null)
+      'streetViewControlEnabled': config.streetViewControlEnabled,
   };
 }
 
@@ -89,9 +102,11 @@ String? _getCameraBounds(dynamic option) {
 // web buildingsEnabled seems to not have an equivalent in web padding seems to
 // behave differently in web than mobile. You can't move UI elements in web.
 String _rawOptionsToString(Map<String, dynamic> rawOptions) {
-  // These don't have any rawOptions entry, but they seem to be off in the
-  // native maps.
-  var options = 'mapTypeControl: false, fullscreenControl: false, streetViewControl: false';
+  // These are off by default in the native maps.
+  var options =
+      'mapTypeControl: ${rawOptions['mapTypeControlEnabled'] ?? false}'
+      ', fullscreenControl: ${rawOptions['fullscreenControlEnabled'] ?? false}'
+      ', streetViewControl: ${rawOptions['streetViewControlEnabled'] ?? false}';
 
   if (_mapTypeToMapTypeId.containsKey(rawOptions['mapType'])) {
     options += ", mapTypeId: '${_mapTypeToMapTypeId[rawOptions['mapType']]}'";
@@ -115,13 +130,31 @@ String _rawOptionsToString(Map<String, dynamic> rawOptions) {
     options += ', zoomControl: ${rawOptions['zoomControlsEnabled']}';
   }
 
+  if (rawOptions['webCameraControlEnabled'] != null) {
+    options += ', cameraControl: ${rawOptions['webCameraControlEnabled']}';
+  }
+
+  if (rawOptions['webCameraControlPosition'] != null) {
+    final String position = (rawOptions['webCameraControlPosition'] as String)
+        .replaceAllMapped(RegExp('[A-Z]'), (Match m) => '_${m[0]}')
+        .toUpperCase();
+    options += ', cameraControlOptions: { position: google.maps.ControlPosition.$position }';
+  }
+
+  if (rawOptions['fortyFiveDegreeImageryEnabled'] != null) {
+    options += ', rotateControl: ${rawOptions['fortyFiveDegreeImageryEnabled']}';
+  }
+
   if (rawOptions['style'] != null && (rawOptions['style'] as String).isNotEmpty) {
     options += ', styles: ${rawOptions['style']}';
   } else {
     options += ', styles: null';
   }
 
-  if (rawOptions['scrollGesturesEnabled'] == false || rawOptions['zoomGesturesEnabled'] == false) {
+  if (rawOptions['webGestureHandling'] != null) {
+    options += ", gestureHandling: '${rawOptions['webGestureHandling']}'";
+  } else if (rawOptions['scrollGesturesEnabled'] == false ||
+      rawOptions['zoomGesturesEnabled'] == false) {
     options += ", gestureHandling: 'none'";
   } else {
     options += ", gestureHandling: 'auto'";
@@ -223,14 +256,14 @@ LatLngBounds _convertToBounds(String value) {
     final dynamic bound = json.decode(value);
     if (bound is Map<String, dynamic>) {
       assert(
-        bound['south'] is double &&
-            bound['west'] is double &&
-            bound['north'] is double &&
-            bound['east'] is double,
+        bound['south'] is num &&
+            bound['west'] is num &&
+            bound['north'] is num &&
+            bound['east'] is num,
       );
       return LatLngBounds(
-        southwest: LatLng(bound['south'] as double, bound['west'] as double),
-        northeast: LatLng(bound['north'] as double, bound['east'] as double),
+        southwest: LatLng((bound['south'] as num).toDouble(), (bound['west'] as num).toDouble()),
+        northeast: LatLng((bound['north'] as num).toDouble(), (bound['east'] as num).toDouble()),
       );
     }
   } catch (e) {
@@ -373,7 +406,8 @@ util.GPolylineOptions _polylineOptionsFromPolyline(Polyline polyline) {
     ..strokeOpacity = _getCssOpacity(polyline.color)
     ..visible = polyline.visible
     ..zIndex = polyline.zIndex
-    ..geodesic = polyline.geodesic;
+    ..geodesic = polyline.geodesic
+    ..clickable = polyline.consumeTapEvents;
 }
 
 util.GPolygonOptions _polygonOptionsFromPolygon(Polygon polygon) {
@@ -405,7 +439,8 @@ util.GPolygonOptions _polygonOptionsFromPolygon(Polygon polygon) {
     ..fillOpacity = _getCssOpacity(polygon.fillColor)
     ..visible = polygon.visible
     ..zIndex = polygon.zIndex
-    ..geodesic = polygon.geodesic;
+    ..geodesic = polygon.geodesic
+    ..clickable = polygon.consumeTapEvents;
 }
 
 /// Calculates the direction of a given Polygon
@@ -440,7 +475,8 @@ util.GCircleOptions _circleOptionsFromCircle(Circle circle) {
     ..center = LatLng(circle.center.latitude, circle.center.longitude)
     ..radius = circle.radius
     ..visible = circle.visible
-    ..zIndex = circle.zIndex;
+    ..zIndex = circle.zIndex
+    ..clickable = circle.consumeTapEvents;
 }
 
 util.GGroundOverlayOptions? _groundOverlayOptionsFromGroundOverlay(GroundOverlay groundOverlay) {

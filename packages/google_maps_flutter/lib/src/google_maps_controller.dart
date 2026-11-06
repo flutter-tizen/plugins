@@ -37,6 +37,7 @@ class GoogleMapsController {
     _clusterManagersController = ClusterManagersController(
       stream: _streamController,
       bridge: _bridge,
+      markerIdForId: (int id) => _markersController?._idToMarkerId[id],
     );
     _markersController = MarkersController(
       stream: _streamController,
@@ -139,9 +140,9 @@ class GoogleMapsController {
         case MapsJsEventType.boundsChanged:
           await _onBoundsChanged();
         case MapsJsEventType.idle:
-          _onIdle();
+          await _onIdle();
         case MapsJsEventType.tilesLoaded:
-          _onTilesloaded();
+          _onMapReady();
         case MapsJsEventType.click:
           _onClick(event.message!);
         case MapsJsEventType.longPress:
@@ -215,14 +216,26 @@ class GoogleMapsController {
     }
   }
 
-  void _onIdle() {
+  Future<void> _onIdle() async {
     _mapIsMoving = false;
     _streamController.add(CameraIdleEvent(_mapId));
+    // NOTE: `tilesloaded` never fires if a tile request stalls or fails.
+    // See https://github.com/flutter/flutter/issues/193452.
+    if (!_isFirst && await _isMapLaidOut()) {
+      _onMapReady();
+    }
   }
 
-  void _onTilesloaded() {
+  Future<bool> _isMapLaidOut() async {
+    final Object value = await _bridge.runJavaScriptReturningResult(
+      'map.getDiv().offsetWidth > 0 && map.getDiv().offsetHeight > 0',
+    );
+    return value.toString() == 'true';
+  }
+
+  void _onMapReady() {
     try {
-      if (_isFirst) {
+      if (_isFirst || _streamController.isClosed) {
         return;
       }
       _streamController.add(MapReadyEvent(_mapId));
@@ -237,7 +250,10 @@ class GoogleMapsController {
       final dynamic event = json.decode(message);
       if (event is Map<String, dynamic>) {
         assert(event['latLng'] != null);
-        final position = LatLng(event['latLng']['lat'] as double, event['latLng']['lng'] as double);
+        final position = LatLng(
+          (event['latLng']['lat'] as num).toDouble(),
+          (event['latLng']['lng'] as num).toDouble(),
+        );
         _streamController.add(MapTapEvent(_mapId, position));
       }
     } catch (e) {
@@ -250,7 +266,10 @@ class GoogleMapsController {
       final dynamic event = json.decode(message);
       if (event is Map<String, dynamic>) {
         assert(event['latLng'] != null);
-        final position = LatLng(event['latLng']['lat'] as double, event['latLng']['lng'] as double);
+        final position = LatLng(
+          (event['latLng']['lat'] as num).toDouble(),
+          (event['latLng']['lng'] as num).toDouble(),
+        );
         _streamController.add(MapLongPressEvent(_mapId, position));
       }
     } catch (e) {
@@ -302,8 +321,8 @@ class GoogleMapsController {
           final MarkerController? marker = _markersController!._markerIdToController[markerId];
 
           final position = LatLng(
-            result['event']['latLng']['lat'] as double,
-            result['event']['latLng']['lng'] as double,
+            (result['event']['latLng']['lat'] as num).toDouble(),
+            (result['event']['latLng']['lng'] as num).toDouble(),
           );
 
           if (marker?.dragStartEvent != null) {
@@ -326,8 +345,8 @@ class GoogleMapsController {
           final MarkerController? marker = _markersController!._markerIdToController[markerId];
 
           final position = LatLng(
-            result['event']['latLng']['lat'] as double,
-            result['event']['latLng']['lng'] as double,
+            (result['event']['latLng']['lat'] as num).toDouble(),
+            (result['event']['latLng']['lng'] as num).toDouble(),
           );
 
           if (marker?.dragEvent != null) {
@@ -350,8 +369,8 @@ class GoogleMapsController {
           final MarkerController? marker = _markersController!._markerIdToController[markerId];
 
           final position = LatLng(
-            result['event']['latLng']['lat'] as double,
-            result['event']['latLng']['lng'] as double,
+            (result['event']['latLng']['lat'] as num).toDouble(),
+            (result['event']['latLng']['lng'] as num).toDouble(),
           );
 
           if (marker?.dragEndEvent != null) {
@@ -433,7 +452,13 @@ class GoogleMapsController {
   ///
   /// Failure to call this method would result in not rendering at all,
   /// and most of the public methods on this class no-op'ing.
-  Future<void> init() async {
+  ///
+  /// Later calls return the same future.
+  Future<void> init() => _initFuture ??= _init();
+
+  Future<void>? _initFuture;
+
+  Future<void> _init() async {
     if (_webview == null && !_streamController.isClosed) {
       _getWebview();
       if (!await _bridge.load()) {
@@ -445,6 +470,8 @@ class GoogleMapsController {
       await _createMap();
     }
     await _attachGeometryControllers();
+    _initClustering(_clusterManagers);
+
     _renderInitialGeometry(
       markers: _markers,
       circles: _circles,
@@ -452,8 +479,6 @@ class GoogleMapsController {
       polylines: _polylines,
       groundOverlays: _groundOverlays,
     );
-
-    _initClustering(_clusterManagers);
 
     await _setTrafficLayer(_isTrafficLayerEnabled(_rawMapOptions));
   }
@@ -588,7 +613,9 @@ class GoogleMapsController {
 
   Future<double> _getZoom() async {
     try {
-      return (await _callMethod('getZoom', <Object?>[]) as num) + 0.0;
+      // NOTE: Returns '' if called while the webview is being torn down.
+      final Object zoom = await _callMethod('getZoom', <Object?>[]);
+      return zoom is num ? zoom.toDouble() : 0.0;
     } catch (e) {
       debugPrint('JavaScript Error: $e');
       return 0.0;
