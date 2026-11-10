@@ -1,3 +1,7 @@
+## NEXT
+
+* Bind the integration test server to the loopback address.
+
 ## 0.6.0
 
 * Update lightweight web engine (1.5.11).
