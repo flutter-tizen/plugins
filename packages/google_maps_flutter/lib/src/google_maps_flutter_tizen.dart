@@ -53,6 +53,12 @@ class GoogleMapsPlugin extends GoogleMapsFlutterPlatform {
     _map(mapId).updateRawOptions(optionsUpdate);
   }
 
+  /// Updates the configuration of a given `mapId`.
+  @override
+  Future<void> updateMapConfiguration(MapConfiguration configuration, {required int mapId}) async {
+    _map(mapId).updateRawOptions(_mapOptionsFromConfiguration(configuration));
+  }
+
   /// Applies the passed in `markerUpdates` to the `mapId`.
   @override
   Future<void> updateMarkers(MarkerUpdates markerUpdates, {required int mapId}) async {
@@ -289,6 +295,7 @@ class GoogleMapsPlugin extends GoogleMapsFlutterPlatform {
       polygons: mapObjects.polygons,
       polylines: mapObjects.polylines,
       circles: mapObjects.circles,
+      clusterManagers: mapObjects.clusterManagers,
       groundOverlays: mapObjects.groundOverlays,
       gestureRecognizers: widgetConfiguration.gestureRecognizers,
       mapOptions: _mapOptionsFromConfiguration(mapConfiguration),
@@ -330,6 +337,7 @@ class GoogleMapsPlugin extends GoogleMapsFlutterPlatform {
     Set<Polygon> polygons = const <Polygon>{},
     Set<Polyline> polylines = const <Polyline>{},
     Set<Circle> circles = const <Circle>{},
+    Set<ClusterManager> clusterManagers = const <ClusterManager>{},
     Set<GroundOverlay> groundOverlays = const <GroundOverlay>{},
     Set<Factory<OneSequenceGestureRecognizer>>? gestureRecognizers =
         const <Factory<OneSequenceGestureRecognizer>>{},
@@ -350,6 +358,7 @@ class GoogleMapsPlugin extends GoogleMapsFlutterPlatform {
       polygons: polygons,
       polylines: polylines,
       circles: circles,
+      clusterManagers: clusterManagers,
       groundOverlays: groundOverlays,
       mapOptions: mapOptions,
     )..init(); // Initialize the controller
