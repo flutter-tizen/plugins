@@ -1,5 +1,6 @@
-## NEXT
+## 0.2.0
 
+* Migrate from platform channels to Dart FFI using the pigeon C++ FFI generator (git ref 1e63f1b5).
 * Apply clang-format-16 formatting.
 
 ## 0.1.9
