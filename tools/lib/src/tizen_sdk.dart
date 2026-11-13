@@ -198,6 +198,19 @@ class TizenSdk {
       .childDirectory('bin')
       .childFile(io.Platform.isWindows ? 'em-cli.bat' : 'em-cli');
 
+  /// Tizen SDK's data directory (`TIZEN_SDK_DATA_PATH` in `sdk.info`).
+  ///
+  /// Returns `null` if it cannot be found.
+  Directory? get sdkDataDir {
+    final File sdkInfo = _sdkRoot.childFile('sdk.info');
+    if (!sdkInfo.existsSync()) {
+      return null;
+    }
+    final String? path =
+        RegExp(r'TIZEN_SDK_DATA_PATH=(.*)').firstMatch(sdkInfo.readAsStringSync())?.group(1);
+    return path == null ? null : _sdkRoot.fileSystem.directory(path.trim());
+  }
+
   /// Returns information of all connected devices.
   List<SdbDeviceInfo> sdbDevices() {
     final io.ProcessResult result = _processRunner.runSync(sdb.path, <String>['devices']);

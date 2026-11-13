@@ -134,23 +134,22 @@ class Device {
     final Stream<String> streamLines =
         process.stdout.transform(const Utf8Decoder()).transform(const LineSplitter());
 
-    final Future<int> timedExitCode = process.exitCode.timeout(
-      timeout,
-      onTimeout: () {
-        timedOut = true;
-        return 1;
-      },
-    );
-
     var lastLine = '';
-    final completer = Completer<int>();
-    streamLines.listen((String line) {
+    final completer = Completer<void>();
+    final StreamSubscription<String> subscription = streamLines.listen((String line) {
       lastLine = line;
       print(line);
-    }, onDone: () async => completer.complete(await timedExitCode));
+    }, onDone: completer.complete);
     // Waits for the done event as finishing `Process.exitCode` future does not
     // guarantee that all buffered outputs of the process have returned.
-    await completer.future;
+    await completer.future.timeout(
+      timeout,
+      onTimeout: () async {
+        timedOut = true;
+        process.kill(io.ProcessSignal.sigkill);
+        await subscription.cancel();
+      },
+    );
 
     String? error;
     if (timedOut) {
@@ -253,6 +252,28 @@ class EmulatorDevice extends Device {
           platform,
         ],
         exitOnError: true);
+    _disableHostProxy();
+  }
+
+  /// Stops em-cli from passing the host's proxy settings to this emulator.
+  void _disableHostProxy() {
+    final File? vmConfig = _tizenSdk.sdkDataDir
+        ?.childDirectory('emulator')
+        .childDirectory('vms')
+        .childDirectory(name)
+        .childFile('vm_config.xml');
+    if (vmConfig == null || !vmConfig.existsSync()) {
+      print('Warning: vm_config.xml of $name not found, the host proxy may be used.');
+      return;
+    }
+    final String config = vmConfig.readAsStringSync();
+    final String updated =
+        config.replaceAll('name="proxyMode" value="auto"', 'name="proxyMode" value="manual"');
+    if (updated == config) {
+      print('Warning: proxyMode not found in ${vmConfig.path}, the host proxy may be used.');
+      return;
+    }
+    vmConfig.writeAsStringSync(updated);
   }
 
   /// Grants all privacy-related permissions to apps by default.
