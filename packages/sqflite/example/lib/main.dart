@@ -223,9 +223,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
           // await Navigator.of(context).pushNamed(testExpRoute);
           // await Navigator.of(context).pushNamed(testRawRoute);
-          final future = Navigator.of(
-            context,
-          ).pushNamed(debugAutoStartRouteName!);
+          final future = Navigator.of(context)
+              .pushNamed(debugAutoStartRouteName!);
           // ignore: deprecated_member_use_from_same_package
           debugAutoStartRouteName = null;
           await future;

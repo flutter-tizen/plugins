@@ -21,9 +21,8 @@ void main() {
         //await devVerbose();
         final path = join('test_missing_sub_dir', 'simple.db');
         try {
-          await Directory(
-            join(await getDatabasesPath(), dirname(path)),
-          ).delete(recursive: true);
+          await Directory(join(await getDatabasesPath(), dirname(path)))
+              .delete(recursive: true);
         } catch (_) {}
         Database? db;
         try {
