@@ -5,6 +5,8 @@ linter:
     - public_member_api_docs
 
 analyzer:
+  errors:
+    deprecated_member_use: ignore
   exclude:
     - 'build/**'
     - 'android/**'

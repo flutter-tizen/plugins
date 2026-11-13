@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:sqflite_tizen_example/batch_test_page.dart';
 import 'package:sqflite_tizen_example/deprecated_test_page.dart';
 import 'package:sqflite_tizen_example/exception_test_page.dart';
@@ -223,9 +223,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
           // await Navigator.of(context).pushNamed(testExpRoute);
           // await Navigator.of(context).pushNamed(testRawRoute);
-          final future = Navigator.of(
-            context,
-          ).pushNamed(debugAutoStartRouteName!);
+          final future = Navigator.of(context)
+              .pushNamed(debugAutoStartRouteName!);
           // ignore: deprecated_member_use_from_same_package
           debugAutoStartRouteName = null;
           await future;

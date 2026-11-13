@@ -5,6 +5,8 @@ linter:
     do_not_use_environment: false
 
 analyzer:
+  errors:
+    deprecated_member_use: ignore
   exclude:
     - 'build/**'
     - 'android/**'

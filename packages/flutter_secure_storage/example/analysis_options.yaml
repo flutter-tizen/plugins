@@ -1,6 +1,8 @@
 include: package:very_good_analysis/analysis_options.yaml
 
 analyzer:
+  errors:
+    deprecated_member_use: ignore
   exclude:
     - 'build/**'
     - 'android/**'

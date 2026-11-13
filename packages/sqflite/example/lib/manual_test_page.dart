@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:path/path.dart' hide context;
 import 'package:sqflite/sqflite.dart';
 // ignore: implementation_imports
@@ -144,24 +144,21 @@ class _ManualTestPageState extends State<ManualTestPage> {
           final db = await _openDatabase();
           await db.execute('BEGIN EXCLUSIVE');
         },
-        summary:
-            'Execute than exit or hot-restart the application. Open the database if needed',
+        summary: 'Execute than exit or hot-restart the application. Open the database if needed',
       ),
       SqfMenuItem(
         'close',
         () async {
           await _closeDatabase();
         },
-        summary:
-            'Execute after starting then exit the app using the back button on Android and restart from the launcher.',
+        summary: 'Execute after starting then exit the app using the back button on Android and restart from the launcher.',
       ),
       SqfMenuItem(
         'delete',
         () async {
           await _deleteDatabase();
         },
-        summary:
-            'Try open (then optionally) delete, exit or hot-restart then delete then open',
+        summary: 'Try open (then optionally) delete, exit or hot-restart then delete then open',
       ),
       SqfMenuItem('log level: none', () async {
         // ignore: deprecated_member_use
@@ -234,9 +231,8 @@ class _ManualTestPageState extends State<ManualTestPage> {
 
       var ok = (await getValue(id)).length == blob.length;
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('$size: $ok')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$size: $ok')));
       }
     } finally {
       await db.close();
