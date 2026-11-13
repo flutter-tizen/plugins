@@ -31,6 +31,10 @@ void main() {
 
     const timeoutLimit = Duration(seconds: 3);
 
+    setUpAll(() {
+      registerFallbackValue(ProcessSignal.sigkill);
+    });
+
     setUp(() {
       processRunner = MockProcessRunner();
       fileSystem = MemoryFileSystem();
@@ -40,6 +44,7 @@ void main() {
       when(() => process.stdout)
           .thenAnswer((_) => controller.stream.map<List<int>>((String event) => event.codeUnits));
       when(() => process.exitCode).thenAnswer((_) => completer.future);
+      when(() => process.kill(any())).thenReturn(true);
       when(() =>
               processRunner.start(any(), any(), workingDirectory: any(named: 'workingDirectory')))
           .thenAnswer((_) => Future<Process>(() => process));
@@ -60,18 +65,14 @@ void main() {
     });
 
     test('fails when integration test takes longer than timeout.', () async {
-      // Simulates closing the stdout stream of a child process when it exits
-      // from [Process.exitCode].
-      // TODO(HakkyuKim): Properly handle this from a mock class.
-      Future<void>.delayed(Duration(seconds: timeoutLimit.inSeconds + 1), () {
-        controller.close();
-      });
+      // stdout is never closed, as with a hung test.
       final String? error = await device.runIntegrationTest(
         fileSystem.systemTempDirectory,
         timeoutLimit,
       );
       expect(error, isNotNull);
       expect(error!.contains('Timeout expired'), true);
+      verify(() => process.kill(ProcessSignal.sigkill)).called(1);
     });
 
     test('correctly parses log "No tests ran"', () async {
