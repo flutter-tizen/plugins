@@ -198,7 +198,10 @@ class GoogleMapsJsBridge {
       map = new google.maps.Map(document.getElementById('map'), $optionsJs);
       map.addListener('bounds_changed', (event) => { BoundChanged.postMessage(''); });
       map.addListener('idle', (event) => { Idle.postMessage(''); });
-      map.addListener('click', (event) => { Click.postMessage(JSON.stringify(event)); });
+      map.addListener('click', (event) => {
+        if (event.placeId) { event.stop(); }
+        Click.postMessage(JSON.stringify(event));
+      });
       map.addListener('tilesloaded', (evnet) => { Tilesloaded.postMessage(''); });
 
       let longPressTimeout;
