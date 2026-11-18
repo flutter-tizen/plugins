@@ -92,6 +92,53 @@ void addDefaultAudioConstraints(
   audioConstraints->AddOptionalConstraint("googDAEchoCancellation", "true");
 }
 
+static bool getAudioProcessingFlag(const EncodableMap& audioMap,
+                                   const std::vector<std::string>& keys,
+                                   bool defaultValue) {
+  auto readBoolValue = [](const EncodableValue& v, bool def) -> bool {
+    if (TypeIs<bool>(v)) return GetValue<bool>(v);
+    if (TypeIs<std::string>(v)) {
+      const std::string& s = GetValue<std::string>(v);
+      if (s == "true") return true;
+      if (s == "false") return false;
+    }
+    return def;
+  };
+
+  for (const std::string& key : keys) {
+    auto it = audioMap.find(EncodableValue(key));
+    if (it != audioMap.end()) {
+      return readBoolValue(it->second, defaultValue);
+    }
+
+    auto mandatoryIt = audioMap.find(EncodableValue("mandatory"));
+    if (mandatoryIt != audioMap.end() &&
+        TypeIs<EncodableMap>(mandatoryIt->second)) {
+      const EncodableMap& mandatory =
+          GetValue<EncodableMap>(mandatoryIt->second);
+      auto mit = mandatory.find(EncodableValue(key));
+      if (mit != mandatory.end()) {
+        return readBoolValue(mit->second, defaultValue);
+      }
+    }
+
+    auto optionalIt = audioMap.find(EncodableValue("optional"));
+    if (optionalIt != audioMap.end() &&
+        TypeIs<EncodableList>(optionalIt->second)) {
+      const EncodableList& list = GetValue<EncodableList>(optionalIt->second);
+      for (const EncodableValue& item : list) {
+        if (!TypeIs<EncodableMap>(item)) continue;
+        const EncodableMap& entry = GetValue<EncodableMap>(item);
+        auto eit = entry.find(EncodableValue(key));
+        if (eit != entry.end()) {
+          return readBoolValue(eit->second, defaultValue);
+        }
+      }
+    }
+  }
+  return defaultValue;
+}
+
 std::string getSourceIdConstraint(const EncodableMap& mediaConstraints) {
   auto it = mediaConstraints.find(EncodableValue("optional"));
   if (it != mediaConstraints.end() && TypeIs<EncodableList>(it->second)) {
@@ -122,6 +169,7 @@ void FlutterMediaStream::GetUserAudio(const EncodableMap& constraints,
                                       EncodableMap& params) {
   bool enable_audio = false;
   scoped_refptr<RTCMediaConstraints> audioConstraints;
+  RTCAudioOptions audio_options;
   std::string sourceId;
   std::string deviceId;
   auto it = constraints.find(EncodableValue("audio"));
@@ -133,6 +181,10 @@ void FlutterMediaStream::GetUserAudio(const EncodableMap& constraints,
       enable_audio = GetValue<bool>(audio);
       sourceId = "";
       deviceId = "";
+      audio_options.echo_cancellation = true;
+      audio_options.noise_suppression = true;
+      audio_options.auto_gain_control = true;
+      audio_options.highpass_filter = false;
     }
     if (TypeIs<EncodableMap>(audio)) {
       EncodableMap localMap = GetValue<EncodableMap>(audio);
@@ -140,6 +192,14 @@ void FlutterMediaStream::GetUserAudio(const EncodableMap& constraints,
       deviceId = getDeviceIdConstraint(localMap);
       audioConstraints = base_->ParseMediaConstraints(localMap);
       enable_audio = true;
+      audio_options.echo_cancellation = getAudioProcessingFlag(
+          localMap, {"echoCancellation", "googEchoCancellation"}, true);
+      audio_options.noise_suppression = getAudioProcessingFlag(
+          localMap, {"noiseSuppression", "googNoiseSuppression"}, true);
+      audio_options.auto_gain_control = getAudioProcessingFlag(
+          localMap, {"autoGainControl", "googAutoGainControl"}, true);
+      audio_options.highpass_filter = getAudioProcessingFlag(
+          localMap, {"highpassFilter", "googHighpassFilter"}, false);
     }
   }
 
@@ -180,8 +240,8 @@ void FlutterMediaStream::GetUserAudio(const EncodableMap& constraints,
       }
     }
 
-    scoped_refptr<RTCAudioSource> source =
-        base_->factory_->CreateAudioSource("audio_input");
+    scoped_refptr<RTCAudioSource> source = base_->factory_->CreateAudioSource(
+        "audio_input", RTCAudioSource::SourceType::kMicrophone, audio_options);
     std::string uuid = base_->GenerateUUID();
     scoped_refptr<RTCAudioTrack> track =
         base_->factory_->CreateAudioTrack(source, uuid.c_str());
@@ -200,9 +260,12 @@ void FlutterMediaStream::GetUserAudio(const EncodableMap& constraints,
     settings[EncodableValue("deviceId")] =
         EncodableValue(SanitizeUtf8ForFlutter(sourceId));
     settings[EncodableValue("kind")] = EncodableValue("audioinput");
-    settings[EncodableValue("autoGainControl")] = EncodableValue(true);
-    settings[EncodableValue("echoCancellation")] = EncodableValue(true);
-    settings[EncodableValue("noiseSuppression")] = EncodableValue(true);
+    settings[EncodableValue("autoGainControl")] =
+        EncodableValue(audio_options.auto_gain_control);
+    settings[EncodableValue("echoCancellation")] =
+        EncodableValue(audio_options.echo_cancellation);
+    settings[EncodableValue("noiseSuppression")] =
+        EncodableValue(audio_options.noise_suppression);
     settings[EncodableValue("channelCount")] = EncodableValue(1);
     settings[EncodableValue("latency")] = EncodableValue(0);
     track_info[EncodableValue("settings")] = EncodableValue(settings);

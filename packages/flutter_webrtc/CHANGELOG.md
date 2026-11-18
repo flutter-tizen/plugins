@@ -1,3 +1,7 @@
+## 0.2.7
+
+* Apply `echoCancellation`, `noiseSuppression` and `autoGainControl` audio constraints.
+
 ## 0.2.6
 
 * Fix a data race on the data channel observer map between the signaling thread and the platform thread.
