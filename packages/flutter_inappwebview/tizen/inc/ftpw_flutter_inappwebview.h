@@ -123,7 +123,7 @@ typedef struct {
   const char* device_name;
 } wv_key_event_s;
 
-typedef void (*wv_view_cb)(void* obj, void* event_info, void* user_data);
+typedef void (*wv_view_event_cb)(void* obj, void* event_info, void* user_data);
 typedef void (*wv_view_script_execute_cb)(void* view, const char* result_value,
                                           void* user_data);
 typedef bool (*wv_view_javascript_alert_cb)(void* view, const char* alert_text,
@@ -247,13 +247,14 @@ bool ftpw_flutter_inappwebview_wv_view_mouse_events_enabled_set(void* view,
 bool ftpw_flutter_inappwebview_wv_view_key_events_enabled_set(void* view,
                                                               bool enabled);
 void ftpw_flutter_inappwebview_wv_view_ime_window_set(void* view, void* window);
-int ftpw_flutter_inappwebview_wv_view_add_cb(void* view, const char* event,
-                                             wv_view_cb func,
-                                             const void* user_data);
-int ftpw_flutter_inappwebview_wv_view_remove_full_cb(void* view,
-                                                     const char* event,
-                                                     wv_view_cb func,
-                                                     const void* user_data);
+int ftpw_flutter_inappwebview_wv_view_add_event_cb(void* view,
+                                                   const char* event,
+                                                   wv_view_event_cb func,
+                                                   const void* user_data);
+int ftpw_flutter_inappwebview_wv_view_remove_event_cb(void* view,
+                                                      const char* event,
+                                                      wv_view_event_cb func,
+                                                      const void* user_data);
 int ftpw_flutter_inappwebview_wv_view_javascript_alert_callback_set(
     void* view, wv_view_javascript_alert_cb callback, void* user_data);
 int ftpw_flutter_inappwebview_wv_view_javascript_confirm_callback_set(
@@ -272,7 +273,7 @@ bool ftpw_flutter_inappwebview_wv_view_main_frame_scrollbar_visible_set(
 void* ftpw_flutter_inappwebview_wv_context_cookie_manager_get(void* context);
 bool ftpw_flutter_inappwebview_wv_context_cache_model_set(
     void* context, wv_cache_model_e model);
-bool ftpw_flutter_inappwebview_wv_context_cache_clear(void* context);
+bool ftpw_flutter_inappwebview_wv_context_resource_cache_clear(void* context);
 void ftpw_flutter_inappwebview_wv_cookie_manager_accept_policy_set(
     void* manager, wv_cookie_accept_policy_e policy);
 void ftpw_flutter_inappwebview_wv_cookie_manager_cookies_clear(void* manager);

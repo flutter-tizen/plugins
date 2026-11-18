@@ -1,7 +1,10 @@
-## NEXT
+## 0.12.1
 
 * Increase the minimum Tizen version to 6.0.
 * Fix a build error in debug mode on Tizen 11.0.
+* Replace superseded WV APIs with their new names.
+* Fix `loadHtmlString` and body-less `loadRequest` failing with the WV backend on
+  newer engines that reject NULL arguments.
 
 ## 0.12.0
 

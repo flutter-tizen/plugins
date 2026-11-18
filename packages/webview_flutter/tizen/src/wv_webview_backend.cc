@@ -152,26 +152,27 @@ bool WvWebViewBackend::Create(double width, double height, void* window,
                                                       false);
 #endif
 
-  ftpw_webview_flutter_wv_view_add_cb(view_, "offscreen,frame,rendered",
-                                      &WvWebViewBackend::OnFrameRendered, this);
-  ftpw_webview_flutter_wv_view_add_cb(view_, "load,started",
-                                      &WvWebViewBackend::OnLoadStarted, this);
-  ftpw_webview_flutter_wv_view_add_cb(view_, "load,finished",
-                                      &WvWebViewBackend::OnLoadFinished, this);
-  ftpw_webview_flutter_wv_view_add_cb(view_, "load,progress",
-                                      &WvWebViewBackend::OnProgress, this);
-  ftpw_webview_flutter_wv_view_add_cb(view_, "load,error",
-                                      &WvWebViewBackend::OnLoadError, this);
-  ftpw_webview_flutter_wv_view_add_cb(
+  ftpw_webview_flutter_wv_view_add_event_cb(view_, "offscreen,frame,rendered",
+                                            &WvWebViewBackend::OnFrameRendered,
+                                            this);
+  ftpw_webview_flutter_wv_view_add_event_cb(
+      view_, "load,started", &WvWebViewBackend::OnLoadStarted, this);
+  ftpw_webview_flutter_wv_view_add_event_cb(
+      view_, "load,finished", &WvWebViewBackend::OnLoadFinished, this);
+  ftpw_webview_flutter_wv_view_add_event_cb(
+      view_, "load,progress", &WvWebViewBackend::OnProgress, this);
+  ftpw_webview_flutter_wv_view_add_event_cb(
+      view_, "load,error", &WvWebViewBackend::OnLoadError, this);
+  ftpw_webview_flutter_wv_view_add_event_cb(
       view_, "console,message", &WvWebViewBackend::OnConsoleMessage, this);
-  ftpw_webview_flutter_wv_view_add_cb(view_, "policy,navigation,decide",
-                                      &WvWebViewBackend::OnNavigationPolicy,
-                                      this);
-  ftpw_webview_flutter_wv_view_add_cb(view_, "policy,response,decide",
-                                      &WvWebViewBackend::OnResponsePolicy,
-                                      this);
-  ftpw_webview_flutter_wv_view_add_cb(view_, "url,changed",
-                                      &WvWebViewBackend::OnUrlChange, this);
+  ftpw_webview_flutter_wv_view_add_event_cb(
+      view_, "policy,navigation,decide", &WvWebViewBackend::OnNavigationPolicy,
+      this);
+  ftpw_webview_flutter_wv_view_add_event_cb(view_, "policy,response,decide",
+                                            &WvWebViewBackend::OnResponsePolicy,
+                                            this);
+  ftpw_webview_flutter_wv_view_add_event_cb(
+      view_, "url,changed", &WvWebViewBackend::OnUrlChange, this);
 
   ftpw_webview_flutter_wv_view_resize(view_,
                                       static_cast<int>(std::round(width)),
@@ -192,26 +193,26 @@ std::function<void()> WvWebViewBackend::PrepareTeardown(
 
   std::function<void()> destroy;
   if (instance) {
-    ftpw_webview_flutter_wv_view_remove_full_cb(
+    ftpw_webview_flutter_wv_view_remove_event_cb(
         instance, "offscreen,frame,rendered",
         &WvWebViewBackend::OnFrameRendered, this);
-    ftpw_webview_flutter_wv_view_remove_full_cb(
+    ftpw_webview_flutter_wv_view_remove_event_cb(
         instance, "load,started", &WvWebViewBackend::OnLoadStarted, this);
-    ftpw_webview_flutter_wv_view_remove_full_cb(
+    ftpw_webview_flutter_wv_view_remove_event_cb(
         instance, "load,finished", &WvWebViewBackend::OnLoadFinished, this);
-    ftpw_webview_flutter_wv_view_remove_full_cb(
+    ftpw_webview_flutter_wv_view_remove_event_cb(
         instance, "load,progress", &WvWebViewBackend::OnProgress, this);
-    ftpw_webview_flutter_wv_view_remove_full_cb(
+    ftpw_webview_flutter_wv_view_remove_event_cb(
         instance, "load,error", &WvWebViewBackend::OnLoadError, this);
-    ftpw_webview_flutter_wv_view_remove_full_cb(
+    ftpw_webview_flutter_wv_view_remove_event_cb(
         instance, "console,message", &WvWebViewBackend::OnConsoleMessage, this);
-    ftpw_webview_flutter_wv_view_remove_full_cb(
+    ftpw_webview_flutter_wv_view_remove_event_cb(
         instance, "policy,navigation,decide",
         &WvWebViewBackend::OnNavigationPolicy, this);
-    ftpw_webview_flutter_wv_view_remove_full_cb(
+    ftpw_webview_flutter_wv_view_remove_event_cb(
         instance, "policy,response,decide", &WvWebViewBackend::OnResponsePolicy,
         this);
-    ftpw_webview_flutter_wv_view_remove_full_cb(
+    ftpw_webview_flutter_wv_view_remove_event_cb(
         instance, "url,changed", &WvWebViewBackend::OnUrlChange, this);
 
     ftpw_webview_flutter_wv_view_javascript_alert_callback_set(
@@ -385,9 +386,10 @@ bool WvWebViewBackend::LoadUrlRequest(
                         g_strdup(header.second.c_str()));
   }
 
+  // The WV API rejects a NULL body and expects a NUL-terminated string.
+  std::string body_str(body.begin(), body.end());
   bool ret = ftpw_webview_flutter_wv_view_url_request_set(
-      view_, url.c_str(), wv_method, wv_headers,
-      reinterpret_cast<const char*>(body.data()));
+      view_, url.c_str(), wv_method, wv_headers, body_str.c_str());
   g_hash_table_destroy(wv_headers);
   return ret;
 }
@@ -395,7 +397,7 @@ bool WvWebViewBackend::LoadUrlRequest(
 void WvWebViewBackend::LoadHtmlString(const std::string& html,
                                       const std::string& base_url) {
   ftpw_webview_flutter_wv_view_html_string_load(view_, html.c_str(),
-                                                base_url.c_str(), nullptr);
+                                                base_url.c_str(), "");
 }
 
 bool WvWebViewBackend::CanGoBack() {
@@ -439,7 +441,7 @@ void WvWebViewBackend::RegisterJavaScriptChannel(const std::string& name) {
 }
 
 void WvWebViewBackend::ClearCache() {
-  ftpw_webview_flutter_wv_context_cache_clear(
+  ftpw_webview_flutter_wv_context_resource_cache_clear(
       ftpw_webview_flutter_wv_view_context_get(view_));
 }
 
