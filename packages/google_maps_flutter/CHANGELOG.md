@@ -1,3 +1,13 @@
+## 0.4.0
+
+* Add support for `mapTypeControlEnabled`, `fullscreenControlEnabled`, `streetViewControlEnabled`, `webCameraControlEnabled`, `webCameraControlPosition`, `webGestureHandling`, and `fortyFiveDegreeImageryEnabled`.
+* Fix `consumeTapEvents` for circles, polygons, and polylines.
+* Fix initial map objects being added to the map twice.
+* Fix `onMapCreated` never being called when a map tile request stalls or fails.
+* Fix map events being dropped when the reported coordinates are integers.
+* Fix cluster managers passed to the initial `GoogleMap` being ignored.
+* Fix `Cluster.markerIds` holding internal ids instead of the markers' `MarkerId`s.
+
 ## 0.3.0
 
 * Update `webview_flutter_lwe` to ^0.6.0.
