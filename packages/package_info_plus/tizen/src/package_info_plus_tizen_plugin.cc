@@ -114,8 +114,12 @@ class PackageInfoPlusTizenPlugin : public flutter::Plugin {
       package_info_destroy(package_info);
       return;
     }
-    map[flutter::EncodableValue("installTime")] = flutter::EncodableValue(
-        std::to_string(static_cast<long long>(installed_time) * 1000));
+    std::string installed_time_ms =
+        std::to_string(static_cast<long long>(installed_time) * 1000);
+    map[flutter::EncodableValue("installTime")] =
+        flutter::EncodableValue(installed_time_ms);
+    map[flutter::EncodableValue("updateTime")] =
+        flutter::EncodableValue(installed_time_ms);
 
     package_info_destroy(package_info);
 

@@ -1,3 +1,7 @@
+## 1.3.0
+
+* Add support for `PackageInfo.updateTime`.
+
 ## 1.2.0
 
 * Update package_info_plus to 10.2.1.
