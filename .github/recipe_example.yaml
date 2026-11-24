@@ -1,0 +1,4 @@
+platform_version: "11.0"
+
+plugins:
+  webview_flutter_tizen: ["common-11.0"]

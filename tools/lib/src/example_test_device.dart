@@ -1,0 +1,319 @@
+// Copyright 2026 Samsung Electronics Co., Ltd. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io' as io;
+
+import 'package:file/file.dart';
+import 'package:flutter_plugin_tools/src/common/process_runner.dart';
+
+import 'example_test_config.dart';
+
+/// Collects process output and ends the process if it exceeds [timeout].
+Future<io.ProcessResult> runExampleProcess(
+  ProcessRunner runner,
+  String executable,
+  List<String> arguments, {
+  Directory? workingDir,
+  Duration timeout = const Duration(seconds: 20),
+}) async {
+  final io.Process process =
+      await runner.start(executable, arguments, workingDirectory: workingDir);
+  const decoder = Utf8Decoder(allowMalformed: true);
+  try {
+    final List<Object> results = await Future.wait<Object>(<Future<Object>>[
+      process.exitCode,
+      process.stdout.transform(decoder).join(),
+      process.stderr.transform(decoder).join(),
+    ]).timeout(timeout);
+    return io.ProcessResult(process.pid, results[0] as int, results[1], results[2]);
+  } on TimeoutException {
+    process.kill(io.ProcessSignal.sigkill);
+    throw TimeoutException('$executable ${arguments.first} timed out', timeout);
+  }
+}
+
+/// SDB operations for a connected Tizen test device.
+class ExampleTestDevice {
+  /// Uses the SDK's SDB executable to address a single [serial].
+  const ExampleTestDevice(this.sdb, this.serial, this.runner);
+
+  /// Path to the SDK's SDB executable.
+  final String sdb;
+
+  /// The target's SDB serial.
+  final String serial;
+
+  /// Runner used to start host processes.
+  final ProcessRunner runner;
+
+  /// Runs an SDB subcommand and returns its output.
+  Future<String> command(
+    List<String> arguments, {
+    Duration timeout = const Duration(seconds: 20),
+  }) async {
+    final io.ProcessResult result = await runExampleProcess(
+      runner,
+      sdb,
+      <String>['-s', serial, ...arguments],
+      timeout: timeout,
+    );
+    if (result.exitCode != 0) {
+      throw StateError('sdb ${arguments.first} failed: ${result.stdout}${result.stderr}');
+    }
+    return (result.stdout as String).replaceAll('\r', '').trim();
+  }
+
+  /// Runs a shell command and checks the remote exit status.
+  Future<String> shell(List<String> arguments) async {
+    // SDB can report a successful transport even when the remote command failed.
+    final String remote =
+        arguments.map((String arg) => "'${arg.replaceAll("'", "'\"'\"'")}'").join(' ');
+    final String output = await command(<String>[
+      'shell',
+      '$remote; printf "\\n__example_status=%s\\n" "\$?"',
+    ]);
+    final RegExpMatch? result = RegExp(r'(?:^|\n)__example_status=(\d+)$').firstMatch(output);
+    if (result == null || result[1] != '0') {
+      throw StateError('sdb shell ${arguments.first} failed: $output');
+    }
+    return output.substring(0, result.start).trimRight();
+  }
+
+  /// Gets the current PID for [appId], or null when it has stopped.
+  Future<int?> runningPid(String appId) async {
+    final String output = await shell(<String>['app_launcher', '-S']);
+    if (!output.contains('appId (PID)')) {
+      throw StateError('Unable to read running applications: $output');
+    }
+    final RegExpMatch? match =
+        RegExp('^\\s*${RegExp.escape(appId)}\\s+\\((\\d+)\\)\\s*\$', multiLine: true)
+            .firstMatch(output);
+    return match == null ? null : int.parse(match[1]!);
+  }
+
+  /// Launches the installed app and returns the PID from the launcher.
+  Future<int> launch(String appId) async {
+    final String output = await shell(<String>['app_launcher', '-e', appId]);
+    final RegExpMatch? match = RegExp(r'successfully launched pid\s*=\s*(\d+)').firstMatch(output);
+    if (match == null) {
+      throw StateError('Unable to launch $appId: $output');
+    }
+    return int.parse(match[1]!);
+  }
+
+  /// Checks that a window owned by [pid] is visible and focused.
+  Future<bool> isForeground(int pid) async {
+    final Object? result =
+        jsonDecode(await shell(<String>['enlightenment_info', '--json', '-topvwins']));
+    if (result is! List<dynamic>) {
+      throw const FormatException('Unable to read compositor windows.');
+    }
+    return result.whereType<Map<String, dynamic>>().any(
+          (Map<String, dynamic> window) =>
+              window['pid'] == pid && window['visible'] == true && window['focus'] == true,
+        );
+  }
+
+  /// Pulls a compositor PNG to [destination] and validates its framing.
+  Future<void> capture(File destination) async {
+    final name = 'example-test-${io.pid}-${DateTime.now().microsecondsSinceEpoch}.png';
+    try {
+      await shell(<String>['enlightenment_info', '-dump_screen', '-p', '/tmp/', '-n', name]);
+      await command(<String>['pull', '/tmp/$name', destination.absolute.path]);
+      final List<int> bytes = destination.readAsBytesSync();
+      if (bytes.length < 45 ||
+          latin1.decode(bytes.sublist(0, 8)) != '\x89PNG\r\n\x1A\n' ||
+          latin1.decode(bytes.sublist(bytes.length - 8, bytes.length - 4)) != 'IEND') {
+        throw StateError('The compositor returned an incomplete PNG.');
+      }
+    } finally {
+      await shell(<String>['rm', '-f', '/tmp/$name']);
+    }
+  }
+
+  /// Sends the events in order and releases the input device afterwards.
+  Future<void> sendEvents(List<ExampleEvent> events) async {
+    String? activeInput;
+    try {
+      for (final event in events) {
+        final input = event is ExampleTap ? 'touch' : 'keyboard';
+        if (input != activeInput) {
+          if (activeInput != null) {
+            await shell(<String>['enlightenment_info', '-deinit_device']);
+          }
+          await shell(<String>['enlightenment_info', '-init_device', '--type=$input']);
+          activeInput = input;
+        }
+        final List<String> trigger;
+        switch (event) {
+          case ExampleKey():
+            trigger = <String>['-keygen', '--name=${event.name}'];
+          case ExampleTap():
+            final String axis = await _tapAxis(event);
+            trigger = <String>['-touchgen', '--idx=0', '--axis=$axis'];
+        }
+        for (final state in <String>['press', 'release']) {
+          await shell(<String>['enlightenment_info', ...trigger, '--state=$state']);
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+        }
+      }
+    } finally {
+      if (activeInput != null) {
+        await shell(<String>['enlightenment_info', '-deinit_device']);
+      }
+    }
+  }
+
+  Future<String> _tapAxis(ExampleTap tap) async {
+    final Object? data =
+        jsonDecode(await shell(<String>['enlightenment_info', '--json', '-screen_info']));
+    if (data
+        case {
+          'outputs': [
+            {
+              'geometry': {
+                'x': final int x,
+                'y': final int y,
+                'width': final int w,
+                'height': final int h
+              }
+            }
+          ]
+        }) {
+      return '${x + (tap.x * (w - 1)).round()},${y + (tap.y * (h - 1)).round()}';
+    }
+    throw const FormatException('Tap requires one compositor display with known geometry.');
+  }
+}
+
+final RegExp _exception = RegExp(
+  r'\b(?:unhandled exceptions?|uncaught exceptions?|exceptions? caught by)\b',
+  caseSensitive: false,
+);
+final RegExp _crash = RegExp(
+  r'\b(?:SIGSEGV|SIGABRT|SIGBUS|SIGILL|SIGFPE|segmentation fault|core dumped|fatal signal'
+  r'|received signal (?:4|6|7|8|11))\b',
+  caseSensitive: false,
+);
+
+/// An error from DLog and the identity of the affected process, when available.
+class ExampleLogIssue {
+  const ExampleLogIssue._(this._pid, this.message, {required this.exception, required this.crash});
+
+  /// Recognizes unhandled exceptions and fatal signals in a DLog record.
+  static ExampleLogIssue? parse(Map<String, dynamic> log) {
+    final Object? message = log['msg'];
+    final Object? pid = log['pid'];
+    if (message is! String || pid is! int) {
+      return null;
+    }
+    final bool exception = _exception.hasMatch(message);
+    final bool crash = _crash.hasMatch(message) ||
+        (log['tag'] == 'CRASH_MANAGER' && message.contains('Creating report for pid ')) ||
+        (log['tag'] == 'AMD' && message.contains('is crashed by signal('));
+    return exception || crash
+        ? ExampleLogIssue._(pid, message.trim(), exception: exception, crash: crash)
+        : null;
+  }
+
+  final int _pid;
+
+  /// The DLog message recorded as evidence.
+  final String message;
+
+  /// Whether the message indicates an unhandled exception.
+  final bool exception;
+
+  /// Whether the message indicates a crash.
+  final bool crash;
+
+  /// Matches app-originated records and system crash reports naming the app.
+  bool concerns(String appId, int? appPid) {
+    if (appPid == _pid) {
+      return true;
+    }
+    final bool referencesAppId = RegExp(
+      '(?<![\\w.])${RegExp.escape(appId)}(?![\\w.])',
+    ).hasMatch(message);
+    final bool referencesPid = appPid != null &&
+        RegExp('\\bpid\\s*[:=( ]+\\s*$appPid\\b', caseSensitive: false).hasMatch(message);
+    return crash && (referencesAppId || referencesPid);
+  }
+}
+
+/// Monitors fresh device logs from before launch through the last screenshot.
+class ExampleDeviceLog {
+  ExampleDeviceLog._(this._process, this._output) {
+    const decoder = Utf8Decoder(allowMalformed: true);
+    _stdout = _process.stdout.transform(decoder).transform(const LineSplitter()).listen(
+          _record,
+          onDone: () => active = false,
+        );
+    _stderr = _process.stderr.transform(decoder).listen(_output.write);
+  }
+
+  /// Starts a fresh DLog stream and copies its output to [logFile].
+  static Future<ExampleDeviceLog> start(ExampleTestDevice device, File logFile) async {
+    final io.Process process = await device.runner.start(device.sdb, <String>[
+      '-s',
+      device.serial,
+      'shell',
+      'dlogutil',
+      '--monitor',
+      '-u',
+      '0',
+      '-e',
+      '0',
+      '-v',
+      'json',
+    ]);
+    return ExampleDeviceLog._(process, logFile.openWrite());
+  }
+
+  final io.Process _process;
+  final io.IOSink _output;
+  late final StreamSubscription<String> _stdout;
+  late final StreamSubscription<String> _stderr;
+  final Completer<void> _firstRecord = Completer<void>();
+
+  /// Issues found in the current log stream.
+  final List<ExampleLogIssue> issues = <ExampleLogIssue>[];
+
+  /// Whether the log stream is open.
+  bool active = true;
+
+  /// Waits for a valid record to confirm logging is available before launch.
+  Future<void> waitForRecords() => _firstRecord.future.timeout(const Duration(seconds: 10));
+
+  void _record(String line) {
+    _output.writeln(line);
+    if (!line.startsWith('{')) {
+      return;
+    }
+    try {
+      final Object? entry = jsonDecode(line);
+      if (entry is Map<String, dynamic> && entry['pid'] is int) {
+        if (!_firstRecord.isCompleted) {
+          _firstRecord.complete();
+        }
+        final ExampleLogIssue? issue = ExampleLogIssue.parse(entry);
+        if (issue != null) {
+          issues.add(issue);
+        }
+      }
+    } on FormatException {
+      // Keep malformed lines in the raw log for diagnosis.
+    }
+  }
+
+  /// Stops the monitor and flushes the raw log to disk.
+  Future<void> close() async {
+    _process.kill();
+    await _stdout.cancel();
+    await _stderr.cancel();
+    await _output.close();
+  }
+}
