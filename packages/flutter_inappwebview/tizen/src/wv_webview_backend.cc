@@ -82,6 +82,7 @@ bool WvWebViewBackend::GlobalInitialize(bool standalone) {
   };
   if (standalone) {
     argv.push_back("--enable-wv-standalone");
+    argv.push_back("--enable-tcore");
   }
   int result = ftpw_flutter_inappwebview_wv_set_arguments(
       static_cast<int>(argv.size()), argv.data());
