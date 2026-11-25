@@ -246,14 +246,25 @@ class ExampleLogIssue {
 
 /// Monitors fresh device logs from before launch through the last screenshot.
 class ExampleDeviceLog {
-  ExampleDeviceLog._(this._process, this._output) {
+  ExampleDeviceLog._(this._device, this._process, this._output) {
     const decoder = Utf8Decoder(allowMalformed: true);
     _stdout = _process.stdout.transform(decoder).transform(const LineSplitter()).listen(
-          _record,
-          onDone: () => active = false,
+      _record,
+      onError: _streamFailed,
+      onDone: () {
+        active = false;
+        _stdoutDone.complete();
+      },
+    );
+    _stderr = _process.stderr.transform(decoder).listen(
+          _output.write,
+          onError: _streamFailed,
+          onDone: _stderrDone.complete,
         );
-    _stderr = _process.stderr.transform(decoder).listen(_output.write);
   }
+
+  static const _buffers = <String>['main', 'system', 'apps'];
+  static const _markerTag = 'FLUTTER_EXAMPLE_TEST';
 
   /// Starts a fresh DLog stream and copies its output to [logFile].
   static Future<ExampleDeviceLog> start(ExampleTestDevice device, File logFile) async {
@@ -262,6 +273,7 @@ class ExampleDeviceLog {
       device.serial,
       'shell',
       'dlogutil',
+      for (final buffer in _buffers) ...<String>['-b', buffer],
       '--monitor',
       '-u',
       '0',
@@ -270,14 +282,20 @@ class ExampleDeviceLog {
       '-v',
       'json',
     ]);
-    return ExampleDeviceLog._(process, logFile.openWrite());
+    return ExampleDeviceLog._(device, process, logFile.openWrite());
   }
 
+  final ExampleTestDevice _device;
   final io.Process _process;
   final io.IOSink _output;
   late final StreamSubscription<String> _stdout;
   late final StreamSubscription<String> _stderr;
-  final Completer<void> _firstRecord = Completer<void>();
+  final _stdoutDone = Completer<void>();
+  final _stderrDone = Completer<void>();
+  final _pendingMarkers = <String>{};
+  Completer<void>? _markersReceived;
+  Object? _streamError;
+  Future<void>? _closing;
 
   /// Issues found in the current log stream.
   final List<ExampleLogIssue> issues = <ExampleLogIssue>[];
@@ -285,8 +303,37 @@ class ExampleDeviceLog {
   /// Whether the log stream is open.
   bool active = true;
 
-  /// Waits for a valid record to confirm logging is available before launch.
-  Future<void> waitForRecords() => _firstRecord.future.timeout(const Duration(seconds: 10));
+  /// Confirms that every monitored buffer has delivered its synchronization marker.
+  Future<void> synchronize() async {
+    const timeout = Duration(seconds: 10);
+    final timer = Stopwatch()..start();
+    final prefix = 'example-test-${io.pid}-${DateTime.now().microsecondsSinceEpoch}';
+    final receipt = Completer<void>();
+    _markersReceived = receipt;
+    _pendingMarkers.addAll(_buffers.map((buffer) => '$prefix-$buffer'));
+    try {
+      while (active && timer.elapsed < timeout) {
+        await Future.wait(<Future<String>>[
+          for (final buffer in _buffers)
+            if (_pendingMarkers.contains('$prefix-$buffer'))
+              _device
+                  .shell(<String>['dlogsend', '-b', buffer, '-t', _markerTag, '$prefix-$buffer']),
+        ]);
+        // Retry when dlogsend reached the device before the monitor attached.
+        await receipt.future.timeout(const Duration(milliseconds: 250), onTimeout: () {});
+        if (receipt.isCompleted) {
+          return;
+        }
+      }
+      if (!active) {
+        throw StateError('DLog monitor stopped before all synchronization markers arrived.');
+      }
+      throw TimeoutException('DLog synchronization markers did not arrive', timeout);
+    } finally {
+      _pendingMarkers.clear();
+      _markersReceived = null;
+    }
+  }
 
   void _record(String line) {
     _output.writeln(line);
@@ -296,8 +343,10 @@ class ExampleDeviceLog {
     try {
       final Object? entry = jsonDecode(line);
       if (entry is Map<String, dynamic> && entry['pid'] is int) {
-        if (!_firstRecord.isCompleted) {
-          _firstRecord.complete();
+        if (entry['tag'] == _markerTag &&
+            _pendingMarkers.remove(entry['msg']) &&
+            _pendingMarkers.isEmpty) {
+          _markersReceived!.complete();
         }
         final ExampleLogIssue? issue = ExampleLogIssue.parse(entry);
         if (issue != null) {
@@ -309,11 +358,34 @@ class ExampleDeviceLog {
     }
   }
 
-  /// Stops the monitor and flushes the raw log to disk.
-  Future<void> close() async {
+  void _streamFailed(Object error) {
+    active = false;
+    _streamError ??= error;
+  }
+
+  /// Stops the monitor and drains its output before closing the raw log.
+  Future<void> close() => _closing ??= _close();
+
+  Future<void> _close() async {
     _process.kill();
-    await _stdout.cancel();
-    await _stderr.cancel();
-    await _output.close();
+    try {
+      await Future.wait(<Future<void>>[
+        _stdoutDone.future,
+        _stderrDone.future,
+        _process.exitCode,
+      ]).timeout(const Duration(seconds: 5));
+      if (_streamError case final Object error) {
+        throw StateError('DLog stream failed: $error');
+      }
+    } on TimeoutException {
+      _process.kill(io.ProcessSignal.sigkill);
+      rethrow;
+    } finally {
+      try {
+        await Future.wait(<Future<void>>[_stdout.cancel(), _stderr.cancel()]);
+      } finally {
+        await _output.close();
+      }
+    }
   }
 }

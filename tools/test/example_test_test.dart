@@ -2,9 +2,23 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io' show Process;
+
+import 'package:file/file.dart';
+import 'package:file/memory.dart';
+import 'package:flutter_plugin_tools/src/common/process_runner.dart';
 import 'package:flutter_tizen_plugin_tools/src/example_test_config.dart';
 import 'package:flutter_tizen_plugin_tools/src/example_test_device.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
+
+class _MockProcessRunner extends Mock implements ProcessRunner {}
+
+class _MockProcess extends Mock implements Process {}
+
+class _MockExampleTestDevice extends Mock implements ExampleTestDevice {}
 
 void main() {
   test('keeps runtime OS separate from each manifest API version', () {
@@ -131,5 +145,71 @@ scenarios:
       ExampleLogIssue.parse(<String, dynamic>{'pid': 42, 'msg': 'Received signal 15'}),
       isNull,
     );
+  });
+
+  group('DLog monitor', () {
+    late ExampleTestDevice device;
+    late ExampleDeviceLog log;
+    late Process process;
+    late File file;
+    late StreamController<List<int>> stdout;
+    late StreamController<List<int>> stderr;
+
+    setUp(() async {
+      final ProcessRunner runner = _MockProcessRunner();
+      device = _MockExampleTestDevice();
+      process = _MockProcess();
+      file = MemoryFileSystem().file('dlog.jsonl');
+      stdout = StreamController<List<int>>();
+      stderr = StreamController<List<int>>();
+
+      when(() => device.runner).thenReturn(runner);
+      when(() => device.sdb).thenReturn('sdb');
+      when(() => device.serial).thenReturn('device');
+      when(() => runner.start('sdb', any())).thenAnswer((_) async => process);
+      when(() => process.stdout).thenAnswer((_) => stdout.stream);
+      when(() => process.stderr).thenAnswer((_) => stderr.stream);
+      when(() => process.exitCode).thenAnswer((_) async => 0);
+      when(() => process.kill()).thenAnswer((_) {
+        unawaited(stdout.close());
+        unawaited(stderr.close());
+        return true;
+      });
+
+      log = await ExampleDeviceLog.start(device, file);
+      addTearDown(log.close);
+    });
+
+    test('retries a missing probe and requires a tagged marker from each buffer', () async {
+      final attempts = <String, int>{};
+      when(() => device.shell(any())).thenAnswer((invocation) async {
+        final args = invocation.positionalArguments.single as List<String>;
+        expect(args.first, 'dlogsend');
+        final String buffer = args[2];
+        final int attempt = attempts.update(buffer, (count) => count + 1, ifAbsent: () => 1);
+        final String tag = buffer == 'main' && attempt == 1 ? 'UNRELATED' : args[4];
+        stdout.add(utf8.encode('${jsonEncode({'pid': 10, 'tag': tag, 'msg': args.last})}\n'));
+        return '';
+      });
+
+      await log.synchronize();
+
+      expect(attempts, {'main': 2, 'system': 1, 'apps': 1});
+    });
+
+    test('drains the final exception and stderr before closing the log', () async {
+      const message = 'Unhandled exception: final record';
+      stdout.add(utf8.encode(jsonEncode({'pid': 42, 'msg': message})));
+      stderr.add(utf8.encode('monitor diagnostic\n'));
+
+      await log.close();
+      await log.close();
+
+      final ExampleLogIssue issue = log.issues.single;
+      expect(issue.exception, isTrue);
+      expect(issue.concerns('org.tizen.example', 42), isTrue);
+      expect(file.readAsStringSync(), allOf(contains(message), contains('monitor diagnostic')));
+      verify(() => process.kill()).called(1);
+    });
   });
 }

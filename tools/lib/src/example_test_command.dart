@@ -315,16 +315,18 @@ class ExampleTestCommand extends PackageCommand {
       result['stage'] = 'launch';
       logs = await ExampleDeviceLog.start(device, output.childFile('dlog.jsonl'));
       result['log'] = 'dlog.jsonl';
-      await logs.waitForRecords();
+      await logs.synchronize();
       result['launch'] = 'failed';
       pid = await device.launch(appId);
       result['launch'] = 'passed';
       result['pid'] = pid;
 
       result['stage'] = 'runtime';
-      await _checkpoint(device, logs, appId, pid, output, checkpoints, 0);
+      await _checkpoint(device, logs, appId, pid, output, checkpoints, 0,
+          finishLogging: steps.isEmpty);
       for (var index = 0; index < steps.length; index++) {
-        await _checkpoint(device, logs, appId, pid, output, checkpoints, index + 1, steps[index]);
+        await _checkpoint(device, logs, appId, pid, output, checkpoints, index + 1,
+            step: steps[index], finishLogging: index == steps.length - 1);
       }
     } finally {
       if (logs != null) {
@@ -365,9 +367,10 @@ class ExampleTestCommand extends PackageCommand {
     int pid,
     Directory output,
     List<Map<String, Object?>> checkpoints,
-    int index, [
+    int index, {
     ExampleStep? step,
-  ]) async {
+    required bool finishLogging,
+  }) async {
     final String id = step?.id ?? 'startup';
     final checkpoint = <String, Object?>{
       'id': id,
@@ -397,7 +400,8 @@ class ExampleTestCommand extends PackageCommand {
       failure = 'capture_failed';
       await _checkHealth(device, logs, appId, pid, checkpoint);
       await device.capture(screenshot);
-      await _checkHealth(device, logs, appId, pid, checkpoint);
+      failure = 'health_check_failed';
+      await _checkHealth(device, logs, appId, pid, checkpoint, finishLogging: finishLogging);
       checkpoint['screenshot'] = screenshot.basename;
       checkpoint['status'] = 'passed';
     } on Object catch (error) {
@@ -422,8 +426,12 @@ class ExampleTestCommand extends PackageCommand {
     ExampleDeviceLog logs,
     String appId,
     int pid,
-    Map<String, Object?> checkpoint,
-  ) async {
+    Map<String, Object?> checkpoint, {
+    bool finishLogging = false,
+  }) async {
+    if (finishLogging) {
+      await logs.synchronize();
+    }
     bool? alive;
     try {
       alive = await device.runningPid(appId) == pid;
@@ -434,18 +442,23 @@ class ExampleTestCommand extends PackageCommand {
       // The process can disappear before the system crash reporter writes its log.
       await Future<void>.delayed(const Duration(milliseconds: 750));
     }
+    final bool loggingAvailable = logs.active;
+    if (finishLogging) {
+      await logs.close();
+    }
+    // shortcut: track the launched UI process only, extend if service checks are needed.
     final List<ExampleLogIssue> issues =
         logs.issues.where((ExampleLogIssue issue) => issue.concerns(appId, pid)).toList();
     final bool crashed = issues.any((ExampleLogIssue issue) => issue.crash);
     final bool exception = issues.any((ExampleLogIssue issue) => issue.exception);
-    final absence = logs.active && alive != null ? 'not_observed' : 'unknown';
+    final absence = loggingAvailable && alive != null ? 'not_observed' : 'unknown';
     checkpoint['app_alive'] = alive;
     checkpoint['exception'] = exception ? 'observed' : absence;
     checkpoint['crash'] = crashed ? 'observed' : absence;
     if (issues.isNotEmpty) {
       checkpoint['evidence'] = issues.map((ExampleLogIssue issue) => issue.message).toList();
     }
-    final String? failure = switch ((crashed, exception, alive, logs.active)) {
+    final String? failure = switch ((crashed, exception, alive, loggingAvailable)) {
       (true, _, _, _) => 'crash',
       (_, true, _, _) => 'exception',
       (_, _, false, _) => 'unexpected_exit',
