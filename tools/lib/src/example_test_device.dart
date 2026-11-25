@@ -9,7 +9,9 @@ import 'dart:io' as io;
 import 'package:file/file.dart';
 import 'package:flutter_plugin_tools/src/common/process_runner.dart';
 
+import 'device.dart';
 import 'example_test_config.dart';
+import 'tizen_sdk.dart';
 
 /// Collects process output and ends the process if it exceeds [timeout].
 Future<io.ProcessResult> runExampleProcess(
@@ -32,6 +34,105 @@ Future<io.ProcessResult> runExampleProcess(
   } on TimeoutException {
     process.kill(io.ProcessSignal.sigkill);
     throw TimeoutException('$executable ${arguments.first} timed out', timeout);
+  }
+}
+
+/// A device and the Flutter build architecture for its example apps.
+typedef ExampleTestConnection = ({ExampleTestDevice device, String arch});
+
+/// Selects a device per recipe target and owns any emulators created for the run.
+class ExampleTestDevices {
+  /// Uses running emulators by default, with an optional explicit SDB serial.
+  ExampleTestDevices(this._sdk, this._runner, {required bool createEmulator, String? serial})
+      : _createEmulator = createEmulator,
+        _serial = serial;
+
+  final TizenSdk _sdk;
+  final ProcessRunner _runner;
+  final bool _createEmulator;
+  final String? _serial;
+  final String _runId = '${io.pid}-${DateTime.now().microsecondsSinceEpoch.toRadixString(36)}';
+  final _devices = <ExampleTarget, Future<ExampleTestConnection>>{};
+  final _emulators = <EmulatorDevice>[];
+
+  /// Reuses the same selection, including a failed creation, for a target.
+  Future<ExampleTestConnection> forTarget(ExampleTarget target) =>
+      _devices.putIfAbsent(target, () => _select(target));
+
+  Future<ExampleTestConnection> _select(ExampleTarget target) async {
+    final targetName = '${target.profile}-${target.apiVersion}';
+    final String? serial = _createEmulator ? await _launchEmulator(targetName) : _serial;
+    final matches = <String, Map<String, String>>{};
+    for (final SdbDeviceInfo info in _sdk.sdbDevices()) {
+      if (info.status != 'device' || (serial == null ? !info.isEmulator : info.serial != serial)) {
+        continue;
+      }
+      final Map<String, String> capability = _sdk.sdbCapability(info.serial);
+      if (capability['profile_name'] == target.profile &&
+          capability['platform_version'] == target.apiVersion) {
+        matches[info.serial] = capability;
+      }
+    }
+    if (matches.length != 1) {
+      if (serial != null) {
+        throw StateError('Device $serial is not connected as $targetName.');
+      }
+      final help = matches.isEmpty
+          ? 'Start one or use --create-emulator.'
+          : 'Use --device-id to select an emulator.';
+      throw StateError('Expected one running $targetName emulator. Found ${matches.length}. $help');
+    }
+    final MapEntry<String, Map<String, String>> selected = matches.entries.single;
+    final String arch = switch (selected.value['cpu_arch']) {
+      'x86_64' => 'x64',
+      'x86' => 'x86',
+      'aarch64' || 'arm64' => 'arm64',
+      'armv7' || 'armv7l' => 'arm',
+      final String? value => throw StateError('Unsupported device architecture: $value'),
+    };
+    return (device: ExampleTestDevice(_sdk.sdb.path, selected.key, _runner), arch: arch);
+  }
+
+  Future<String> _launchEmulator(String target) async {
+    final emulator = EmulatorDevice(
+      'ft-ex-$_runId-${_emulators.length}',
+      Profile.fromString(target),
+      tizenSdk: _sdk,
+      processRunner: _runner,
+    );
+    if (emulator.exists) {
+      throw StateError('Emulator ${emulator.name} already exists.');
+    }
+    _emulators.add(emulator);
+    await emulator.create();
+    await emulator.launch();
+    // Fresh images can restrict compositor inspection to the root SDB shell.
+    if (_sdk.sdbCapability(emulator.serial!)['rootonoff_support'] == 'enabled') {
+      await emulator.enableSdbRoot();
+    }
+    return emulator.serial!;
+  }
+
+  /// Closes and deletes the emulators created by this run.
+  Future<List<String>> close() async {
+    final errors = <String>[];
+    for (final EmulatorDevice emulator in _emulators.reversed) {
+      try {
+        if (emulator.exists) {
+          try {
+            await emulator.close();
+          } finally {
+            await emulator.delete();
+          }
+          if (emulator.exists) {
+            throw StateError('The emulator still exists.');
+          }
+        }
+      } on Object catch (error) {
+        errors.add('Could not clean up emulator ${emulator.name}: $error');
+      }
+    }
+    return errors;
   }
 }
 

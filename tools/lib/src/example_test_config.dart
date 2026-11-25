@@ -5,31 +5,25 @@
 import 'package:xml/xml.dart';
 import 'package:yaml/yaml.dart';
 
-final RegExp _version = RegExp(r'^\d+\.\d+$');
 final RegExp _target = RegExp(r'^(common|mobile|tv)-(\d+\.\d+)$');
 final RegExp _name = RegExp(r'^[a-zA-Z0-9_-]+$');
 final RegExp _manifestValue = RegExp(r'^[a-zA-Z0-9][a-zA-Z0-9_.+-]*$');
 
-/// A build profile and the exact API version to write into the manifest.
+/// The emulator profile and version, also used for the build and manifest.
 typedef ExampleTarget = ({String profile, String apiVersion});
 
 /// Event steps indexed by pub package name and package-relative example path.
 typedef ExampleScenarios = Map<String, Map<String, List<ExampleStep>>>;
 
-/// Device OS version and the build targets selected for each pub package.
+/// The emulator and build targets selected for each pub package.
 class ExampleTestRecipe {
-  /// Validates the recipe and keeps OS and API versions as strings.
+  /// Validates the recipe and keeps each target version as a string.
   ExampleTestRecipe.parse(String source) {
     final YamlMap yaml = _map(loadYaml(source), 'Recipe');
+    // Older recipes can still contain the global platform_version field.
     if (yaml.keys.any((dynamic key) => key != 'platform_version' && key != 'plugins')) {
-      throw const FormatException(
-          'Use platform_version and plugins in the recipe, and --events for scenarios.');
+      throw const FormatException('Use plugins in the recipe, and --events for scenarios.');
     }
-    final Object? version = yaml['platform_version'];
-    if (version is! String || !_version.hasMatch(version)) {
-      throw const FormatException('platform_version must be a quoted major.minor version.');
-    }
-    platformVersion = version;
     final YamlMap entries = _map(yaml['plugins'], 'plugins');
     for (final MapEntry<dynamic, dynamic> entry in entries.entries) {
       final Object? name = entry.key;
@@ -54,10 +48,7 @@ class ExampleTestRecipe {
     }
   }
 
-  /// The OS version of the test device.
-  late final String platformVersion;
-
-  /// Build targets by pub package name. An empty list excludes a package.
+  /// Emulator and build targets by pub package name. An empty list excludes a package.
   final Map<String, List<ExampleTarget>> plugins = <String, List<ExampleTarget>>{};
 }
 

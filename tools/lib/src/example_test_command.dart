@@ -19,9 +19,15 @@ class ExampleTestCommand extends PackageCommand {
   /// Creates the example test command for the repository's [packagesDir].
   ExampleTestCommand(super.packagesDir, {super.processRunner}) {
     argParser
-      ..addOption('recipe', defaultsTo: '.github/recipe_example.yaml', help: 'Example target YAML.')
+      ..addOption('recipe',
+          defaultsTo: '.github/recipe_example.yaml',
+          help: 'YAML with profile-version targets for each plugin, such as common-11.0.')
       ..addOption('events', help: 'Optional, separate scenario YAML with a scenarios map.')
-      ..addOption('device-id', help: 'Serial of the connected SDB device to use.')
+      ..addFlag('create-emulator',
+          negatable: false,
+          help: 'Create, launch and delete an emulator for each recipe target. '
+              'By default, find a running emulator that matches the target.')
+      ..addOption('device-id', help: 'Serial of a connected SDB device to use without creation.')
       ..addOption('output',
           defaultsTo: 'build/example_test', help: 'Parent of the run output directory.');
   }
@@ -35,6 +41,12 @@ class ExampleTestCommand extends PackageCommand {
   @override
   Future<void> run() async {
     final FileSystem fs = packagesDir.fileSystem;
+    final bool createEmulator = getBoolArg('create-emulator');
+    final serial = argResults!['device-id'] as String?;
+    if (createEmulator && serial != null) {
+      print('Cannot specify both --create-emulator and --device-id.');
+      throw ToolExit(exitInvalidArguments);
+    }
     final ExampleTestRecipe recipe;
     final ExampleScenarios scenarios;
     try {
@@ -52,77 +64,83 @@ class ExampleTestCommand extends PackageCommand {
         entry.package.parsePubspec().name: entry.package,
     };
     final TizenSdk sdk = TizenSdk.locateTizenSdk(fileSystem: fs, processRunner: processRunner);
-    final serial = argResults!['device-id'] as String?;
-    final devices = <String, Map<String, String>>{
-      for (final SdbDeviceInfo info in sdk.sdbDevices())
-        if (info.status == 'device' && (serial == null || serial == info.serial))
-          info.serial: sdk.sdbCapability(info.serial),
-    };
+    final devices =
+        ExampleTestDevices(sdk, processRunner, createEmulator: createEmulator, serial: serial);
     final Directory output = fs.directory(getStringArg('output')).absolute
       ..createSync(recursive: true);
     final Directory runDir = output.createTempSync('run-');
     final cases = <Map<String, Object?>>[];
-    for (final MapEntry<String, List<ExampleTarget>> entry in recipe.plugins.entries) {
-      if (entry.value.isEmpty) {
-        continue;
-      }
-      final String plugin = entry.key;
-      final RepositoryPackage? package = packages[plugin];
-      final List<RepositoryPackage>? examples = package?.getExamples().toList();
-      if (examples == null || examples.isEmpty) {
-        cases.add(<String, Object?>{
-          'plugin': plugin,
-          'status': 'failed',
-          'error': examples == null ? 'Package not found or excluded.' : 'No example apps found.',
-        });
-        continue;
-      }
-      final Map<String, List<ExampleStep>> configured =
-          scenarios[plugin] ?? <String, List<ExampleStep>>{};
-      final Set<String> paths =
-          examples.map((RepositoryPackage example) => _examplePath(package!, example)).toSet();
-      final Set<String> unknown = configured.keys.toSet().difference(paths);
-      if (unknown.isNotEmpty) {
-        cases.add(<String, Object?>{
-          'plugin': plugin,
-          'status': 'failed',
-          'error': 'Unknown example paths in event file: ${unknown.join(', ')}',
-        });
-        continue;
-      }
-      for (final RepositoryPackage example in examples) {
-        final String path = _examplePath(package!, example);
-        for (final ExampleTarget target in entry.value) {
-          final targetName = '${target.profile}-${target.apiVersion}';
-          final Directory caseDir = fs
-              .directory(fs.path.join(runDir.path, plugin, path, targetName))
-            ..createSync(recursive: true);
-          final Map<String, Object?> result = await _runCase(
-            sdk.sdb.path,
-            devices,
-            recipe.platformVersion,
-            target,
-            example.directory,
-            configured[path] ?? const <ExampleStep>[],
-            caseDir,
-          );
+    final List<String> cleanupErrors;
+    try {
+      for (final MapEntry<String, List<ExampleTarget>> entry in recipe.plugins.entries) {
+        if (entry.value.isEmpty) {
+          continue;
+        }
+        final String plugin = entry.key;
+        final RepositoryPackage? package = packages[plugin];
+        final List<RepositoryPackage>? examples = package?.getExamples().toList();
+        if (examples == null || examples.isEmpty) {
           cases.add(<String, Object?>{
             'plugin': plugin,
-            'example': path,
-            'target': targetName,
-            'status': result['status'],
-            'result': fs.path.relative(caseDir.childFile('result.json').path, from: runDir.path),
+            'status': 'failed',
+            'error': examples == null ? 'Package not found or excluded.' : 'No example apps found.',
           });
-          print(
-              '$plugin/$path [$targetName]: ${result['status']}${result['error'] == null ? '' : ' - ${result['error']}'}');
+          continue;
+        }
+        final Map<String, List<ExampleStep>> configured =
+            scenarios[plugin] ?? <String, List<ExampleStep>>{};
+        final Set<String> paths =
+            examples.map((RepositoryPackage example) => _examplePath(package!, example)).toSet();
+        final Set<String> unknown = configured.keys.toSet().difference(paths);
+        if (unknown.isNotEmpty) {
+          cases.add(<String, Object?>{
+            'plugin': plugin,
+            'status': 'failed',
+            'error': 'Unknown example paths in event file: ${unknown.join(', ')}',
+          });
+          continue;
+        }
+        for (final RepositoryPackage example in examples) {
+          final String path = _examplePath(package!, example);
+          for (final ExampleTarget target in entry.value) {
+            final targetName = '${target.profile}-${target.apiVersion}';
+            final Directory caseDir = fs
+                .directory(fs.path.join(runDir.path, plugin, path, targetName))
+              ..createSync(recursive: true);
+            final Map<String, Object?> result = await _runCase(
+              devices,
+              target,
+              example.directory,
+              configured[path] ?? const <ExampleStep>[],
+              caseDir,
+            );
+            cases.add(<String, Object?>{
+              'plugin': plugin,
+              'example': path,
+              'target': targetName,
+              'status': result['status'],
+              'result': fs.path.relative(caseDir.childFile('result.json').path, from: runDir.path),
+            });
+            print(
+                '$plugin/$path [$targetName]: ${result['status']}${result['error'] == null ? '' : ' - ${result['error']}'}');
+          }
         }
       }
+    } finally {
+      cleanupErrors = await devices.close();
+      cleanupErrors.forEach(print);
     }
-    final bool failed = cases.any((Map<String, Object?> result) => result['status'] == 'failed');
+    final versions = <String>{
+      for (final List<ExampleTarget> targets in recipe.plugins.values)
+        for (final target in targets) target.apiVersion,
+    };
+    final bool failed = cleanupErrors.isNotEmpty ||
+        cases.any((Map<String, Object?> result) => result['status'] == 'failed');
     final File summary = runDir.childFile('summary.json');
     _writeJson(summary, <String, Object?>{
       'status': failed ? 'failed' : 'passed',
-      'platform_version': recipe.platformVersion,
+      if (versions.length == 1) 'platform_version': versions.single,
+      if (cleanupErrors.isNotEmpty) 'emulator_cleanup_errors': cleanupErrors,
       'cases': cases,
     });
     print('Example test results: ${summary.path}');
@@ -137,9 +155,7 @@ class ExampleTestCommand extends PackageCommand {
           .join('/');
 
   Future<Map<String, Object?>> _runCase(
-    String sdb,
-    Map<String, Map<String, String>> devices,
-    String platformVersion,
+    ExampleTestDevices devices,
     ExampleTarget target,
     Directory example,
     List<ExampleStep> steps,
@@ -149,31 +165,14 @@ class ExampleTestCommand extends PackageCommand {
     final result = <String, Object?>{
       'status': 'failed',
       'stage': 'device',
-      'platform_version': platformVersion,
+      'platform_version': target.apiVersion,
       'profile': target.profile,
       'api_version': target.apiVersion,
       'launch': 'not_attempted',
       'checkpoints': checkpoints,
     };
     try {
-      final List<MapEntry<String, Map<String, String>>> matches = devices.entries
-          .where((MapEntry<String, Map<String, String>> device) =>
-              device.value['profile_name'] == target.profile &&
-              device.value['platform_version'] == platformVersion)
-          .toList();
-      if (matches.length != 1) {
-        throw StateError('Expected one connected ${target.profile}-$platformVersion device. '
-            'Found ${matches.length}. Use --device-id to select a device.');
-      }
-      final MapEntry<String, Map<String, String>> selected = matches.single;
-      final device = ExampleTestDevice(sdb, selected.key, processRunner);
-      final String arch = switch (selected.value['cpu_arch']) {
-        'x86_64' => 'x64',
-        'x86' => 'x86',
-        'aarch64' || 'arm64' => 'arm64',
-        'armv7' || 'armv7l' => 'arm',
-        final String? value => throw StateError('Unsupported device architecture: $value'),
-      };
+      final (device: ExampleTestDevice device, arch: String arch) = await devices.forTarget(target);
       result['device_id'] = device.serial;
       final File lockFile = example.fileSystem.systemTempDirectory.childFile(
         'flutter-tizen-example-test-${Uri.encodeComponent(device.serial)}.lock',
@@ -458,11 +457,11 @@ class ExampleTestCommand extends PackageCommand {
     if (issues.isNotEmpty) {
       checkpoint['evidence'] = issues.map((ExampleLogIssue issue) => issue.message).toList();
     }
-    final String? failure = switch ((crashed, exception, alive, loggingAvailable)) {
-      (true, _, _, _) => 'crash',
-      (_, true, _, _) => 'exception',
-      (_, _, false, _) => 'unexpected_exit',
-      (_, _, true, true) => null,
+    // Framework and platform exceptions can be reported while the app is usable.
+    final String? failure = switch ((crashed, alive, loggingAvailable)) {
+      (true, _, _) => 'crash',
+      (_, false, _) => 'unexpected_exit',
+      (_, true, true) => null,
       _ => 'unknown',
     };
     if (failure != null) {

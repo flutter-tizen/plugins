@@ -4,13 +4,15 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Process;
+import 'dart:io' show Process, ProcessResult;
 
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
 import 'package:flutter_plugin_tools/src/common/process_runner.dart';
+import 'package:flutter_tizen_plugin_tools/src/device.dart';
 import 'package:flutter_tizen_plugin_tools/src/example_test_config.dart';
 import 'package:flutter_tizen_plugin_tools/src/example_test_device.dart';
+import 'package:flutter_tizen_plugin_tools/src/tizen_sdk.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
@@ -20,16 +22,16 @@ class _MockProcess extends Mock implements Process {}
 
 class _MockExampleTestDevice extends Mock implements ExampleTestDevice {}
 
+class _MockTizenSdk extends Mock implements TizenSdk {}
+
 void main() {
-  test('keeps runtime OS separate from each manifest API version', () {
+  test('reads each target version without a global platform version', () {
     final recipe = ExampleTestRecipe.parse('''
-platform_version: "11.0"
 plugins:
   webview_flutter_tizen: ["common-11.0", "common-10.1"]
   skipped: []
 ''');
 
-    expect(recipe.platformVersion, '11.0');
     expect(recipe.plugins['webview_flutter_tizen'], <ExampleTarget>[
       (profile: 'common', apiVersion: '11.0'),
       (profile: 'common', apiVersion: '10.1'),
@@ -37,17 +39,78 @@ plugins:
     expect(recipe.plugins['skipped'], isEmpty);
   });
 
+  test('accepts recipes with a legacy global version', () {
+    final recipe = ExampleTestRecipe.parse('''
+platform_version: "11.0"
+plugins:
+  webview_flutter_tizen: ["common-10.1"]
+''');
+    expect(recipe.plugins['webview_flutter_tizen'], [(profile: 'common', apiVersion: '10.1')]);
+  });
+
   test('rejects an invalid API version or scenarios embedded in the recipe', () {
     expect(
-      () => ExampleTestRecipe.parse('platform_version: "11.0"\nplugins: {webview: [common-11.]}'),
+      () => ExampleTestRecipe.parse('plugins: {webview: [common-11.]}'),
       throwsFormatException,
     );
     expect(
       () => ExampleTestRecipe.parse(
-        'platform_version: "11.0"\nplugins: {webview: [common-11.0]}\nscenarios: {}',
+        'plugins: {webview: [common-11.0]}\nscenarios: {}',
       ),
       throwsFormatException,
     );
+  });
+
+  test('selects running emulators by each target profile and version', () async {
+    final TizenSdk sdk = _MockTizenSdk();
+    final FileSystem fs = MemoryFileSystem();
+    when(() => sdk.sdb).thenReturn(fs.file('/tools/sdb'));
+    when(() => sdk.sdbDevices()).thenReturn(const <SdbDeviceInfo>[
+      SdbDeviceInfo(serial: 'emulator-1', status: 'device', name: 'common11'),
+      SdbDeviceInfo(serial: 'emulator-2', status: 'device', name: 'common10'),
+      SdbDeviceInfo(serial: 'emulator-3', status: 'offline', name: 'offline'),
+      SdbDeviceInfo(serial: 'physical-1', status: 'device', name: 'physical'),
+    ]);
+    when(() => sdk.sdbCapability('emulator-1'))
+        .thenReturn({'profile_name': 'common', 'platform_version': '11.0', 'cpu_arch': 'x86_64'});
+    when(() => sdk.sdbCapability('emulator-2'))
+        .thenReturn({'profile_name': 'common', 'platform_version': '10.1', 'cpu_arch': 'x86'});
+    when(() => sdk.sdbCapability('physical-1'))
+        .thenReturn({'profile_name': 'common', 'platform_version': '11.0', 'cpu_arch': 'aarch64'});
+
+    final devices = ExampleTestDevices(sdk, const ProcessRunner(), createEmulator: false);
+    const ExampleTarget target = (profile: 'common', apiVersion: '11.0');
+    final ExampleTestConnection match = await devices.forTarget(target);
+    expect(match.device.serial, 'emulator-1');
+    expect(match.arch, 'x64');
+    expect((await devices.forTarget(target)).device, same(match.device));
+    expect((await devices.forTarget((profile: 'common', apiVersion: '10.1'))).device.serial,
+        'emulator-2');
+    verifyNever(() => sdk.sdbCapability('emulator-3'));
+    verifyNever(() => sdk.sdbCapability('physical-1'));
+
+    final explicit =
+        ExampleTestDevices(sdk, const ProcessRunner(), createEmulator: false, serial: 'physical-1');
+    expect((await explicit.forTarget(target)).arch, 'arm64');
+  });
+
+  test('creates a common emulator using the exact installed platform version', () async {
+    final TizenSdk sdk = _MockTizenSdk();
+    final ProcessRunner runner = _MockProcessRunner();
+    const emCli = '/tools/em-cli';
+    const create = ['create', '-n', 'example-test', '-p', 'tizen-11.0-x86_64'];
+    when(() => sdk.emCli).thenReturn(MemoryFileSystem().file(emCli));
+    when(() => sdk.sdbDevices()).thenReturn(const <SdbDeviceInfo>[]);
+    when(() => runner.run(emCli, <String>['list-platform'], exitOnError: true))
+        .thenAnswer((_) async => ProcessResult(0, 0, 'tizen-10.0-x86_64\ntizen-11.0-x86_64\n', ''));
+    when(() => runner.runAndStream(emCli, create, exitOnError: true)).thenAnswer((_) async => 0);
+
+    final Profile profile = Profile.fromString('common-11.0');
+    expect(profile.toString(), 'common-11.0');
+    final emulator = EmulatorDevice('example-test', profile, tizenSdk: sdk, processRunner: runner);
+    await emulator.create();
+
+    verify(() => runner.runAndStream(emCli, create, exitOnError: true)).called(1);
   });
 
   test('loads inputs in file order for a nested example', () {

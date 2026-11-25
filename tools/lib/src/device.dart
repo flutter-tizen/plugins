@@ -9,6 +9,7 @@ import 'dart:io' as io;
 import 'package:file/file.dart';
 import 'package:flutter_plugin_tools/src/common/core.dart';
 import 'package:flutter_plugin_tools/src/common/process_runner.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import 'process_runner_apis.dart';
 import 'tizen_sdk.dart';
@@ -190,7 +191,6 @@ class EmulatorDevice extends Device {
       processRunner: processRunner,
     );
     emulatorDevice._serial = emulatorDevice._findSerial();
-    emulatorDevice._pid = findEmulatorPid(name);
     return emulatorDevice;
   }
 
@@ -201,13 +201,10 @@ class EmulatorDevice extends Device {
     super.processRunner = const ProcessRunner(),
   }) : super._();
 
-  String? _pid;
-
   @override
   bool get isConnected {
     _serial = _findSerial();
-    _pid = findEmulatorPid(name);
-    return _serial != null && _pid != null;
+    return _serial != null && findEmulatorPid(name) != null;
   }
 
   @override
@@ -233,15 +230,30 @@ class EmulatorDevice extends Device {
 
   /// Creates this emulator.
   Future<void> create() async {
-    late final String platform;
-    switch (profile.deviceType) {
-      case DeviceType.tv:
-        platform =
-            '${profile.deviceType}-samsung-${profile.version.toString().substring(0, 3)}-x86';
-        break;
-      case DeviceType.mobile:
-        platform = '$profile-x86';
-        break;
+    final Version? version = profile.version;
+    if (version == null) {
+      throw ArgumentError('An emulator platform version is required for $profile.');
+    }
+    final versionName = '${version.major}.${version.minor}';
+    final String prefix = switch (profile.deviceType) {
+      DeviceType.common => 'tizen-$versionName',
+      DeviceType.tv => 'tv-samsung-$versionName',
+      _ => '$profile',
+    };
+    final io.ProcessResult installed = await _processRunner.run(
+      _tizenSdk.emCli.path,
+      <String>['list-platform'],
+      exitOnError: true,
+    );
+    final Set<String> available =
+        LineSplitter.split(installed.stdout as String).map((String name) => name.trim()).toSet();
+    final candidates = profile.deviceType == DeviceType.common
+        ? <String>['$prefix-x86_64', '$prefix-x86']
+        : <String>['$prefix-x86', '$prefix-x86_64'];
+    final String? platform = candidates.where(available.contains).firstOrNull;
+    if (platform == null) {
+      throw StateError('No installed Tizen emulator image for $profile. '
+          'Install one with Tizen Package Manager.');
     }
     await _processRunner.runAndStream(
         _tizenSdk.emCli.path,
@@ -308,7 +320,7 @@ class EmulatorDevice extends Device {
     ]);
   }
 
-  /// Launches this emualtor.
+  /// Launches this emulator.
   Future<void> launch() async {
     if (isConnected) {
       print('Device $name ($profile) is already launched.');
@@ -322,7 +334,20 @@ class EmulatorDevice extends Device {
           name,
         ],
         exitOnError: true);
+    await _waitForConnection();
+  }
 
+  /// Enables root access for SDK inspection commands on this emulator.
+  Future<void> enableSdbRoot() async {
+    await _processRunner.run(
+      _tizenSdk.sdb.path,
+      <String>['-s', serial!, 'root', 'on'],
+      exitOnError: true,
+    );
+    await _waitForConnection();
+  }
+
+  Future<void> _waitForConnection() async {
     await _poll(() {
       final List<SdbDeviceInfo> deviceInfos = _tizenSdk.sdbDevices();
       for (final deviceInfo in deviceInfos) {
@@ -344,12 +369,13 @@ class EmulatorDevice extends Device {
 
   /// Closes this emulator.
   Future<void> close() async {
-    if (!isConnected) {
+    final String? pid = findEmulatorPid(name);
+    if (pid == null) {
       print('Device $name ($profile) is already closed.');
       return;
     }
     // TODO(HakkyuKim): Support Windows.
-    await _processRunner.run('kill', <String>['-9', _pid!], exitOnError: true);
+    await _processRunner.run('kill', <String>['-9', pid], exitOnError: true);
 
     await _poll(() {
       final List<SdbDeviceInfo> deviceInfos = _tizenSdk.sdbDevices();
@@ -360,7 +386,6 @@ class EmulatorDevice extends Device {
       }
       return true;
     });
-    _pid = null;
     _serial = null;
   }
 
