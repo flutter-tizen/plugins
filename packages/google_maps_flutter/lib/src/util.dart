@@ -397,6 +397,9 @@ class GPolylineOptions {
   /// The zIndex compared to other polys.
   num? zIndex;
 
+  /// Whether click events are handled.
+  bool? clickable;
+
   @override
   String toString() {
     final paths = StringBuffer();
@@ -407,7 +410,8 @@ class GPolylineOptions {
     }
 
     return '{geodesic:$geodesic, path:[$paths], strokeColor:${jsonEncode(strokeColor)},'
-        ' strokeOpacity:$strokeOpacity, map: map, strokeWeight:$strokeWeight, visible:$visible, zIndex:$zIndex}';
+        ' strokeOpacity:$strokeOpacity, map: map, strokeWeight:$strokeWeight, visible:$visible, zIndex:$zIndex,'
+        ' clickable:$clickable}';
   }
 }
 
@@ -492,6 +496,9 @@ class GPolygonOptions {
   /// The zIndex compared to other polys.
   num? zIndex;
 
+  /// Whether click events are handled.
+  bool? clickable;
+
   @override
   String toString() {
     final str = StringBuffer();
@@ -507,7 +514,8 @@ class GPolygonOptions {
 
     return '{fillColor:${jsonEncode(fillColor)}, fillOpacity:$fillOpacity, geodesic:$geodesic, paths:[$str],'
         ' strokeColor:${jsonEncode(strokeColor)}, strokeOpacity:$strokeOpacity, map: map,'
-        ' strokeWeight:$strokeWeight, visible:$visible, zIndex:$zIndex}';
+        ' strokeWeight:$strokeWeight, visible:$visible, zIndex:$zIndex,'
+        ' clickable:$clickable}';
   }
 }
 
@@ -597,11 +605,15 @@ class GCircleOptions {
   /// The zIndex compared to other polys.
   num? zIndex;
 
+  /// Whether click events are handled.
+  bool? clickable;
+
   @override
   String toString() {
     return '{center: new google.maps.LatLng(${center?.latitude}, ${center?.longitude}), fillColor:${jsonEncode(fillColor)},'
         ' fillOpacity:$fillOpacity, radius:$radius, strokeColor:${jsonEncode(strokeColor)}, strokeOpacity:$strokeOpacity,'
-        ' map: map, strokeWeight:$strokeWeight, visible:$visible, zIndex:$zIndex}';
+        ' map: map, strokeWeight:$strokeWeight, visible:$visible, zIndex:$zIndex,'
+        ' clickable:$clickable}';
   }
 }
 
