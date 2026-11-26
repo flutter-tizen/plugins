@@ -230,10 +230,30 @@ scenarios:
     expect(issue.exception, isFalse);
     expect(issue.crash, isTrue);
     expect(issue.concerns('unrelated.app', 42), isTrue);
+    expect(issue.concerns('org.tizen.myapp', 43), isFalse);
     expect(issue.concerns('org.tizen.myapp', null), isTrue);
     expect(issue.concerns('org.tizen.myapp.other', 142), isFalse);
     expect(
         ExampleLogIssue.parse(<String, dynamic>{'pid': 42, 'msg': 'Recovered normally'}), isNull);
+  });
+
+  test('correlates app manager crash reports by the reported PID', () {
+    final ExampleLogIssue issue = ExampleLogIssue.parse(<String, dynamic>{
+      'pid': 11,
+      'tag': 'AMD',
+      'msg': 'app_status_manager.cc: OnSigchldEvent(1353) > pid(42) is crashed by signal(6)',
+    })!;
+    expect(issue.concerns('org.tizen.myapp', 42), isTrue);
+    expect(issue.concerns('org.tizen.myapp', 43), isFalse);
+  });
+
+  test('matches crash reports by app ID when the target PID is unavailable', () {
+    final ExampleLogIssue issue = ExampleLogIssue.parse(<String, dynamic>{
+      'pid': 11,
+      'msg': 'org.tizen.myapp: fatal signal 11',
+    })!;
+    expect(issue.concerns('org.tizen.myapp', 42), isTrue);
+    expect(issue.concerns('org.tizen.myapp.other', 42), isFalse);
   });
 
   test('recognizes the WebView signal and ignores normal termination', () {

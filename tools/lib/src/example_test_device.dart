@@ -299,6 +299,7 @@ final RegExp _crash = RegExp(
   r'|received signal (?:4|6|7|8|11))\b',
   caseSensitive: false,
 );
+final RegExp _reportedPid = RegExp(r'\bpid[\s:=(]+(\d+)\b', caseSensitive: false);
 
 /// An error from DLog and the identity of the affected process, when available.
 class ExampleLogIssue {
@@ -331,17 +332,21 @@ class ExampleLogIssue {
   /// Whether the message indicates a crash.
   final bool crash;
 
-  /// Matches app-originated records and system crash reports naming the app.
+  /// Matches direct app logs and crash reports for the observed process.
   bool concerns(String appId, int? appPid) {
     if (appPid == _pid) {
       return true;
     }
-    final bool referencesAppId = RegExp(
+    if (!crash) {
+      return false;
+    }
+    final String? reportedPid = _reportedPid.firstMatch(message)?[1];
+    if (appPid != null && reportedPid != null) {
+      return reportedPid == '$appPid';
+    }
+    return RegExp(
       '(?<![\\w.])${RegExp.escape(appId)}(?![\\w.])',
     ).hasMatch(message);
-    final bool referencesPid = appPid != null &&
-        RegExp('\\bpid\\s*[:=( ]+\\s*$appPid\\b', caseSensitive: false).hasMatch(message);
-    return crash && (referencesAppId || referencesPid);
   }
 }
 
