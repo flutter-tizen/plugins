@@ -38,6 +38,11 @@ class BillingManager {
   /// Interface for calling host-side code.
   final InAppPurchaseApi _hostApi;
 
+  /// Resets pending native replies left over from a previous Dart isolate.
+  void initialize() {
+    _hostApi.initialize();
+  }
+
   /// get country code
   Future<String> getCountryCode() async {
     return _hostApi.getCountryCode();

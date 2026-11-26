@@ -4,20 +4,83 @@
 
 #include "in_app_purchase_tizen_plugin.h"
 
-#include <flutter/method_channel.h>
 #include <flutter/plugin_registrar.h>
-#include <flutter/standard_method_codec.h>
+#include <glib.h>
 
+#include <condition_variable>
+#include <functional>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
 
 #include "billing_manager.h"
 #include "log.h"
 #include "messages.h"
+#include "messages_ffi.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
 namespace in_app_purchase_tizen {
+
+namespace {
+
+class MainContextDispatcher : public PigeonFfiSyncDispatcher {
+ public:
+  MainContextDispatcher()
+      : thread_id_(std::this_thread::get_id()),
+        main_context_(g_main_context_ref_thread_default()) {}
+
+  ~MainContextDispatcher() override { g_main_context_unref(main_context_); }
+
+  PigeonFfiBuffer *RunSync(std::function<PigeonFfiBuffer *()> task) override {
+    if (std::this_thread::get_id() == thread_id_) {
+      return task();
+    }
+
+    struct TaskState {
+      std::function<PigeonFfiBuffer *()> task;
+      PigeonFfiBuffer *result = nullptr;
+      std::mutex mutex;
+      std::condition_variable condition;
+      bool done = false;
+    };
+    TaskState state{std::move(task)};
+    GSource *source = g_idle_source_new();
+    g_source_set_priority(source, G_PRIORITY_DEFAULT);
+    g_source_set_callback(
+        source,
+        [](gpointer data) -> gboolean {
+          auto *state = static_cast<TaskState *>(data);
+          PigeonFfiBuffer *result = state->task();
+          {
+            std::lock_guard<std::mutex> lock(state->mutex);
+            state->result = result;
+            state->done = true;
+            state->condition.notify_one();
+          }
+          return G_SOURCE_REMOVE;
+        },
+        &state, nullptr);
+    g_source_attach(source, main_context_);
+    g_source_unref(source);
+
+    std::unique_lock<std::mutex> lock(state.mutex);
+    state.condition.wait(lock, [&state] { return state.done; });
+    return state.result;
+  }
+
+ private:
+  std::thread::id thread_id_;
+  GMainContext *main_context_;
+};
+
+MainContextDispatcher *GetMainContextDispatcher() {
+  static MainContextDispatcher *dispatcher = new MainContextDispatcher();
+  return dispatcher;
+}
+
+}  // namespace
 
 class InAppPurchaseTizenPlugin : public flutter::Plugin,
                                  public InAppPurchaseApi {
@@ -27,6 +90,7 @@ class InAppPurchaseTizenPlugin : public flutter::Plugin,
   InAppPurchaseTizenPlugin(flutter::PluginRegistrar *plugin_registrar);
   virtual ~InAppPurchaseTizenPlugin() { Dispose(); }
 
+  std::optional<FlutterError> Initialize() override;
   void GetProductsList(const ProductMessage &product,
                        std::function<void(ErrorOr<ProductsListApiResult> reply)>
                            result) override;
@@ -52,17 +116,25 @@ class InAppPurchaseTizenPlugin : public flutter::Plugin,
 };
 
 InAppPurchaseTizenPlugin::InAppPurchaseTizenPlugin(
-    flutter::PluginRegistrar *plugin_registrar) {
+    flutter::PluginRegistrar * /*plugin_registrar*/) {
   billing_ = std::make_unique<BillingManager>();
-  InAppPurchaseTizenPlugin::SetUp(plugin_registrar->messenger(), this);
+  SetUpInAppPurchaseApiFfi(this, GetMainContextDispatcher());
 }
 
-void InAppPurchaseTizenPlugin::Dispose() { billing_ = nullptr; }
+void InAppPurchaseTizenPlugin::Dispose() {
+  TearDownInAppPurchaseApiFfi();
+  billing_ = nullptr;
+}
 
 void InAppPurchaseTizenPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrar *plugin_registrar) {
   auto plugin = std::make_unique<InAppPurchaseTizenPlugin>(plugin_registrar);
   plugin_registrar->AddPlugin(std::move(plugin));
+}
+
+std::optional<FlutterError> InAppPurchaseTizenPlugin::Initialize() {
+  billing_->ResetPendingCallbacks();
+  return std::nullopt;
 }
 
 void InAppPurchaseTizenPlugin::GetProductsList(
