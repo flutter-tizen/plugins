@@ -350,6 +350,86 @@ class SelectAudioTrackMessage {
 };
 
 // Generated class from Pigeon that represents data sent in messages.
+class VideoTrackMessage {
+ public:
+  // Constructs an object setting all fields.
+  explicit VideoTrackMessage(int64_t bandwidth, int64_t width, int64_t height,
+                             bool is_selected);
+
+  int64_t bandwidth() const;
+  void set_bandwidth(int64_t value_arg);
+
+  int64_t width() const;
+  void set_width(int64_t value_arg);
+
+  int64_t height() const;
+  void set_height(int64_t value_arg);
+
+  bool is_selected() const;
+  void set_is_selected(bool value_arg);
+
+  bool operator==(const VideoTrackMessage& other) const;
+  bool operator!=(const VideoTrackMessage& other) const;
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
+  size_t Hash() const;
+  /// Stream output operator for formatted string representation.
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const VideoTrackMessage& obj);
+
+ private:
+  static VideoTrackMessage FromEncodableList(
+      const ::flutter::EncodableList& list);
+  ::flutter::EncodableList ToEncodableList() const;
+  friend class TizenVideoPlayerApi;
+  friend class PigeonInternalCodecSerializer;
+  int64_t bandwidth_;
+  int64_t width_;
+  int64_t height_;
+  bool is_selected_;
+};
+
+// Generated class from Pigeon that represents data sent in messages.
+class SelectVideoTrackMessage {
+ public:
+  // Constructs an object setting all fields.
+  explicit SelectVideoTrackMessage(int64_t texture_id, int64_t bandwidth,
+                                   int64_t width, int64_t height);
+
+  int64_t texture_id() const;
+  void set_texture_id(int64_t value_arg);
+
+  int64_t bandwidth() const;
+  void set_bandwidth(int64_t value_arg);
+
+  int64_t width() const;
+  void set_width(int64_t value_arg);
+
+  int64_t height() const;
+  void set_height(int64_t value_arg);
+
+  bool operator==(const SelectVideoTrackMessage& other) const;
+  bool operator!=(const SelectVideoTrackMessage& other) const;
+  /// Returns a hash code value for the object. This method is supported for the
+  /// benefit of hash tables.
+  size_t Hash() const;
+  /// Stream output operator for formatted string representation.
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const SelectVideoTrackMessage& obj);
+
+ private:
+  static SelectVideoTrackMessage FromEncodableList(
+      const ::flutter::EncodableList& list);
+  ::flutter::EncodableList ToEncodableList() const;
+  friend class TizenVideoPlayerApi;
+  friend class PigeonInternalCodecSerializer;
+  int64_t texture_id_;
+  int64_t bandwidth_;
+  int64_t width_;
+  int64_t height_;
+};
+
+// Generated class from Pigeon that represents data sent in messages.
 class PreventsDisplaySleepMessage {
  public:
   // Constructs an object setting all fields.
@@ -426,6 +506,10 @@ class TizenVideoPlayerApi {
       const TextureMessage& msg) = 0;
   virtual std::optional<FlutterError> SelectAudioTrack(
       const SelectAudioTrackMessage& msg) = 0;
+  virtual ErrorOr<::flutter::EncodableList> GetVideoTracks(
+      const TextureMessage& msg) = 0;
+  virtual std::optional<FlutterError> SelectVideoTrack(
+      const SelectVideoTrackMessage& msg) = 0;
 
   // The codec used by TizenVideoPlayerApi.
   static const ::flutter::StandardMessageCodec& GetCodec();

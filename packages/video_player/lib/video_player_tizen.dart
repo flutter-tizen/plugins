@@ -203,6 +203,44 @@ class VideoPlayerTizen extends platform_interface.VideoPlayerPlatform {
     return true;
   }
 
+  @override
+  Future<List<platform_interface.VideoTrack>> getVideoTracks(int textureId) async {
+    final List<VideoTrackMessage> tracks = await _api.getVideoTracks(
+      TextureMessage(textureId: textureId),
+    );
+    return tracks
+        .map(
+          (VideoTrackMessage track) => platform_interface.VideoTrack(
+            id: '${track.bandwidth}_${track.width}x${track.height}',
+            isSelected: track.isSelected,
+            bitrate: track.bandwidth > 0 ? track.bandwidth : null,
+            width: track.width > 0 ? track.width : null,
+            height: track.height > 0 ? track.height : null,
+          ),
+        )
+        .toList();
+  }
+
+  @override
+  Future<void> selectVideoTrack(int textureId, platform_interface.VideoTrack? track) async {
+    if (track != null && track.bitrate == null && track.width == null && track.height == null) {
+      throw ArgumentError.value(track, 'track', 'must have a bitrate, width or height');
+    }
+    return _api.selectVideoTrack(
+      SelectVideoTrackMessage(
+        textureId: textureId,
+        bandwidth: track?.bitrate ?? -1,
+        width: track?.width ?? -1,
+        height: track?.height ?? -1,
+      ),
+    );
+  }
+
+  @override
+  bool isVideoTrackSupportAvailable() {
+    return true;
+  }
+
   EventChannel _eventChannelFor(int textureId) {
     return EventChannel('flutter.io/videoPlayer/videoEvents$textureId');
   }

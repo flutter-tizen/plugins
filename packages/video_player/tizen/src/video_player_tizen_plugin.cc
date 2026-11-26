@@ -50,6 +50,10 @@ class VideoPlayerTizenPlugin : public flutter::Plugin,
       const TextureMessage &msg) override;
   std::optional<FlutterError> SelectAudioTrack(
       const SelectAudioTrackMessage &msg) override;
+  ErrorOr<flutter::EncodableList> GetVideoTracks(
+      const TextureMessage &msg) override;
+  std::optional<FlutterError> SelectVideoTrack(
+      const SelectVideoTrackMessage &msg) override;
 
  private:
   void DisposeAllPlayers();
@@ -293,6 +297,44 @@ std::optional<FlutterError> VideoPlayerTizenPlugin::SelectAudioTrack(
   }
   try {
     iter->second->SelectAudioTrack(msg.track_index());
+  } catch (const VideoPlayerError &error) {
+    return FlutterError(error.code(), error.message());
+  }
+
+  return std::nullopt;
+}
+
+ErrorOr<flutter::EncodableList> VideoPlayerTizenPlugin::GetVideoTracks(
+    const TextureMessage &msg) {
+  auto iter = players_.find(msg.texture_id());
+  if (iter == players_.end()) {
+    return FlutterError("Invalid argument", "Player not found.");
+  }
+
+  flutter::EncodableList result;
+  try {
+    for (const VideoTrack &track : iter->second->GetVideoTracks()) {
+      result.push_back(flutter::CustomEncodableValue(VideoTrackMessage(
+          track.bandwidth, track.width, track.height, track.is_selected)));
+    }
+  } catch (const VideoPlayerError &error) {
+    return FlutterError(error.code(), error.message());
+  }
+  return result;
+}
+
+std::optional<FlutterError> VideoPlayerTizenPlugin::SelectVideoTrack(
+    const SelectVideoTrackMessage &msg) {
+  auto iter = players_.find(msg.texture_id());
+  if (iter == players_.end()) {
+    return FlutterError("Invalid argument", "Player not found.");
+  }
+  if (msg.bandwidth() > INT32_MAX || msg.width() > INT32_MAX ||
+      msg.height() > INT32_MAX) {
+    return FlutterError("Invalid argument", "Video track is out of range.");
+  }
+  try {
+    iter->second->SelectVideoTrack(msg.bandwidth(), msg.width(), msg.height());
   } catch (const VideoPlayerError &error) {
     return FlutterError(error.code(), error.message());
   }

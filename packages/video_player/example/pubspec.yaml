@@ -34,4 +34,5 @@ flutter:
     - assets/Butterfly-209.mp4
     - assets/bumble_bee_captions.vtt
     - assets/Audio.mp3
+    - assets/hls_segment.ts
   uses-material-design: true
