@@ -1,3 +1,9 @@
+## 0.3.1
+
+* Update google_maps_flutter to 2.19.0.
+* Update google_maps_flutter_platform_interface to 2.17.0.
+* Add support for POI tap events.
+
 ## 0.3.0
 
 * Update `webview_flutter_lwe` to ^0.6.0.
