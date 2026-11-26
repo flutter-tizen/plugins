@@ -31,6 +31,8 @@ typedef flutter::StreamHandlerError<flutter::EncodableValue>
 
 constexpr char kPrivilegeLocation[] = "http://tizen.org/privilege/location";
 
+enum class LocationAccuracyStatus { kReduced, kPrecise };
+
 class LocationStreamHandler : public FlStreamHandler {
  protected:
   std::unique_ptr<FlStreamHandlerError> OnListenInternal(
@@ -139,7 +141,8 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
 
   GeolocatorTizenPlugin()
       : permission_manager_(std::make_unique<PermissionManager>()),
-        location_manager_(std::make_unique<LocationManager>()) {}
+        location_manager_(std::make_unique<LocationManager>()),
+        app_settings_manager_(std::make_unique<AppSettingsManager>()) {}
 
   virtual ~GeolocatorTizenPlugin() {}
 
@@ -160,6 +163,9 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
       OnGetLastKnownPosition();
     } else if (method_name == "getCurrentPosition") {
       OnGetCurrentPosition();
+    } else if (method_name == "getLocationAccuracy") {
+      SendResult(flutter::EncodableValue(
+          static_cast<int>(LocationAccuracyStatus::kPrecise)));
     } else if (method_name == "openAppSettings") {
       bool opened = app_settings_manager_->OpenAppSettings();
       SendResult(flutter::EncodableValue(opened));
@@ -167,7 +173,8 @@ class GeolocatorTizenPlugin : public flutter::Plugin {
       bool opened = app_settings_manager_->OpenLocationSettings();
       SendResult(flutter::EncodableValue(opened));
     } else {
-      result->NotImplemented();
+      result_->NotImplemented();
+      result_ = nullptr;
     }
   }
 

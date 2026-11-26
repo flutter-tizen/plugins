@@ -1,3 +1,10 @@
+## 1.2.0
+
+* Fix `getCurrentPosition` never completing when it is called again before an earlier call completes.
+* Fix a crash when an unimplemented method such as `requestTemporaryFullAccuracy` is called.
+* Fix a possible crash when `openAppSettings` or `openLocationSettings` is called.
+* Add support for `getLocationAccuracy`.
+
 ## 1.1.0
 
 * Update geolocator_platform_interface to 4.4.0.

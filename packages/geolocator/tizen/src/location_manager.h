@@ -10,6 +10,8 @@
 
 #include <functional>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "position.h"
 
@@ -62,8 +64,8 @@ class LocationManager {
 
   ServiceStatusCallback service_status_update_callback_;
   LocationCallback location_update_callback_;
-  LocationCallback location_callback_;
-  LocationErrorCallback error_callback_;
+  std::vector<std::pair<LocationCallback, LocationErrorCallback>>
+      current_position_callbacks_;
 };
 
 #endif  // FLUTTER_PLUGIN_LOCATION_MANAGER_H_
