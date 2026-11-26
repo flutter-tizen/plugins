@@ -6,15 +6,20 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Process, ProcessResult;
 
+import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:file/memory.dart';
+import 'package:flutter_plugin_tools/src/common/core.dart';
 import 'package:flutter_plugin_tools/src/common/process_runner.dart';
 import 'package:flutter_tizen_plugin_tools/src/device.dart';
+import 'package:flutter_tizen_plugin_tools/src/example_test_command.dart';
 import 'package:flutter_tizen_plugin_tools/src/example_test_config.dart';
 import 'package:flutter_tizen_plugin_tools/src/example_test_device.dart';
 import 'package:flutter_tizen_plugin_tools/src/tizen_sdk.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
+
+import 'utils.dart';
 
 class _MockProcessRunner extends Mock implements ProcessRunner {}
 
@@ -59,6 +64,39 @@ plugins:
       ),
       throwsFormatException,
     );
+  });
+
+  test('rejects event packages without targets in the recipe', () async {
+    final FileSystem fs = MemoryFileSystem();
+    final Directory packages = fs.directory('packages')..createSync();
+    fs.file('recipe.yaml').writeAsStringSync('''
+plugins:
+  webview_flutter_tizen: ["common-11.0"]
+  skipped: []
+''');
+    fs.file('events.yaml').writeAsStringSync('''
+scenarios:
+  webview_flutter:
+    example:
+      - id: tap_menu
+        events: [{tap: {x: 0.5, y: 0.5}}]
+  skipped:
+    example: []
+''');
+    final runner = CommandRunner<void>('tools', 'Example test command')
+      ..addCommand(ExampleTestCommand(packages));
+
+    Error? error;
+    final List<String> output = await runCapturingPrint(
+      runner,
+      <String>['example-test', '--recipe', 'recipe.yaml', '--events', 'events.yaml'],
+      errorHandler: (Error caught) => error = caught,
+    );
+
+    expect(
+        error, isA<ToolExit>().having((exit) => exit.exitCode, 'exitCode', exitInvalidArguments));
+    expect(output.single, contains('No recipe targets for event scenario packages'));
+    expect(output.single, contains('webview_flutter, skipped'));
   });
 
   test('selects running emulators by each target profile and version', () async {

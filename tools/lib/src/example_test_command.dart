@@ -22,7 +22,9 @@ class ExampleTestCommand extends PackageCommand {
       ..addOption('recipe',
           defaultsTo: '.github/recipe_example.yaml',
           help: 'YAML with profile-version targets for each plugin, such as common-11.0.')
-      ..addOption('events', help: 'Optional, separate scenario YAML with a scenarios map.')
+      ..addOption('events',
+          help:
+              'Optional scenario YAML. Use pubspec package names from the recipe in the scenarios map.')
       ..addFlag('create-emulator',
           negatable: false,
           help: 'Create, launch and delete an emulator for each recipe target. '
@@ -54,6 +56,12 @@ class ExampleTestCommand extends PackageCommand {
       scenarios = argResults!.wasParsed('events')
           ? parseExampleScenarios(fs.file(getStringArg('events')).readAsStringSync())
           : <String, Map<String, List<ExampleStep>>>{};
+      final Iterable<String> unusedPlugins =
+          scenarios.keys.where((String plugin) => recipe.plugins[plugin]?.isNotEmpty != true);
+      if (unusedPlugins.isNotEmpty) {
+        throw FormatException(
+            'No recipe targets for event scenario packages ${unusedPlugins.join(', ')}.');
+      }
     } on Object catch (error) {
       print(error);
       throw ToolExit(exitInvalidArguments);
