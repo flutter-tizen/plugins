@@ -40,6 +40,9 @@ class SdbDeviceInfo {
 
   /// The name of the device.
   final String name;
+
+  /// Whether SDB reports this device as an emulator.
+  bool get isEmulator => serial.startsWith('emulator-');
 }
 
 /// A Tizen device type.
@@ -59,13 +62,16 @@ class DeviceType {
   final String _value;
 
   /// A list of all supported Tizen device types.
-  static const List<DeviceType> values = <DeviceType>[tv, mobile];
+  static const List<DeviceType> values = <DeviceType>[tv, mobile, common];
 
   /// A tv device type such as Samsung Smart TV.
   static const DeviceType tv = DeviceType._('tv');
 
   /// A mobile device type such as smartphones.
   static const DeviceType mobile = DeviceType._('mobile');
+
+  /// A common-profile Tizen device.
+  static const DeviceType common = DeviceType._('common');
 
   @override
   String toString() => _value;
@@ -136,10 +142,11 @@ class Profile {
 
   @override
   String toString() {
-    if (version == null) {
+    final Version? platformVersion = version;
+    if (platformVersion == null) {
       return '$deviceType';
     }
-    return '$deviceType-${version.toString().substring(0, 3)}';
+    return '$deviceType-${platformVersion.major}.${platformVersion.minor}';
   }
 }
 
@@ -256,19 +263,19 @@ class TizenSdk {
 String? findEmulatorPid(String name) {
   const processRunner = ProcessRunner();
   // TODO(HakkyuKim): Support Windows.
-  final io.ProcessResult result = processRunner.runSync('ps', <String>['aux']);
+  final io.ProcessResult result = processRunner.runSync('ps', <String>['-eo', 'pid=,comm=,args=']);
 
   if (result.exitCode != 0) {
     print('Error: Unable to list running processes.');
     throw ToolExit(result.exitCode);
   }
 
-  final List<String> lines =
-      LineSplitter.split(result.stdout as String).map((String line) => line.trim()).toList();
-
-  for (final line in lines) {
-    if (line.contains('emulator-x86_64') && line.contains(name)) {
-      return line.split(RegExp(r'\s+'))[1];
+  final String config = RegExp.escape('/$name/vm_launch.conf');
+  final pattern = RegExp('^\\s*(\\d+)\\s+(?:\\S*/)?emulator-x86(?:_64)?\\s+.*$config(?:["\\s]|\$)');
+  for (final String line in LineSplitter.split(result.stdout as String)) {
+    final RegExpMatch? match = pattern.firstMatch(line);
+    if (match != null) {
+      return match[1];
     }
   }
 

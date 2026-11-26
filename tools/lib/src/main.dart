@@ -14,6 +14,7 @@ import 'package:flutter_plugin_tools/src/format_command.dart';
 import 'package:flutter_plugin_tools/src/list_command.dart';
 
 import 'build_examples_command.dart';
+import 'example_test_command.dart';
 import 'integration_test_command.dart';
 import 'publish_command.dart';
 
@@ -35,6 +36,7 @@ void main(List<String> args) {
       'Productivity utils for hosting multiple plugins within one repository.')
     ..addCommand(AnalyzeCommand(packagesDir))
     ..addCommand(BuildExamplesCommand(packagesDir))
+    ..addCommand(ExampleTestCommand(packagesDir))
     ..addCommand(FormatCommand(packagesDir))
     ..addCommand(IntegrationTestCommand(packagesDir))
     ..addCommand(ListCommand(packagesDir))
